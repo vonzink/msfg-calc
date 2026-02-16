@@ -1,0 +1,112 @@
+/* VA Pre-Qual — page-specific styles */
+
+.residual-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.residual-item { text-align: center; }
+
+.residual-item h4 {
+  font-size: 0.85rem;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-xs);
+}
+
+.residual-item .value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.residual-status {
+  padding: var(--space-md);
+  border-radius: var(--border-radius);
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.residual-status.pass {
+  background: #d4edda;
+  color: #155724;
+}
+
+.residual-status.fail {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.dti-display {
+  text-align: center;
+  margin: var(--space-xl) 0;
+}
+
+.dti-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.dti-guideline {
+  font-size: 0.85rem;
+  color: var(--color-gray-500);
+}
+
+/* Reference tables */
+.residual-tables-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+.residual-table-wrapper h3 {
+  font-size: 0.9rem;
+  margin-bottom: var(--space-sm);
+  color: var(--brand-primary);
+}
+
+.table-note {
+  font-size: 0.78rem;
+  color: var(--color-gray-500);
+  font-style: italic;
+  margin-top: var(--space-xs);
+}
+
+.region-key {
+  margin-top: var(--space-lg);
+  padding: var(--space-lg);
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius);
+}
+
+.region-key h4 {
+  margin-bottom: var(--space-md);
+  color: var(--brand-primary);
+}
+
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.region-column h5 {
+  font-size: 0.85rem;
+  color: var(--brand-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.region-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-gray-500);
+  line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+  .residual-tables-container { grid-template-columns: 1fr; }
+  .region-grid { grid-template-columns: 1fr 1fr; }
+}

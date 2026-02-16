@@ -1,0 +1,62 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Site Settings</h1>
+    <p>Configure your logo, site name, and branding that appears across all calculators.</p>
+  </div>
+
+  <div class="calc-page__body">
+    <% if (saved) { %>
+      <div class="alert alert-info" style="margin-bottom: var(--space-lg);">
+        Settings saved successfully.
+      </div>
+    <% } %>
+
+    <!-- Current Logo Preview -->
+    <div class="calc-section">
+      <h2>Current Logo</h2>
+      <div style="padding: var(--space-lg); background: var(--color-gray-50); border-radius: var(--border-radius); text-align: center;">
+        <img src="<%= config.logo.src %>" alt="<%= config.logo.alt %>" style="max-width: <%= config.logo.width %>px; height: auto;" onerror="this.outerHTML='<span class=text-muted>No logo uploaded yet</span>'">
+      </div>
+    </div>
+
+    <!-- Upload New Logo -->
+    <div class="calc-section">
+      <h2>Upload Logo</h2>
+      <form action="/settings/logo" method="POST" enctype="multipart/form-data">
+        <div class="form-grid" style="grid-template-columns: 1fr auto;">
+          <div class="form-group">
+            <label>Logo Image (PNG, JPG, SVG, WebP — max 2MB)</label>
+            <input type="file" name="logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" required>
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">Upload Logo</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Site Configuration -->
+    <div class="calc-section">
+      <h2>Site Configuration</h2>
+      <form action="/settings/update" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="siteName">Site Name</label>
+            <input type="text" id="siteName" name="siteName" value="<%= config.siteName %>">
+          </div>
+          <div class="form-group">
+            <label for="companyName">Company Name</label>
+            <input type="text" id="companyName" name="companyName" value="<%= config.companyName %>">
+          </div>
+          <div class="form-group">
+            <label for="logoWidth">Logo Max Width (px)</label>
+            <input type="number" id="logoWidth" name="logoWidth" value="<%= config.logo.width %>" min="40" max="400">
+          </div>
+        </div>
+        <div class="action-bar">
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

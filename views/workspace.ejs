@@ -1,0 +1,71 @@
+<div class="workspace">
+
+  <!-- Toolbar -->
+  <div class="workspace__toolbar">
+    <div class="workspace__toolbar-left">
+      <h1 class="workspace__title">Calculator Workspace</h1>
+      <span class="workspace__count" id="wsCount">0 active</span>
+    </div>
+    <div class="workspace__toolbar-right">
+      <button class="btn btn-sm btn-ghost" id="wsCollapseAll" title="Collapse all">Collapse All</button>
+      <button class="btn btn-sm btn-ghost" id="wsClearAll" title="Remove all">Clear All</button>
+      <button class="btn btn-sm btn-primary" id="wsToggleSelector">Add Calculator</button>
+    </div>
+  </div>
+
+  <!-- Calculator Selector Drawer -->
+  <div class="workspace__selector" id="wsSelector" style="display: none;">
+    <div class="workspace__selector-inner">
+      <input type="text" class="workspace__search" id="wsSelectorSearch" placeholder="Search calculators..." autocomplete="off">
+      <div class="workspace__selector-grid" id="wsSelectorGrid">
+        <% categories.filter(c => c.id !== 'tools').forEach(cat => { %>
+          <div class="workspace__selector-group" data-cat="<%= cat.id %>">
+            <div class="workspace__selector-label" style="border-left: 3px solid <%= cat.color %>;">
+              <%= cat.label %>
+            </div>
+            <% calculators.filter(c => c.category === cat.id).forEach(calc => { %>
+              <button class="workspace__selector-btn" data-slug="<%= calc.slug %>" data-name="<%= calc.name.toLowerCase() %>">
+                <span class="workspace__selector-icon"><%= calc.icon %></span>
+                <span class="workspace__selector-name"><%= calc.name %></span>
+              </button>
+            <% }) %>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Calculator Panels -->
+  <div class="workspace__panels" id="wsPanels">
+    <div class="workspace__empty" id="wsEmpty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+      <h3>No calculators selected</h3>
+      <p>Click "Add Calculator" above to start building your workspace.</p>
+    </div>
+  </div>
+
+  <!-- Tally Bar (sticky bottom) -->
+  <div class="workspace__tally" id="wsTally" style="display: none;">
+    <div class="workspace__tally-inner">
+      <div class="workspace__tally-title">Workspace Totals</div>
+      <div class="workspace__tally-grid" id="wsTallyGrid">
+        <div class="workspace__tally-item">
+          <span class="workspace__tally-label">Total Monthly Payment</span>
+          <span class="workspace__tally-value" id="tallyMonthlyPayment">$0</span>
+        </div>
+        <div class="workspace__tally-item">
+          <span class="workspace__tally-label">Total Loan Amount</span>
+          <span class="workspace__tally-value" id="tallyLoanAmount">$0</span>
+        </div>
+        <div class="workspace__tally-item">
+          <span class="workspace__tally-label">Total Cash to Close</span>
+          <span class="workspace__tally-value" id="tallyCashToClose">$0</span>
+        </div>
+        <div class="workspace__tally-item">
+          <span class="workspace__tally-label">Total Monthly Income</span>
+          <span class="workspace__tally-value" id="tallyMonthlyIncome">$0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

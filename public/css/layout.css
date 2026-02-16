@@ -1,0 +1,257 @@
+/* =====================================================
+   MSFG Calculator Suite — Layout
+   Header, footer, navigation, page structure
+   ===================================================== */
+
+/* ---- Site Header ---- */
+.site-header {
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: var(--shadow-sm);
+}
+
+.site-header__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-sm) var(--space-lg);
+  min-height: 56px;
+}
+
+.site-header__brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.site-header__logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.site-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: auto;
+}
+
+.site-header__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-header__link:hover,
+.site-header__link.active {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+}
+
+/* Dropdown */
+.site-header__dropdown {
+  position: relative;
+}
+
+.site-header__dropdown-trigger {
+  font-family: var(--font-body);
+}
+
+.site-header__dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 280px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-sm) 0;
+  z-index: 1001;
+}
+
+.site-header__dropdown:hover .site-header__dropdown-menu,
+.site-header__dropdown:focus-within .site-header__dropdown-menu {
+  display: block;
+}
+
+.site-header__dropdown-group {
+  padding: var(--space-xs) 0;
+}
+
+.site-header__dropdown-group + .site-header__dropdown-group {
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.site-header__dropdown-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gray-500);
+  padding: var(--space-sm) var(--space-lg);
+}
+
+.site-header__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 0.85rem;
+  color: var(--color-gray-700);
+  transition: background var(--transition);
+}
+
+.site-header__dropdown-item:hover {
+  background: var(--color-gray-50);
+  color: var(--brand-primary);
+}
+
+.site-header__dropdown-icon {
+  font-size: 1rem;
+  width: 24px;
+  text-align: center;
+}
+
+/* Mobile toggle */
+.site-header__mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-sm);
+  color: var(--color-gray-700);
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .site-header__nav { display: none; }
+  .site-header__mobile-toggle { display: block; }
+
+  .site-header__nav.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-gray-200);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-md);
+    gap: var(--space-xs);
+  }
+
+  .site-header__dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: none;
+    max-height: none;
+  }
+}
+
+/* ---- Site Main ---- */
+.site-main {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
+  min-height: calc(100vh - 56px - 120px);
+}
+
+/* ---- Site Footer ---- */
+.site-footer {
+  background: var(--color-gray-900);
+  color: var(--color-gray-300);
+  padding: var(--space-xl) var(--space-lg);
+  margin-top: var(--space-2xl);
+}
+
+.site-footer__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.site-footer__brand {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-white);
+  margin-bottom: var(--space-sm);
+}
+
+.site-footer__disclaimer {
+  font-size: 0.8rem;
+  color: var(--color-gray-500);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ---- Calculator Page Layout ---- */
+.calc-page {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.calc-page__header {
+  padding: var(--space-xl) var(--space-xl) var(--space-lg);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.calc-page__header h1 {
+  margin-bottom: var(--space-xs);
+}
+
+.calc-page__header p {
+  color: var(--color-gray-500);
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 700px;
+}
+
+.calc-page__body {
+  padding: var(--space-xl);
+}
+
+.calc-page__footer {
+  background: var(--color-gray-50);
+  border-top: 1px solid var(--color-gray-100);
+  padding: var(--space-lg) var(--space-xl);
+}
+
+.calc-page__footer-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-xs);
+}
+
+.calc-page__footer p {
+  font-size: 0.8rem;
+  color: var(--color-gray-500);
+  margin: 0;
+  line-height: 1.5;
+}

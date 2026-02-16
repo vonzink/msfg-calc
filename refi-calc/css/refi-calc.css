@@ -1,23 +1,193 @@
 /* =====================================================
-   REFI CALCULATOR — Page-Specific Styles
-   Extends main.css shared styles
+   REFI CALC — Page-Specific Styles
+   Mountain State Financial Group
    ===================================================== */
+
+/* =====================================================
+   PROFILE BAR
+   ===================================================== */
+.profile-bar {
+    background: linear-gradient(135deg, #f0f7f4 0%, #e8f5e8 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 0.75rem 2rem;
+}
+
+.profile-bar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.profile-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.profile-select-group,
+.profile-save-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-label {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+#profileSelect {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    min-width: 220px;
+    background: var(--light);
+    cursor: pointer;
+}
+
+#profileNameInput {
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    min-width: 200px;
+    background: var(--light);
+}
+
+#profileNameInput:focus,
+#profileSelect:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(64, 145, 108, 0.15);
+}
+
+.btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-sm.btn-primary {
+    background: var(--primary);
+    color: var(--light);
+}
+.btn-sm.btn-primary:hover {
+    background: var(--secondary);
+}
+
+.btn-sm.btn-accent {
+    background: var(--accent);
+    color: var(--light);
+}
+.btn-sm.btn-accent:hover {
+    background: var(--primary);
+}
+
+.btn-sm.btn-danger-outline {
+    background: transparent;
+    color: var(--danger);
+    border-color: var(--danger);
+}
+.btn-sm.btn-danger-outline:hover {
+    background: var(--danger);
+    color: var(--light);
+}
+
+.profile-status {
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+    min-height: 1.2rem;
+    transition: all 0.3s;
+}
+
+.profile-status-success {
+    color: var(--success);
+    font-weight: 500;
+}
+
+.profile-status-error {
+    color: var(--danger);
+    font-weight: 500;
+}
+
+/* =====================================================
+   COLLAPSIBLE INPUT SECTIONS
+   ===================================================== */
+.collapsible-section-wrap {
+    position: relative;
+}
+
+.section-header-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    border-radius: 6px;
+    margin: -0.25rem -0.25rem 0 -0.25rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+}
+
+.section-header-toggle:hover {
+    background: rgba(64, 145, 108, 0.05);
+}
+
+.section-header-toggle h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.section-collapse-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    line-height: 1;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+}
+
+.section-body {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+    padding-top: 0;
+}
+
+.section-body.open {
+    max-height: 3000px;
+    opacity: 1;
+    padding-top: 1rem;
+}
 
 /* =====================================================
    OPTIONAL BADGE
    ===================================================== */
 .optional-badge {
     display: inline-block;
-    background: var(--accent);
-    color: var(--light);
     font-size: 0.65rem;
-    font-weight: 700;
-    padding: 0.15rem 0.6rem;
-    border-radius: 3px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-left: 0.75rem;
+    background: linear-gradient(135deg, #fff3cd, #ffeeba);
+    color: #856404;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    margin-left: 0.5rem;
     vertical-align: middle;
+    border: 1px solid #f0d060;
 }
 
 /* =====================================================
@@ -28,13 +198,15 @@
 }
 
 .debt-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
 }
 
-.debt-row:last-child {
-    border-bottom: none;
+.debt-row + .debt-row {
+    border-top: 1px solid var(--border);
 }
 
 .debt-row input[type="text"] {
@@ -50,23 +222,18 @@
     box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.1);
 }
 
-/* =====================================================
-   CALCULATE BUTTON
-   ===================================================== */
-.btn-calculate {
-    font-size: 1.15rem;
-    padding: 1rem 2.5rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+.input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
 }
 
-.btn-calculate:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(45, 106, 79, 0.35);
-}
-
-.btn-calculate:active {
-    transform: translateY(-1px);
+.info-text {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
 }
 
 /* =====================================================
@@ -99,6 +266,36 @@
 
 .toggle-text {
     user-select: none;
+}
+
+.toggle-label input:checked + .toggle-text {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* =====================================================
+   CALCULATE BUTTON
+   ===================================================== */
+.btn-calculate {
+    font-size: 1.15rem;
+    padding: 1rem 2.5rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+    transition: all 0.3s;
+}
+
+.btn-calculate:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(45, 106, 79, 0.35);
+}
+
+.btn-calculate:active {
+    transform: translateY(-1px);
+}
+
+.btn-calculate span {
+    margin-right: 0.3rem;
 }
 
 /* =====================================================
@@ -199,6 +396,119 @@
 }
 
 /* =====================================================
+   BREAKDOWN SECTION
+   ===================================================== */
+.breakdown-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.breakdown-card {
+    background: var(--light-gray);
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+.breakdown-card h3 {
+    color: var(--primary);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+    font-weight: 600;
+    padding-top: 0.5rem;
+}
+
+.breakdown-label {
+    color: var(--gray);
+    font-size: 0.85rem;
+}
+
+.breakdown-value {
+    font-weight: 500;
+    color: var(--dark);
+}
+
+/* =====================================================
+   DIFFERENCE CARD
+   ===================================================== */
+.difference {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--light-gray);
+}
+
+.difference h3 {
+    margin-top: 0;
+    color: var(--gray);
+    font-size: 0.95rem;
+}
+
+.difference-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.difference.positive .difference-value {
+    color: var(--success);
+}
+
+.difference.negative .difference-value {
+    color: var(--warning);
+}
+
+.difference p {
+    color: var(--gray);
+    margin-bottom: 0;
+}
+
+/* =====================================================
+   COMPARISON GRID
+   ===================================================== */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.comparison-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--light-gray);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.comparison-item h4 {
+    color: var(--gray);
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+}
+
+.comparison-item .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* =====================================================
    ADVICE SECTION VARIANTS
    ===================================================== */
 .conclusion.advice-now {
@@ -265,12 +575,130 @@
 }
 
 /* =====================================================
-   CHART CANVASES
+   CHART CANVASES & SECTIONS
    ===================================================== */
 .chart-content canvas {
     max-width: 100%;
     margin: 0 auto;
     display: block;
+}
+
+.chart-section {
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--light-gray);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.chart-header:hover {
+    background: #eef2ef;
+}
+
+.chart-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+.chart-toggle {
+    background: var(--primary);
+    color: var(--light);
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.chart-toggle:hover {
+    background: var(--secondary);
+}
+
+.chart-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+    padding: 0 1.5rem;
+}
+
+.chart-content.open {
+    max-height: 600px;
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.chart-description {
+    color: var(--gray);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+/* =====================================================
+   COLLAPSIBLE SECTIONS (Math Details, Cost Summary)
+   ===================================================== */
+.collapsible-section {
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--light-gray);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.collapsible-header:hover {
+    background: #eef2ef;
+}
+
+.collapsible-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+.toggle-button {
+    background: var(--accent);
+    color: var(--light);
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.toggle-button:hover {
+    background: var(--primary);
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+    padding: 0 1.5rem;
+}
+
+.collapsible-content.open {
+    max-height: 4000px;
+    padding: 1rem 1.5rem 1.5rem;
 }
 
 /* =====================================================
@@ -440,28 +868,61 @@
         print-color-adjust: exact;
     }
 
+    /* Hide non-printable elements */
+    .profile-bar,
+    .btn-calculate,
+    #btnReset,
+    .action-buttons,
+    .chart-toggle,
+    .toggle-button,
+    .section-collapse-btn,
+    .payment-toggle-row {
+        display: none !important;
+    }
+
+    /* Show section bodies — override collapse */
+    .section-body {
+        max-height: none !important;
+        opacity: 1 !important;
+        padding-top: 1rem !important;
+        overflow: visible !important;
+    }
+
+    .section-header-toggle {
+        cursor: default;
+    }
+
     .section {
         break-inside: avoid;
     }
 
-    .btn, .action-buttons,
-    .chart-toggle, .toggle-button,
-    .payment-toggle-row,
-    #btnCalculate, #btnReset {
-        display: none !important;
-    }
-
-    .chart-content,
-    .collapsible-content {
-        display: block !important;
-    }
-
+    /* Show results only if they've been calculated */
     #resultsContainer.visible {
         display: block !important;
     }
 
     #resultsContainer.hidden {
         display: none !important;
+    }
+
+    /* Open charts and collapsibles for printing */
+    .chart-content,
+    .collapsible-content {
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 1rem 1.5rem 1.5rem !important;
+    }
+
+    /* Hide cost of waiting results if that section is disabled */
+    #costOfWaitingResults[style*="display: none"] {
+        display: none !important;
+    }
+
+    /* Prevent page breaks inside cards */
+    .result-card,
+    .breakdown-card,
+    .math-group {
+        break-inside: avoid;
     }
 
     .chart-section,
@@ -486,6 +947,30 @@
    RESPONSIVE ADJUSTMENTS
    ===================================================== */
 @media (max-width: 768px) {
+    .profile-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profile-select-group,
+    .profile-save-group {
+        flex-wrap: wrap;
+    }
+
+    #profileSelect,
+    #profileNameInput {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .breakdown-section {
+        grid-template-columns: 1fr;
+    }
+
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+
     .fee-grid {
         grid-template-columns: 1fr;
     }
@@ -501,5 +986,14 @@
 
     .result-value {
         font-size: 1.3rem;
+    }
+
+    .debt-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .debt-row input[type="text"] {
+        min-width: 0 !important;
     }
 }

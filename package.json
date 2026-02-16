@@ -1,0 +1,27 @@
+{
+  "name": "msfg-calc",
+  "version": "1.0.0",
+  "description": "MSFG Mortgage Calculator Suite",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "mortgage",
+    "calculator",
+    "fha",
+    "va",
+    "income"
+  ],
+  "author": "Mountain States Financial Group",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "multer": "^2.0.2"
+  }
+}

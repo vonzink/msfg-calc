@@ -1,0 +1,54 @@
+{
+  "categories": [
+    {
+      "id": "general",
+      "label": "General Calculators",
+      "color": "#2d6a4f"
+    },
+    {
+      "id": "government",
+      "label": "Government Calculators",
+      "color": "#1565c0"
+    },
+    {
+      "id": "income",
+      "label": "Income Calculators",
+      "color": "#6a1b9a"
+    },
+    {
+      "id": "tools",
+      "label": "Specialty Tools",
+      "color": "#e65100"
+    }
+  ],
+  "calculators": [
+    { "slug": "amortization", "name": "Amortization Calculator", "category": "general", "icon": "📈", "hasCalculations": true, "description": "Full amortization schedule with graphs and loan comparison" },
+    { "slug": "apr", "name": "APR Calculator", "category": "general", "icon": "💯", "hasCalculations": true, "description": "Calculate true APR including fees and discount points" },
+    { "slug": "blended-rate", "name": "Blended Rate Calculator", "category": "general", "icon": "📊", "hasCalculations": true, "description": "Calculate blended rate across multiple debts" },
+    { "slug": "buydown", "name": "Buydown Calculator", "category": "general", "icon": "💲", "hasCalculations": true, "description": "Analyze temporary and permanent buydown scenarios" },
+    { "slug": "buy-vs-rent", "name": "Buy vs Rent Calculator", "category": "general", "icon": "🏠", "hasCalculations": true, "description": "Compare the cost of buying versus renting over time" },
+    { "slug": "cash-vs-mortgage", "name": "Cash vs Mortgage Comparison", "category": "general", "icon": "💰", "hasCalculations": true, "description": "Evaluate paying cash versus financing" },
+    { "slug": "refi", "name": "Refinance Analysis Tool", "category": "general", "icon": "🔁", "hasCalculations": true, "description": "Breakeven analysis for refinance scenarios" },
+    { "slug": "reo", "name": "REO Investment ROI", "category": "general", "icon": "🏛️", "hasCalculations": true, "description": "ROI analysis for REO investment properties" },
+    { "slug": "escrow", "name": "Escrow Prepaids Calculator", "category": "government", "icon": "🧾", "hasCalculations": true, "description": "Estimate escrow and prepaid amounts" },
+    { "slug": "fha", "name": "FHA Loan Calculator", "category": "government", "icon": "🏦", "hasCalculations": true, "description": "FHA eligibility, UFMIP, NTB, and cash to close" },
+    { "slug": "fha-refi", "name": "FHA Refinance Calculator", "category": "government", "icon": "🏦", "hasCalculations": true, "description": "FHA streamline and standard refinance analysis" },
+    { "slug": "va-prequal", "name": "VA Pre-Qualification", "category": "government", "icon": "🎖️", "hasCalculations": true, "description": "VA residual income and DTI worksheet" },
+    { "slug": "income-questionnaire", "name": "Income Questionnaire", "category": "income", "icon": "❓", "hasCalculations": false, "description": "Guided questionnaire to determine which income calculators to use" },
+    { "slug": "income/1040", "name": "Form 1040 Income", "category": "income", "icon": "📝", "hasCalculations": true, "description": "Calculate qualifying income from IRS Form 1040" },
+    { "slug": "income/1065", "name": "Form 1065 Income", "category": "income", "icon": "📝", "hasCalculations": true, "description": "Partnership income from Form 1065" },
+    { "slug": "income/1120", "name": "Form 1120 Income", "category": "income", "icon": "🏢", "hasCalculations": true, "description": "Corporate income from Form 1120" },
+    { "slug": "income/1120s", "name": "Form 1120S Income", "category": "income", "icon": "🏛️", "hasCalculations": true, "description": "S-Corp income from Form 1120S" },
+    { "slug": "income/1120s-k1", "name": "1120S K-1 Income", "category": "income", "icon": "📃", "hasCalculations": true, "description": "S-Corp K-1 distribution income" },
+    { "slug": "income/k1", "name": "Schedule K-1 Income", "category": "income", "icon": "📋", "hasCalculations": true, "description": "Partnership/S-Corp K-1 income" },
+    { "slug": "income/rental-1038", "name": "Rental Property Income (1038)", "category": "income", "icon": "🏘️", "hasCalculations": true, "description": "Rental income from property analysis" },
+    { "slug": "income/schedule-b", "name": "Schedule B Income", "category": "income", "icon": "💵", "hasCalculations": true, "description": "Interest and dividend income" },
+    { "slug": "income/schedule-c", "name": "Schedule C Income", "category": "income", "icon": "👔", "hasCalculations": true, "description": "Self-employment income from Schedule C" },
+    { "slug": "income/schedule-d", "name": "Schedule D Income", "category": "income", "icon": "📈", "hasCalculations": true, "description": "Capital gains income from Schedule D" },
+    { "slug": "income/schedule-e", "name": "Schedule E Income", "category": "income", "icon": "🏗️", "hasCalculations": true, "description": "Rental and supplemental income" },
+    { "slug": "income/schedule-e-subject", "name": "Schedule E (Subject Property)", "category": "income", "icon": "🏚️", "hasCalculations": true, "description": "Schedule E for subject property" },
+    { "slug": "income/schedule-f", "name": "Schedule F Income", "category": "income", "icon": "🌾", "hasCalculations": true, "description": "Farm income from Schedule F" },
+    { "slug": "llpm", "name": "LLPM Tool", "category": "tools", "icon": "📋", "hasCalculations": false, "description": "Loan-Level Price Matrix analysis" },
+    { "slug": "mismo", "name": "MISMO Document Analyzer", "category": "tools", "icon": "📄", "hasCalculations": false, "description": "Parse and analyze MISMO XML documents" }
+  ]
+}

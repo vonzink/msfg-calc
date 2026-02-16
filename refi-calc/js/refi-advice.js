@@ -62,6 +62,7 @@ const RefiAdvice = (() => {
         const stay = results.inputs.planToStayMonths;
         const fmt = RefiUI.formatMoney;
         const co = results.cashOut;
+        const costOfWaitingEnabled = results.inputs.costOfWaitingEnabled !== false;
 
         const pros = [];
         const cons = [];
@@ -70,6 +71,11 @@ const RefiAdvice = (() => {
         // Cash-out context note
         if (co.enabled && co.debtPayments > 0) {
             neutralPoints.push(`Cash-out refinance: ${fmt(co.amount)} cash out, eliminating ${fmt(co.debtPayments)}/mo in debt payments`);
+        }
+
+        // If Cost of Waiting is disabled, use simplified analysis (no wait comparison)
+        if (!costOfWaitingEnabled) {
+            return analyzeRefiOnly(results, pros, cons, neutralPoints);
         }
 
         // Key decision factors
@@ -221,6 +227,80 @@ const RefiAdvice = (() => {
             cssClass: 'advice-wait',
             headline: '⚖ Close Call — Review Carefully',
             detail: `The numbers are close between refinancing now and waiting. Your decision may depend on rate confidence and personal circumstances.`,
+            pros, cons, neutralPoints
+        };
+    }
+
+    // -------------------------------------------------
+    // SIMPLIFIED ANALYSIS (Refi-only, no cost of waiting)
+    // -------------------------------------------------
+
+    function analyzeRefiOnly(results, pros, cons, neutralPoints) {
+        const a = results.analysis;
+        const target = results.inputs.targetBreakeven;
+        const stay = results.inputs.planToStayMonths;
+        const fmt = RefiUI.formatMoney;
+        const rateDrop = results.inputs.currentRate - results.inputs.refiRate;
+
+        const hasPositiveSavings = a.monthlySavingsNow > 0;
+        const breakevenMeetsTarget = a.breakevenNow !== Infinity && a.breakevenNow <= target;
+        const staysLongEnough = a.breakevenNow !== Infinity && a.breakevenNow < stay;
+
+        neutralPoints.push(`Rate reduction: ${results.inputs.currentRate}% → ${results.inputs.refiRate}% (${rateDrop.toFixed(3)}% drop)`);
+
+        // Favorable
+        if (hasPositiveSavings && breakevenMeetsTarget) {
+            pros.push(`Monthly savings of ${fmt(a.monthlySavingsNow)} by refinancing`);
+            pros.push(`Breakeven in ${a.breakevenNow} months — within your ${target}-month target`);
+            pros.push(`Net savings of ${fmt(a.refiNowNetSavings)} over your ${stay}-month stay`);
+
+            return {
+                cssClass: 'advice-now',
+                headline: '✓ Refinance — Favorable',
+                detail: `Refinancing meets your breakeven target and produces positive net savings over your planned stay.`,
+                pros, cons, neutralPoints
+            };
+        }
+
+        // Below target but still recoverable
+        if (hasPositiveSavings && !breakevenMeetsTarget && staysLongEnough) {
+            pros.push(`Monthly savings of ${fmt(a.monthlySavingsNow)} by refinancing`);
+            pros.push(`You'll still recoup costs before you plan to move/sell`);
+            cons.push(`Breakeven of ${a.breakevenNow} months exceeds your ${target}-month target`);
+            cons.push(`Closing costs of ${fmt(a.closingCosts)} are significant relative to monthly savings`);
+            neutralPoints.push(`Net savings of ${fmt(a.refiNowNetSavings)} over ${stay} months`);
+
+            return {
+                cssClass: 'advice-wait',
+                headline: '⚠ Refinance — Below Target',
+                detail: `Refinancing produces savings but the breakeven period of ${a.breakevenNow} months exceeds your ${target}-month target.`,
+                pros, cons, neutralPoints
+            };
+        }
+
+        // Insufficient stay
+        if (hasPositiveSavings && !staysLongEnough) {
+            cons.push(`Breakeven of ${a.breakevenNow === Infinity ? '∞' : a.breakevenNow} months exceeds your planned ${stay}-month stay`);
+            cons.push(`You would not recoup the ${fmt(a.closingCosts)} in closing costs before leaving`);
+            neutralPoints.push(`Monthly savings of ${fmt(a.monthlySavingsNow)} are insufficient given the timeframe`);
+
+            return {
+                cssClass: 'advice-caution',
+                headline: '✗ Refinancing Not Recommended — Insufficient Stay Period',
+                detail: `While refinancing produces monthly savings, you won't stay long enough to recoup the closing costs.`,
+                pros, cons, neutralPoints
+            };
+        }
+
+        // No savings
+        cons.push(`No monthly savings from refinancing at ${results.inputs.refiRate}%`);
+        cons.push(`Closing costs of ${fmt(a.closingCosts)} would not be recovered`);
+        neutralPoints.push(`Consider refinancing only if rates drop significantly below your current rate`);
+
+        return {
+            cssClass: 'advice-caution',
+            headline: '✗ Refinancing Not Recommended',
+            detail: `The refinance offer does not produce meaningful savings relative to your current loan terms.`,
             pros, cons, neutralPoints
         };
     }

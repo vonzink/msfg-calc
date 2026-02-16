@@ -1,0 +1,142 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>VA Loan Pre-Qualification Worksheet</h1>
+    <p>Calculate monthly housing expense, residual income, and DTI ratio for VA loan applicants.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- Borrower Info -->
+    <div class="calc-section">
+      <h2>Borrower Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="borrowerName">Borrower Name</label>
+          <input type="text" id="borrowerName" placeholder="Enter name">
+        </div>
+        <div class="form-group">
+          <label for="familySize">Family Size</label>
+          <select id="familySize" onchange="calculate()">
+            <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="region">Geographic Region</label>
+          <select id="region" onchange="calculate()">
+            <option value="Northeast">Northeast</option><option value="Midwest">Midwest</option>
+            <option value="South" selected>South</option><option value="West">West</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Info -->
+    <div class="calc-section">
+      <h2>Loan Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="mortgageAmount">Mortgage Amount ($)</label>
+          <input type="number" id="mortgageAmount" value="300000" onchange="calculate()">
+        </div>
+        <div class="form-group">
+          <label for="interestRate">Interest Rate (%)</label>
+          <select id="interestRate" onchange="calculate()"></select>
+        </div>
+        <div class="form-group">
+          <label for="loanTerm">Loan Term</label>
+          <select id="loanTerm" onchange="calculate()">
+            <option value="15">15-Year</option><option value="20">20-Year</option><option value="30" selected>30-Year</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections 1-5 -->
+    <div class="calc-section">
+      <h2><span class="section-number">1</span> Gross Monthly Income</h2>
+      <div class="form-row"><label>Gross Monthly Income ($)</label><input type="number" id="grossIncome" value="8000" onchange="calculate()"></div>
+    </div>
+
+    <div class="calc-section">
+      <h2><span class="section-number">2</span> Monthly Housing Expense (PITI)</h2>
+      <div class="form-row"><label>a. Payment Factor (per $1,000)</label><input type="number" id="paymentFactor" readonly></div>
+      <div class="form-row"><label>b. Principal & Interest Payment ($)</label><input type="number" id="piPayment" readonly></div>
+      <div class="form-row"><label>c. Property Taxes ($)</label><input type="number" id="propertyTaxes" value="250" onchange="calculate()"></div>
+      <div class="form-row"><label>d. Homeowners Insurance ($)</label><input type="number" id="homeInsurance" value="125" onchange="calculate()"></div>
+      <div class="form-row"><label>e. HOA Dues ($)</label><input type="number" id="hoaDues" value="0" onchange="calculate()"></div>
+      <div class="total-row"><label>Total Monthly Housing Expense</label><span class="total-value" id="totalHousing">$0</span></div>
+    </div>
+
+    <div class="calc-section">
+      <h2><span class="section-number">3</span> Monthly Debts and Obligations</h2>
+      <div class="form-row"><label>a. Car Payment(s) ($)</label><input type="number" id="carPayments" value="0" onchange="calculate()"></div>
+      <div class="form-row"><label>b. Revolving Accounts ($)</label><input type="number" id="revolvingAccounts" value="0" onchange="calculate()"></div>
+      <div class="form-row"><label>c. Installment Loans ($)</label><input type="number" id="installmentLoans" value="0" onchange="calculate()"></div>
+      <div class="form-row"><label>d. Child Care ($)</label><input type="number" id="childCare" value="0" onchange="calculate()"></div>
+      <div class="form-row"><label>e. Other ($)</label><input type="number" id="otherDebts" value="0" onchange="calculate()"></div>
+      <div class="total-row"><label>Total Monthly Debts</label><span class="total-value" id="totalDebts">$0</span></div>
+    </div>
+
+    <div class="calc-section">
+      <h2><span class="section-number">4</span> Monthly Maintenance & Utilities</h2>
+      <div class="form-row"><label>a. Total Square Footage</label><input type="number" id="squareFootage" value="2000" onchange="calculate()"></div>
+      <div class="form-row"><label>b. Estimated Cost ($0.14/sq ft)</label><input type="number" id="maintenanceCost" readonly></div>
+      <div class="total-row"><label>Total Maintenance & Utilities</label><span class="total-value" id="totalMaintenance">$0</span></div>
+    </div>
+
+    <div class="calc-section">
+      <h2><span class="section-number">5</span> Monthly Taxes (from pay stubs)</h2>
+      <div class="form-row"><label>a. Federal Income Tax ($)</label><input type="number" id="federalTax" value="800" onchange="calculate()"></div>
+      <div class="form-row"><label>b. State Income Tax ($)</label><input type="number" id="stateTax" value="300" onchange="calculate()"></div>
+      <div class="form-row"><label>c. Social Security / Medicare ($)</label><input type="number" id="socialSecurity" value="612" onchange="calculate()"></div>
+      <div class="total-row"><label>Total Monthly Taxes</label><span class="total-value" id="totalTaxes">$0</span></div>
+    </div>
+
+    <!-- Results -->
+    <div class="calc-section">
+      <h2>Pre-Qualification Results</h2>
+
+      <h3 style="color: var(--brand-primary); margin-bottom: var(--space-md);"><span class="section-number">6</span> Residual Income Analysis</h3>
+      <div class="residual-comparison">
+        <div class="residual-item"><h4>Required Residual</h4><div class="value" style="color: var(--color-gray-500);" id="requiredResidual">$0</div></div>
+        <div class="residual-item"><h4>Actual Residual</h4><div class="value" style="color: var(--brand-primary);" id="actualResidual">$0</div></div>
+      </div>
+      <div class="residual-status" id="residualStatus">Calculating...</div>
+
+      <div class="dti-display">
+        <h3><span class="section-number">7</span> Debt-to-Income Ratio</h3>
+        <div class="dti-value" id="dtiRatio">0%</div>
+        <p class="dti-guideline">VA guideline: 41% maximum (may exceed with strong compensating factors)</p>
+      </div>
+
+      <div class="results-grid">
+        <div class="result-card"><div class="result-card__label">Monthly P&I</div><div class="result-card__value" id="summaryPI">$0</div></div>
+        <div class="result-card"><div class="result-card__label">Total Housing</div><div class="result-card__value" id="summaryHousing">$0</div></div>
+        <div class="result-card"><div class="result-card__label">Total Debts</div><div class="result-card__value" id="summaryDebts">$0</div></div>
+        <div class="result-card"><div class="result-card__label">Gross Income</div><div class="result-card__value" id="summaryIncome">$0</div></div>
+      </div>
+    </div>
+
+    <%- include('../partials/show-calculations', { calcId: 'vaprequal' }) %>
+
+    <!-- Reference Tables -->
+    <div class="calc-section" style="margin-top: var(--space-xl);">
+      <button class="btn btn-sm btn-ghost" onclick="toggleRefTables()" type="button" id="refTableToggle">Show Reference Tables</button>
+      <div id="refTables" style="display: none; margin-top: var(--space-lg);">
+        <div class="residual-tables-container">
+          <div class="residual-table-wrapper">
+            <h3>Residual Income — Under $80,000</h3>
+            <table class="data-table" id="residualUnder80k"><thead><tr><th>Family Size</th><th>NE</th><th>MW</th><th>S</th><th>W</th></tr></thead><tbody id="residualUnder80kBody"></tbody></table>
+            <p class="table-note">Over 5: Add $75 per additional member</p>
+          </div>
+          <div class="residual-table-wrapper">
+            <h3>Residual Income — $80,000+</h3>
+            <table class="data-table" id="residualOver80k"><thead><tr><th>Family Size</th><th>NE</th><th>MW</th><th>S</th><th>W</th></tr></thead><tbody id="residualOver80kBody"></tbody></table>
+            <p class="table-note">Over 5: Add $80 per additional member</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1 @@
+/* income/schedule-c — placeholder */

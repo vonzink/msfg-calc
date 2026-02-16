@@ -1,0 +1,12 @@
+{
+  "siteName": "MSFG Calculator Suite",
+  "companyName": "Mountain States Financial Group",
+  "logo": {
+    "src": "/images/msfg-logo.png",
+    "alt": "MSFG Home Loans",
+    "width": 250,
+    "height": "auto"
+  },
+  "favicon": "/images/favicon-32x32.png",
+  "domain": "msfginfo.com"
+}

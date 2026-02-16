@@ -1,0 +1,91 @@
+/* APR Calculator — page-specific styles */
+
+.apr-warning {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: var(--border-radius);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  color: #856404;
+  font-size: 0.9rem;
+}
+
+.apr-comparison {
+  margin-top: var(--space-lg);
+  padding: var(--space-lg);
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius);
+}
+
+.apr-comparison h3 {
+  color: var(--brand-primary);
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.cost-of-fees {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-white);
+  border-radius: 6px;
+  border: 1px solid var(--color-gray-200);
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-gray-100);
+  font-size: 0.9rem;
+}
+
+.cost-row:last-child { border-bottom: none; }
+.cost-label { color: var(--color-gray-500); font-weight: 500; }
+.cost-value { font-weight: 700; color: var(--brand-primary); }
+.cost-value.negative { color: var(--color-danger); }
+
+/* Fee breakdown toggle */
+.fee-breakdown {
+  margin-top: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius);
+}
+
+.fee-section { margin-bottom: var(--space-lg); }
+.fee-section:last-child { margin-bottom: 0; }
+
+.fee-section h4 {
+  font-size: 0.85rem;
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-sm);
+}
+
+.fee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-sm);
+}
+
+.fee-item label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-gray-500);
+  margin-bottom: 2px;
+}
+
+.fee-item input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+}
+
+.fee-item input:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+}

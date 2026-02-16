@@ -401,6 +401,11 @@ const RefiEngine = (() => {
         // Closing costs
         const costs = calcClosingCosts(inputs.fees);
 
+        // Cost of Waiting enabled flag (defaults to true for backward compat)
+        const costOfWaitingEnabled = inputs.costOfWaitingEnabled !== undefined
+            ? inputs.costOfWaitingEnabled
+            : true;
+
         // Cost of waiting analysis — cashOutDebtPayments is passed through
         // to be factored into the monthly savings calculation
         const analysis = calcCostOfWaiting({
@@ -412,8 +417,8 @@ const RefiEngine = (() => {
             refiLoanAmount: inputs.refiLoanAmount,
             refiRate: inputs.refiRate,
             refiTerm: inputs.refiTerm,
-            futureRate: inputs.futureRate,
-            monthsToWait: inputs.monthsToWait,
+            futureRate: costOfWaitingEnabled ? inputs.futureRate : inputs.refiRate,
+            monthsToWait: costOfWaitingEnabled ? inputs.monthsToWait : 0,
             closingCosts: costs.totalBreakeven,
             planToStayMonths: inputs.planToStayMonths,
             cashOutDebtPayments
@@ -427,12 +432,14 @@ const RefiEngine = (() => {
         const chartMax = Math.min(
             Math.max(
                 (analysis.breakevenNow === Infinity ? 60 : analysis.breakevenNow),
-                (analysis.breakevenWait === Infinity ? 60 : analysis.breakevenWait),
+                (costOfWaitingEnabled && analysis.breakevenWait !== Infinity ? analysis.breakevenWait : 60),
                 60
             ) + 24,
             inputs.planToStayMonths + 12
         );
-        const timeline = buildSavingsTimeline(analysis, chartMax);
+        const timeline = costOfWaitingEnabled
+            ? buildSavingsTimeline(analysis, chartMax)
+            : buildSavingsTimeline(analysis, chartMax); // Still builds both for chart compatibility
 
         // Amortization for first 60 months — all 3 scenarios
         const amortCurrent = generateAmortization(
@@ -441,9 +448,9 @@ const RefiEngine = (() => {
         const amortRefi = generateAmortization(
             inputs.refiLoanAmount, inputs.refiRate, inputs.refiTerm, 60
         );
-        const amortFuture = generateAmortization(
-            futureBalance, inputs.futureRate, inputs.refiTerm, 60
-        );
+        const amortFuture = costOfWaitingEnabled
+            ? generateAmortization(futureBalance, inputs.futureRate, inputs.refiTerm, 60)
+            : generateAmortization(inputs.refiLoanAmount, inputs.refiRate, inputs.refiTerm, 60);
 
         return {
             currentPaymentComputed,

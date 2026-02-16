@@ -22,7 +22,7 @@
 
     <!-- ========== HEADER ========== -->
     <div class="header">
-        <img src="https://msfg-calc.s3.us-west-2.amazonaws.com/images/msfg-logo.png"
+        <img src="/images/msfg-logo.png"
              alt="Mountain State Financial Group" class="header-logo"
              onerror="this.style.display='none'">
         <h1>Should I Refinance?</h1>
@@ -30,156 +30,194 @@
            Enter your current loan, the refinance offer, and a potential future rate to see what makes sense.</p>
     </div>
 
+    <!-- ====================================================
+         CLIENT PROFILES BAR
+         ==================================================== -->
+    <div class="profile-bar" id="profileBar">
+        <div class="profile-bar-inner">
+            <div class="profile-controls">
+                <div class="profile-select-group">
+                    <label for="profileSelect" class="profile-label">Client Profiles:</label>
+                    <select id="profileSelect">
+                        <option value="">-- Select a Profile --</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" id="btnLoadProfile" title="Load selected profile">Load</button>
+                    <button class="btn btn-sm btn-danger-outline" id="btnDeleteProfile" title="Delete selected profile">Delete</button>
+                </div>
+                <div class="profile-save-group">
+                    <input type="text" id="profileNameInput" placeholder="Client / Profile Name" maxlength="80">
+                    <button class="btn btn-sm btn-accent" id="btnSaveProfile" title="Save current inputs as a named profile">Save Profile</button>
+                </div>
+            </div>
+            <div class="profile-status" id="profileStatus"></div>
+        </div>
+    </div>
+
     <div class="content" id="printableArea">
 
         <!-- ====================================================
              SECTION 1: CURRENT LOAN INFORMATION
              ==================================================== -->
-        <div class="section">
-            <h2><span class="section-number">1</span> Current Loan Information</h2>
-
-            <div class="input-grid">
-                <div class="input-group">
-                    <label for="currentBalance">Current Loan Balance ($)</label>
-                    <input type="number" id="currentBalance" value="485000" min="0" step="1000">
-                </div>
-                <div class="input-group">
-                    <label for="currentRate">Current Interest Rate (%)</label>
-                    <input type="number" id="currentRate" value="6.875" min="0" max="20" step="0.125">
-                </div>
-                <div class="input-group">
-                    <label for="currentTermRemaining">Remaining Term (months)</label>
-                    <input type="number" id="currentTermRemaining" value="348" min="1" max="480" step="1">
-                </div>
-                <div class="input-group">
-                    <label for="currentPropertyValue">Property Value ($)</label>
-                    <input type="number" id="currentPropertyValue" value="660000" min="0" step="1000">
-                </div>
+        <div class="section collapsible-section-wrap" id="section1Wrap">
+            <div class="section-header-toggle" data-target="section1Body">
+                <h2><span class="section-number">1</span> Current Loan Information</h2>
+                <button class="section-collapse-btn" type="button" aria-label="Toggle section">&#9660;</button>
             </div>
+            <div class="section-body open" id="section1Body">
 
-            <!-- Computed vs Manual toggle -->
-            <div class="payment-toggle-row">
-                <label class="toggle-label">
-                    <input type="checkbox" id="manualPaymentToggle">
-                    <span class="toggle-text">Override: Enter current P&I payment manually</span>
-                </label>
-            </div>
-
-            <div class="input-grid" id="manualPaymentSection" style="display:none; margin-top:1rem;">
-                <div class="input-group">
-                    <label for="currentPaymentManual">Current Monthly P&I Payment ($)</label>
-                    <input type="number" id="currentPaymentManual" value="0" min="0" step="1">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="currentBalance">Current Loan Balance ($)</label>
+                        <input type="number" id="currentBalance" value="485000" min="0" step="1000">
+                    </div>
+                    <div class="input-group">
+                        <label for="currentRate">Current Interest Rate (%)</label>
+                        <input type="number" id="currentRate" value="6.875" min="0" max="20" step="0.125">
+                    </div>
+                    <div class="input-group">
+                        <label for="currentTermRemaining">Remaining Term (months)</label>
+                        <input type="number" id="currentTermRemaining" value="348" min="1" max="480" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="currentPropertyValue">Property Value ($)</label>
+                        <input type="number" id="currentPropertyValue" value="660000" min="0" step="1000">
+                    </div>
                 </div>
-            </div>
 
-            <div class="total-row" style="margin-top:1rem;">
-                <label>Computed Current Monthly P&I:</label>
-                <span class="total-value" id="currentPaymentDisplay">$0.00</span>
+                <!-- Computed vs Manual toggle -->
+                <div class="payment-toggle-row">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="manualPaymentToggle">
+                        <span class="toggle-text">Override: Enter current P&I payment manually</span>
+                    </label>
+                </div>
+
+                <div class="input-grid" id="manualPaymentSection" style="display:none; margin-top:1rem;">
+                    <div class="input-group">
+                        <label for="currentPaymentManual">Current Monthly P&I Payment ($)</label>
+                        <input type="number" id="currentPaymentManual" value="0" min="0" step="1">
+                    </div>
+                </div>
+
+                <div class="total-row" style="margin-top:1rem;">
+                    <label>Computed Current Monthly P&I:</label>
+                    <span class="total-value" id="currentPaymentDisplay">$0.00</span>
+                </div>
             </div>
         </div>
 
         <!-- ====================================================
              SECTION 2: REFINANCE OFFER — LOAN TERMS
              ==================================================== -->
-        <div class="section">
-            <h2><span class="section-number">2</span> Refinance Offer &mdash; Loan Terms</h2>
-
-            <div class="input-grid">
-                <div class="input-group">
-                    <label for="refiLoanAmount">New Loan Amount ($)</label>
-                    <input type="number" id="refiLoanAmount" value="485000" min="0" step="1000">
-                </div>
-                <div class="input-group">
-                    <label for="refiRate">New Interest Rate (%)</label>
-                    <input type="number" id="refiRate" value="5.750" min="0" max="20" step="0.125">
-                </div>
-                <div class="input-group">
-                    <label for="refiTerm">New Loan Term (months)</label>
-                    <input type="number" id="refiTerm" value="360" min="1" max="480" step="1">
-                </div>
-                <div class="input-group">
-                    <label for="refiProduct">Product Type</label>
-                    <select id="refiProduct">
-                        <option value="Conv30Year" selected>Conv 30 Year Fixed</option>
-                        <option value="Conv20Year">Conv 20 Year Fixed</option>
-                        <option value="Conv15Year">Conv 15 Year Fixed</option>
-                        <option value="FHA30Year">FHA 30 Year Fixed</option>
-                        <option value="VA30Year">VA 30 Year Fixed</option>
-                        <option value="USDA30Year">USDA 30 Year Fixed</option>
-                    </select>
-                </div>
+        <div class="section collapsible-section-wrap" id="section2Wrap">
+            <div class="section-header-toggle" data-target="section2Body">
+                <h2><span class="section-number">2</span> Refinance Offer &mdash; Loan Terms</h2>
+                <button class="section-collapse-btn" type="button" aria-label="Toggle section">&#9660;</button>
             </div>
+            <div class="section-body open" id="section2Body">
 
-            <div class="total-row" style="margin-top:1rem;">
-                <label>New Monthly P&I Payment:</label>
-                <span class="total-value" id="refiPaymentDisplay">$0.00</span>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="refiLoanAmount">New Loan Amount ($)</label>
+                        <input type="number" id="refiLoanAmount" value="485000" min="0" step="1000">
+                    </div>
+                    <div class="input-group">
+                        <label for="refiRate">New Interest Rate (%)</label>
+                        <input type="number" id="refiRate" value="5.750" min="0" max="20" step="0.125">
+                    </div>
+                    <div class="input-group">
+                        <label for="refiTerm">New Loan Term (months)</label>
+                        <input type="number" id="refiTerm" value="360" min="1" max="480" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="refiProduct">Product Type</label>
+                        <select id="refiProduct">
+                            <option value="Conv30Year" selected>Conv 30 Year Fixed</option>
+                            <option value="Conv20Year">Conv 20 Year Fixed</option>
+                            <option value="Conv15Year">Conv 15 Year Fixed</option>
+                            <option value="FHA30Year">FHA 30 Year Fixed</option>
+                            <option value="VA30Year">VA 30 Year Fixed</option>
+                            <option value="USDA30Year">USDA 30 Year Fixed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="total-row" style="margin-top:1rem;">
+                    <label>New Monthly P&I Payment:</label>
+                    <span class="total-value" id="refiPaymentDisplay">$0.00</span>
+                </div>
             </div>
         </div>
 
         <!-- ====================================================
              OPTIONAL: CASH OUT — DEBT CONSOLIDATION
              ==================================================== -->
-        <div class="section" id="cashOutSection">
-            <h2>
-                <span class="section-number">&#9881;</span> Cash Out &mdash; Debt Consolidation
-                <span class="optional-badge">Optional</span>
-            </h2>
-
-            <div class="payment-toggle-row">
-                <label class="toggle-label">
-                    <input type="checkbox" id="cashOutToggle">
-                    <span class="toggle-text">Include Cash Out / Debt Payoff in Analysis</span>
-                </label>
+        <div class="section collapsible-section-wrap" id="cashOutSection">
+            <div class="section-header-toggle" data-target="cashOutBody">
+                <h2>
+                    <span class="section-number">&#9881;</span> Cash Out &mdash; Debt Consolidation
+                    <span class="optional-badge">Optional</span>
+                </h2>
+                <button class="section-collapse-btn" type="button" aria-label="Toggle section">&#9660;</button>
             </div>
+            <div class="section-body open" id="cashOutBody">
 
-            <div id="cashOutFields" style="display:none; margin-top:1rem;">
-                <p class="info-text">Enter the total cash out amount and the monthly payments on the debts being paid off.
-                   The debt payments you eliminate will be added to your monthly savings calculation.</p>
-
-                <div class="input-grid">
-                    <div class="input-group">
-                        <label for="cashOutAmount">Total Cash Out Amount ($)</label>
-                        <input type="number" id="cashOutAmount" value="0" min="0" step="100">
-                        <span class="form-note">Amount above your current payoff being added to the new loan</span>
-                    </div>
-                    <div class="input-group">
-                        <label for="cashOutDebtPayments">Monthly Debt Payments Being Eliminated ($)</label>
-                        <input type="number" id="cashOutDebtPayments" value="0" min="0" step="1">
-                        <span class="form-note">Total monthly payments on debts being paid off (credit cards, auto, HELOC, etc.)</span>
-                    </div>
+                <div class="payment-toggle-row">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="cashOutToggle">
+                        <span class="toggle-text">Include Cash Out / Debt Payoff in Analysis</span>
+                    </label>
                 </div>
 
-                <!-- Individual debt rows for detail -->
-                <div class="fee-breakdown" style="margin-top:1rem;">
-                    <div class="fee-section">
-                        <h4>Debt Payoff Detail <span class="form-note" style="font-weight:400;">(optional breakdown)</span></h4>
-                        <div id="debtRows">
-                            <div class="debt-row input-row">
-                                <input type="text" id="debtName1" placeholder="Debt description" style="flex:2; min-width:150px;">
-                                <div class="input-group" style="flex:1;">
-                                    <label style="font-size:0.75rem;">Balance</label>
-                                    <input type="number" class="debt-balance" value="0" min="0" step="100">
-                                </div>
-                                <div class="input-group" style="flex:1;">
-                                    <label style="font-size:0.75rem;">Monthly Pmt</label>
-                                    <input type="number" class="debt-payment" value="0" min="0" step="1">
-                                </div>
-                                <div class="input-group" style="flex:0.7;">
-                                    <label style="font-size:0.75rem;">Rate %</label>
-                                    <input type="number" class="debt-rate" value="0" min="0" max="40" step="0.1">
+                <div id="cashOutFields" style="display:none; margin-top:1rem;">
+                    <p class="info-text">Enter the total cash out amount and the monthly payments on the debts being paid off.
+                       The debt payments you eliminate will be added to your monthly savings calculation.</p>
+
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="cashOutAmount">Total Cash Out Amount ($)</label>
+                            <input type="number" id="cashOutAmount" value="0" min="0" step="100">
+                            <span class="form-note">Amount above your current payoff being added to the new loan</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="cashOutDebtPayments">Monthly Debt Payments Being Eliminated ($)</label>
+                            <input type="number" id="cashOutDebtPayments" value="0" min="0" step="1">
+                            <span class="form-note">Total monthly payments on debts being paid off (credit cards, auto, HELOC, etc.)</span>
+                        </div>
+                    </div>
+
+                    <!-- Individual debt rows for detail -->
+                    <div class="fee-breakdown" style="margin-top:1rem;">
+                        <div class="fee-section">
+                            <h4>Debt Payoff Detail <span class="form-note" style="font-weight:400;">(optional breakdown)</span></h4>
+                            <div id="debtRows">
+                                <div class="debt-row input-row">
+                                    <input type="text" id="debtName1" placeholder="Debt description" style="flex:2; min-width:150px;">
+                                    <div class="input-group" style="flex:1;">
+                                        <label style="font-size:0.75rem;">Balance</label>
+                                        <input type="number" class="debt-balance" value="0" min="0" step="100">
+                                    </div>
+                                    <div class="input-group" style="flex:1;">
+                                        <label style="font-size:0.75rem;">Monthly Pmt</label>
+                                        <input type="number" class="debt-payment" value="0" min="0" step="1">
+                                    </div>
+                                    <div class="input-group" style="flex:0.7;">
+                                        <label style="font-size:0.75rem;">Rate %</label>
+                                        <input type="number" class="debt-rate" value="0" min="0" max="40" step="0.1">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div style="margin-top:0.5rem;">
-                            <button class="btn btn-link" id="btnAddDebt" type="button">+ Add Another Debt</button>
-                            <button class="btn btn-link" id="btnAutoSum" type="button" style="margin-left:1rem;">Auto-sum to Monthly Payments</button>
+                            <div style="margin-top:0.5rem;">
+                                <button class="btn btn-link" id="btnAddDebt" type="button">+ Add Another Debt</button>
+                                <button class="btn btn-link" id="btnAutoSum" type="button" style="margin-left:1rem;">Auto-sum to Monthly Payments</button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="total-row" style="margin-top:1rem;">
-                    <label>Adjusted Monthly Savings (P&I savings + debt payments eliminated):</label>
-                    <span class="total-value" id="cashOutAdjustedSavings">$0.00</span>
+                    <div class="total-row" style="margin-top:1rem;">
+                        <label>Adjusted Monthly Savings (P&I savings + debt payments eliminated):</label>
+                        <span class="total-value" id="cashOutAdjustedSavings">$0.00</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -187,226 +225,254 @@
         <!-- ====================================================
              SECTION 3: CLOSING COSTS — Matching Itemized Fee Worksheet
              ==================================================== -->
-        <div class="section">
-            <h2><span class="section-number">3</span> Closing Costs &mdash; Itemized Fee Worksheet</h2>
-            <p class="info-text">Enter closing costs matching the Itemized Fee Worksheet. Prepaids and Escrow are excluded from the breakeven calculation.</p>
+        <div class="section collapsible-section-wrap" id="section3Wrap">
+            <div class="section-header-toggle" data-target="section3Body">
+                <h2><span class="section-number">3</span> Closing Costs &mdash; Itemized Fee Worksheet</h2>
+                <button class="section-collapse-btn" type="button" aria-label="Toggle section">&#9660;</button>
+            </div>
+            <div class="section-body open" id="section3Body">
+                <p class="info-text">Enter closing costs matching the Itemized Fee Worksheet. Prepaids and Escrow are excluded from the breakeven calculation.</p>
 
-            <!-- Origination Charges -->
-            <div class="fee-breakdown">
-                <div class="fee-section">
-                    <h4>Origination Charges</h4>
-                    <div class="fee-grid">
-                        <div class="fee-item">
-                            <label for="feeOrigination">Origination Fee / Points ($)</label>
-                            <input type="number" id="feeOrigination" value="0" min="0" step="1">
+                <!-- Origination Charges -->
+                <div class="fee-breakdown">
+                    <div class="fee-section">
+                        <h4>Origination Charges</h4>
+                        <div class="fee-grid">
+                            <div class="fee-item">
+                                <label for="feeOrigination">Origination Fee / Points ($)</label>
+                                <input type="number" id="feeOrigination" value="0" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeUnderwriting">Underwriting / Processing Fee ($)</label>
+                                <input type="number" id="feeUnderwriting" value="0" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeDiscount">Discount Points ($)</label>
+                                <input type="number" id="feeDiscount" value="0" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeLenderCredit">Lender Credit ($) <span class="form-note">(enter as negative)</span></label>
+                                <input type="number" id="feeLenderCredit" value="0" step="1">
+                            </div>
                         </div>
-                        <div class="fee-item">
-                            <label for="feeUnderwriting">Underwriting / Processing Fee ($)</label>
-                            <input type="number" id="feeUnderwriting" value="0" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeDiscount">Discount Points ($)</label>
-                            <input type="number" id="feeDiscount" value="0" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeLenderCredit">Lender Credit ($) <span class="form-note">(enter as negative)</span></label>
-                            <input type="number" id="feeLenderCredit" value="0" step="1">
+                        <div class="total-row">
+                            <label>Origination Charges Total:</label>
+                            <span class="total-value" id="totalOrigination">$0.00</span>
                         </div>
                     </div>
-                    <div class="total-row">
-                        <label>Origination Charges Total:</label>
-                        <span class="total-value" id="totalOrigination">$0.00</span>
-                    </div>
-                </div>
 
-                <!-- Services Borrower Cannot Shop -->
-                <div class="fee-section">
-                    <h4>Services Borrower Cannot Shop</h4>
-                    <div class="fee-grid">
-                        <div class="fee-item">
-                            <label for="feeAppraisal">Appraisal Fee ($)</label>
-                            <input type="number" id="feeAppraisal" value="850" min="0" step="1">
+                    <!-- Services Borrower Cannot Shop -->
+                    <div class="fee-section">
+                        <h4>Services Borrower Cannot Shop</h4>
+                        <div class="fee-grid">
+                            <div class="fee-item">
+                                <label for="feeAppraisal">Appraisal Fee ($)</label>
+                                <input type="number" id="feeAppraisal" value="850" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeCreditReport">Credit Report Fee ($)</label>
+                                <input type="number" id="feeCreditReport" value="145" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeFloodCert">Flood Certification ($)</label>
+                                <input type="number" id="feeFloodCert" value="13.50" min="0" step="0.01">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeMERS">MERS Registration Fee ($)</label>
+                                <input type="number" id="feeMERS" value="24.95" min="0" step="0.01">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeTaxService">Tax Related Service Fee ($)</label>
+                                <input type="number" id="feeTaxService" value="90" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeTechnology">Technology Fee ($)</label>
+                                <input type="number" id="feeTechnology" value="100" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeVOE">Verification of Employment Fee ($)</label>
+                                <input type="number" id="feeVOE" value="110" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeVOT">Verification of Tax Return Fee ($)</label>
+                                <input type="number" id="feeVOT" value="50" min="0" step="1">
+                            </div>
                         </div>
-                        <div class="fee-item">
-                            <label for="feeCreditReport">Credit Report Fee ($)</label>
-                            <input type="number" id="feeCreditReport" value="145" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeFloodCert">Flood Certification ($)</label>
-                            <input type="number" id="feeFloodCert" value="13.50" min="0" step="0.01">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeMERS">MERS Registration Fee ($)</label>
-                            <input type="number" id="feeMERS" value="24.95" min="0" step="0.01">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeTaxService">Tax Related Service Fee ($)</label>
-                            <input type="number" id="feeTaxService" value="90" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeTechnology">Technology Fee ($)</label>
-                            <input type="number" id="feeTechnology" value="100" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeVOE">Verification of Employment Fee ($)</label>
-                            <input type="number" id="feeVOE" value="110" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeVOT">Verification of Tax Return Fee ($)</label>
-                            <input type="number" id="feeVOT" value="50" min="0" step="1">
+                        <div class="total-row">
+                            <label>Cannot Shop Total:</label>
+                            <span class="total-value" id="totalCannotShop">$0.00</span>
                         </div>
                     </div>
-                    <div class="total-row">
-                        <label>Cannot Shop Total:</label>
-                        <span class="total-value" id="totalCannotShop">$0.00</span>
-                    </div>
-                </div>
 
-                <!-- Services Borrower Can Shop For -->
-                <div class="fee-section">
-                    <h4>Services Borrower Can Shop For</h4>
-                    <div class="fee-grid">
-                        <div class="fee-item">
-                            <label for="feeERecording">E-Recording Fee ($)</label>
-                            <input type="number" id="feeERecording" value="12" min="0" step="1">
+                    <!-- Services Borrower Can Shop For -->
+                    <div class="fee-section">
+                        <h4>Services Borrower Can Shop For</h4>
+                        <div class="fee-grid">
+                            <div class="fee-item">
+                                <label for="feeERecording">E-Recording Fee ($)</label>
+                                <input type="number" id="feeERecording" value="12" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeTitleCPL">Title - Closing Protection Letter Fee ($)</label>
+                                <input type="number" id="feeTitleCPL" value="25" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeTitleLenders">Title - Lenders Coverage Premium ($)</label>
+                                <input type="number" id="feeTitleLenders" value="750" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeTitleSettlement">Title - Settlement Fee ($)</label>
+                                <input type="number" id="feeTitleSettlement" value="300" min="0" step="1">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeTitleTaxCert">Title - Tax Cert Fee ($)</label>
+                                <input type="number" id="feeTitleTaxCert" value="50" min="0" step="1">
+                            </div>
                         </div>
-                        <div class="fee-item">
-                            <label for="feeTitleCPL">Title - Closing Protection Letter Fee ($)</label>
-                            <input type="number" id="feeTitleCPL" value="25" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeTitleLenders">Title - Lenders Coverage Premium ($)</label>
-                            <input type="number" id="feeTitleLenders" value="750" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeTitleSettlement">Title - Settlement Fee ($)</label>
-                            <input type="number" id="feeTitleSettlement" value="300" min="0" step="1">
-                        </div>
-                        <div class="fee-item">
-                            <label for="feeTitleTaxCert">Title - Tax Cert Fee ($)</label>
-                            <input type="number" id="feeTitleTaxCert" value="50" min="0" step="1">
+                        <div class="total-row">
+                            <label>Can Shop Total:</label>
+                            <span class="total-value" id="totalCanShop">$0.00</span>
                         </div>
                     </div>
-                    <div class="total-row">
-                        <label>Can Shop Total:</label>
-                        <span class="total-value" id="totalCanShop">$0.00</span>
-                    </div>
-                </div>
 
-                <!-- Taxes & Government Fees -->
-                <div class="fee-section">
-                    <h4>Taxes and Other Government Fees</h4>
-                    <div class="fee-grid">
-                        <div class="fee-item">
-                            <label for="feeRecording">Recording Fee for Deed ($)</label>
-                            <input type="number" id="feeRecording" value="195" min="0" step="1">
+                    <!-- Taxes & Government Fees -->
+                    <div class="fee-section">
+                        <h4>Taxes and Other Government Fees</h4>
+                        <div class="fee-grid">
+                            <div class="fee-item">
+                                <label for="feeRecording">Recording Fee for Deed ($)</label>
+                                <input type="number" id="feeRecording" value="195" min="0" step="1">
+                            </div>
+                        </div>
+                        <div class="total-row">
+                            <label>Government Fees Total:</label>
+                            <span class="total-value" id="totalGovFees">$0.00</span>
                         </div>
                     </div>
-                    <div class="total-row">
-                        <label>Government Fees Total:</label>
-                        <span class="total-value" id="totalGovFees">$0.00</span>
-                    </div>
-                </div>
 
-                <!-- Prepaids (displayed but excluded from breakeven) -->
-                <div class="fee-section fee-section-excluded">
-                    <h4>Prepaids <span class="excluded-badge">Excluded from Breakeven</span></h4>
-                    <div class="fee-grid">
-                        <div class="fee-item">
-                            <label for="feePrepaidInterest">Prepaid Interest ($)</label>
-                            <input type="number" id="feePrepaidInterest" value="0" min="0" step="0.01">
+                    <!-- Prepaids (displayed but excluded from breakeven) -->
+                    <div class="fee-section fee-section-excluded">
+                        <h4>Prepaids <span class="excluded-badge">Excluded from Breakeven</span></h4>
+                        <div class="fee-grid">
+                            <div class="fee-item">
+                                <label for="feePrepaidInterest">Prepaid Interest ($)</label>
+                                <input type="number" id="feePrepaidInterest" value="0" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="total-row excluded-total">
+                            <label>Prepaids Total:</label>
+                            <span class="total-value" id="totalPrepaids">$0.00</span>
                         </div>
                     </div>
-                    <div class="total-row excluded-total">
-                        <label>Prepaids Total:</label>
-                        <span class="total-value" id="totalPrepaids">$0.00</span>
-                    </div>
-                </div>
 
-                <!-- Initial Escrow (displayed but excluded from breakeven) -->
-                <div class="fee-section fee-section-excluded">
-                    <h4>Initial Escrow Payment at Closing <span class="excluded-badge">Excluded from Breakeven</span></h4>
-                    <div class="fee-grid">
-                        <div class="fee-item">
-                            <label for="feeEscrowTax">County Property Tax ($)</label>
-                            <input type="number" id="feeEscrowTax" value="911.91" min="0" step="0.01">
+                    <!-- Initial Escrow (displayed but excluded from breakeven) -->
+                    <div class="fee-section fee-section-excluded">
+                        <h4>Initial Escrow Payment at Closing <span class="excluded-badge">Excluded from Breakeven</span></h4>
+                        <div class="fee-grid">
+                            <div class="fee-item">
+                                <label for="feeEscrowTax">County Property Tax ($)</label>
+                                <input type="number" id="feeEscrowTax" value="911.91" min="0" step="0.01">
+                            </div>
+                            <div class="fee-item">
+                                <label for="feeEscrowInsurance">Hazard Insurance ($)</label>
+                                <input type="number" id="feeEscrowInsurance" value="474.34" min="0" step="0.01">
+                            </div>
                         </div>
-                        <div class="fee-item">
-                            <label for="feeEscrowInsurance">Hazard Insurance ($)</label>
-                            <input type="number" id="feeEscrowInsurance" value="474.34" min="0" step="0.01">
+                        <div class="total-row excluded-total">
+                            <label>Initial Escrow Total:</label>
+                            <span class="total-value" id="totalEscrow">$0.00</span>
                         </div>
                     </div>
-                    <div class="total-row excluded-total">
-                        <label>Initial Escrow Total:</label>
-                        <span class="total-value" id="totalEscrow">$0.00</span>
-                    </div>
-                </div>
 
-                <!-- Other -->
-                <div class="fee-section">
-                    <h4>Other Costs</h4>
-                    <div class="fee-grid">
-                        <div class="fee-item">
-                            <label for="feeOther">Other Fees ($)</label>
-                            <input type="number" id="feeOther" value="0" min="0" step="1">
+                    <!-- Other -->
+                    <div class="fee-section">
+                        <h4>Other Costs</h4>
+                        <div class="fee-grid">
+                            <div class="fee-item">
+                                <label for="feeOther">Other Fees ($)</label>
+                                <input type="number" id="feeOther" value="0" min="0" step="1">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Grand Total Closing Costs -->
-                <div class="total-row" style="margin-top: 1.5rem; border: 2px solid var(--primary); background: linear-gradient(135deg, #e8f5e8 0%, #f0fff0 100%);">
-                    <label style="font-size:1.1rem;">Total Closing Costs (for Breakeven):</label>
-                    <span class="total-value" id="totalClosingCostsBreakeven" style="font-size:1.4rem;">$0.00</span>
+                    <!-- Grand Total Closing Costs -->
+                    <div class="total-row" style="margin-top: 1.5rem; border: 2px solid var(--primary); background: linear-gradient(135deg, #e8f5e8 0%, #f0fff0 100%);">
+                        <label style="font-size:1.1rem;">Total Closing Costs (for Breakeven):</label>
+                        <span class="total-value" id="totalClosingCostsBreakeven" style="font-size:1.4rem;">$0.00</span>
+                    </div>
+                    <p class="form-note" style="margin-top:0.5rem; text-align:center;">
+                        = Origination + Cannot Shop + Can Shop + Government Fees + Other &nbsp;|&nbsp;
+                        <strong>Excludes</strong> Prepaids &amp; Escrow
+                    </p>
                 </div>
-                <p class="form-note" style="margin-top:0.5rem; text-align:center;">
-                    = Origination + Cannot Shop + Can Shop + Government Fees + Other &nbsp;|&nbsp;
-                    <strong>Excludes</strong> Prepaids &amp; Escrow
-                </p>
             </div>
         </div>
 
         <!-- ====================================================
              SECTION 4: COST OF WAITING — FUTURE RATE SCENARIO
              ==================================================== -->
-        <div class="section">
-            <h2><span class="section-number">4</span> Cost of Waiting &mdash; Future Rate Scenario</h2>
-            <p class="info-text">If you wait for rates to drop, what rate do you expect, and how long until you can close?
-               The calculator adds the extra interest paid during the waiting period to the total cost.</p>
-
-            <div class="input-grid">
-                <div class="input-group">
-                    <label for="futureRate">Expected Future Rate (%)</label>
-                    <input type="number" id="futureRate" value="5.250" min="0" max="20" step="0.125">
-                </div>
-                <div class="input-group">
-                    <label for="monthsToWait">Months Until Future Rate Available</label>
-                    <input type="number" id="monthsToWait" value="6" min="1" max="60" step="1">
-                </div>
+        <div class="section collapsible-section-wrap" id="section4Wrap">
+            <div class="section-header-toggle" data-target="section4Body">
+                <h2>
+                    <span class="section-number">4</span> Cost of Waiting &mdash; Future Rate Scenario
+                    <span class="optional-badge">Optional</span>
+                </h2>
+                <button class="section-collapse-btn" type="button" aria-label="Toggle section">&#9660;</button>
             </div>
+            <div class="section-body open" id="section4Body">
 
-            <div class="total-row" style="margin-top:1rem;">
-                <label>Future Monthly P&I Payment (at future rate):</label>
-                <span class="total-value" id="futurePaymentDisplay">$0.00</span>
+                <div class="payment-toggle-row">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="costOfWaitingToggle" checked>
+                        <span class="toggle-text">Include Cost of Waiting Analysis</span>
+                    </label>
+                </div>
+
+                <div id="costOfWaitingFields" style="margin-top:1rem;">
+                    <p class="info-text">If you wait for rates to drop, what rate do you expect, and how long until you can close?
+                       The calculator adds the extra interest paid during the waiting period to the total cost.</p>
+
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="futureRate">Expected Future Rate (%)</label>
+                            <input type="number" id="futureRate" value="5.250" min="0" max="20" step="0.125">
+                        </div>
+                        <div class="input-group">
+                            <label for="monthsToWait">Months Until Future Rate Available</label>
+                            <input type="number" id="monthsToWait" value="6" min="1" max="60" step="1">
+                        </div>
+                    </div>
+
+                    <div class="total-row" style="margin-top:1rem;">
+                        <label>Future Monthly P&I Payment (at future rate):</label>
+                        <span class="total-value" id="futurePaymentDisplay">$0.00</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- ====================================================
              SECTION 5: REFINANCE ADVICE SETTINGS
              ==================================================== -->
-        <div class="section">
-            <h2><span class="section-number">5</span> Advice Settings</h2>
-            <p class="info-text">Configure the breakeven threshold for your recommendation guidance.</p>
+        <div class="section collapsible-section-wrap" id="section5Wrap">
+            <div class="section-header-toggle" data-target="section5Body">
+                <h2><span class="section-number">5</span> Advice Settings</h2>
+                <button class="section-collapse-btn" type="button" aria-label="Toggle section">&#9660;</button>
+            </div>
+            <div class="section-body open" id="section5Body">
+                <p class="info-text">Configure the breakeven threshold for your recommendation guidance.</p>
 
-            <div class="input-grid">
-                <div class="input-group">
-                    <label for="targetBreakeven">Target Breakeven Threshold (months)</label>
-                    <input type="number" id="targetBreakeven" value="36" min="1" max="120" step="1">
-                    <span class="form-note">Refinancing is favorable if breakeven is at or below this number of months</span>
-                </div>
-                <div class="input-group">
-                    <label for="planToStayMonths">How Long Borrower Plans to Stay (months)</label>
-                    <input type="number" id="planToStayMonths" value="84" min="1" max="480" step="1">
-                    <span class="form-note">Used to calculate total savings over the remaining time in the home</span>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="targetBreakeven">Target Breakeven Threshold (months)</label>
+                        <input type="number" id="targetBreakeven" value="36" min="1" max="120" step="1">
+                        <span class="form-note">Refinancing is favorable if breakeven is at or below this number of months</span>
+                    </div>
+                    <div class="input-group">
+                        <label for="planToStayMonths">How Long Borrower Plans to Stay (months)</label>
+                        <input type="number" id="planToStayMonths" value="84" min="1" max="480" step="1">
+                        <span class="form-note">Used to calculate total savings over the remaining time in the home</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -467,7 +533,7 @@
             <!-- ====================================================
                  RESULTS — COST OF WAITING
                  ==================================================== -->
-            <div class="results-section">
+            <div class="results-section" id="costOfWaitingResults">
                 <h2>Cost of Waiting Analysis</h2>
 
                 <div class="results-grid">
@@ -659,29 +725,32 @@
                 </button>
             </div>
 
-        </div><!-- /content -->
+        </div><!-- /resultsContainer -->
 
-        <!-- ====================================================
-             FOOTER
-             ==================================================== -->
-        <div class="footer" style="margin: 0 2rem 2rem;">
-            <div class="footer-title">Disclaimer</div>
-            <p>This calculator is provided for informational purposes only and does not constitute financial advice.
-               Actual rates, payments, and closing costs may vary. Calculations are estimates based on the information
-               provided and standard amortization formulas. Always obtain an official Loan Estimate before making
-               refinancing decisions. Mountain State Financial Group, LLC &mdash; NMLS: 1314257</p>
-        </div>
-
-    </div><!-- /main-container -->
+    </div><!-- /content -->
 
     <!-- ====================================================
-         JAVASCRIPT MODULES
+         FOOTER
          ==================================================== -->
-    <script src="js/refi-engine.js"></script>
-    <script src="js/refi-ui.js"></script>
-    <script src="js/refi-charts.js"></script>
-    <script src="js/refi-advice.js"></script>
-    <script src="js/refi-pdf.js"></script>
+    <div class="footer" style="margin: 0 2rem 2rem;">
+        <div class="footer-title">Disclaimer</div>
+        <p>This calculator is provided for informational purposes only and does not constitute financial advice.
+           Actual rates, payments, and closing costs may vary. Calculations are estimates based on the information
+           provided and standard amortization formulas. Always obtain an official Loan Estimate before making
+           refinancing decisions. Mountain State Financial Group, LLC &mdash; NMLS: 1314257</p>
+    </div>
+
+</div><!-- /main-container -->
+
+<!-- ====================================================
+     JAVASCRIPT MODULES
+     ==================================================== -->
+<script src="js/refi-engine.js"></script>
+<script src="js/refi-ui.js"></script>
+<script src="js/refi-charts.js"></script>
+<script src="js/refi-advice.js"></script>
+<script src="js/refi-pdf.js"></script>
+<script src="js/refi-profiles.js"></script>
 
 </body>
 </html>

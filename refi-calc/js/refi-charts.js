@@ -76,45 +76,52 @@ const RefiCharts = (() => {
 
         const t = results.timeline;
         const a = results.analysis;
+        const costOfWaitingEnabled = results.inputs.costOfWaitingEnabled !== false;
+
+        const datasets = [
+            {
+                label: 'Refinance Now — Cumulative Savings',
+                data: t.refiNowCumulative,
+                borderColor: colors.blue,
+                backgroundColor: colors.lightBlue,
+                borderWidth: 3,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                pointHitRadius: 8
+            }
+        ];
+
+        if (costOfWaitingEnabled) {
+            datasets.push({
+                label: 'Wait & Refinance — Cumulative Savings',
+                data: t.waitCumulative,
+                borderColor: colors.orange,
+                backgroundColor: colors.lightOrange,
+                borderWidth: 3,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                pointHitRadius: 8,
+                borderDash: [8, 4]
+            });
+        }
+
+        datasets.push({
+            label: 'Break-even Line ($0)',
+            data: t.labels.map(() => 0),
+            borderColor: colors.gray,
+            borderWidth: 1,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            fill: false
+        });
 
         chartBreakeven = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: t.labels,
-                datasets: [
-                    {
-                        label: 'Refinance Now — Cumulative Savings',
-                        data: t.refiNowCumulative,
-                        borderColor: colors.blue,
-                        backgroundColor: colors.lightBlue,
-                        borderWidth: 3,
-                        fill: false,
-                        tension: 0.1,
-                        pointRadius: 0,
-                        pointHitRadius: 8
-                    },
-                    {
-                        label: 'Wait & Refinance — Cumulative Savings',
-                        data: t.waitCumulative,
-                        borderColor: colors.orange,
-                        backgroundColor: colors.lightOrange,
-                        borderWidth: 3,
-                        fill: false,
-                        tension: 0.1,
-                        pointRadius: 0,
-                        pointHitRadius: 8,
-                        borderDash: [8, 4]
-                    },
-                    {
-                        label: 'Break-even Line ($0)',
-                        data: t.labels.map(() => 0),
-                        borderColor: colors.gray,
-                        borderWidth: 1,
-                        borderDash: [4, 4],
-                        pointRadius: 0,
-                        fill: false
-                    }
-                ]
+                datasets: datasets
             },
             options: {
                 ...baseOptions,
@@ -188,8 +195,8 @@ const RefiCharts = (() => {
                         ctx.restore();
                     }
 
-                    // Draw breakeven point for "Wait"
-                    if (a.breakevenWait !== Infinity && a.breakevenWait <= t.labels[t.labels.length - 1]) {
+                    // Draw breakeven point for "Wait" (only if Cost of Waiting enabled)
+                    if (costOfWaitingEnabled && a.breakevenWait !== Infinity && a.breakevenWait <= t.labels[t.labels.length - 1]) {
                         const totalMonthsWait = a.monthsToWait + a.breakevenWait;
                         if (totalMonthsWait <= t.labels[t.labels.length - 1]) {
                             const x = xScale.getPixelForValue(totalMonthsWait);
@@ -212,8 +219,8 @@ const RefiCharts = (() => {
                         }
                     }
 
-                    // Draw waiting period shading
-                    if (a.monthsToWait > 0) {
+                    // Draw waiting period shading (only if Cost of Waiting enabled)
+                    if (costOfWaitingEnabled && a.monthsToWait > 0) {
                         const xStart = xScale.getPixelForValue(0);
                         const xEnd = xScale.getPixelForValue(a.monthsToWait);
                         const yTop = yScale.top;
@@ -249,31 +256,32 @@ const RefiCharts = (() => {
         const ctx = document.getElementById('canvasComparison');
         if (!ctx) return;
 
+        const costOfWaitingEnabled = results.inputs.costOfWaitingEnabled !== false;
+
+        const labels = [
+            'Current Payment',
+            `Refinance Now (${results.inputs.refiRate}%)`
+        ];
+        const data = [results.currentPayment, results.refiPayment];
+        const bgColors = [colors.danger + 'CC', colors.primary + 'CC'];
+        const borderColors = [colors.danger, colors.primary];
+
+        if (costOfWaitingEnabled) {
+            labels.push(`Future Rate (${results.inputs.futureRate}%)`);
+            data.push(results.futurePayment);
+            bgColors.push(colors.orange + 'CC');
+            borderColors.push(colors.orange);
+        }
+
         chartComparison = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: [
-                    'Current Payment',
-                    `Refinance Now (${results.inputs.refiRate}%)`,
-                    `Future Rate (${results.inputs.futureRate}%)`
-                ],
+                labels: labels,
                 datasets: [{
                     label: 'Monthly P&I Payment',
-                    data: [
-                        results.currentPayment,
-                        results.refiPayment,
-                        results.futurePayment
-                    ],
-                    backgroundColor: [
-                        colors.danger + 'CC',
-                        colors.primary + 'CC',
-                        colors.orange + 'CC'
-                    ],
-                    borderColor: [
-                        colors.danger,
-                        colors.primary,
-                        colors.orange
-                    ],
+                    data: data,
+                    backgroundColor: bgColors,
+                    borderColor: borderColors,
                     borderWidth: 2,
                     borderRadius: 6,
                     barPercentage: 0.6
@@ -425,6 +433,7 @@ const RefiCharts = (() => {
         const ctx = document.getElementById('canvasAmortization');
         if (!ctx) return;
 
+        const costOfWaitingEnabled = results.inputs.costOfWaitingEnabled !== false;
         const months = results.amortization.current.map(a => a.month);
 
         // Cumulative interest for each scenario
@@ -433,46 +442,51 @@ const RefiCharts = (() => {
         const refiCumInt = results.amortization.refi.map(a => { cumRefiInterest += a.interest; return RefiEngine.round2(cumRefiInterest); });
         const futureCumInt = results.amortization.future.map(a => { cumFutureInterest += a.interest; return RefiEngine.round2(cumFutureInterest); });
 
+        const datasets = [
+            {
+                label: `Current (${results.inputs.currentRate}%) — Cumulative Interest`,
+                data: currentCumInt,
+                borderColor: colors.danger,
+                backgroundColor: 'rgba(220, 53, 69, 0.08)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 0,
+                pointHitRadius: 6
+            },
+            {
+                label: `Refi Now (${results.inputs.refiRate}%) — Cumulative Interest`,
+                data: refiCumInt,
+                borderColor: colors.primary,
+                backgroundColor: colors.lightGreen,
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 0,
+                pointHitRadius: 6
+            }
+        ];
+
+        if (costOfWaitingEnabled) {
+            datasets.push({
+                label: `Future (${results.inputs.futureRate}%) — Cumulative Interest`,
+                data: futureCumInt,
+                borderColor: colors.orange,
+                backgroundColor: colors.lightOrange,
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 0,
+                pointHitRadius: 6,
+                borderDash: [6, 3]
+            });
+        }
+
         chartAmortization = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: months,
-                datasets: [
-                    {
-                        label: `Current (${results.inputs.currentRate}%) — Cumulative Interest`,
-                        data: currentCumInt,
-                        borderColor: colors.danger,
-                        backgroundColor: 'rgba(220, 53, 69, 0.08)',
-                        borderWidth: 2.5,
-                        fill: true,
-                        tension: 0.2,
-                        pointRadius: 0,
-                        pointHitRadius: 6
-                    },
-                    {
-                        label: `Refi Now (${results.inputs.refiRate}%) — Cumulative Interest`,
-                        data: refiCumInt,
-                        borderColor: colors.primary,
-                        backgroundColor: colors.lightGreen,
-                        borderWidth: 2.5,
-                        fill: true,
-                        tension: 0.2,
-                        pointRadius: 0,
-                        pointHitRadius: 6
-                    },
-                    {
-                        label: `Future (${results.inputs.futureRate}%) — Cumulative Interest`,
-                        data: futureCumInt,
-                        borderColor: colors.orange,
-                        backgroundColor: colors.lightOrange,
-                        borderWidth: 2.5,
-                        fill: true,
-                        tension: 0.2,
-                        pointRadius: 0,
-                        pointHitRadius: 6,
-                        borderDash: [6, 3]
-                    }
-                ]
+                datasets: datasets
             },
             options: {
                 ...baseOptions,

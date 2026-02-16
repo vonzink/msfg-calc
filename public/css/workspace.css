@@ -1,0 +1,296 @@
+/* =====================================================
+   Workspace — Multi-calculator layout
+   ===================================================== */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Toolbar */
+.workspace__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 57px;
+  z-index: 100;
+}
+
+.workspace__toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.workspace__title {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.workspace__count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  background: var(--color-gray-100);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.workspace__toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Selector drawer */
+.workspace__selector {
+  background: var(--color-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
+  animation: wsFadeIn 0.2s ease;
+}
+
+@keyframes wsFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.workspace__search {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1.5px solid var(--color-gray-300);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  margin-bottom: var(--space-md);
+}
+
+.workspace__search:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+}
+
+.workspace__selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.workspace__selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workspace__selector-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-gray-500);
+  padding: var(--space-xs) var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.workspace__selector-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-gray-50);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-gray-700);
+  transition: all var(--transition);
+  text-align: left;
+  width: 100%;
+}
+
+.workspace__selector-btn:hover {
+  background: var(--brand-light);
+  border-color: var(--brand-accent);
+  color: var(--brand-primary);
+}
+
+.workspace__selector-btn.active {
+  background: var(--brand-primary);
+  color: var(--color-white);
+  border-color: var(--brand-primary);
+}
+
+.workspace__selector-btn.hidden { display: none; }
+
+.workspace__selector-icon { font-size: 1rem; width: 22px; text-align: center; }
+
+/* Panels */
+.workspace__panels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.workspace__empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-gray-500);
+}
+
+.workspace__empty h3 { color: var(--color-gray-500); }
+.workspace__empty p { font-size: 0.9rem; }
+
+/* Individual panel */
+.ws-panel {
+  background: var(--color-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+
+.ws-panel:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.ws-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-100);
+  cursor: pointer;
+  user-select: none;
+}
+
+.ws-panel__icon { font-size: 1.1rem; }
+
+.ws-panel__title {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.ws-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ws-panel__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--color-gray-500);
+  border-radius: 4px;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.ws-panel__btn:hover {
+  background: var(--color-gray-200);
+  color: var(--color-gray-700);
+}
+
+.ws-panel__btn--remove:hover { color: var(--color-danger); }
+
+.ws-panel__body {
+  padding: var(--space-md);
+}
+
+.ws-panel__body.collapsed {
+  display: none;
+}
+
+/* Compact panel iframe */
+.ws-panel__iframe {
+  width: 100%;
+  border: none;
+  min-height: 1200px;
+  display: block;
+}
+
+/* Panel open-standalone link */
+.ws-panel__standalone {
+  font-size: 0.78rem;
+  color: var(--brand-accent);
+  text-decoration: none;
+}
+
+.ws-panel__standalone:hover {
+  text-decoration: underline;
+}
+
+/* Tally bar */
+.workspace__tally {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-gray-900);
+  color: var(--color-white);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  z-index: 100;
+}
+
+.workspace__tally-inner {
+  padding: var(--space-md) var(--space-lg);
+}
+
+.workspace__tally-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-sm);
+}
+
+.workspace__tally-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-md);
+}
+
+.workspace__tally-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workspace__tally-label {
+  font-size: 0.72rem;
+  color: var(--color-gray-500);
+  font-weight: 500;
+}
+
+.workspace__tally-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--brand-light);
+}
+
+@media (max-width: 768px) {
+  .workspace__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+  }
+  .workspace__selector-grid { grid-template-columns: 1fr; }
+  .workspace__tally-grid { grid-template-columns: 1fr 1fr; }
+}

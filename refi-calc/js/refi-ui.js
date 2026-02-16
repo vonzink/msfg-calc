@@ -20,6 +20,7 @@ const RefiUI = (() => {
     function init() {
         cacheDOMRefs();
         bindEvents();
+        bindSectionCollapseToggles();
         updateLiveCalculations();
         updateClosingCostTotals();
     }
@@ -46,6 +47,11 @@ const RefiUI = (() => {
         dom.futureRate = document.getElementById('futureRate');
         dom.monthsToWait = document.getElementById('monthsToWait');
         dom.futurePaymentDisplay = document.getElementById('futurePaymentDisplay');
+
+        // Cost of Waiting toggle
+        dom.costOfWaitingToggle = document.getElementById('costOfWaitingToggle');
+        dom.costOfWaitingFields = document.getElementById('costOfWaitingFields');
+        dom.costOfWaitingResults = document.getElementById('costOfWaitingResults');
 
         // Cash Out
         dom.cashOutToggle = document.getElementById('cashOutToggle');
@@ -98,6 +104,30 @@ const RefiUI = (() => {
     }
 
     // -------------------------------------------------
+    // SECTION COLLAPSE TOGGLES (for input sections)
+    // -------------------------------------------------
+
+    function bindSectionCollapseToggles() {
+        document.querySelectorAll('.section-header-toggle').forEach(header => {
+            header.addEventListener('click', () => {
+                const targetId = header.getAttribute('data-target');
+                const body = document.getElementById(targetId);
+                if (!body) return;
+
+                const isOpen = body.classList.contains('open');
+                body.classList.toggle('open');
+
+                // Update arrow button
+                const btn = header.querySelector('.section-collapse-btn');
+                if (btn) {
+                    btn.innerHTML = isOpen ? '&#9654;' : '&#9660;';  // ► or ▼
+                    btn.setAttribute('aria-expanded', !isOpen);
+                }
+            });
+        });
+    }
+
+    // -------------------------------------------------
     // EVENT BINDING
     // -------------------------------------------------
 
@@ -112,6 +142,13 @@ const RefiUI = (() => {
         dom.manualPaymentToggle.addEventListener('change', () => {
             dom.manualPaymentSection.style.display =
                 dom.manualPaymentToggle.checked ? 'block' : 'none';
+            updateLiveCalculations();
+        });
+
+        // Cost of Waiting toggle
+        dom.costOfWaitingToggle.addEventListener('change', () => {
+            dom.costOfWaitingFields.style.display =
+                dom.costOfWaitingToggle.checked ? 'block' : 'none';
             updateLiveCalculations();
         });
 
@@ -206,13 +243,15 @@ const RefiUI = (() => {
         );
         dom.refiPaymentDisplay.textContent = formatMoney(refiPmt);
 
-        // Future payment (estimate using current balance — will be refined in full calc)
-        const futurePmt = RefiEngine.calcMonthlyPayment(
-            num(dom.refiLoanAmount),
-            num(dom.futureRate),
-            num(dom.refiTerm)
-        );
-        dom.futurePaymentDisplay.textContent = formatMoney(futurePmt);
+        // Future payment (only update if Cost of Waiting is enabled)
+        if (dom.costOfWaitingToggle.checked) {
+            const futurePmt = RefiEngine.calcMonthlyPayment(
+                num(dom.refiLoanAmount),
+                num(dom.futureRate),
+                num(dom.refiTerm)
+            );
+            dom.futurePaymentDisplay.textContent = formatMoney(futurePmt);
+        }
 
         // Cash out adjusted savings
         const currentPmtFinal = dom.manualPaymentToggle.checked
@@ -264,6 +303,7 @@ const RefiUI = (() => {
             cashOutDebtPayments: num(dom.cashOutDebtPayments),
             cashOutDebts: readDebtRows(),
 
+            costOfWaitingEnabled: dom.costOfWaitingToggle.checked,
             futureRate: num(dom.futureRate),
             monthsToWait: num(dom.monthsToWait),
 
@@ -298,6 +338,95 @@ const RefiUI = (() => {
             });
         });
         return debts;
+    }
+
+    // -------------------------------------------------
+    // WRITE ALL INPUTS (for profile loading)
+    // -------------------------------------------------
+
+    function writeAllInputs(data) {
+        if (!data) return;
+
+        // Current loan
+        if (data.currentBalance !== undefined) dom.currentBalance.value = data.currentBalance;
+        if (data.currentRate !== undefined) dom.currentRate.value = data.currentRate;
+        if (data.currentTermRemaining !== undefined) dom.currentTermRemaining.value = data.currentTermRemaining;
+        if (data.currentPropertyValue !== undefined) dom.currentPropertyValue.value = data.currentPropertyValue;
+
+        // Manual payment toggle
+        if (data.useManualPayment !== undefined) {
+            dom.manualPaymentToggle.checked = data.useManualPayment;
+            dom.manualPaymentSection.style.display = data.useManualPayment ? 'block' : 'none';
+        }
+        if (data.currentPaymentManual !== undefined) dom.currentPaymentManual.value = data.currentPaymentManual;
+
+        // Refi offer
+        if (data.refiLoanAmount !== undefined) dom.refiLoanAmount.value = data.refiLoanAmount;
+        if (data.refiRate !== undefined) dom.refiRate.value = data.refiRate;
+        if (data.refiTerm !== undefined) dom.refiTerm.value = data.refiTerm;
+        if (data.refiProduct !== undefined) dom.refiProduct.value = data.refiProduct;
+
+        // Cash out
+        if (data.cashOutEnabled !== undefined) {
+            dom.cashOutToggle.checked = data.cashOutEnabled;
+            dom.cashOutFields.style.display = data.cashOutEnabled ? 'block' : 'none';
+        }
+        if (data.cashOutAmount !== undefined) dom.cashOutAmount.value = data.cashOutAmount;
+        if (data.cashOutDebtPayments !== undefined) dom.cashOutDebtPayments.value = data.cashOutDebtPayments;
+
+        // Restore debt rows
+        if (data.cashOutDebts && data.cashOutDebts.length > 0) {
+            dom.debtRows.innerHTML = '';
+            debtRowCount = 0;
+            data.cashOutDebts.forEach((debt, i) => {
+                debtRowCount++;
+                const row = document.createElement('div');
+                row.className = 'debt-row input-row';
+                const isFirst = i === 0;
+                row.innerHTML = `
+                    <input type="text" id="debtName${debtRowCount}" placeholder="Debt description" style="flex:2; min-width:150px;" value="${escHtml(debt.name || '')}">
+                    <div class="input-group" style="flex:1;">
+                        <label style="font-size:0.75rem;">Balance</label>
+                        <input type="number" class="debt-balance" value="${debt.balance || 0}" min="0" step="100">
+                    </div>
+                    <div class="input-group" style="flex:1;">
+                        <label style="font-size:0.75rem;">Monthly Pmt</label>
+                        <input type="number" class="debt-payment" value="${debt.payment || 0}" min="0" step="1">
+                    </div>
+                    <div class="input-group" style="flex:0.7;">
+                        <label style="font-size:0.75rem;">Rate %</label>
+                        <input type="number" class="debt-rate" value="${debt.rate || 0}" min="0" max="40" step="0.1">
+                    </div>
+                    ${!isFirst ? '<button type="button" class="btn btn-link" onclick="this.parentElement.remove();" style="color:var(--danger); flex:0;">&#10005;</button>' : ''}
+                `;
+                dom.debtRows.appendChild(row);
+            });
+        }
+
+        // Cost of Waiting toggle
+        if (data.costOfWaitingEnabled !== undefined) {
+            dom.costOfWaitingToggle.checked = data.costOfWaitingEnabled;
+            dom.costOfWaitingFields.style.display = data.costOfWaitingEnabled ? 'block' : 'none';
+        }
+
+        // Future rate
+        if (data.futureRate !== undefined) dom.futureRate.value = data.futureRate;
+        if (data.monthsToWait !== undefined) dom.monthsToWait.value = data.monthsToWait;
+
+        // Advice settings
+        if (data.targetBreakeven !== undefined) dom.targetBreakeven.value = data.targetBreakeven;
+        if (data.planToStayMonths !== undefined) dom.planToStayMonths.value = data.planToStayMonths;
+
+        // Fees
+        if (data.fees) {
+            Object.keys(data.fees).forEach(id => {
+                if (dom.fees[id]) dom.fees[id].value = data.fees[id];
+            });
+        }
+
+        // Re-compute live values
+        updateLiveCalculations();
+        updateClosingCostTotals();
     }
 
     // -------------------------------------------------
@@ -381,6 +510,11 @@ const RefiUI = (() => {
         // Build closing cost summary table
         buildClosingCostSummary(results);
 
+        // Show/hide Cost of Waiting results section
+        if (dom.costOfWaitingResults) {
+            dom.costOfWaitingResults.style.display = inputs.costOfWaitingEnabled ? '' : 'none';
+        }
+
         // Show results with animation
         dom.resultsContainer.classList.remove('hidden');
         dom.resultsContainer.classList.add('visible');
@@ -434,7 +568,7 @@ const RefiUI = (() => {
         setText('compareCurrentPayment', formatMoney(r.currentPayment));
         setText('compareNewPayment', formatMoney(r.refiPayment));
 
-        // Cost of waiting metrics
+        // Cost of waiting metrics (populate even if hidden so PDF can use them)
         setText('resultExtraInterest', formatMoney(a.extraInterest));
         setText('resultFuturePayment', formatMoney(r.futurePayment));
         setText('resultFutureSavings', formatMoney(a.futureMonthlySavings));
@@ -561,39 +695,41 @@ const RefiUI = (() => {
             </div>
         </div>`;
 
-        // Cost of Waiting
-        html += `
-        <div class="math-group">
-            <h4>Cost of Waiting Analysis</h4>
-            <div class="math-step">
-                <div class="step-label">Extra interest paid while waiting (${a.monthsToWait} months)</div>
-                <div class="step-formula">${formatMoney(a.monthlySavingsNow)} &times; ${a.monthsToWait} months</div>
-                <div class="step-result">= ${formatMoney(a.extraInterest)}</div>
-            </div>
-            <div class="math-step">
-                <div class="step-label">Balance after waiting ${a.monthsToWait} months</div>
-                <div class="step-result">= ${formatMoney(a.balanceAfterWait)}</div>
-            </div>
-            <div class="math-step">
-                <div class="step-label">Future P&I Payment (${r.inputs.futureRate}% on ${formatMoney(a.balanceAfterWait)})</div>
-                <div class="step-result">= ${formatMoney(r.futurePayment)}</div>
-            </div>
-            <div class="math-step">
-                <div class="step-label">Future monthly savings vs current</div>
-                <div class="step-formula">${formatMoney(r.currentPayment)} - ${formatMoney(r.futurePayment)}</div>
-                <div class="step-result">= ${formatMoney(a.futureMonthlySavings)} per month</div>
-            </div>
-            <div class="math-step">
-                <div class="step-label">Effective total cost if waiting</div>
-                <div class="step-formula">${formatMoney(a.closingCosts)} + ${formatMoney(a.extraInterest)}</div>
-                <div class="step-result">= ${formatMoney(a.effectiveTotalCost)}</div>
-            </div>
-            <div class="math-step">
-                <div class="step-label">Adjusted breakeven if waiting</div>
-                <div class="step-formula">${formatMoney(a.effectiveTotalCost)} / ${formatMoney(a.futureMonthlySavings)}</div>
-                <div class="step-result">= ${a.breakevenWait === Infinity ? 'N/A (no savings)' : a.breakevenWait + ' months'}</div>
-            </div>
-        </div>`;
+        // Cost of Waiting (only if enabled)
+        if (r.inputs.costOfWaitingEnabled) {
+            html += `
+            <div class="math-group">
+                <h4>Cost of Waiting Analysis</h4>
+                <div class="math-step">
+                    <div class="step-label">Extra interest paid while waiting (${a.monthsToWait} months)</div>
+                    <div class="step-formula">${formatMoney(a.monthlySavingsNow)} &times; ${a.monthsToWait} months</div>
+                    <div class="step-result">= ${formatMoney(a.extraInterest)}</div>
+                </div>
+                <div class="math-step">
+                    <div class="step-label">Balance after waiting ${a.monthsToWait} months</div>
+                    <div class="step-result">= ${formatMoney(a.balanceAfterWait)}</div>
+                </div>
+                <div class="math-step">
+                    <div class="step-label">Future P&I Payment (${r.inputs.futureRate}% on ${formatMoney(a.balanceAfterWait)})</div>
+                    <div class="step-result">= ${formatMoney(r.futurePayment)}</div>
+                </div>
+                <div class="math-step">
+                    <div class="step-label">Future monthly savings vs current</div>
+                    <div class="step-formula">${formatMoney(r.currentPayment)} - ${formatMoney(r.futurePayment)}</div>
+                    <div class="step-result">= ${formatMoney(a.futureMonthlySavings)} per month</div>
+                </div>
+                <div class="math-step">
+                    <div class="step-label">Effective total cost if waiting</div>
+                    <div class="step-formula">${formatMoney(a.closingCosts)} + ${formatMoney(a.extraInterest)}</div>
+                    <div class="step-result">= ${formatMoney(a.effectiveTotalCost)}</div>
+                </div>
+                <div class="math-step">
+                    <div class="step-label">Adjusted breakeven if waiting</div>
+                    <div class="step-formula">${formatMoney(a.effectiveTotalCost)} / ${formatMoney(a.futureMonthlySavings)}</div>
+                    <div class="step-result">= ${a.breakevenWait === Infinity ? 'N/A (no savings)' : a.breakevenWait + ' months'}</div>
+                </div>
+            </div>`;
+        }
 
         // Net Savings Comparison
         html += `
@@ -603,7 +739,10 @@ const RefiUI = (() => {
                 <div class="step-label">Refinance Now Net Savings</div>
                 <div class="step-formula">(${formatMoney(a.monthlySavingsNow)} &times; ${r.inputs.planToStayMonths}) - ${formatMoney(a.closingCosts)}</div>
                 <div class="step-result">= ${formatMoney(a.refiNowNetSavings)}</div>
-            </div>
+            </div>`;
+
+        if (r.inputs.costOfWaitingEnabled) {
+            html += `
             <div class="math-step">
                 <div class="step-label">Wait & Refinance Net Savings</div>
                 <div class="step-formula">(${formatMoney(a.futureMonthlySavings)} &times; ${Math.max(0, r.inputs.planToStayMonths - a.monthsToWait)}) - ${formatMoney(a.effectiveTotalCost)}</div>
@@ -612,8 +751,10 @@ const RefiUI = (() => {
             <div class="math-step">
                 <div class="step-label">Difference (Now vs Wait)</div>
                 <div class="step-result" style="font-size:1.1rem;">= ${formatMoney(a.netDifference)} ${a.netDifference > 0 ? '(Refinance Now is better)' : a.netDifference < 0 ? '(Waiting is better)' : '(Equal)'}</div>
-            </div>
-        </div>`;
+            </div>`;
+        }
+
+        html += `</div>`;
 
         container.innerHTML = html;
     }
@@ -737,6 +878,10 @@ const RefiUI = (() => {
             </div>`;
         debtRowCount = 1;
 
+        // Cost of Waiting
+        dom.costOfWaitingToggle.checked = true;
+        dom.costOfWaitingFields.style.display = 'block';
+
         // Future
         dom.futureRate.value = 5.250;
         dom.monthsToWait.value = 6;
@@ -810,8 +955,14 @@ const RefiUI = (() => {
         card.classList.add(status);
     }
 
+    function escHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     // -------------------------------------------------
-    // SECTION TOGGLE (used globally)
+    // SECTION TOGGLE (used globally for chart/collapsible)
     // -------------------------------------------------
 
     // Make toggleSection available globally for onclick handlers
@@ -842,6 +993,7 @@ const RefiUI = (() => {
         getLastResults: () => lastResults,
         formatMoney,
         readAllInputs,
+        writeAllInputs,
         runCalculation
     };
 

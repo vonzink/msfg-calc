@@ -1,0 +1,169 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>APR Calculator</h1>
+    <p>Calculate the Annual Percentage Rate including interest rate, discount points, and fees.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- Loan Information -->
+    <div class="calc-section">
+      <h2>Loan Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="loanAmount">Loan Amount ($)</label>
+          <input type="number" id="loanAmount" value="300000" min="0" step="1000">
+        </div>
+        <div class="form-group">
+          <label for="interestRate">Interest Rate (%)</label>
+          <input type="number" id="interestRate" value="6.500" min="0" max="20" step="0.125">
+        </div>
+        <div class="form-group">
+          <label for="loanTerm">Loan Term (Years)</label>
+          <select id="loanTerm">
+            <option value="10">10 Years</option>
+            <option value="15">15 Years</option>
+            <option value="20">20 Years</option>
+            <option value="25">25 Years</option>
+            <option value="30" selected>30 Years</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="discountPoints">Discount Points (%)</label>
+          <input type="number" id="discountPoints" value="0" min="0" max="10" step="0.125">
+        </div>
+      </div>
+    </div>
+
+    <!-- Financed Fees -->
+    <div class="calc-section">
+      <h2>Financed Fees</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-md);">Fees rolled into the loan balance that affect the APR calculation.</p>
+      <div class="form-grid" style="grid-template-columns: 1fr auto;">
+        <div class="form-group">
+          <label for="financedFees">Total Financed Fees ($)</label>
+          <input type="number" id="financedFees" value="0" min="0" step="100">
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm btn-ghost" style="margin-top: var(--space-sm);" onclick="toggleFeeBreakdown('financed')">
+        <span id="financedToggleText">Show Fee Breakdown</span>
+      </button>
+      <div id="financedFeeBreakdown" class="fee-breakdown" style="display: none;">
+        <div class="fee-section">
+          <h4>APR Fees (Included in APR)</h4>
+          <div class="fee-grid">
+            <div class="fee-item"><label for="originationFee">Origination Fee ($)</label><input type="number" id="originationFee" value="0" onchange="updateFinancedFees()"></div>
+            <div class="fee-item"><label for="processingFee">Processing Fee ($)</label><input type="number" id="processingFee" value="0" onchange="updateFinancedFees()"></div>
+            <div class="fee-item"><label for="underwritingFee">Underwriting Fee ($)</label><input type="number" id="underwritingFee" value="0" onchange="updateFinancedFees()"></div>
+            <div class="fee-item"><label for="applicationFee">Application Fee ($)</label><input type="number" id="applicationFee" value="0" onchange="updateFinancedFees()"></div>
+            <div class="fee-item"><label for="otherFinancedFees">Other APR Fees ($)</label><input type="number" id="otherFinancedFees" value="0" onchange="updateFinancedFees()"></div>
+          </div>
+        </div>
+        <div class="fee-section">
+          <h4>Non-APR Fees</h4>
+          <div class="fee-grid">
+            <div class="fee-item"><label for="creditReportFee">Credit Report ($)</label><input type="number" id="creditReportFee" value="0"></div>
+            <div class="fee-item"><label for="floodCertFee">Flood Certificate ($)</label><input type="number" id="floodCertFee" value="0"></div>
+            <div class="fee-item"><label for="taxServiceFee">Tax Service ($)</label><input type="number" id="taxServiceFee" value="0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prepaid Fees -->
+    <div class="calc-section">
+      <h2>Prepaid Fees</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-md);">Fees paid at closing that affect the APR.</p>
+      <div class="form-grid" style="grid-template-columns: 1fr auto;">
+        <div class="form-group">
+          <label for="prepaidFees">Total Prepaid Fees ($)</label>
+          <input type="number" id="prepaidFees" value="0" min="0" step="100">
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm btn-ghost" style="margin-top: var(--space-sm);" onclick="toggleFeeBreakdown('prepaid')">
+        <span id="prepaidToggleText">Show Fee Breakdown</span>
+      </button>
+      <div id="prepaidFeeBreakdown" class="fee-breakdown" style="display: none;">
+        <div class="fee-section">
+          <h4>APR Fees (Included in APR)</h4>
+          <div class="fee-grid">
+            <div class="fee-item"><label for="prepaidInterest">Prepaid Interest ($)</label><input type="number" id="prepaidInterest" value="0" onchange="updatePrepaidFees()"></div>
+            <div class="fee-item"><label for="mortgageInsurance">Mortgage Insurance ($)</label><input type="number" id="mortgageInsurance" value="0" onchange="updatePrepaidFees()"></div>
+            <div class="fee-item"><label for="monthlyMI">Monthly MI ($)</label><input type="number" id="monthlyMI" value="0" onchange="updatePrepaidFees()"></div>
+            <div class="fee-item"><label for="otherPrepaidFees">Other APR Prepaid ($)</label><input type="number" id="otherPrepaidFees" value="0" onchange="updatePrepaidFees()"></div>
+          </div>
+        </div>
+        <div class="fee-section">
+          <h4>Non-APR Fees</h4>
+          <div class="fee-grid">
+            <div class="fee-item"><label for="escrowReserves">Escrow Reserves ($)</label><input type="number" id="escrowReserves" value="0"></div>
+            <div class="fee-item"><label for="titleInsurance">Title Insurance ($)</label><input type="number" id="titleInsurance" value="0"></div>
+            <div class="fee-item"><label for="recordingFees">Recording Fees ($)</label><input type="number" id="recordingFees" value="0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="calc-section">
+      <h2>Results</h2>
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-card__label">Monthly Payment (P&I)</div>
+          <div class="result-card__value" id="monthlyPayment">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Amount Financed</div>
+          <div class="result-card__value" id="amountFinanced">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Total Finance Charges</div>
+          <div class="result-card__value" id="financeCharges">$0.00</div>
+        </div>
+      </div>
+
+      <div id="aprWarning" class="apr-warning" style="display:none;">
+        <strong>Warning:</strong> The APR is significantly higher than the note rate.
+      </div>
+
+      <div class="result-highlight" style="margin-top: var(--space-lg);">
+        <div class="result-highlight__label">Annual Percentage Rate (APR)</div>
+        <div class="result-highlight__value" id="aprResult">0.000%</div>
+      </div>
+
+      <!-- APR vs Note Rate Comparison -->
+      <div class="apr-comparison">
+        <h3>APR vs Note Rate</h3>
+        <div class="comparison-grid">
+          <div class="comparison-item">
+            <h4>Note Rate</h4>
+            <div class="value" id="noteRateDisplay">0.000%</div>
+          </div>
+          <div class="comparison-item">
+            <h4>APR</h4>
+            <div class="value" id="aprDisplay">0.000%</div>
+          </div>
+        </div>
+        <div class="cost-of-fees">
+          <div class="cost-row"><span class="cost-label">APR Spread:</span><span class="cost-value" id="aprSpread">+0.000%</span></div>
+          <div class="cost-row"><span class="cost-label">Total Upfront Costs:</span><span class="cost-value" id="totalUpfrontCosts">$0.00</span></div>
+          <div class="cost-row"><span class="cost-label">Effective Monthly Cost:</span><span class="cost-value" id="monthlyFeeCost">$0.00/mo</span></div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button type="button" class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button type="button" class="btn btn-secondary" onclick="shareLink()">Share Link</button>
+        <button type="button" class="btn btn-ghost" onclick="clearAll()">Clear All</button>
+      </div>
+    </div>
+
+    <%- include('../partials/show-calculations', { calcId: 'apr' }) %>
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">APR Calculation Method</div>
+    <p>The APR is calculated using an iterative bisection method per Reg Z. Actual APR may differ based on compounding conventions and lender policies.</p>
+  </div>
+</div>

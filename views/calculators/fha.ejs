@@ -1,0 +1,191 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>FHA Loan Calculator</h1>
+    <p>Estimate FHA eligibility, UFMIP, NTB, and cash to close based on current guidelines.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- Loan Scenario -->
+    <div class="calc-section">
+      <h2>Loan Scenario</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Loan Purpose
+            <span class="help-icon" data-help="Select the primary purpose of the new FHA loan: purchase, rate/term refi, FHA streamline, or cash-out.">?</span>
+          </label>
+          <select id="loanPurpose">
+            <option value="purchase">Purchase</option>
+            <option value="rateTerm">Rate/Term Refinance</option>
+            <option value="streamline">FHA Streamline</option>
+            <option value="cashOut">Cash-Out Refinance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Property Type
+            <span class="help-icon" data-help="Used for FHA guideline and investor overlay differences.">?</span>
+          </label>
+          <select id="propertyType">
+            <option value="sfr">SFR / PUD</option>
+            <option value="2to4">2-4 Unit</option>
+            <option value="manufactured">Manufactured Home</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label>Date Acquired / Last Closing
+            <span class="help-icon" data-help="Enter the date the borrower acquired or last financed the property.">?</span>
+          </label>
+          <input type="date" id="origDate">
+          <small id="monthsOwnedDisplay">Months owned (calculated): —</small>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: var(--space-xl); margin-top: var(--space-md);">
+        <label class="form-check">
+          <input type="checkbox" id="isExistingFha">
+          Current loan is FHA
+        </label>
+        <label class="form-check">
+          <input type="checkbox" id="financeUfmip" checked>
+          Finance UFMIP into loan amount
+        </label>
+      </div>
+    </div>
+
+    <!-- Value & Balances -->
+    <div class="calc-section">
+      <h2>Value & Balances</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Purchase Price
+            <span class="help-icon" data-help="For purchases, FHA uses the lesser of purchase price or appraised value.">?</span>
+          </label>
+          <input type="number" id="purchasePrice" step="0.01" placeholder="0.00">
+          <small>Used as part of the "lesser of" test for purchases</small>
+        </div>
+        <div class="form-group">
+          <label>Appraised Value
+            <span class="help-icon" data-help="Current appraised value used to calculate LTV and max FHA loan amount.">?</span>
+          </label>
+          <input type="number" id="appraisedValue" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label>Current UPB
+            <span class="help-icon" data-help="Outstanding principal on the existing mortgage.">?</span>
+          </label>
+          <input type="number" id="currentUpb" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Closing Costs (Financed)
+            <span class="help-icon" data-help="Costs and prepaids rolled into the new loan.">?</span>
+          </label>
+          <input type="number" id="closingCosts" step="0.01" placeholder="0.00">
+          <small>For refis where costs are rolled in</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Net Tangible Benefit -->
+    <div class="calc-section">
+      <h2>Net Tangible Benefit (NTB)</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Current P&amp;I + MIP Payment
+            <span class="help-icon" data-help="Current full P&I plus FHA MIP. Used to test required payment reduction.">?</span>
+          </label>
+          <input type="number" id="currentPayment" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Proposed New P&amp;I + MIP
+            <span class="help-icon" data-help="Estimated new P&I and MIP payment.">?</span>
+          </label>
+          <input type="number" id="newPayment" step="0.01" placeholder="0.00">
+          <small>For FHA Streamline, NTB typically requires at least a 5% payment reduction</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cash to Close -->
+    <div class="calc-section">
+      <h2>Estimated Cash to Close</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Closing Costs (Cash)
+            <span class="help-icon" data-help="Portion paid out of pocket, not financed.">?</span>
+          </label>
+          <input type="number" id="closingCostsCash" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Prepaids / Escrows (Cash)
+            <span class="help-icon" data-help="Initial escrow deposits, prepaid interest, etc.">?</span>
+          </label>
+          <input type="number" id="prepaidsCash" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label>Total Credits
+            <span class="help-icon" data-help="Seller + lender + other credits.">?</span>
+          </label>
+          <input type="number" id="totalCredits" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Escrow Refund (Refi)
+            <span class="help-icon" data-help="Expected escrow refund from existing loan.">?</span>
+          </label>
+          <input type="number" id="escrowRefund" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="action-bar" style="border-top: none; margin-top: var(--space-lg);">
+        <button class="btn btn-primary" id="calculateBtn">Calculate</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="calc-section">
+      <h2>Results</h2>
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-card__label">Max Base FHA Loan</div>
+          <div class="result-card__value" id="resultBaseLoan">—</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Est. Total Loan (w/ UFMIP)</div>
+          <div class="result-card__value" id="resultTotalLoan">—</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Implied LTV</div>
+          <div class="result-card__value" id="resultLtv">—</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Net Tangible Benefit</div>
+          <div class="result-card__value">
+            <span class="result-pill" id="resultNtb">—</span>
+          </div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Est. Cash to Close</div>
+          <div class="result-card__value" id="resultCashToClose">—</div>
+        </div>
+      </div>
+
+      <div style="margin-top: var(--space-lg);">
+        <h3 style="font-size: 0.95rem; color: var(--color-gray-700);">Notes &amp; Flags</h3>
+        <ul id="resultNotes" style="font-size: 0.85rem; color: var(--color-gray-500); padding-left: var(--space-lg);"></ul>
+      </div>
+    </div>
+
+    <%- include('../partials/show-calculations', { calcId: 'fha' }) %>
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Important Disclaimers</div>
+    <p>For internal guidance only. Actual eligibility subject to FHA Handbook, investor overlays, and AUS findings.</p>
+  </div>
+</div>

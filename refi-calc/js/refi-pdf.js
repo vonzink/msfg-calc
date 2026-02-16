@@ -60,7 +60,11 @@ const RefiPDF = (() => {
             y = drawHeader(doc, y);
             y = drawLoanSummary(doc, y, results);
             y = drawBreakevenResults(doc, y, results);
-            y = drawCostOfWaitingResults(doc, y, results);
+
+            // Only include Cost of Waiting if enabled
+            if (results.inputs.costOfWaitingEnabled !== false) {
+                y = drawCostOfWaitingResults(doc, y, results);
+            }
 
             // ---- PAGE 2: Recommendation + Closing Costs ----
             doc.addPage();
@@ -151,18 +155,36 @@ const RefiPDF = (() => {
     function drawLoanSummary(doc, y, r) {
         y = drawSectionTitle(doc, y, 'Loan Summary');
 
-        const data = [
-            ['', 'Current Loan', 'Refi Offer', 'Future (Wait)'],
-            ['Balance / Amount', fmt(r.inputs.currentBalance), fmt(r.inputs.refiLoanAmount), fmt(r.analysis.balanceAfterWait)],
-            ['Interest Rate', r.inputs.currentRate + '%', r.inputs.refiRate + '%', r.inputs.futureRate + '%'],
-            ['Term', r.inputs.currentTermRemaining + ' mo remaining', r.inputs.refiTerm + ' mo', r.inputs.refiTerm + ' mo'],
-            ['Monthly P&I', fmt(r.currentPayment), fmt(r.refiPayment), fmt(r.futurePayment)],
-            ['Product', '—', r.inputs.refiProduct.replace(/([A-Z])/g, ' $1').trim(), '—'],
-        ];
+        const costOfWaitingEnabled = r.inputs.costOfWaitingEnabled !== false;
+
+        let data;
+        let colWidths;
+
+        if (costOfWaitingEnabled) {
+            data = [
+                ['', 'Current Loan', 'Refi Offer', 'Future (Wait)'],
+                ['Balance / Amount', fmt(r.inputs.currentBalance), fmt(r.inputs.refiLoanAmount), fmt(r.analysis.balanceAfterWait)],
+                ['Interest Rate', r.inputs.currentRate + '%', r.inputs.refiRate + '%', r.inputs.futureRate + '%'],
+                ['Term', r.inputs.currentTermRemaining + ' mo remaining', r.inputs.refiTerm + ' mo', r.inputs.refiTerm + ' mo'],
+                ['Monthly P&I', fmt(r.currentPayment), fmt(r.refiPayment), fmt(r.futurePayment)],
+                ['Product', '—', r.inputs.refiProduct.replace(/([A-Z])/g, ' $1').trim(), '—'],
+            ];
+            colWidths = [35, 45, 45, 45];
+        } else {
+            data = [
+                ['', 'Current Loan', 'Refi Offer'],
+                ['Balance / Amount', fmt(r.inputs.currentBalance), fmt(r.inputs.refiLoanAmount)],
+                ['Interest Rate', r.inputs.currentRate + '%', r.inputs.refiRate + '%'],
+                ['Term', r.inputs.currentTermRemaining + ' mo remaining', r.inputs.refiTerm + ' mo'],
+                ['Monthly P&I', fmt(r.currentPayment), fmt(r.refiPayment)],
+                ['Product', '—', r.inputs.refiProduct.replace(/([A-Z])/g, ' $1').trim()],
+            ];
+            colWidths = [50, 60, 60];
+        }
 
         y = drawTable(doc, y, data, {
             headerRow: true,
-            colWidths: [35, 45, 45, 45]
+            colWidths: colWidths
         });
 
         // Cash-out debt detail (if enabled)
