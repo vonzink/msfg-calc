@@ -1,0 +1,9 @@
+Client Name,Loan Amount,Property Value,Credit Score,Loan Purpose,Product Type,Occupancy,Property Type,Units,Term,Current Rate,Current Payment
+John Smith,350000,450000,760,Purchase,Fixed,Primary,Single Family,1,30,7.250,2388
+Jane Doe,275000,325000,720,Purchase,Fixed,Primary,Condo,1,30,6.875,1808
+Robert Johnson,500000,625000,740,LimitedCashOut,Fixed,Primary,Single Family,1,30,7.500,3497
+Maria Garcia,200000,280000,680,Purchase,ARM,Primary,Single Family,1,30,7.000,1331
+David Lee,425000,500000,800,Purchase,Fixed,Investment,Single Family,1,30,7.125,2863
+Sarah Williams,150000,200000,700,Purchase,Fixed,Primary,Manufactured Home,1,30,7.375,1036
+Michael Brown,600000,750000,770,CashOut,Fixed,Primary,Single Family,1,30,6.500,3793
+Emily Davis,320000,400000,650,Purchase,Fixed,Primary,Single Family,1,30,8.000,2348

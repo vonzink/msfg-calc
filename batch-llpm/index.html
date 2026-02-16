@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Batch LLPM Pricing Tool - MSFG Home Loans</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    /* Batch LLPM Tool Specific Styles (inherits main.css) */
+
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(45, 106, 79, 0.04);
+    }
+    .upload-zone.has-file {
+      border-color: var(--success);
+      background: rgba(40, 167, 69, 0.04);
+    }
+    .upload-zone .upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .upload-zone strong { font-size: 1rem; }
+    .upload-zone .hint { font-size: 0.8rem; color: var(--gray); margin-top: 0.4rem; }
+    .file-input { display: none; }
+
+    /* Status Messages */
+    .status-msg {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+    }
+    .status-msg.info { background: #e3f2fd; border: 1px solid #bbdefb; color: #1565c0; }
+    .status-msg.success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+    .status-msg.warning { background: #fff8e1; border: 1px solid #ffe0b2; color: #e65100; }
+    .status-msg.error { background: #fce4ec; border: 1px solid #f8bbd0; color: #c62828; }
+
+    /* Mapping Grid */
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .mapping-item { display: flex; flex-direction: column; gap: 0.3rem; }
+    .mapping-item label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .stat-card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    .stat-card .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gray);
+      margin-bottom: 0.3rem;
+    }
+    .stat-card .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    .stat-card .stat-value.positive { color: var(--success); }
+    .stat-card .stat-value.negative { color: var(--danger); }
+
+    /* Actions Bar */
+    .actions-bar {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .actions-bar input[type="text"] {
+      flex: 1;
+      max-width: 280px;
+    }
+
+    /* Results Table */
+    .table-wrap {
+      overflow-x: auto;
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .results-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .results-table thead { position: sticky; top: 0; background: var(--light); z-index: 10; }
+    .results-table th {
+      padding: 0.7rem 0.6rem;
+      border-bottom: 2px solid var(--border);
+      text-align: left;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.75rem;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .results-table th:hover { color: var(--secondary); }
+    .results-table th.sortable::after { content: ' ↕'; opacity: 0.3; }
+    .results-table th.sorted-asc::after { content: ' ↑'; opacity: 1; color: var(--accent); }
+    .results-table th.sorted-desc::after { content: ' ↓'; opacity: 1; color: var(--accent); }
+    .results-table td {
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .results-table tr:hover td { background: rgba(45, 106, 79, 0.03); }
+    .positive { color: var(--success); }
+    .negative { color: var(--danger); }
+    .muted { color: var(--gray); }
+
+    .break-even-highlight { background: rgba(40, 167, 69, 0.08) !important; }
+    .break-even-highlight:hover td { background: rgba(40, 167, 69, 0.12) !important; }
+
+    /* Breakdown Button */
+    .breakdown-btn {
+      background: var(--light-gray);
+      border: 1px solid var(--border);
+      color: var(--dark);
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+    .breakdown-btn:hover {
+      border-color: var(--accent);
+      color: var(--primary);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-backdrop {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(3px);
+    }
+    .modal-body {
+      position: relative;
+      background: var(--light);
+      border-radius: 12px;
+      padding: 1.75rem;
+      max-width: 700px;
+      width: 92%;
+      max-height: 82vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      z-index: 1001;
+    }
+    .modal-body h3 {
+      margin: 0 0 1rem;
+      font-size: 1.15rem;
+      color: var(--dark);
+    }
+    .modal-summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.85rem;
+    }
+    .modal-summary .kv {
+      background: var(--light-gray);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+    }
+    .modal-summary .kv .k { color: var(--gray); font-size: 0.75rem; margin-bottom: 0.15rem; }
+    .modal-summary .kv .v { font-weight: 700; color: var(--dark); }
+    .breakdown-detail-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .breakdown-detail-table th,
+    .breakdown-detail-table td {
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 0.82rem;
+    }
+    .breakdown-detail-table th {
+      background: var(--light-gray);
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.75rem;
+    }
+
+    /* Toggle (reusing LLPM pattern) */
+    .toggle-grid { display: grid; gap: 0.75rem; margin-top: 1rem; }
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.65rem .75rem; border:1px solid var(--border); border-radius:10px; background: var(--light); }
+    .toggle-row .label { font-weight:700; color: var(--dark); }
+    .toggle-row .hint { font-size:.85rem; color: var(--gray); margin-top:.15rem; }
+    .toggle-row .meta { display:flex; flex-direction:column; }
+
+    /* Radio pills (reusing LLPM pattern) */
+    .radio-row { display:flex; flex-wrap:wrap; gap:.75rem; }
+    .radio-pill {
+      border: 1px solid var(--border);
+      background: var(--light);
+      border-radius: 999px;
+      padding: .45rem .75rem;
+      display:flex; align-items:center; gap:.5rem;
+      cursor:pointer;
+      user-select:none;
+      font-weight:600;
+    }
+    .radio-pill input { margin:0; }
+
+    @media (max-width: 768px) {
+      .mapping-grid { grid-template-columns: 1fr 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-container">
+    <div class="header">
+      <img class="header-logo" src="/images/msfg-logo.png" alt="MSFG Home Loans" />
+      <h1>Batch LLPM Pricing Tool</h1>
+      <p>Upload CSV or Excel borrower data to run Fannie Mae LLPA matrix adjustments in bulk. Conventional only.</p>
+    </div>
+
+    <div class="content">
+
+      <!-- Step 1: Upload -->
+      <div class="section">
+        <h2><span class="section-number">1</span> Upload Borrower Data</h2>
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon">📊</div>
+          <div><strong>Drag &amp; drop your CSV or Excel file here</strong></div>
+          <div class="hint">or click to browse</div>
+          <div class="hint" style="margin-top: 0.75rem; font-size: 0.72rem;">
+            Expected columns: Client Name, Loan Amount, Property Value, Credit Score, Purpose, Product Type, Occupancy, Property Type, Units, Term, Current Rate, Current Payment
+          </div>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls" />
+        <div style="margin-top: 0.75rem; text-align: center;">
+          <a href="/calculators/batch-llpm/sample-data.csv" download style="color: var(--accent); font-size: 0.85rem;">
+            Download sample CSV template
+          </a>
+        </div>
+        <div id="fileInfo" class="status-msg info hidden"></div>
+        <div id="errorMessage" class="status-msg error hidden"></div>
+      </div>
+
+      <!-- Step 2: Column Mapping -->
+      <div class="section hidden" id="mappingSection">
+        <h2><span class="section-number">2</span> Verify Column Mapping</h2>
+        <p class="muted" style="margin-bottom: 1rem;">We auto-detected your columns. Verify or adjust below. Fields marked * are required.</p>
+        <div class="mapping-grid" id="mappingGrid"></div>
+        <div style="margin-top: 1.25rem;">
+          <button class="btn btn-primary" id="confirmMapping">Confirm Mapping &amp; Continue</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Pricing Parameters -->
+      <div class="section hidden" id="inputsSection">
+        <h2><span class="section-number">3</span> Set Pricing Parameters</h2>
+
+        <div class="input-grid">
+          <div class="input-group">
+            <label for="baseRate">Base Rate (%)</label>
+            <input type="number" id="baseRate" step="0.001" value="6.750" />
+          </div>
+          <div class="input-group">
+            <label for="startingPoints">Starting Points (±)</label>
+            <input type="number" id="startingPoints" step="0.001" value="0.000" />
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem;">
+          <label style="display:block; margin-bottom:.5rem; font-weight:700;">Loan Purpose (global override)</label>
+          <div class="radio-row">
+            <label class="radio-pill"><input type="radio" name="loanPurpose" value="Purchase" checked /> Purchase</label>
+            <label class="radio-pill"><input type="radio" name="loanPurpose" value="LimitedCashOut" /> Limited Cash-Out</label>
+            <label class="radio-pill"><input type="radio" name="loanPurpose" value="CashOut" /> Cash-Out</label>
+            <label class="radio-pill"><input type="radio" name="loanPurpose" value="" /> Per-Row Value</label>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem;">
+          <label style="display:block; margin-bottom:.5rem; font-weight:700;">Break-Even Highlight Threshold</label>
+          <select id="breakEvenThreshold" style="max-width: 200px;">
+            <option value="12">12 months</option>
+            <option value="18" selected>18 months</option>
+            <option value="24">24 months</option>
+            <option value="36">36 months</option>
+            <option value="48">48 months</option>
+            <option value="999999">No highlight</option>
+          </select>
+        </div>
+
+        <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">LLPA Waivers</h3>
+        <p class="muted" style="margin-top: -.25rem; margin-bottom: .75rem;">If toggled on, waives all LLPAs except MMI (per matrix). Applied to all rows.</p>
+
+        <div class="toggle-grid">
+          <div class="toggle-row">
+            <div class="meta">
+              <div class="label">HomeReady®</div>
+            </div>
+            <input id="waiverHomeReady" type="checkbox" />
+          </div>
+          <div class="toggle-row">
+            <div class="meta">
+              <div class="label">First-time homebuyer</div>
+              <div class="hint">Income/AMI checks not included (user decides)</div>
+            </div>
+            <input id="waiverFirstTimeHB" type="checkbox" />
+          </div>
+          <div class="toggle-row">
+            <div class="meta">
+              <div class="label">Duty to Serve</div>
+              <div class="hint">User confirms eligibility</div>
+            </div>
+            <input id="waiverDutyToServe" type="checkbox" />
+          </div>
+          <div class="toggle-row">
+            <div class="meta">
+              <div class="label">Minimum MI coverage option (MMI)</div>
+              <div class="hint">Applies the MMI grid (based on base/net LTV) to all rows</div>
+            </div>
+            <input id="applyMMI" type="checkbox" />
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: right;">
+          <button class="btn btn-primary" id="calculateBtn">Calculate Pricing</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Results -->
+      <div class="section hidden" id="resultsSection">
+        <h2><span class="section-number">4</span> Results</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Loans</div>
+            <div class="stat-value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Loans Saving Money</div>
+            <div class="stat-value positive" id="statSavings">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Loan Volume</div>
+            <div class="stat-value" id="statVolume">$0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg. LLPA Points</div>
+            <div class="stat-value" id="statAvgPoints">0.000</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg. Payment Change</div>
+            <div class="stat-value" id="statAvgPaymentChange">$0</div>
+          </div>
+        </div>
+
+        <div class="actions-bar">
+          <input type="text" id="searchBox" placeholder="Search borrowers..." />
+          <button class="btn btn-secondary" id="exportExcelBtn">Export Excel</button>
+          <button class="btn btn-secondary" id="exportCsvBtn">Export CSV</button>
+          <button class="btn btn-secondary" id="exportPdfBtn">Export PDF</button>
+          <button class="btn btn-secondary" id="resetBtn">Start Over</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="results-table" id="resultsTable">
+            <thead>
+              <tr>
+                <th class="sortable" data-col="status" title="Data completeness">✓</th>
+                <th class="sortable" data-col="clientName">Client</th>
+                <th class="sortable" data-col="loanAmount">Loan Amt</th>
+                <th class="sortable" data-col="ltv">LTV</th>
+                <th class="sortable" data-col="creditScore">Credit</th>
+                <th class="sortable" data-col="purpose">Purpose / Type</th>
+                <th class="sortable" data-col="currentRate">Current Rate/Pmt</th>
+                <th class="sortable" data-col="adjustedRate">New Rate/Pmt</th>
+                <th class="sortable" data-col="paymentDiff">Pmt Change</th>
+                <th class="sortable" data-col="pointCost">Point Cost</th>
+                <th class="sortable" data-col="totalPoints">LLPA Points</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-container -->
+
+  <!-- Breakdown Modal -->
+  <div id="breakdownModal" class="modal-overlay">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-body" id="breakdownModalContent"></div>
+  </div>
+
+  <!-- SheetJS for Excel support -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script type="module" src="batch-llpm.js"></script>
+</body>
+</html>
