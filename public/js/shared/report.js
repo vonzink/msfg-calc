@@ -1,79 +1,171 @@
 /* =====================================================
    MSFG Report Manager
    Captures calculator snapshots and manages session report
+   Uses IndexedDB for storage (much larger capacity than localStorage)
    ===================================================== */
 
 (function() {
   'use strict';
 
-  var STORAGE_KEY = 'msfg-report-items';
+  var DB_NAME = 'msfg-report';
+  var STORE_NAME = 'items';
+  var DB_VERSION = 1;
   var MAX_ITEMS = 30;
+  var _db = null;
+  var _ready = null;
 
   window.MSFG = window.MSFG || {};
 
+  /* ---- IndexedDB setup ---- */
+  function openDB() {
+    if (_ready) return _ready;
+    _ready = new Promise(function(resolve, reject) {
+      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = function(e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = function(e) {
+        _db = e.target.result;
+        resolve(_db);
+      };
+      req.onerror = function() {
+        console.warn('IndexedDB unavailable, report will not persist.');
+        reject(req.error);
+      };
+    });
+    return _ready;
+  }
+
+  function dbGetAll() {
+    return openDB().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readonly');
+        var store = tx.objectStore(STORE_NAME);
+        var req = store.getAll();
+        req.onsuccess = function() {
+          var items = req.result || [];
+          items.sort(function(a, b) {
+            return new Date(a.timestamp) - new Date(b.timestamp);
+          });
+          resolve(items);
+        };
+        req.onerror = function() { reject(req.error); };
+      });
+    }).catch(function() { return []; });
+  }
+
+  function dbPut(item) {
+    return openDB().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        var store = tx.objectStore(STORE_NAME);
+        store.put(item);
+        tx.oncomplete = function() { resolve(true); };
+        tx.onerror = function() { reject(tx.error); };
+      });
+    });
+  }
+
+  function dbDelete(id) {
+    return openDB().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        var store = tx.objectStore(STORE_NAME);
+        store.delete(id);
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { reject(tx.error); };
+      });
+    });
+  }
+
+  function dbClear() {
+    return openDB().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        var store = tx.objectStore(STORE_NAME);
+        store.clear();
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { reject(tx.error); };
+      });
+    });
+  }
+
+  function dbCount() {
+    return openDB().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readonly');
+        var store = tx.objectStore(STORE_NAME);
+        var req = store.count();
+        req.onsuccess = function() { resolve(req.result); };
+        req.onerror = function() { reject(req.error); };
+      });
+    }).catch(function() { return 0; });
+  }
+
+  /* ---- Enforce max items ---- */
+  function enforceMax() {
+    return dbGetAll().then(function(items) {
+      if (items.length <= MAX_ITEMS) return;
+      var toRemove = items.slice(0, items.length - MAX_ITEMS);
+      var promises = toRemove.map(function(item) { return dbDelete(item.id); });
+      return Promise.all(promises);
+    });
+  }
+
+  /* ---- Public API ---- */
   MSFG.Report = {
 
     getItems: function() {
-      try {
-        var data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-      } catch (e) {
-        return [];
-      }
+      return dbGetAll();
     },
 
     addItem: function(item) {
-      var items = this.getItems();
-      items.push({
+      var newItem = {
         id: 'rpt-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
         name: item.name || 'Calculator',
         icon: item.icon || '',
         timestamp: new Date().toISOString(),
         imageData: item.imageData || ''
+      };
+      var self = this;
+      return dbPut(newItem).then(function() {
+        return enforceMax();
+      }).then(function() {
+        self._updateBadge();
+        return newItem.id;
       });
-      if (items.length > MAX_ITEMS) items = items.slice(items.length - MAX_ITEMS);
-      this._save(items);
-      this._updateBadge();
-      return items[items.length - 1].id;
     },
 
     removeItem: function(id) {
-      var items = this.getItems().filter(function(i) { return i.id !== id; });
-      this._save(items);
-      this._updateBadge();
+      var self = this;
+      return dbDelete(id).then(function() {
+        self._updateBadge();
+      });
     },
 
     clear: function() {
-      localStorage.removeItem(STORAGE_KEY);
-      this._updateBadge();
+      var self = this;
+      return dbClear().then(function() {
+        self._updateBadge();
+      });
     },
 
     getCount: function() {
-      return this.getItems().length;
-    },
-
-    _save: function(items) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      } catch (e) {
-        if (items.length > 1) {
-          items.shift();
-          this._save(items);
-        }
-      }
+      return dbCount();
     },
 
     _updateBadge: function() {
       var badge = document.getElementById('reportBadge');
       if (!badge) return;
-      var count = this.getCount();
-      badge.textContent = count;
-      badge.style.display = count > 0 ? 'flex' : 'none';
+      dbCount().then(function(count) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      });
     },
 
-    /**
-     * Capture a DOM element as a JPEG data URL using html2canvas.
-     */
     captureElement: function(element, options) {
       options = options || {};
       if (typeof html2canvas === 'undefined') {
@@ -82,17 +174,14 @@
       return html2canvas(element, {
         useCORS: true,
         allowTaint: true,
-        scale: options.scale || 1.5,
+        scale: options.scale || 1,
         backgroundColor: '#ffffff',
         logging: false
       }).then(function(canvas) {
-        return canvas.toDataURL('image/jpeg', options.quality || 0.65);
+        return canvas.toDataURL('image/jpeg', options.quality || 0.5);
       });
     },
 
-    /**
-     * Show a toast notification
-     */
     _showToast: function(message, type) {
       var toast = document.createElement('div');
       toast.className = 'report-toast report-toast--' + (type || 'success');
@@ -107,10 +196,6 @@
       }, 2500);
     },
 
-    /**
-     * Main capture for a calculator page.
-     * Tries iframe content first, then falls back to page content.
-     */
     captureCurrentCalculator: function(calcName, calcIcon) {
       var self = this;
       var target = null;
@@ -136,8 +221,13 @@
       }
 
       return self.captureElement(target).then(function(imageData) {
-        self.addItem({ name: calcName, icon: calcIcon, imageData: imageData });
+        return self.addItem({ name: calcName, icon: calcIcon, imageData: imageData });
+      }).then(function() {
         self._showToast('Added to report');
+      }).catch(function(err) {
+        console.error('Report save failed:', err);
+        self._showToast('Failed to save — try again', 'error');
+        throw err;
       });
     }
   };
@@ -146,21 +236,17 @@
   document.addEventListener('DOMContentLoaded', function() {
     MSFG.Report._updateBadge();
 
-    // Only inject on calculator pages
     var calcHeader = document.querySelector('.calc-page__header');
     if (!calcHeader) return;
 
-    // Get calculator name from the page heading
     var h1 = calcHeader.querySelector('h1');
     var calcName = h1 ? h1.textContent.trim() : document.title;
 
-    // Try to get the icon from the page config (injected by EJS)
     var calcIcon = '';
     if (typeof window.__calcIcon !== 'undefined') {
       calcIcon = window.__calcIcon;
     }
 
-    // Create the icon button
     var btn = document.createElement('button');
     btn.className = 'report-add-btn';
     btn.title = 'Add to Report';
@@ -189,15 +275,12 @@
           btn.style.color = '';
           btn.style.borderColor = '';
         }, 1500);
-      }).catch(function(err) {
-        console.error('Report capture failed:', err);
+      }).catch(function() {
         btn.disabled = false;
         btn.innerHTML = defaultSvg;
-        MSFG.Report._showToast('Capture failed — try again', 'error');
       });
     });
 
-    // Insert button into the header area
     var headerWrapper = document.createElement('div');
     headerWrapper.className = 'calc-page__header-actions';
     headerWrapper.appendChild(btn);

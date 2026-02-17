@@ -241,11 +241,12 @@
       }
 
       html2canvas(target, {
-        useCORS: true, allowTaint: true, scale: 1.5,
+        useCORS: true, allowTaint: true, scale: 1,
         backgroundColor: '#ffffff', logging: false
       }).then(function(canvas) {
-        var imageData = canvas.toDataURL('image/jpeg', 0.65);
-        MSFG.Report.addItem({ name: name, icon: icon, imageData: imageData });
+        var imageData = canvas.toDataURL('image/jpeg', 0.5);
+        return MSFG.Report.addItem({ name: name, icon: icon, imageData: imageData });
+      }).then(function() {
         reportBtn.disabled = false;
         reportBtn.style.opacity = '';
         reportBtn.style.color = 'var(--brand-primary)';

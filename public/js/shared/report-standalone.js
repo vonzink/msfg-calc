@@ -1,36 +1,43 @@
 /* =====================================================
    MSFG Report — Standalone Page Integration
    For pages that don't use the EJS layout (LLPM, Batch LLPM, MISMO).
-   Loads html2canvas if needed, provides capture + localStorage.
+   Uses IndexedDB (same DB as report.js) for storage.
    ===================================================== */
 
 (function() {
   'use strict';
 
-  var STORAGE_KEY = 'msfg-report-items';
-  var MAX_ITEMS = 30;
+  var DB_NAME = 'msfg-report';
+  var STORE_NAME = 'items';
+  var DB_VERSION = 1;
+  var _db = null;
 
-  /* ---- Minimal Report API (mirrors report.js) ---- */
-  function getItems() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch (e) { return []; }
+  function openDB() {
+    return new Promise(function(resolve, reject) {
+      if (_db) return resolve(_db);
+      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = function(e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = function(e) { _db = e.target.result; resolve(_db); };
+      req.onerror = function() { reject(req.error); };
+    });
   }
 
   function addItem(item) {
-    var items = getItems();
-    items.push({
-      id: 'rpt-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
-      name: item.name || 'Tool',
-      icon: item.icon || '',
-      timestamp: new Date().toISOString(),
-      imageData: item.imageData || ''
+    return openDB().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(item);
+        tx.oncomplete = function() { resolve(true); };
+        tx.onerror = function() { reject(tx.error); };
+      });
     });
-    if (items.length > MAX_ITEMS) items = items.slice(items.length - MAX_ITEMS);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
-    catch (e) { items.shift(); localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
   }
 
-  /* ---- Toast ---- */
   function showToast(msg, type) {
     var t = document.createElement('div');
     t.style.cssText =
@@ -47,7 +54,6 @@
     }, 2500);
   }
 
-  /* ---- Ensure html2canvas is loaded ---- */
   function ensureHtml2Canvas(cb) {
     if (typeof html2canvas !== 'undefined') return cb();
     var s = document.createElement('script');
@@ -57,7 +63,6 @@
     document.head.appendChild(s);
   }
 
-  /* ---- Create floating button ---- */
   function createButton(calcName, calcIcon) {
     var btn = document.createElement('button');
     btn.id = 'reportAddBtnStandalone';
@@ -86,14 +91,19 @@
       ensureHtml2Canvas(function() {
         var target = document.querySelector('.container, .main-container, main, body');
         html2canvas(target || document.body, {
-          useCORS: true,
-          allowTaint: true,
-          scale: 1.5,
-          backgroundColor: '#ffffff',
-          logging: false
+          useCORS: true, allowTaint: true, scale: 1,
+          backgroundColor: '#ffffff', logging: false
         }).then(function(canvas) {
-          var imageData = canvas.toDataURL('image/jpeg', 0.65);
-          addItem({ name: calcName, icon: calcIcon, imageData: imageData });
+          var imageData = canvas.toDataURL('image/jpeg', 0.5);
+          var item = {
+            id: 'rpt-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+            name: calcName,
+            icon: calcIcon,
+            timestamp: new Date().toISOString(),
+            imageData: imageData
+          };
+          return addItem(item);
+        }).then(function() {
           showToast('Added to report');
           btn.disabled = false;
           btn.style.opacity = '1';
@@ -125,13 +135,11 @@
       });
     });
 
-    // Hide in embed mode or when loaded inside an iframe
     if (window.location.search.indexOf('embed=1') !== -1) return;
     if (window.top !== window) return;
     document.body.appendChild(btn);
   }
 
-  /* ---- Auto-init ---- */
   document.addEventListener('DOMContentLoaded', function() {
     var name = document.title.replace(/\s*[-|].*$/, '').trim() || 'Tool';
     var icon = document.querySelector('meta[name="calc-icon"]');
