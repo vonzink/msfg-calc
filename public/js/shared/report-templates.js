@@ -629,19 +629,25 @@
   renderers['cash-vs-mortgage'] = function (data) {
     var inp = data.inputs;
     var brk = data.breakdown;
-    var html = '<div class="rpt-params">';
+    var down = inp.price * inp.downPct / 100;
+    var loan = inp.price - down;
+    var html = '';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Scenario Parameters</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Purchase Price</span><span>' + fmt0(inp.price) + '</span></div>';
-    html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + '</span></div>';
+    html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + ' (' + fmt0(down) + ')</span></div>';
+    html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(loan) + '</span></div>';
     html += '<div class="rpt-param"><span>Interest Rate</span><span>' + pct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + ' years</span></div>';
-    html += '<div class="rpt-param"><span>Investment Return</span><span>' + pct(inp.investReturn) + '</span></div>';
-    html += '<div class="rpt-param"><span>Property Appreciation</span><span>' + pct(inp.appreciation) + '</span></div>';
+    html += '<div class="rpt-param"><span>Expected Investment Return</span><span>' + pct(inp.investReturn) + '</span></div>';
+    html += '<div class="rpt-param"><span>Annual Property Appreciation</span><span>' + pct(inp.appreciation) + '</span></div>';
     html += '<div class="rpt-param"><span>Analysis Period</span><span>' + inp.period + ' years</span></div>';
-    html += '</div>';
+    html += '</div></div>';
 
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Cost Comparison</h4>';
     html += '<div class="rpt-comparison">';
-    html += '<div class="rpt-compare-col">';
-    html += '<h4>Cash Purchase</h4>';
+    html += '<div class="rpt-compare-col"><h4>Cash Purchase</h4>';
     html += '<table class="rpt-table"><tbody>';
     html += '<tr><td>Purchase Price</td><td class="rpt-num">' + brk.cash.purchasePrice + '</td></tr>';
     html += '<tr><td>Closing Costs</td><td class="rpt-num">' + brk.cash.closingCosts + '</td></tr>';
@@ -650,222 +656,311 @@
     html += '<div class="rpt-grand-total"><span>Net Cost</span><span>' + brk.cash.total + '</span></div>';
     html += '</div>';
 
-    html += '<div class="rpt-compare-col">';
-    html += '<h4>Mortgage Purchase</h4>';
+    html += '<div class="rpt-compare-col"><h4>Mortgage Purchase</h4>';
     html += '<table class="rpt-table"><tbody>';
     html += '<tr><td>Down Payment</td><td class="rpt-num">' + brk.mortgage.downPayment + '</td></tr>';
     html += '<tr><td>Closing Costs</td><td class="rpt-num">' + brk.mortgage.closingCosts + '</td></tr>';
-    html += '<tr><td>Mortgage Payments</td><td class="rpt-num">' + brk.mortgage.payments + '</td></tr>';
-    html += '<tr><td>Investment Balance</td><td class="rpt-num">' + brk.mortgage.investmentBalance + '</td></tr>';
-    html += '<tr><td>Remaining Balance</td><td class="rpt-num">' + brk.mortgage.remainingBalance + '</td></tr>';
+    html += '<tr><td>Total Mortgage Payments</td><td class="rpt-num">' + brk.mortgage.payments + '</td></tr>';
+    html += '<tr><td>Investment Balance (end of term)</td><td class="rpt-num">' + brk.mortgage.investmentBalance + '</td></tr>';
+    html += '<tr><td>Remaining Mortgage Balance</td><td class="rpt-num">' + brk.mortgage.remainingBalance + '</td></tr>';
     html += '<tr><td>Net Investment Benefit</td><td class="rpt-num">' + brk.mortgage.investmentGrowth + '</td></tr>';
     html += '<tr><td>Property Appreciation</td><td class="rpt-num">' + brk.mortgage.appreciation + '</td></tr>';
     html += '</tbody></table>';
     html += '<div class="rpt-grand-total"><span>Net Cost</span><span>' + brk.mortgage.total + '</span></div>';
-    html += '</div></div>';
+    html += '</div></div></div>';
 
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Analysis</h4>';
     html += '<div class="rpt-recommendation"><span>Recommendation:</span> ' + data.results.recommendation + '</div>';
-    html += '<div class="rpt-difference">Cost Difference: ' + data.results.difference + '</div>';
+    html += '<div class="rpt-difference">Net Savings: ' + data.results.difference + '</div>';
+    html += '</div>';
     return html;
   };
 
   /* General: Buy vs Rent */
   renderers['buy-vs-rent'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var down = inp.price * inp.downPct / 100;
+    var html = '';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Scenario Parameters</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Purchase Price</span><span>' + fmt0(inp.price) + '</span></div>';
-    html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + '</span></div>';
+    html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + ' (' + fmt0(down) + ')</span></div>';
     html += '<div class="rpt-param"><span>Interest Rate</span><span>' + pct(inp.rate) + '</span></div>';
-    html += '<div class="rpt-param"><span>Monthly Rent</span><span>' + fmt0(inp.rent) + '</span></div>';
+    html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + ' years</span></div>';
+    html += '<div class="rpt-param"><span>Property Tax Rate</span><span>' + pct(inp.taxRate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Home Appreciation</span><span>' + pct(inp.appreciation) + '</span></div>';
+    html += '<div class="rpt-param"><span>Current Monthly Rent</span><span>' + fmt0(inp.rent) + '</span></div>';
+    html += '<div class="rpt-param"><span>Rent Increase Rate</span><span>' + pct(inp.rentIncrease) + '</span></div>';
     html += '<div class="rpt-param"><span>Analysis Period</span><span>' + inp.period + ' years</span></div>';
-    html += '</div>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Cost Comparison</h4>';
     html += '<div class="rpt-comparison"><div class="rpt-compare-col">';
     html += '<h4>Buying</h4>';
-    html += '<div class="rpt-subtotal"><span>Monthly Payment</span><span>' + res.monthlyPayment + '</span></div>';
-    html += '<div class="rpt-subtotal"><span>Total Cost</span><span>' + res.ownCost + '</span></div>';
-    html += '<div class="rpt-subtotal"><span>Net Equity at Sale</span><span>' + res.equity + '</span></div>';
+    html += '<table class="rpt-table"><tbody>';
+    html += '<tr><td>Monthly Mortgage Payment</td><td class="rpt-num">' + res.monthlyPayment + '</td></tr>';
+    html += '<tr><td>Total Ownership Cost</td><td class="rpt-num">' + res.ownCost + '</td></tr>';
+    html += '<tr><td>Net Equity at Sale</td><td class="rpt-num">' + res.equity + '</td></tr>';
+    html += '</tbody></table>';
     html += '</div><div class="rpt-compare-col">';
     html += '<h4>Renting</h4>';
-    html += '<div class="rpt-subtotal"><span>Total Rent</span><span>' + res.rentCost + '</span></div>';
+    html += '<table class="rpt-table"><tbody>';
+    html += '<tr><td>Total Rent Paid</td><td class="rpt-num">' + res.rentCost + '</td></tr>';
+    html += '</tbody></table>';
     html += '</div></div>';
+    html += '<div class="rpt-grand-total"><span>Financial Impact</span><span>' + res.difference + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Analysis</h4>';
     html += '<div class="rpt-recommendation"><span>Recommendation:</span> ' + (res.recommendation || '') + '</div>';
+    html += '</div>';
     return html;
   };
 
   /* Government: FHA */
   renderers['fha'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var html = '';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Scenario</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Loan Purpose</span><span>' + inp.loanPurpose + '</span></div>';
+    html += '<div class="rpt-param"><span>Property Type</span><span>' + inp.propertyType + '</span></div>';
     html += '<div class="rpt-param"><span>Purchase Price</span><span>' + fmt0(inp.purchasePrice) + '</span></div>';
     html += '<div class="rpt-param"><span>Appraised Value</span><span>' + fmt0(inp.appraisedValue) + '</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
-    html += '<tr><td>Max Base FHA Loan</td><td class="rpt-num">' + res.baseLoan + '</td></tr>';
-    html += '<tr><td>Total Loan (w/ UFMIP)</td><td class="rpt-num">' + res.totalLoan + '</td></tr>';
+    if (inp.closingCosts) html += '<div class="rpt-param"><span>Financed Closing Costs</span><span>' + fmt0(inp.closingCosts) + '</span></div>';
+    if (inp.closingCostsCash) html += '<div class="rpt-param"><span>Cash Closing Costs</span><span>' + fmt0(inp.closingCostsCash) + '</span></div>';
+    if (inp.prepaidsCash) html += '<div class="rpt-param"><span>Prepaids / Escrows</span><span>' + fmt0(inp.prepaidsCash) + '</span></div>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">FHA Loan Results</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
+    html += '<tr><td>Maximum Base FHA Loan</td><td class="rpt-num">' + res.baseLoan + '</td></tr>';
+    html += '<tr><td>Total Loan Amount (w/ UFMIP)</td><td class="rpt-num">' + res.totalLoan + '</td></tr>';
     html += '<tr><td>Implied LTV</td><td class="rpt-num">' + res.ltv + '</td></tr>';
     html += '<tr><td>Net Tangible Benefit</td><td class="rpt-num">' + res.ntb + '</td></tr>';
     html += '</tbody></table>';
-    html += '<div class="rpt-grand-total"><span>Est. Cash to Close</span><span>' + res.cashToClose + '</span></div>';
+    html += '<div class="rpt-grand-total"><span>Estimated Cash to Close</span><span>' + res.cashToClose + '</span></div>';
+    html += '</div>';
     return html;
   };
 
   /* Government: VA Pre-Qual */
   renderers['va-prequal'] = function (data) {
-    var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var inp = data.inputs; var dbt = data.debts; var res = data.results;
+    var html = '';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Borrower Information</h4>';
+    html += '<div class="rpt-params">';
     if (inp.borrower) html += '<div class="rpt-param"><span>Borrower</span><span>' + inp.borrower + '</span></div>';
+    html += '<div class="rpt-param"><span>Family Size</span><span>' + inp.familySize + '</span></div>';
+    html += '<div class="rpt-param"><span>Region</span><span>' + inp.region + '</span></div>';
+    html += '<div class="rpt-param"><span>Gross Monthly Income</span><span>' + fmt0(inp.grossIncome) + '</span></div>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Details</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Mortgage Amount</span><span>' + fmt0(inp.mortgageAmount) + '</span></div>';
     html += '<div class="rpt-param"><span>Interest Rate</span><span>' + inp.rate + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + '</span></div>';
-    html += '<div class="rpt-param"><span>Gross Income</span><span>' + fmt0(inp.grossIncome) + '/mo</span></div>';
-    html += '<div class="rpt-param"><span>Family Size</span><span>' + inp.familySize + '</span></div>';
-    html += '<div class="rpt-param"><span>Region</span><span>' + inp.region + '</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
-    html += '<tr><td>P&I Payment</td><td class="rpt-num">' + res.piPayment + '</td></tr>';
-    html += '<tr><td>Total Housing</td><td class="rpt-num">' + res.totalHousing + '</td></tr>';
-    html += '<tr><td>Total Debts</td><td class="rpt-num">' + res.totalDebts + '</td></tr>';
-    html += '<tr><td>DTI Ratio</td><td class="rpt-num">' + res.dtiRatio + '</td></tr>';
-    html += '<tr><td>Required Residual</td><td class="rpt-num">' + res.requiredResidual + '</td></tr>';
-    html += '<tr><td>Actual Residual</td><td class="rpt-num">' + res.actualResidual + '</td></tr>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Qualification Results</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
+    html += '<tr><td>Principal & Interest Payment</td><td class="rpt-num">' + res.piPayment + '</td></tr>';
+    html += '<tr><td>Total Monthly Housing</td><td class="rpt-num">' + res.totalHousing + '</td></tr>';
+    html += '<tr><td>Total Monthly Debts</td><td class="rpt-num">' + res.totalDebts + '</td></tr>';
+    html += '<tr><td>Debt-to-Income Ratio</td><td class="rpt-num">' + res.dtiRatio + '</td></tr>';
+    html += '</tbody></table></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Residual Income Analysis</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
+    html += '<tr><td>Required Residual Income</td><td class="rpt-num">' + res.requiredResidual + '</td></tr>';
+    html += '<tr><td>Actual Residual Income</td><td class="rpt-num">' + res.actualResidual + '</td></tr>';
     html += '</tbody></table>';
-    html += '<div class="rpt-grand-total"><span>Residual Status</span><span>' + res.residualStatus + '</span></div>';
+    html += '<div class="rpt-grand-total"><span>Residual Income Status</span><span>' + res.residualStatus + '</span></div>';
+    html += '</div>';
     return html;
   };
 
   /* General: APR */
   renderers['apr'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var html = '';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Parameters</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(inp.loanAmount) + '</span></div>';
     html += '<div class="rpt-param"><span>Note Rate</span><span>' + pct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + '</span></div>';
     html += '<div class="rpt-param"><span>Discount Points</span><span>' + pct(inp.discountPoints) + '</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
+    if (inp.financedFees) html += '<div class="rpt-param"><span>Total Financed Fees</span><span>' + fmt0(inp.financedFees) + '</span></div>';
+    if (inp.prepaidFees) html += '<div class="rpt-param"><span>Total Prepaid Fees</span><span>' + fmt0(inp.prepaidFees) + '</span></div>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">APR Disclosure</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
     html += '<tr><td>Monthly Payment (P&I)</td><td class="rpt-num">' + res.monthlyPayment + '</td></tr>';
     html += '<tr><td>Amount Financed</td><td class="rpt-num">' + res.amountFinanced + '</td></tr>';
     html += '<tr><td>Total Finance Charges</td><td class="rpt-num">' + res.financeCharges + '</td></tr>';
     html += '<tr><td>Note Rate</td><td class="rpt-num">' + res.noteRate + '</td></tr>';
     html += '<tr><td>APR Spread</td><td class="rpt-num">' + res.aprSpread + '</td></tr>';
     html += '</tbody></table>';
-    html += '<div class="rpt-grand-total"><span>APR</span><span>' + res.apr + '</span></div>';
+    html += '<div class="rpt-grand-total"><span>Annual Percentage Rate (APR)</span><span>' + res.apr + '</span></div>';
+    html += '</div>';
     return html;
   };
 
   /* General: Refi */
   renderers['refi'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var html = '';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Current Loan</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Current Balance</span><span>' + fmt0(inp.currentBalance) + '</span></div>';
     html += '<div class="rpt-param"><span>Current Rate</span><span>' + pct(inp.currentRate) + '</span></div>';
-    html += '<div class="rpt-param"><span>New Amount</span><span>' + fmt0(inp.newAmount) + '</span></div>';
+    if (inp.remainingTerm) html += '<div class="rpt-param"><span>Remaining Term</span><span>' + inp.remainingTerm + ' months</span></div>';
+    if (inp.propertyValue) html += '<div class="rpt-param"><span>Property Value</span><span>' + fmt0(inp.propertyValue) + '</span></div>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Proposed Refinance</h4>';
+    html += '<div class="rpt-params">';
+    html += '<div class="rpt-param"><span>New Loan Amount</span><span>' + fmt0(inp.newAmount) + '</span></div>';
     html += '<div class="rpt-param"><span>New Rate</span><span>' + pct(inp.newRate) + '</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
-    html += '<tr><td>Current Payment</td><td class="rpt-num">' + res.currentPayment + '</td></tr>';
-    html += '<tr><td>New Payment</td><td class="rpt-num">' + res.newPayment + '</td></tr>';
+    if (inp.newTerm) html += '<div class="rpt-param"><span>New Term</span><span>' + inp.newTerm + ' months</span></div>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Refinance Analysis</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
+    html += '<tr><td>Current Monthly P&I</td><td class="rpt-num">' + res.currentPayment + '</td></tr>';
+    html += '<tr><td>New Monthly P&I</td><td class="rpt-num">' + res.newPayment + '</td></tr>';
     html += '<tr><td>Monthly Savings</td><td class="rpt-num">' + res.monthlySavings + '</td></tr>';
     html += '<tr><td>Total Closing Costs</td><td class="rpt-num">' + res.totalClosingCosts + '</td></tr>';
-    html += '<tr><td>Breakeven</td><td class="rpt-num">' + res.breakeven + '</td></tr>';
+    html += '<tr><td>Breakeven Point</td><td class="rpt-num">' + res.breakeven + '</td></tr>';
     html += '</tbody></table>';
-    html += '<div class="rpt-grand-total"><span>Net Savings</span><span>' + res.netSavings + '</span></div>';
-    if (res.recommendation) html += '<div class="rpt-recommendation"><span>Recommendation:</span> ' + res.recommendation + '</div>';
+    html += '<div class="rpt-grand-total"><span>Net Savings (Stay Period)</span><span>' + res.netSavings + '</span></div>';
+    html += '</div>';
+
+    if (res.recommendation) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Recommendation</h4>';
+      html += '<div class="rpt-recommendation"><span>Recommendation:</span> ' + res.recommendation + '</div>';
+      html += '</div>';
+    }
     return html;
   };
 
 
   /* General: Blended Rate */
   renderers['blended-rate'] = function (data) {
-    var html = '<table class="rpt-table"><thead><tr><th>Debt</th><th class="rpt-num">Balance</th><th class="rpt-num">Rate</th><th class="rpt-num">Payment</th></tr></thead><tbody>';
+    var html = '';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Debt Summary</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Debt</th><th class="rpt-num">Balance</th><th class="rpt-num">Rate</th><th class="rpt-num">Payment</th></tr></thead><tbody>';
     (data.debts || []).forEach(function (d) {
       html += '<tr><td>' + d.label + '</td><td class="rpt-num">' + fmt(d.balance) + '</td><td class="rpt-num">' + pct(d.rate) + '</td><td class="rpt-num">' + fmt(d.payment) + '</td></tr>';
     });
     html += '</tbody></table>';
     var r = data.results;
-    html += '<div class="rpt-grand-total"><span>Blended Rate</span><span>' + r.blendedRate + '</span></div>';
     html += '<div class="rpt-subtotal"><span>Total Balance</span><span>' + r.totalBalance + '</span></div>';
     html += '<div class="rpt-subtotal"><span>Total Payment</span><span>' + r.totalPayment + '</span></div>';
+    html += '</div>';
+    html += '<div class="rpt-grand-total"><span>Blended Rate</span><span>' + r.blendedRate + '</span></div>';
     return html;
   };
 
   /* General: Buydown */
   renderers['buydown'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var html = '';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Parameters</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(inp.loanAmount) + '</span></div>';
     html += '<div class="rpt-param"><span>Note Rate</span><span>' + pct(inp.noteRate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.loanTerm + '</span></div>';
     html += '<div class="rpt-param"><span>Buydown Type</span><span>' + inp.buydownType + '</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
-    html += '<tr><td>Full Rate Payment</td><td class="rpt-num">' + res.basePayment + '</td></tr>';
-    html += '<tr><td>Year 1 Payment</td><td class="rpt-num">' + res.year1Payment + '</td></tr>';
-    html += '<tr><td>Year 1 Savings</td><td class="rpt-num">' + res.year1Savings + '</td></tr>';
+    html += '</div></div>';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Payment Analysis</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
+    html += '<tr><td>Full Note-Rate Payment</td><td class="rpt-num">' + res.basePayment + '</td></tr>';
+    html += '<tr><td>Year 1 Reduced Payment</td><td class="rpt-num">' + res.year1Payment + '</td></tr>';
+    html += '<tr><td>Year 1 Monthly Savings</td><td class="rpt-num">' + res.year1Savings + '</td></tr>';
     html += '</tbody></table>';
     html += '<div class="rpt-grand-total"><span>Total Buydown Cost</span><span>' + res.totalCost + '</span></div>';
+    html += '</div>';
     return html;
   };
 
   /* Government: Escrow */
   renderers['escrow'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var html = '';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Escrow Scenario</h4>';
+    html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Loan Type</span><span>' + inp.loanType + '</span></div>';
     html += '<div class="rpt-param"><span>State</span><span>' + inp.state + '</span></div>';
     html += '<div class="rpt-param"><span>Closing Date</span><span>' + inp.closingDate + '</span></div>';
-    html += '<div class="rpt-param"><span>Annual Tax</span><span>' + fmt0(inp.annualTax) + '</span></div>';
-    html += '<div class="rpt-param"><span>Annual Insurance</span><span>' + fmt0(inp.annualIns) + '</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
+    html += '<div class="rpt-param"><span>Annual Property Tax</span><span>' + fmt0(inp.annualTax) + '</span></div>';
+    html += '<div class="rpt-param"><span>Annual Homeowners Insurance</span><span>' + fmt0(inp.annualIns) + '</span></div>';
+    html += '</div></div>';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Escrow Deposit Breakdown</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Amount</th></tr></thead><tbody>';
     html += '<tr><td>Tax Escrow Deposit</td><td class="rpt-num">' + res.taxDeposit + '</td></tr>';
     html += '<tr><td>Insurance Escrow Deposit</td><td class="rpt-num">' + res.insDeposit + '</td></tr>';
     html += '<tr><td>Aggregate Adjustment</td><td class="rpt-num">' + res.aggregateAdj + '</td></tr>';
     html += '</tbody></table>';
-    html += '<div class="rpt-grand-total"><span>Total Initial Escrow</span><span>' + res.totalDeposit + '</span></div>';
+    html += '<div class="rpt-grand-total"><span>Total Initial Escrow Deposit</span><span>' + res.totalDeposit + '</span></div>';
+    html += '</div>';
     return html;
   };
 
   /* Government: FHA Refi */
   renderers['fha-refi'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
+    var html = '';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Current Loan Details</h4>';
+    html += '<div class="rpt-params">';
     if (inp.borrower) html += '<div class="rpt-param"><span>Borrower</span><span>' + inp.borrower + '</span></div>';
-    html += '<div class="rpt-param"><span>Current UPB</span><span>' + fmt0(inp.currentUpb) + '</span></div>';
-    html += '<div class="rpt-param"><span>Original Loan</span><span>' + fmt0(inp.originalLoan) + '</span></div>';
-    html += '<div class="rpt-param"><span>Current Rate</span><span>' + pct(inp.oldRate) + '</span></div>';
-    html += '<div class="rpt-param"><span>New Rate</span><span>' + pct(inp.newRate) + '</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
+    html += '<div class="rpt-param"><span>Current Unpaid Balance</span><span>' + fmt0(inp.currentUpb) + '</span></div>';
+    html += '<div class="rpt-param"><span>Original Loan Amount</span><span>' + fmt0(inp.originalLoan) + '</span></div>';
+    html += '<div class="rpt-param"><span>Current Interest Rate</span><span>' + pct(inp.oldRate) + '</span></div>';
+    html += '<div class="rpt-param"><span>New Interest Rate</span><span>' + pct(inp.newRate) + '</span></div>';
+    html += '</div></div>';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">FHA Streamline Results</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Amount</th></tr></thead><tbody>';
     html += '<tr><td>Total Closing Costs</td><td class="rpt-num">' + res.totalClosingCosts + '</td></tr>';
     html += '<tr><td>Base Loan Amount</td><td class="rpt-num">' + res.baseLoan + '</td></tr>';
     html += '<tr><td>New UFMIP (1.75%)</td><td class="rpt-num">' + res.newUfmip + '</td></tr>';
     html += '<tr><td>UFMIP Refund</td><td class="rpt-num">' + res.ufmipRefund + '</td></tr>';
     html += '</tbody></table>';
-    html += '<div class="rpt-grand-total"><span>Max Streamline Mortgage</span><span>' + res.finalMortgage + '</span></div>';
+    html += '<div class="rpt-grand-total"><span>Maximum Streamline Mortgage</span><span>' + res.finalMortgage + '</span></div>';
+    html += '</div>';
     return html;
   };
 
   /* General: REO */
   renderers['reo'] = function (data) {
     var inp = data.inputs; var res = data.results;
-    var html = '<div class="rpt-params">';
-    if (inp.address) html += '<div class="rpt-param"><span>Property</span><span>' + inp.address + '</span></div>';
+    var html = '';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Property Details</h4>';
+    html += '<div class="rpt-params">';
+    if (inp.address) html += '<div class="rpt-param"><span>Property Address</span><span>' + inp.address + '</span></div>';
     html += '<div class="rpt-param"><span>Purchase Price</span><span>' + fmt0(inp.purchasePrice) + '</span></div>';
     html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + '</span></div>';
-    html += '<div class="rpt-param"><span>Rate</span><span>' + pct(inp.rate) + '</span></div>';
-    html += '<div class="rpt-param"><span>Gross Rents</span><span>' + fmt0(inp.grossRents) + '/mo</span></div>';
-    html += '</div>';
-    html += '<table class="rpt-table"><tbody>';
+    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + pct(inp.rate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Gross Monthly Rents</span><span>' + fmt0(inp.grossRents) + '</span></div>';
+    html += '</div></div>';
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Investment Analysis</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
     html += '<tr><td>Renovation Total</td><td class="rpt-num">' + res.renoTotal + '</td></tr>';
-    html += '<tr><td>Cash Invested</td><td class="rpt-num">' + res.cashInvested + '</td></tr>';
-    html += '<tr><td>Monthly NOI</td><td class="rpt-num">' + res.noiMonthly + '</td></tr>';
+    html += '<tr><td>Total Cash Invested</td><td class="rpt-num">' + res.cashInvested + '</td></tr>';
+    html += '<tr><td>Monthly Net Operating Income</td><td class="rpt-num">' + res.noiMonthly + '</td></tr>';
     html += '<tr><td>Rent-to-Price Ratio</td><td class="rpt-num">' + res.r2p + '</td></tr>';
     html += '<tr><td>Year 1 Cap Rate</td><td class="rpt-num">' + res.year1CapRate + '</td></tr>';
     html += '<tr><td>Year 1 Cash Flow</td><td class="rpt-num">' + res.year1CashFlow + '</td></tr>';
     html += '</tbody></table>';
-    html += '<div class="rpt-grand-total"><span>Year 1 Cash-on-Cash</span><span>' + res.year1CoC + '</span></div>';
+    html += '<div class="rpt-grand-total"><span>Year 1 Cash-on-Cash Return</span><span>' + res.year1CoC + '</span></div>';
+    html += '</div>';
     return html;
   };
 

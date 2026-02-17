@@ -5,7 +5,7 @@ router.get('/', (req, res) => {
   res.render('workspace', {
     title: 'Calculator Workspace',
     extraHead: '<link rel="stylesheet" href="/css/workspace.css">',
-    extraScripts: '<script src="/js/workspace.js?v=20260217b"></script>'
+    extraScripts: '<script src="/js/workspace.js?v=20260217c"></script>'
   });
 });
 
