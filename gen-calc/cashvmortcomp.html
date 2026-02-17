@@ -127,7 +127,15 @@
               <span class="breakdown-value" id="mortPayments">$0</span>
             </div>
             <div class="breakdown-item">
-              <span class="breakdown-label">Investment Growth</span>
+              <span class="breakdown-label">Investment Balance</span>
+              <span class="breakdown-value" id="mortInvestmentBalance">$0</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Remaining Mortgage Balance</span>
+              <span class="breakdown-value" id="mortRemainingBalance">$0</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Net Investment Benefit</span>
               <span class="breakdown-value" id="mortInvestmentGrowth">$0</span>
             </div>
             <div class="breakdown-item">
@@ -176,6 +184,15 @@
       
       function futureValue(amount, rate, years) {
         return amount * Math.pow(1 + rate, years);
+      }
+      
+      function balanceAfterPayments(principal, rate, totalMonths, paymentsMade) {
+        if (paymentsMade >= totalMonths) return 0;
+        if (rate === 0) return principal - (principal / totalMonths) * paymentsMade;
+        const m = rate / 12;
+        const pmt = mortgagePay(principal, rate, totalMonths);
+        return principal * Math.pow(1 + m, paymentsMade) -
+               pmt * ((Math.pow(1 + m, paymentsMade) - 1) / m);
       }
       
       function formatCurrency(amount) {
@@ -230,8 +247,13 @@
           investBalance *= 1 + investR / 12;
         }
         
-        // Subtract investment growth from mortgage cost
-        const investmentGrowth = investBalance - (price - down - closingMort);
+        // Calculate remaining mortgage balance at end of analysis period
+        const remainingBalance = Math.max(0, balanceAfterPayments(loan, rate, months, Math.min(analysisMonths, months)));
+        
+        // Net investment benefit: investments minus remaining balance payoff
+        const initialInvestment = price - down - closingMort;
+        const netAfterPayoff = investBalance - remainingBalance;
+        const investmentGrowth = netAfterPayoff - initialInvestment;
         costMort -= investmentGrowth;
         
         const diff = costMort - costCash;
@@ -254,19 +276,19 @@
         
         // Update breakdowns
         updateBreakdowns(price, closingCash, closingMort, down, monthly, analysisMonths, 
-                        costCash, costMort, investmentGrowth);
+                        costCash, costMort, investmentGrowth, investBalance, remainingBalance);
         
         // Update math calculations
         updateMathCalculations(price, closingCash, closingMort, down, loan, rate, monthly, 
                               analysisMonths, investR, investmentGrowth, 
-                              costCash, costMort, diff);
+                              costCash, costMort, diff, investBalance, remainingBalance);
         
         // Update recommendation
         updateRecommendation(diff, Math.abs(diff), costCash, costMort);
       }
       
       function updateBreakdowns(price, closingCash, closingMort, down, monthly, analysisMonths, 
-                               costCash, costMort, investmentGrowth) {
+                               costCash, costMort, investmentGrowth, investBalance, remainingBalance) {
         // Cash breakdown
         document.getElementById('cashPurchasePrice').textContent = formatCurrency(price);
         document.getElementById('cashClosingCosts').textContent = formatCurrency(closingCash);
@@ -276,17 +298,20 @@
         document.getElementById('mortDownPayment').textContent = formatCurrency(down);
         document.getElementById('mortClosingCosts').textContent = formatCurrency(closingMort);
         document.getElementById('mortPayments').textContent = formatCurrency(monthly * analysisMonths);
+        document.getElementById('mortInvestmentBalance').textContent = formatCurrency(investBalance);
+        document.getElementById('mortRemainingBalance').textContent = '-' + formatCurrency(remainingBalance);
         document.getElementById('mortInvestmentGrowth').textContent = '-' + formatCurrency(investmentGrowth);
         document.getElementById('mortTotal').textContent = formatCurrency(costMort);
       }
       
       function updateMathCalculations(price, closingCash, closingMort, down, loan, rate, monthly, 
                                     analysisMonths, investR, investmentGrowth, 
-                                    costCash, costMort, diff) {
+                                    costCash, costMort, diff, investBalance, remainingBalance) {
         const mathDiv = document.getElementById('mathCalculations');
         
         const mortgagePaymentsTotal = monthly * analysisMonths;
         const initialInvestment = price - down - closingMort;
+        const termMonths = parseNum(document.getElementById('mortTerm').value) * 12;
         
         mathDiv.innerHTML = `
           <div class="calculation-step">
@@ -299,9 +324,9 @@
           <div class="calculation-step">
             <h4>Mortgage Purchase Calculation</h4>
             <p>Monthly Payment = P × [r(1+r)^n] / [(1+r)^n - 1]</p>
-            <p>Where P = ${formatCurrency(loan)}, r = ${(rate * 100).toFixed(2)}%/12, n = ${analysisMonths} months</p>
+            <p>Where P = ${formatCurrency(loan)}, r = ${(rate * 100).toFixed(2)}%/12, n = ${termMonths} months</p>
             <p>Monthly Payment = ${formatCurrency(monthly)}</p>
-            <p>Total Mortgage Payments = ${formatCurrency(monthly)} × ${analysisMonths} = ${formatCurrency(mortgagePaymentsTotal)}</p>
+            <p>Total Mortgage Payments (${analysisMonths} months) = ${formatCurrency(monthly)} × ${analysisMonths} = ${formatCurrency(mortgagePaymentsTotal)}</p>
           </div>
           
           <div class="calculation-step">
@@ -309,13 +334,27 @@
             <p>Initial Investment = Purchase Price - Down Payment - Mortgage Closing Costs</p>
             <p>Initial Investment = ${formatCurrency(price)} - ${formatCurrency(down)} - ${formatCurrency(closingMort)} = ${formatCurrency(initialInvestment)}</p>
             <p>Monthly Growth Rate = ${(investR * 100).toFixed(2)}% / 12 = ${(investR / 12 * 100).toFixed(4)}%</p>
-            <p>Final Value = ${formatCurrency(initialInvestment)} × (1 + ${(investR / 12).toFixed(6)})^${analysisMonths}</p>
-            <p>Investment Growth = ${formatCurrency(initialInvestment + investmentGrowth)} - ${formatCurrency(initialInvestment)} = ${formatCurrency(investmentGrowth)}</p>
+            <p>Investment Balance = ${formatCurrency(initialInvestment)} × (1 + ${(investR / 12).toFixed(6)})^${analysisMonths} = ${formatCurrency(investBalance)}</p>
+          </div>
+          
+          <div class="calculation-step">
+            <h4>Remaining Mortgage Balance</h4>
+            <p>After ${analysisMonths} payments on a ${termMonths}-month loan:</p>
+            <p>Remaining Balance = ${formatCurrency(remainingBalance)}</p>
+            <p>At the end of the analysis period, the remaining mortgage balance must be paid off from the investment savings.</p>
+          </div>
+          
+          <div class="calculation-step">
+            <h4>Net Investment Benefit</h4>
+            <p>Net After Payoff = Investment Balance - Remaining Mortgage Balance</p>
+            <p>Net After Payoff = ${formatCurrency(investBalance)} - ${formatCurrency(remainingBalance)} = ${formatCurrency(investBalance - remainingBalance)}</p>
+            <p>Net Investment Benefit = Net After Payoff - Initial Investment</p>
+            <p>Net Investment Benefit = ${formatCurrency(investBalance - remainingBalance)} - ${formatCurrency(initialInvestment)} = ${formatCurrency(investmentGrowth)}</p>
           </div>
           
           <div class="calculation-step">
             <h4>Total Mortgage Cost</h4>
-            <p>Total Cost = Down Payment + Closing Costs + Mortgage Payments - Investment Growth</p>
+            <p>Total Cost = Down Payment + Closing Costs + Mortgage Payments - Net Investment Benefit</p>
             <p>Total Cost = ${formatCurrency(down)} + ${formatCurrency(closingMort)} + ${formatCurrency(mortgagePaymentsTotal)} - ${formatCurrency(investmentGrowth)}</p>
             <p>Total Cost = ${formatCurrency(costMort)}</p>
           </div>
