@@ -851,96 +851,28 @@
    PRINT STYLES
    ===================================================== */
 @media print {
-    body {
-        background: white !important;
-        padding: 0 !important;
-    }
-
-    .main-container {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        max-width: 100% !important;
-    }
-
-    .header {
-        background: var(--primary) !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    /* Hide non-printable elements */
-    .profile-bar,
-    .btn-calculate,
-    #btnReset,
-    .action-buttons,
-    .chart-toggle,
-    .toggle-button,
-    .section-collapse-btn,
-    .payment-toggle-row {
-        display: none !important;
-    }
-
-    /* Show section bodies — override collapse */
-    .section-body {
-        max-height: none !important;
-        opacity: 1 !important;
-        padding-top: 1rem !important;
-        overflow: visible !important;
-    }
-
-    .section-header-toggle {
-        cursor: default;
-    }
-
-    .section {
-        break-inside: avoid;
-    }
-
     /* Show results only if they've been calculated */
-    #resultsContainer.visible {
-        display: block !important;
-    }
-
-    #resultsContainer.hidden {
-        display: none !important;
-    }
-
-    /* Open charts and collapsibles for printing */
-    .chart-content,
-    .collapsible-content {
-        max-height: none !important;
-        overflow: visible !important;
-        padding: 1rem 1.5rem 1.5rem !important;
-    }
+    #resultsContainer.visible { display: block !important; }
+    #resultsContainer.hidden  { display: none !important; }
 
     /* Hide cost of waiting results if that section is disabled */
-    #costOfWaitingResults[style*="display: none"] {
-        display: none !important;
-    }
+    #costOfWaitingResults[style*="display: none"] { display: none !important; }
 
-    /* Prevent page breaks inside cards */
+    /* Break-inside avoidance for refi-specific containers */
     .result-card,
     .breakdown-card,
-    .math-group {
-        break-inside: avoid;
-    }
-
+    .math-group,
     .chart-section,
-    .collapsible-section {
-        break-inside: avoid;
-    }
+    .collapsible-section,
+    .results-section,
+    .conclusion { break-inside: avoid; page-break-inside: avoid; }
 
-    .results-section {
-        break-inside: avoid;
+    /* Debt consolidation rows */
+    .debt-row {
+        gap: 0.15rem !important;
+        margin-bottom: 0.1rem !important;
     }
-
-    .conclusion {
-        break-inside: avoid;
-    }
-
-    .fee-section-excluded {
-        opacity: 1 !important;
-    }
+    .debt-row input[type="text"] { min-width: 0 !important; }
 }
 
 /* =====================================================
