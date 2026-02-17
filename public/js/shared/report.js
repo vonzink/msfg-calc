@@ -362,7 +362,7 @@
       headerWrapper.appendChild(btn);
       calcHeader.appendChild(headerWrapper);
 
-    } else if (window.top === window) {
+    } else if (window.top === window && !document.querySelector('.workspace')) {
       // ---- Standalone page mode (LLPM, Batch LLPM, MISMO) ----
       var name = document.title.replace(/\s*[-|].*$/, '').trim() || 'Tool';
       var iconMeta = document.querySelector('meta[name="calc-icon"]');

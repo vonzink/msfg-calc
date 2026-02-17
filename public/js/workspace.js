@@ -8,6 +8,23 @@
   var activePanels = [];
   var DEFAULT_ZOOM = 85;
 
+  // Map income calculator slugs to their total monthly income element IDs
+  var INCOME_ELEMENT_MAP = {
+    'income/1040': 'combined1040',
+    'income/1065': 'combined1065',
+    'income/1120': 'monthly_income',
+    'income/1120s': 'combined_s',
+    'income/1120s-k1': 'combinedK1',
+    'income/k1': 'combinedK1',
+    'income/schedule-b': 'incomeToUse',
+    'income/schedule-c': 'combined_c',
+    'income/schedule-d': 'd_monthly',
+    'income/schedule-e': 'totalMonthly',
+    'income/schedule-e-subject': 'sr_avg',
+    'income/schedule-f': 'f_monthly',
+    'income/rental-1038': 'methodA_result'
+  };
+
   var panelsContainer, emptyState, tallyBar, countBadge, selectorDrawer;
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -316,6 +333,45 @@
     }, 2500);
   }
 
+  function pollIncomePanels() {
+    var changed = false;
+    activePanels.forEach(function(panel) {
+      var elementId = INCOME_ELEMENT_MAP[panel.slug];
+      if (!elementId) return;
+
+      var panelEl = document.getElementById('ws-panel-' + panel.slug);
+      if (!panelEl) return;
+
+      var iframe = panelEl.querySelector('.ws-panel__iframe');
+      if (!iframe) return;
+
+      try {
+        var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        var targetDoc = iframeDoc;
+
+        // Income calculators are nested: EJS wrapper iframe → legacy HTML iframe
+        var nestedIframe = iframeDoc.querySelector('iframe');
+        if (nestedIframe) {
+          try {
+            targetDoc = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
+          } catch (e) { return; }
+        }
+
+        var el = targetDoc.getElementById(elementId);
+        if (el) {
+          var text = el.textContent || '';
+          var val = parseFloat(text.replace(/[^0-9.-]/g, ''));
+          if (isNaN(val)) val = 0;
+          if (val !== panel.tally.monthlyIncome) {
+            panel.tally.monthlyIncome = val;
+            changed = true;
+          }
+        }
+      } catch (e) { /* cross-origin, skip */ }
+    });
+    if (changed) updateTally();
+  }
+
   function updateTally() {
     var totals = { monthlyPayment: 0, loanAmount: 0, cashToClose: 0, monthlyIncome: 0 };
     activePanels.forEach(function(p) {
@@ -329,4 +385,6 @@
     document.getElementById('tallyCashToClose').textContent = MSFG.formatCurrency(totals.cashToClose, 0);
     document.getElementById('tallyMonthlyIncome').textContent = MSFG.formatCurrency(totals.monthlyIncome, 0);
   }
+
+  setInterval(pollIncomePanels, 1500);
 })();
