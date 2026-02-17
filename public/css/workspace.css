@@ -8,6 +8,103 @@
   gap: var(--space-md);
 }
 
+/* ---- MISMO Drop Zone ---- */
+.mismo-drop {
+  background: var(--color-white);
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--border-radius);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.mismo-drop.drag-over {
+  border-color: var(--brand-accent);
+  background: rgba(45, 106, 79, 0.04);
+  box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.08);
+}
+
+.mismo-drop.has-data {
+  border-style: solid;
+  border-color: var(--brand-accent);
+  background: linear-gradient(135deg, rgba(45, 106, 79, 0.03), rgba(45, 106, 79, 0.07));
+}
+
+.mismo-drop__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.mismo-drop__icon {
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+.mismo-drop.drag-over .mismo-drop__icon { color: var(--brand-accent); }
+
+.mismo-drop__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mismo-drop__text strong {
+  font-size: 0.88rem;
+  color: var(--color-dark);
+}
+
+.mismo-drop__text span {
+  font-size: 0.78rem;
+  color: var(--color-gray-500);
+}
+
+.mismo-drop__browse {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mismo-drop__active {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  background: rgba(45, 106, 79, 0.06);
+  border-top: 1px solid rgba(45, 106, 79, 0.12);
+}
+
+.mismo-drop__badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  white-space: nowrap;
+}
+
+.mismo-drop__badge svg { color: var(--brand-accent); }
+
+.mismo-drop__meta {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--color-gray-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mismo-drop__clear {
+  flex-shrink: 0;
+  font-size: 0.75rem !important;
+  color: var(--color-gray-500) !important;
+}
+
+.mismo-drop__clear:hover { color: var(--color-danger) !important; }
+
 /* Toolbar */
 .workspace__toolbar {
   display: flex;
@@ -275,6 +372,20 @@
 
 .ws-panel__btn--report:hover { color: var(--brand-primary); }
 .ws-panel__btn--remove:hover { color: var(--color-danger); }
+
+.mismo-populated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--brand-accent);
+  background: rgba(45, 106, 79, 0.08);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  margin-right: 4px;
+}
 
 .ws-panel__body {
   padding: var(--space-md);

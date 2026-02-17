@@ -7,6 +7,7 @@
 
   var activePanels = [];
   var DEFAULT_ZOOM = 85;
+  var mismoData = null;
 
   // Map income calculator slugs to their total monthly income element IDs
   var INCOME_ELEMENT_MAP = {
@@ -33,6 +34,8 @@
     tallyBar = document.getElementById('wsTally');
     countBadge = document.getElementById('wsCount');
     selectorDrawer = document.getElementById('wsSelector');
+
+    initMISMODropZone();
 
     // Toggle selector
     document.getElementById('wsToggleSelector').addEventListener('click', function() {
@@ -104,6 +107,9 @@
         window.history.replaceState({}, '', '/workspace');
       }
     }
+
+    // Restore MISMO data from sessionStorage
+    restoreMISMOData();
   });
 
   /* ---- Apply zoom to all iframe layers within a panel ---- */
@@ -215,9 +221,11 @@
       applyZoomToIframe(iframe, val);
     });
 
-    // Apply embed mode + default zoom when iframe loads
+    // Apply embed mode + default zoom when iframe loads, then populate MISMO data
     iframe.addEventListener('load', function() {
       applyZoomToIframe(iframe, panel.zoom);
+      // Wait for iframe + nested iframes to load, then populate
+      schedulePopulate(iframe, slug);
     });
 
     // Collapse toggle
@@ -369,6 +377,348 @@
     document.getElementById('tallyLoanAmount').textContent = MSFG.formatCurrency(totals.loanAmount, 0);
     document.getElementById('tallyCashToClose').textContent = MSFG.formatCurrency(totals.cashToClose, 0);
     document.getElementById('tallyMonthlyIncome').textContent = MSFG.formatCurrency(totals.monthlyIncome, 0);
+  }
+
+  setInterval(pollIncomePanels, 1500);
+
+  /* ===================================================
+     MISMO XML Import
+     =================================================== */
+
+  function initMISMODropZone() {
+    var dropZone = document.getElementById('mismoDropZone');
+    var fileInput = document.getElementById('mismoFileInput');
+    var clearBtn = document.getElementById('mismoClear');
+
+    ['dragenter', 'dragover'].forEach(function(evt) {
+      dropZone.addEventListener(evt, function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(function(evt) {
+      dropZone.addEventListener(evt, function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('drag-over');
+      });
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      var files = e.dataTransfer.files;
+      if (files.length > 0) handleMISMOFile(files[0]);
+    });
+
+    fileInput.addEventListener('change', function() {
+      if (this.files.length > 0) handleMISMOFile(this.files[0]);
+      this.value = '';
+    });
+
+    clearBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      clearMISMOData();
+    });
+  }
+
+  function handleMISMOFile(file) {
+    if (!file.name.match(/\.(xml|mismo)$/i)) {
+      showWsToast('Please drop a MISMO XML file (.xml)', 'error');
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var parsed = MSFG.MISMOParser.parse(e.target.result);
+        mismoData = parsed;
+
+        sessionStorage.setItem('msfg-mismo-data', JSON.stringify(parsed));
+        sessionStorage.setItem('msfg-mismo-filename', file.name);
+
+        updateMISMOUI(parsed, file.name);
+        populateAllPanels();
+        showWsToast('MISMO data loaded — ' + parsed.borrowerName, 'success');
+      } catch (err) {
+        console.error('MISMO parse error:', err);
+        showWsToast('Failed to parse MISMO file: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function restoreMISMOData() {
+    var stored = sessionStorage.getItem('msfg-mismo-data');
+    var filename = sessionStorage.getItem('msfg-mismo-filename');
+    if (stored) {
+      try {
+        mismoData = JSON.parse(stored);
+        updateMISMOUI(mismoData, filename || 'MISMO File');
+      } catch (e) { /* corrupted */ }
+    }
+  }
+
+  function updateMISMOUI(data, filename) {
+    var dropZone = document.getElementById('mismoDropZone');
+    var inner = dropZone.querySelector('.mismo-drop__inner');
+    var active = document.getElementById('mismoActive');
+    var borrowerEl = document.getElementById('mismoBorrower');
+    var metaEl = document.getElementById('mismoMeta');
+
+    dropZone.classList.add('has-data');
+    inner.style.display = 'none';
+    active.style.display = 'flex';
+
+    borrowerEl.textContent = data.borrowerName || 'Borrower';
+
+    var parts = [];
+    if (data.loan.amount) parts.push('Loan: $' + formatNum(data.loan.amount));
+    if (data.loan.rate) parts.push('Rate: ' + data.loan.rate + '%');
+    if (data.loan.termMonths) parts.push('Term: ' + (data.loan.termMonths / 12) + 'yr');
+    if (data.property.value) parts.push('Value: $' + formatNum(data.property.value));
+    if (data.loan.purpose) parts.push(data.loan.purpose);
+    metaEl.textContent = parts.join('  •  ');
+  }
+
+  function clearMISMOData() {
+    mismoData = null;
+    sessionStorage.removeItem('msfg-mismo-data');
+    sessionStorage.removeItem('msfg-mismo-filename');
+
+    var dropZone = document.getElementById('mismoDropZone');
+    var inner = dropZone.querySelector('.mismo-drop__inner');
+    var active = document.getElementById('mismoActive');
+
+    dropZone.classList.remove('has-data');
+    inner.style.display = 'flex';
+    active.style.display = 'none';
+
+    showWsToast('MISMO data cleared', 'success');
+  }
+
+  function formatNum(n) {
+    return Math.round(n).toLocaleString('en-US');
+  }
+
+  /* ---- Schedule population after iframe + nested iframes load ---- */
+  function schedulePopulate(iframe, slug) {
+    if (!mismoData) return;
+
+    function tryPopulate(attempt) {
+      if (attempt > 8) return;
+      try {
+        var doc = iframe.contentDocument || iframe.contentWindow.document;
+        var nested = doc ? doc.querySelector('iframe') : null;
+        if (nested) {
+          var nestedDoc = null;
+          try { nestedDoc = nested.contentDocument || nested.contentWindow.document; } catch (e) {}
+          if (!nestedDoc || !nestedDoc.body || !nestedDoc.body.innerHTML) {
+            nested.addEventListener('load', function() {
+              setTimeout(function() { populatePanel(slug); }, 200);
+            });
+            return;
+          }
+        }
+      } catch (e) { /* skip */ }
+      populatePanel(slug);
+    }
+
+    setTimeout(function() { tryPopulate(0); }, 400);
+  }
+
+  /* ---- Populate all active panels with MISMO data ---- */
+  function populateAllPanels() {
+    if (!mismoData) return;
+    activePanels.forEach(function(panel) {
+      populatePanel(panel.slug);
+    });
+  }
+
+  function populatePanel(slug) {
+    if (!mismoData || !MSFG.MISMOParser) return;
+
+    var mapFn = MSFG.MISMOParser.getCalcMap(slug);
+    if (!mapFn) return;
+
+    var fieldMap = mapFn(mismoData);
+    if (!fieldMap || Object.keys(fieldMap).length === 0) return;
+
+    var panelEl = document.getElementById('ws-panel-' + slug);
+    if (!panelEl) return;
+
+    var iframe = panelEl.querySelector('.ws-panel__iframe');
+    if (!iframe) return;
+
+    populateIframeFields(iframe, slug, fieldMap);
+  }
+
+  function populateIframeFields(iframe, slug, fieldMap) {
+    var outerDoc;
+    try {
+      outerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    } catch (e) { return; }
+    if (!outerDoc) return;
+
+    var reactKeys = {};
+    var domKeys = {};
+
+    Object.keys(fieldMap).forEach(function(key) {
+      if (key.indexOf('__react_') === 0) {
+        reactKeys[key.replace('__react_', '')] = fieldMap[key];
+      } else {
+        domKeys[key] = fieldMap[key];
+      }
+    });
+
+    // Find the target document (may be a nested iframe for legacy calcs)
+    var targetDoc = outerDoc;
+    var nestedIframe = outerDoc.querySelector('iframe');
+    if (nestedIframe) {
+      try {
+        var nd = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
+        if (nd && nd.body) targetDoc = nd;
+      } catch (e) { /* cross-origin */ }
+    }
+
+    // Populate standard DOM inputs
+    var populated = 0;
+    Object.keys(domKeys).forEach(function(elId) {
+      var el = targetDoc.getElementById(elId);
+      if (!el) return;
+
+      var val = domKeys[elId];
+      if (el.tagName === 'SELECT') {
+        setSelectValue(el, val);
+      } else if (el.type === 'checkbox') {
+        el.checked = !!val;
+        triggerEvent(el, 'change');
+      } else {
+        setInputValue(el, val);
+      }
+      populated++;
+    });
+
+    // Handle React SPA (amortization)
+    if (Object.keys(reactKeys).length > 0) {
+      var reactCount = populateReactApp(nestedIframe || iframe, reactKeys);
+      populated += reactCount;
+    }
+
+    if (populated > 0) {
+      highlightPanel(slug, populated);
+    }
+  }
+
+  function setInputValue(el, val) {
+    var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
+    if (nativeSetter && nativeSetter.set) {
+      nativeSetter.set.call(el, String(val));
+    } else {
+      el.value = String(val);
+    }
+    triggerEvent(el, 'input');
+    triggerEvent(el, 'change');
+  }
+
+  function setSelectValue(el, val) {
+    var strVal = String(val);
+    for (var i = 0; i < el.options.length; i++) {
+      if (el.options[i].value === strVal || el.options[i].text === strVal) {
+        el.selectedIndex = i;
+        triggerEvent(el, 'change');
+        return;
+      }
+    }
+    // Try matching numeric value (for term selects like 360)
+    var numVal = parseFloat(val);
+    for (var j = 0; j < el.options.length; j++) {
+      if (parseFloat(el.options[j].value) === numVal) {
+        el.selectedIndex = j;
+        triggerEvent(el, 'change');
+        return;
+      }
+    }
+  }
+
+  function triggerEvent(el, eventName) {
+    var evt = new Event(eventName, { bubbles: true, cancelable: true });
+    el.dispatchEvent(evt);
+  }
+
+  /* ---- React app population (amortization calculator) ---- */
+  function populateReactApp(iframe, fields) {
+    var doc;
+    try {
+      doc = iframe.contentDocument || iframe.contentWindow.document;
+    } catch (e) { return 0; }
+    if (!doc) return 0;
+
+    var labelMap = {
+      'homeValue': 'Home Value',
+      'downPct': 'Down Payment',
+      'rate': 'Interest Rate',
+      'term': 'Loan Term',
+      'taxYr': 'Annual Tax',
+      'insYr': 'Annual Insurance',
+      'hoaMo': 'Monthly HOA',
+      'pmiMo': 'Monthly PMI'
+    };
+
+    var count = 0;
+    Object.keys(fields).forEach(function(key) {
+      var label = labelMap[key];
+      if (!label) return;
+
+      var val = fields[key];
+      var labels = doc.querySelectorAll('label');
+      for (var i = 0; i < labels.length; i++) {
+        var lbl = labels[i];
+        if (lbl.textContent.trim().indexOf(label) !== -1) {
+          var input = lbl.querySelector('input') ||
+                      lbl.parentElement.querySelector('input') ||
+                      (lbl.nextElementSibling && lbl.nextElementSibling.querySelector ? lbl.nextElementSibling.querySelector('input') : null);
+          if (!input) {
+            var container = lbl.closest('div');
+            if (container) input = container.querySelector('input');
+          }
+          if (input) {
+            var win = iframe.contentWindow;
+            var nativeSetter = Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+            if (nativeSetter && nativeSetter.set) {
+              nativeSetter.set.call(input, String(val));
+            } else {
+              input.value = String(val);
+            }
+            input.dispatchEvent(new win.Event('input', { bubbles: true }));
+            input.dispatchEvent(new win.Event('change', { bubbles: true }));
+            count++;
+          }
+          break;
+        }
+      }
+    });
+    return count;
+  }
+
+  /* ---- Visual feedback on populated panels ---- */
+  function highlightPanel(slug, count) {
+    var panelEl = document.getElementById('ws-panel-' + slug);
+    if (!panelEl) return;
+
+    var header = panelEl.querySelector('.ws-panel__header');
+    if (!header) return;
+
+    var existing = header.querySelector('.mismo-populated-badge');
+    if (existing) existing.remove();
+
+    var badge = document.createElement('span');
+    badge.className = 'mismo-populated-badge';
+    badge.innerHTML =
+      '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
+      '<polyline points="20 6 9 17 4 12"/></svg> ' +
+      count + ' fields populated';
+    header.insertBefore(badge, header.querySelector('.ws-panel__zoom'));
   }
 
   setInterval(pollIncomePanels, 1500);

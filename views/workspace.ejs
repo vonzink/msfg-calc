@@ -1,5 +1,35 @@
 <div class="workspace">
 
+  <!-- MISMO Drop Zone -->
+  <div class="mismo-drop" id="mismoDropZone">
+    <div class="mismo-drop__inner">
+      <div class="mismo-drop__icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <polyline points="9 15 12 12 15 15"/>
+        </svg>
+      </div>
+      <div class="mismo-drop__text">
+        <strong>Import MISMO XML</strong>
+        <span>Drag &amp; drop a MISMO file here to auto-populate calculators</span>
+      </div>
+      <label class="mismo-drop__browse btn btn-sm btn-ghost">
+        Browse
+        <input type="file" id="mismoFileInput" accept=".xml,.mismo" hidden />
+      </label>
+    </div>
+    <div class="mismo-drop__active" id="mismoActive" style="display:none;">
+      <div class="mismo-drop__badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="mismoBorrower">—</span>
+      </div>
+      <div class="mismo-drop__meta" id="mismoMeta"></div>
+      <button class="btn btn-sm btn-ghost mismo-drop__clear" id="mismoClear" title="Clear MISMO data">Clear</button>
+    </div>
+  </div>
+
   <!-- Toolbar -->
   <div class="workspace__toolbar">
     <div class="workspace__toolbar-left">
