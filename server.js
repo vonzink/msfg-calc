@@ -43,7 +43,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:"],
       frameSrc: ["'self'"],
-      connectSrc: ["'self'"]
+      connectSrc: ["'self'", "https://cdnjs.cloudflare.com"]
     }
   },
   // Allow iframes from same origin (workspace uses them)
