@@ -24,13 +24,14 @@ const generalCalcs = [
     css: 'refi',
     cdnScripts: [
       '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>',
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" integrity="sha384-5MXQT3yrGpx6/FO6Z5JlMsn1xsN/OggV+b88W2CfpNqmvPfmv7JW/O8x78GzptfE" crossorigin="anonymous"></script>'
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>'
     ]
   },
   { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI' },
   { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator' },
   { slug: 'fha-refi',        view: 'calculators/fha-refi',        title: 'FHA Refinance Calculator' },
-  { slug: 'amortization',    view: 'calculators/amortization',    title: 'Amortization Calculator' }
+  { slug: 'amortization',    view: 'calculators/amortization',    title: 'Amortization Calculator' },
+  { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer', css: 'var-income' }
 ];
 
 generalCalcs.forEach(gc => {
