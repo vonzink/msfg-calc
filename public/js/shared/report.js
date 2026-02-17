@@ -1,11 +1,13 @@
 /* =====================================================
    MSFG Report Manager
-   Captures calculator snapshots and manages session report.
-   Uses IndexedDB for storage (much larger capacity than localStorage).
+   Captures structured calculator data for session reports.
+   Uses IndexedDB for storage.
 
-   Works in two modes:
-   - EJS pages: auto-injects "Add to Report" button into .calc-page__header
-   - Standalone pages: adds fixed-position floating button (LLPM, MISMO, etc.)
+   Data format (v2):
+     { id, name, icon, slug, timestamp, data: {...}, version: 2 }
+
+   Legacy format (v1) still supported for backward compat:
+     { id, name, icon, timestamp, imageData }
    ===================================================== */
 
 (function() {
@@ -109,7 +111,6 @@
     }).catch(function() { return 0; });
   }
 
-  /* ---- Enforce max items ---- */
   function enforceMax() {
     return dbGetAll().then(function(items) {
       if (items.length <= MAX_ITEMS) return;
@@ -119,16 +120,13 @@
     });
   }
 
-  /* ---- Generate unique ID ---- */
   function generateId() {
     return 'rpt-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
   }
 
   /* ---- Shared toast notification ---- */
   function showToast(message, type) {
-    // If CSS-based toast class exists (EJS pages), use it
     var hasToastCSS = !!document.querySelector('link[href*="components.css"]');
-
     var toast = document.createElement('div');
 
     if (hasToastCSS) {
@@ -143,7 +141,6 @@
         setTimeout(function() { toast.remove(); }, 300);
       }, 2500);
     } else {
-      // Inline-styled toast for standalone pages
       toast.style.cssText =
         'position:fixed;bottom:24px;right:24px;display:flex;align-items:center;gap:8px;' +
         'padding:12px 20px;background:' + (type === 'error' ? '#dc3545' : '#2d6a4f') + ';color:#fff;' +
@@ -159,18 +156,16 @@
     }
   }
 
-  /* ---- Lazy-load html2canvas if needed ---- */
-  function ensureHtml2Canvas() {
-    if (typeof html2canvas !== 'undefined') return Promise.resolve();
-    return new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.integrity = 'sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H';
-      s.crossOrigin = 'anonymous';
-      s.onload = resolve;
-      s.onerror = function() { reject(new Error('Failed to load html2canvas')); };
-      document.head.appendChild(s);
-    });
+  /* ---- Resolve the deepest calculator document from a base document ---- */
+  function resolveCalcDocument(baseDoc) {
+    var iframe = baseDoc.querySelector('.calc-page__body iframe') || baseDoc.querySelector('iframe');
+    if (iframe) {
+      try {
+        var nested = iframe.contentDocument || iframe.contentWindow.document;
+        if (nested && nested.body) return nested;
+      } catch (e) { /* cross-origin */ }
+    }
+    return baseDoc;
   }
 
   /* ---- Public API ---- */
@@ -185,8 +180,11 @@
         id: generateId(),
         name: item.name || 'Calculator',
         icon: item.icon || '',
+        slug: item.slug || '',
         timestamp: new Date().toISOString(),
-        imageData: item.imageData || ''
+        data: item.data || null,
+        imageData: item.imageData || null,
+        version: item.data ? 2 : 1
       };
       var self = this;
       return dbPut(newItem).then(function() {
@@ -226,48 +224,34 @@
 
     _showToast: showToast,
 
-    captureElement: function(element, options) {
-      options = options || {};
-      return ensureHtml2Canvas().then(function() {
-        return html2canvas(element, {
-          useCORS: true,
-          allowTaint: true,
-          scale: options.scale || 1,
-          backgroundColor: '#ffffff',
-          logging: false
-        });
-      }).then(function(canvas) {
-        return canvas.toDataURL('image/jpeg', options.quality || 0.5);
-      });
-    },
-
-    captureCurrentCalculator: function(calcName, calcIcon) {
+    /**
+     * Capture structured data from a calculator and add to report.
+     * @param {string} slug - calculator slug (e.g. "income/1040")
+     * @param {string} calcName - display name
+     * @param {string} calcIcon - emoji icon
+     * @param {Document} baseDoc - document containing the calculator (page doc or iframe doc)
+     */
+    captureStructured: function(slug, calcName, calcIcon, baseDoc) {
       var self = this;
-      var target = null;
-      var iframe = document.querySelector('.calc-page__body iframe');
 
-      if (iframe) {
-        try {
-          var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-          if (iframeDoc && iframeDoc.body) {
-            target = iframeDoc.body;
-          }
-        } catch (e) { /* cross-origin fallback */ }
+      if (!MSFG.ReportTemplates || !MSFG.ReportTemplates.extractors[slug]) {
+        showToast('No report template for this calculator', 'error');
+        return Promise.reject(new Error('No extractor for: ' + slug));
       }
 
-      if (!target) {
-        target = document.querySelector('.calc-page__body') ||
-                 document.querySelector('.calc-page') ||
-                 document.querySelector('.container, .main-container, main') ||
-                 document.querySelector('.site-main');
+      var calcDoc = resolveCalcDocument(baseDoc);
+      var data = MSFG.ReportTemplates.extract(slug, calcDoc);
+
+      if (!data) {
+        showToast('Could not extract data', 'error');
+        return Promise.reject(new Error('Extraction returned null'));
       }
 
-      if (!target) {
-        return Promise.reject(new Error('No capturable content found'));
-      }
-
-      return self.captureElement(target).then(function(imageData) {
-        return self.addItem({ name: calcName, icon: calcIcon, imageData: imageData });
+      return self.addItem({
+        name: calcName,
+        icon: calcIcon,
+        slug: slug,
+        data: data
       }).then(function() {
         showToast('Added to report');
       }).catch(function(err) {
@@ -275,10 +259,25 @@
         showToast('Failed to save — try again', 'error');
         throw err;
       });
+    },
+
+    /**
+     * Capture from the current standalone page.
+     */
+    captureCurrentCalculator: function(calcName, calcIcon) {
+      var slug = window.__calcSlug || '';
+
+      if (slug && MSFG.ReportTemplates && MSFG.ReportTemplates.extractors[slug]) {
+        var baseDoc = document;
+        return this.captureStructured(slug, calcName, calcIcon, baseDoc);
+      }
+
+      showToast('No report template available', 'error');
+      return Promise.reject(new Error('No extractor available for slug: ' + slug));
     }
   };
 
-  /* ---- SVG icons (shared between button modes) ---- */
+  /* ---- SVG icons ---- */
   var SVG_ADD =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
@@ -335,14 +334,12 @@
   document.addEventListener('DOMContentLoaded', function() {
     MSFG.Report._updateBadge();
 
-    // Skip in embed mode or when inside a workspace iframe
     if (window.location.search.indexOf('embed=1') !== -1) return;
     if (window.top !== window && !document.querySelector('.calc-page__header')) return;
 
     var calcHeader = document.querySelector('.calc-page__header');
 
     if (calcHeader) {
-      // ---- EJS page mode ----
       var h1 = calcHeader.querySelector('h1');
       var calcName = h1 ? h1.textContent.trim() : document.title;
       var calcIcon = (typeof window.__calcIcon !== 'undefined') ? window.__calcIcon : '';
@@ -363,7 +360,6 @@
       calcHeader.appendChild(headerWrapper);
 
     } else if (window.top === window && !document.querySelector('.workspace')) {
-      // ---- Standalone page mode (LLPM, Batch LLPM, MISMO) ----
       var name = document.title.replace(/\s*[-|].*$/, '').trim() || 'Tool';
       var iconMeta = document.querySelector('meta[name="calc-icon"]');
       var icon = iconMeta ? iconMeta.getAttribute('content') : '';

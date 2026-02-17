@@ -233,44 +233,29 @@
       body.classList.toggle('collapsed');
     });
 
-    // Report capture
+    // Report capture (structured data extraction)
     var reportBtn = el.querySelector('.ws-panel__btn--report');
     reportBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       reportBtn.disabled = true;
       reportBtn.style.opacity = '0.5';
 
-      var target = null;
+      var baseDoc = null;
       try {
-        var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        if (iframeDoc && iframeDoc.body) target = iframeDoc.body;
+        baseDoc = iframe.contentDocument || iframe.contentWindow.document;
       } catch (err) { /* cross-origin */ }
 
-      if (!target) {
-        showWsToast('Could not capture — try opening standalone', 'error');
+      if (!baseDoc) {
+        showWsToast('Could not access calculator', 'error');
         reportBtn.disabled = false;
         reportBtn.style.opacity = '';
         return;
       }
 
-      if (typeof html2canvas === 'undefined') {
-        showWsToast('Capture library not loaded', 'error');
-        reportBtn.disabled = false;
-        reportBtn.style.opacity = '';
-        return;
-      }
-
-      html2canvas(target, {
-        useCORS: true, allowTaint: true, scale: 1,
-        backgroundColor: '#ffffff', logging: false
-      }).then(function(canvas) {
-        var imageData = canvas.toDataURL('image/jpeg', 0.5);
-        return MSFG.Report.addItem({ name: name, icon: icon, imageData: imageData });
-      }).then(function() {
+      MSFG.Report.captureStructured(slug, name, icon, baseDoc).then(function() {
         reportBtn.disabled = false;
         reportBtn.style.opacity = '';
         reportBtn.style.color = 'var(--brand-primary)';
-        showWsToast('Added to report');
         setTimeout(function() { reportBtn.style.color = ''; }, 1500);
       }).catch(function(err) {
         console.error('Workspace report capture failed:', err);

@@ -1,9 +1,10 @@
 /* =====================================================
    Report Page Styles
+   Clean, print-optimized, one-page-per-calculator layout
    ===================================================== */
 
 .report-page {
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: var(--space-xl) var(--space-lg);
 }
@@ -43,7 +44,7 @@
   padding: var(--space-sm) var(--space-md);
 }
 
-/* Empty state */
+/* ---- Empty state ---- */
 .report-empty {
   text-align: center;
   padding: 4rem 2rem;
@@ -70,14 +71,14 @@
   line-height: 1.6;
 }
 
-/* Report items list */
+/* ---- Report items list ---- */
 .report-items {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-xl);
 }
 
-/* Individual report item */
+/* ---- Individual report card ---- */
 .report-item {
   background: var(--color-white);
   border: 1px solid var(--color-gray-200);
@@ -114,7 +115,7 @@
 
 .report-item__name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--color-gray-800);
 }
 
@@ -142,10 +143,10 @@
 }
 
 .report-item__body {
-  padding: var(--space-md);
-  text-align: center;
+  padding: var(--space-lg) var(--space-xl);
 }
 
+/* Legacy image fallback */
 .report-item__image {
   max-width: 100%;
   height: auto;
@@ -153,8 +154,198 @@
   border: 1px solid var(--color-gray-100);
 }
 
-/* ---- Print styles ---- */
+
+/* =====================================================
+   Report Template Styles  (rpt-*)
+   Used by renderers in report-templates.js
+   ===================================================== */
+
+.rpt-section {
+  margin-bottom: 1.25rem;
+}
+
+.rpt-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-gray-700, #555);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--brand-primary, #2d6a4f);
+}
+
+.rpt-ownership {
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--color-gray-500, #888);
+}
+
+.rpt-address {
+  font-size: 0.85rem;
+  color: var(--color-gray-600, #666);
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+
+/* ---- Data tables ---- */
+.rpt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin-bottom: 0.25rem;
+}
+
+.rpt-table thead th {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-gray-500, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-gray-200, #e0e0e0);
+  background: var(--color-gray-50, #fafafa);
+}
+
+.rpt-table tbody td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-gray-100, #f0f0f0);
+  color: var(--color-gray-700, #555);
+}
+
+.rpt-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rpt-num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ---- Subtotals and Grand totals ---- */
+.rpt-subtotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-gray-700, #555);
+  background: var(--color-gray-50, #fafafa);
+  border-radius: 6px;
+  margin-top: 0.25rem;
+}
+
+.rpt-grand-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brand-primary, #2d6a4f);
+  background: linear-gradient(135deg, rgba(45,106,79,0.06), rgba(45,106,79,0.02));
+  border: 1px solid rgba(45,106,79,0.15);
+  border-radius: 8px;
+  margin-top: 0.75rem;
+}
+
+/* ---- Parameters grid ---- */
+.rpt-params {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background: var(--color-gray-50, #fafafa);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-100, #f0f0f0);
+}
+
+.rpt-param {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  gap: 0.5rem;
+}
+
+.rpt-param span:first-child {
+  color: var(--color-gray-500, #888);
+}
+
+.rpt-param span:last-child {
+  font-weight: 600;
+  color: var(--color-gray-800, #333);
+  text-align: right;
+}
+
+/* ---- Side-by-side comparison ---- */
+.rpt-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rpt-compare-col h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-gray-700, #555);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--brand-primary, #2d6a4f);
+}
+
+/* ---- Recommendation / Conclusion ---- */
+.rpt-recommendation {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(45,106,79,0.08), rgba(45,106,79,0.03));
+  border-left: 4px solid var(--brand-primary, #2d6a4f);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+  color: var(--color-gray-800, #333);
+  margin-top: 0.75rem;
+}
+
+.rpt-recommendation span {
+  font-weight: 700;
+  color: var(--brand-primary, #2d6a4f);
+}
+
+.rpt-difference {
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-gray-600, #666);
+  margin-top: 0.5rem;
+}
+
+.rpt-no-template {
+  text-align: center;
+  color: var(--color-gray-400, #aaa);
+  font-style: italic;
+  padding: 2rem 1rem;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .rpt-comparison {
+    grid-template-columns: 1fr;
+  }
+  .rpt-params {
+    grid-template-columns: 1fr;
+  }
+  .report-item__body {
+    padding: var(--space-md);
+  }
+}
+
+
+/* =====================================================
+   Print Styles
+   One page per calculator, clean professional output
+   ===================================================== */
 @media print {
+  /* Hide chrome */
   .site-header,
   .site-footer,
   .report-page__actions,
@@ -169,28 +360,48 @@
   }
 
   .report-page__header {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .report-page__header h1 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
 
+  .site-main {
+    padding: 0 !important;
+  }
+
+  /* Each report card on its own page */
   .report-item {
     box-shadow: none;
-    border: 1px solid #ddd;
-    margin-bottom: 1rem;
+    border: none;
+    margin: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .report-item:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .report-item__header {
+    background: none;
+    border-bottom: 2px solid #2d6a4f;
+    padding: 0.5rem 0;
   }
 
   .report-item__body {
-    padding: 0.5rem;
+    padding: 1rem 0;
   }
 
   .report-item__image {
     border: none;
   }
 
-  .site-main {
-    padding: 0 !important;
-  }
+  /* Tighten spacing */
+  .rpt-section { margin-bottom: 0.75rem; }
+  .rpt-grand-total { margin-top: 0.5rem; }
+  .rpt-params { padding: 0.5rem; }
+  .report-items { gap: 0; }
 }
