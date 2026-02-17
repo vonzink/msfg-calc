@@ -1,4 +1,6 @@
 /* Settings page — logo preview on file select */
+'use strict';
+
 document.addEventListener('DOMContentLoaded', function() {
   var input = document.querySelector('input[name="logo"]');
   if (!input) return;

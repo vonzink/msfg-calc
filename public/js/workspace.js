@@ -3,6 +3,8 @@
    Multi-calculator panels with cross-calc tallying
    ===================================================== */
 (function() {
+  'use strict';
+
   var activePanels = [];
   var DEFAULT_ZOOM = 85;
 
@@ -57,8 +59,9 @@
       updateState();
     });
 
-    // Listen for tally updates from iframes
+    // Listen for tally updates from iframes (same-origin only)
     window.addEventListener('message', function(e) {
+      if (e.origin !== window.location.origin) return;
       if (e.data && e.data.type === 'msfg-tally-update') {
         updateTallyFromMessage(e.data);
       }
@@ -290,10 +293,10 @@
   function updateTallyFromMessage(data) {
     var panel = activePanels.find(function(p) { return p.slug === data.slug; });
     if (!panel) return;
-    if (data.monthlyPayment !== undefined) panel.tally.monthlyPayment = data.monthlyPayment;
-    if (data.loanAmount !== undefined) panel.tally.loanAmount = data.loanAmount;
-    if (data.cashToClose !== undefined) panel.tally.cashToClose = data.cashToClose;
-    if (data.monthlyIncome !== undefined) panel.tally.monthlyIncome = data.monthlyIncome;
+    if (typeof data.monthlyPayment === 'number' && isFinite(data.monthlyPayment)) panel.tally.monthlyPayment = data.monthlyPayment;
+    if (typeof data.loanAmount === 'number' && isFinite(data.loanAmount)) panel.tally.loanAmount = data.loanAmount;
+    if (typeof data.cashToClose === 'number' && isFinite(data.cashToClose)) panel.tally.cashToClose = data.cashToClose;
+    if (typeof data.monthlyIncome === 'number' && isFinite(data.monthlyIncome)) panel.tally.monthlyIncome = data.monthlyIncome;
     updateTally();
   }
 

@@ -6,6 +6,53 @@ const multer = require('multer');
 
 const configPath = path.join(__dirname, '..', 'config', 'site.json');
 
+// --- Helpers ---
+
+function readConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  } catch (err) {
+    console.error('Failed to read site config:', err);
+    return null;
+  }
+}
+
+function writeConfig(config) {
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    return true;
+  } catch (err) {
+    console.error('Failed to write site config:', err);
+    return false;
+  }
+}
+
+// --- Auth middleware ---
+// Set SETTINGS_PASSWORD in .env to protect this route.
+// Access via /settings?key=YOUR_PASSWORD or session cookie after first auth.
+
+function requireAuth(req, res, next) {
+  const password = process.env.SETTINGS_PASSWORD;
+
+  // If no password is configured, allow access (dev mode)
+  if (!password) return next();
+
+  // Check query param (first visit) or cookie (subsequent visits)
+  if (req.query.key === password || req.cookies?.settingsAuth === password) {
+    // Set a session cookie so the key doesn't need to stay in the URL
+    res.cookie('settingsAuth', password, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    return next();
+  }
+
+  res.status(403).render('404', { title: 'Access Denied' });
+}
+
+// --- File upload config ---
+
 const upload = multer({
   dest: path.join(__dirname, '..', 'public', 'images'),
   limits: { fileSize: 2 * 1024 * 1024 },
@@ -15,8 +62,14 @@ const upload = multer({
   }
 });
 
+// --- Routes (all protected) ---
+
+router.use(requireAuth);
+
 router.get('/', (req, res) => {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  const config = readConfig();
+  if (!config) return res.status(500).render('404', { title: 'Configuration Error' });
+
   res.render('settings', {
     title: 'Site Settings',
     config,
@@ -32,23 +85,39 @@ router.post('/logo', upload.single('logo'), (req, res) => {
   const newName = 'msfg-logo' + ext;
   const newPath = path.join(__dirname, '..', 'public', 'images', newName);
 
-  fs.renameSync(req.file.path, newPath);
+  try {
+    fs.renameSync(req.file.path, newPath);
+  } catch (err) {
+    console.error('Failed to move uploaded logo:', err);
+    return res.redirect('/settings?saved=0');
+  }
 
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
+
   config.logo.src = '/images/' + newName;
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  writeConfig(config);
 
   res.redirect('/settings?saved=1');
 });
 
-router.post('/update', express.urlencoded({ extended: true }), (req, res) => {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+router.post('/update', (req, res) => {
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
 
-  if (req.body.siteName) config.siteName = req.body.siteName;
-  if (req.body.companyName) config.companyName = req.body.companyName;
-  if (req.body.logoWidth) config.logo.width = parseInt(req.body.logoWidth) || 160;
+  // Validate and sanitize inputs
+  if (req.body.siteName && typeof req.body.siteName === 'string') {
+    config.siteName = req.body.siteName.trim().slice(0, 100);
+  }
+  if (req.body.companyName && typeof req.body.companyName === 'string') {
+    config.companyName = req.body.companyName.trim().slice(0, 100);
+  }
+  if (req.body.logoWidth) {
+    const width = parseInt(req.body.logoWidth, 10);
+    config.logo.width = (width > 0 && width <= 500) ? width : 160;
+  }
 
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  writeConfig(config);
   res.redirect('/settings?saved=1');
 });
 

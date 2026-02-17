@@ -2,6 +2,8 @@
    APR Calculator
    ===================================================== */
 (function() {
+  'use strict';
+
   var P = MSFG.parseNum;
   var fmt = MSFG.formatCurrency;
   var pct = MSFG.formatPercent;

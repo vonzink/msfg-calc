@@ -1,6 +1,8 @@
 /* =====================================================
    VA Pre-Qualification Worksheet
    ===================================================== */
+'use strict';
+
 var piFactors = {
   '4.000':{15:7.40,20:6.06,30:4.77},'4.125':{15:7.46,20:6.13,30:4.85},'4.250':{15:7.52,20:6.19,30:4.92},
   '4.375':{15:7.59,20:6.26,30:4.99},'4.500':{15:7.65,20:6.33,30:5.07},'4.625':{15:7.71,20:6.39,30:5.14},
@@ -107,7 +109,7 @@ function calculate() {
   renderCalcSteps(pi, housing, debts, maint, totalTax, gross, actRes, reqRes, dti, factor, mortAmt, term);
 }
 
-function renderCalcSteps(pi, housing, debts, maint, tax, gross, actRes, reqRes, dti, factor, mortAmt, term) {
+function renderCalcSteps(pi, housing, debts, maint, tax, gross, actRes, reqRes, dti, factor, mortAmt, _term) {
   var c = document.getElementById('calcSteps-vaprequal');
   if (!c) return;
   var html = '';

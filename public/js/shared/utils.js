@@ -1,17 +1,18 @@
 /* =====================================================
    MSFG Calculator Suite — Shared Utilities
    ===================================================== */
+'use strict';
 
-const MSFG = window.MSFG || {};
+var MSFG = window.MSFG || {};
 
 MSFG.parseNum = function(val) {
   if (typeof val === 'string') val = val.replace(/[,$]/g, '');
-  const n = parseFloat(val);
+  var n = parseFloat(val);
   return isNaN(n) ? 0 : n;
 };
 
 MSFG.parseNumById = function(id) {
-  const el = document.getElementById(id);
+  var el = document.getElementById(id);
   return el ? MSFG.parseNum(el.value) : 0;
 };
 
@@ -42,13 +43,13 @@ MSFG.formatNumber = function(num, decimals) {
 MSFG.calcMonthlyPayment = function(principal, annualRate, years) {
   if (principal <= 0 || years <= 0) return 0;
   if (annualRate === 0) return principal / (years * 12);
-  const r = annualRate / 12;
-  const n = years * 12;
+  var r = annualRate / 12;
+  var n = years * 12;
   return (principal * r) / (1 - Math.pow(1 + r, -n));
 };
 
 /* Toggle show-calculations section */
-function toggleCalcSteps(calcId) {
+MSFG.toggleCalcSteps = function(calcId) {
   var body = document.getElementById('calcSteps-' + calcId);
   var chevron = document.getElementById('calcStepsChevron-' + calcId);
   var label = document.getElementById('calcStepsLabel-' + calcId);
@@ -62,7 +63,7 @@ function toggleCalcSteps(calcId) {
     chevron.classList.add('open');
     label.textContent = 'Hide Calculations';
   }
-}
+};
 
 /* Mobile menu toggle */
 document.addEventListener('DOMContentLoaded', function() {

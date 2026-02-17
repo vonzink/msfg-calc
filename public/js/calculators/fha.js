@@ -1,6 +1,8 @@
 /* =====================================================
    FHA Loan Calculator
    ===================================================== */
+'use strict';
+
 document.addEventListener('DOMContentLoaded', function() {
   var calculateBtn = document.getElementById('calculateBtn');
   var origDate = document.getElementById('origDate');
@@ -139,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var payoff = inputs.currentUpb || 0;
     var totalNeeded = payoff + inputs.closingCostsFinanced + inputs.closingCostsCash + inputs.prepaidsCash - inputs.totalCredits - inputs.escrowRefund;
-    var cash = totalNeeded - calc.totalLoan;
+    cash = totalNeeded - calc.totalLoan;
     notes.push('Cash to close (refi): (payoff + costs - credits - escrow refund) - new loan.');
     return cash;
   }
@@ -166,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return { met: null, reductionPercent: pct };
   }
 
-  function renderResults(result, inputs) {
+  function renderResults(result, _inputs) {
     var $ = function(id) { return document.getElementById(id); };
 
     $('resultBaseLoan').textContent = result.baseLoan > 0 ? MSFG.formatCurrency(result.baseLoan) : '—';
@@ -211,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var container = document.getElementById('calcSteps-fha');
     if (!container) return;
     var fmt = MSFG.formatCurrency;
-    var pct = MSFG.formatPercent;
 
     var html = '';
 

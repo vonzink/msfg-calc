@@ -1,6 +1,8 @@
 /* =====================================================
    Hub Page — Search filtering
    ===================================================== */
+'use strict';
+
 document.addEventListener('DOMContentLoaded', function() {
   var searchInput = document.getElementById('hubSearch');
   if (!searchInput) return;
