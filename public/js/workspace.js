@@ -76,6 +76,7 @@
       activePanels = [];
       panelsContainer.querySelectorAll('.ws-panel').forEach(function(p) { p.remove(); });
       document.querySelectorAll('.workspace__selector-btn.active').forEach(function(b) { b.classList.remove('active'); });
+      sessionStorage.removeItem('msfg-workspace-panels');
       updateState();
     });
 
@@ -86,6 +87,9 @@
         updateTallyFromMessage(e.data);
       }
     });
+
+    // Restore saved panels from sessionStorage (persists across navigation)
+    restorePanels();
 
     // Auto-add calculators from URL query params (e.g., ?add=income/1040,income/schedule-c)
     var urlParams = new URLSearchParams(window.location.search);
@@ -297,7 +301,46 @@
     countBadge.textContent = count + ' active';
     emptyState.style.display = count === 0 ? 'block' : 'none';
     tallyBar.style.display = count > 0 ? 'block' : 'none';
+    savePanels();
     updateTally();
+  }
+
+  /* ---- Persist/restore active panels across navigation ---- */
+  function savePanels() {
+    var data = activePanels.map(function(p) {
+      return { slug: p.slug, name: p.name, icon: p.icon, zoom: p.zoom };
+    });
+    sessionStorage.setItem('msfg-workspace-panels', JSON.stringify(data));
+  }
+
+  function restorePanels() {
+    var stored = sessionStorage.getItem('msfg-workspace-panels');
+    if (!stored) return;
+    try {
+      var data = JSON.parse(stored);
+      if (!Array.isArray(data) || data.length === 0) return;
+      data.forEach(function(p) {
+        if (!p.slug) return;
+        addPanel(p.slug, p.name, p.icon);
+        // Restore zoom if different from default
+        if (p.zoom && p.zoom !== DEFAULT_ZOOM) {
+          var panelEl = document.getElementById('ws-panel-' + p.slug);
+          if (panelEl) {
+            var slider = panelEl.querySelector('.ws-panel__zoom-slider');
+            var label = panelEl.querySelector('.ws-panel__zoom-label');
+            if (slider) {
+              slider.value = p.zoom;
+              label.textContent = p.zoom + '%';
+              var panel = activePanels.find(function(ap) { return ap.slug === p.slug; });
+              if (panel) panel.zoom = p.zoom;
+            }
+          }
+        }
+        // Mark selector button as active
+        var btn = document.querySelector('.workspace__selector-btn[data-slug="' + p.slug + '"]');
+        if (btn) btn.classList.add('active');
+      });
+    } catch (e) { /* corrupted data, skip */ }
   }
 
   function updateTallyFromMessage(data) {
