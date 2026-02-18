@@ -1480,6 +1480,50 @@
     var paymentEl = doc.querySelector('.text-3xl.font-bold');
     var totalPayment = paymentEl ? paymentEl.textContent.trim() : '';
 
+    // Extract full amortization schedule from the table
+    var schedule = [];
+    var totalInterest = 0;
+    var totalPrincipal = 0;
+    var table = doc.querySelector('table[aria-labelledby="amort-table-heading"]') || doc.querySelector('.outer-table table');
+    if (table) {
+      var rows = table.querySelectorAll('tbody tr');
+      rows.forEach(function (row) {
+        var cells = row.querySelectorAll('td');
+        // Skip year header rows (they have colspan or fewer cells)
+        if (cells.length < 7) return;
+        var pmtNum = parseInt(cells[0].textContent.trim(), 10);
+        if (isNaN(pmtNum)) return;
+        var interest = parseFloat((cells[3].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
+        var principal = parseFloat((cells[6].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
+        totalInterest += interest;
+        totalPrincipal += principal;
+        schedule.push({
+          num: pmtNum,
+          date: cells[1].textContent.trim(),
+          rate: cells[2].textContent.trim(),
+          interest: interest,
+          payment: parseFloat((cells[4].textContent || '').replace(/[^0-9.\-]/g, '')) || 0,
+          extra: parseFloat((cells[5].textContent || '').replace(/[^0-9.\-]/g, '')) || 0,
+          principal: principal,
+          balance: parseFloat((cells[7].textContent || '').replace(/[^0-9.\-]/g, '')) || 0
+        });
+      });
+    }
+
+    // Build yearly summaries from schedule
+    var yearlyMap = {};
+    schedule.forEach(function (pmt) {
+      var yr = pmt.date ? pmt.date.replace(/.*,\s*/, '') : '';
+      if (!yr) return;
+      if (!yearlyMap[yr]) yearlyMap[yr] = { year: yr, interest: 0, principal: 0, payments: 0, count: 0 };
+      yearlyMap[yr].interest += pmt.interest;
+      yearlyMap[yr].principal += pmt.principal;
+      yearlyMap[yr].payments += pmt.payment + pmt.extra;
+      yearlyMap[yr].count++;
+    });
+    var yearlySummary = [];
+    Object.keys(yearlyMap).sort().forEach(function (yr) { yearlySummary.push(yearlyMap[yr]); });
+
     return {
       inputs: {
         homeValue: homeValue, downPct: downPct, downPayment: downPayment,
@@ -1487,14 +1531,21 @@
         taxYr: taxYr, insYr: insYr
       },
       results: {
-        totalPayment: totalPayment
-      }
+        totalPayment: totalPayment,
+        totalInterest: totalInterest,
+        totalPrincipal: totalPrincipal,
+        totalCost: totalInterest + loanAmount
+      },
+      schedule: schedule,
+      yearlySummary: yearlySummary
     };
   };
 
   renderers['amortization'] = function (data) {
     var inp = data.inputs; var res = data.results;
     var html = '';
+
+    // Parameters
     html += '<div class="rpt-section"><h4 class="rpt-section-title">Mortgage Parameters</h4>';
     html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Home Value</span><span>' + fmt0(inp.homeValue) + '</span></div>';
@@ -1505,8 +1556,48 @@
     if (inp.taxYr) html += '<div class="rpt-param"><span>Annual Property Tax</span><span>' + fmt0(inp.taxYr) + '</span></div>';
     if (inp.insYr) html += '<div class="rpt-param"><span>Annual Insurance</span><span>' + fmt0(inp.insYr) + '</span></div>';
     html += '</div></div>';
-    if (res.totalPayment) {
-      html += '<div class="rpt-grand-total"><span>Monthly Payment</span><span>' + res.totalPayment + '</span></div>';
+
+    // Payment summary
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Payment Summary</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
+    if (res.totalPayment) html += '<tr><td>Monthly Payment</td><td class="rpt-num">' + res.totalPayment + '</td></tr>';
+    if (res.totalPrincipal) html += '<tr><td>Total Principal</td><td class="rpt-num">' + fmt(res.totalPrincipal) + '</td></tr>';
+    if (res.totalInterest) html += '<tr><td>Total Interest Paid</td><td class="rpt-num">' + fmt(res.totalInterest) + '</td></tr>';
+    html += '</tbody></table>';
+    if (res.totalCost) {
+      html += '<div class="rpt-grand-total"><span>Total Cost of Loan</span><span>' + fmt(res.totalCost) + '</span></div>';
+    }
+    html += '</div>';
+
+    // Yearly summary
+    if (data.yearlySummary && data.yearlySummary.length) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Annual Breakdown</h4>';
+      html += '<table class="rpt-table"><thead><tr><th>Year</th><th class="rpt-num">Principal</th><th class="rpt-num">Interest</th><th class="rpt-num">Total Paid</th></tr></thead><tbody>';
+      data.yearlySummary.forEach(function (yr) {
+        html += '<tr><td>' + yr.year + '</td>';
+        html += '<td class="rpt-num">' + fmt(yr.principal) + '</td>';
+        html += '<td class="rpt-num">' + fmt(yr.interest) + '</td>';
+        html += '<td class="rpt-num">' + fmt(yr.payments) + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    // Full payment schedule
+    if (data.schedule && data.schedule.length) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Full Amortization Schedule (' + data.schedule.length + ' payments)</h4>';
+      html += '<table class="rpt-table" style="font-size:0.78rem"><thead><tr>';
+      html += '<th>#</th><th>Date</th><th class="rpt-num">Rate</th><th class="rpt-num">Payment</th>';
+      html += '<th class="rpt-num">Principal</th><th class="rpt-num">Interest</th><th class="rpt-num">Balance</th>';
+      html += '</tr></thead><tbody>';
+      data.schedule.forEach(function (pmt) {
+        html += '<tr><td>' + pmt.num + '</td><td>' + pmt.date + '</td>';
+        html += '<td class="rpt-num">' + pmt.rate + '</td>';
+        html += '<td class="rpt-num">' + fmt(pmt.payment + pmt.extra) + '</td>';
+        html += '<td class="rpt-num">' + fmt(pmt.principal) + '</td>';
+        html += '<td class="rpt-num">' + fmt(pmt.interest) + '</td>';
+        html += '<td class="rpt-num">' + fmt(pmt.balance) + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
     }
     return html;
   };
@@ -1522,7 +1613,237 @@
     if (inp.insYr) params.push(['Annual Insurance', fmt0(inp.insYr)]);
     var results = [];
     if (res.totalPayment) results.push(['Monthly Payment', res.totalPayment]);
-    return pdfKeyValue(data, params, results);
+    if (res.totalPrincipal) results.push(['Total Principal', fmt(res.totalPrincipal)]);
+    if (res.totalInterest) results.push(['Total Interest Paid', fmt(res.totalInterest)]);
+    if (res.totalCost) results.push(['Total Cost of Loan', fmt(res.totalCost)]);
+    var content = pdfKeyValue(data, params, results);
+
+    // Yearly summary
+    if (data.yearlySummary && data.yearlySummary.length) {
+      content.push({ text: 'Annual Breakdown', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      var yrBody = [[
+        { text: 'Year', style: 'tableHeader' },
+        { text: 'Principal', style: 'tableHeader', alignment: 'right' },
+        { text: 'Interest', style: 'tableHeader', alignment: 'right' },
+        { text: 'Total Paid', style: 'tableHeader', alignment: 'right' }
+      ]];
+      data.yearlySummary.forEach(function (yr) {
+        yrBody.push([yr.year, { text: fmt(yr.principal), alignment: 'right' }, { text: fmt(yr.interest), alignment: 'right' }, { text: fmt(yr.payments), alignment: 'right' }]);
+      });
+      content.push({ table: { headerRows: 1, widths: ['*', 90, 90, 90], body: yrBody }, layout: 'lightHorizontalLines' });
+    }
+
+    // Full schedule
+    if (data.schedule && data.schedule.length) {
+      content.push({ text: 'Full Amortization Schedule', style: 'sectionTitle', margin: [0, 10, 0, 4], pageBreak: 'before' });
+      var sBody = [[
+        { text: '#', style: 'tableHeader' }, { text: 'Date', style: 'tableHeader' },
+        { text: 'Payment', style: 'tableHeader', alignment: 'right' },
+        { text: 'Principal', style: 'tableHeader', alignment: 'right' },
+        { text: 'Interest', style: 'tableHeader', alignment: 'right' },
+        { text: 'Balance', style: 'tableHeader', alignment: 'right' }
+      ]];
+      data.schedule.forEach(function (pmt) {
+        sBody.push([
+          String(pmt.num), pmt.date,
+          { text: fmt(pmt.payment + pmt.extra), alignment: 'right' },
+          { text: fmt(pmt.principal), alignment: 'right' },
+          { text: fmt(pmt.interest), alignment: 'right' },
+          { text: fmt(pmt.balance), alignment: 'right' }
+        ]);
+      });
+      content.push({ table: { headerRows: 1, widths: [25, 70, 75, 75, 75, 80], body: sBody }, layout: 'lightHorizontalLines', fontSize: 7 });
+    }
+    return content;
+  };
+
+  /* ---- Variable Income Analyzer ---- */
+  extractors['var-income'] = function (doc) {
+    // Extract per-employment data from the panels
+    var employments = [];
+    var panels = doc.querySelectorAll('.employment-panel');
+    panels.forEach(function (panel) {
+      var empName = (panel.querySelector('.emp-employer-name') || {}).value || '';
+      var position = (panel.querySelector('.emp-position') || {}).value || '';
+      var payType = (panel.querySelector('.emp-pay-type') || {}).value || '';
+      var payFreq = (panel.querySelector('.emp-pay-frequency') || {}).value || '';
+      var baseRate = parseFloat((panel.querySelector('.emp-base-rate') || {}).value) || 0;
+      var startDate = (panel.querySelector('.emp-start-date') || {}).value || '';
+      var asOfDate = (panel.querySelector('.emp-as-of-date') || {}).value || '';
+      var payPeriods = parseFloat((panel.querySelector('.emp-pay-periods-ytd') || {}).value) || 0;
+      var ytdBase = parseFloat((panel.querySelector('.emp-ytd-base') || {}).value) || 0;
+      var ytdOT = parseFloat((panel.querySelector('.emp-ytd-overtime') || {}).value) || 0;
+      var ytdBonus = parseFloat((panel.querySelector('.emp-ytd-bonus') || {}).value) || 0;
+      var ytdComm = parseFloat((panel.querySelector('.emp-ytd-commission') || {}).value) || 0;
+      var ytdOther = parseFloat((panel.querySelector('.emp-ytd-other') || {}).value) || 0;
+      var prior1Base = parseFloat((panel.querySelector('.emp-prior1-base') || {}).value) || 0;
+      var prior1OT = parseFloat((panel.querySelector('.emp-prior1-overtime') || {}).value) || 0;
+      var prior1Bonus = parseFloat((panel.querySelector('.emp-prior1-bonus') || {}).value) || 0;
+      var prior1Comm = parseFloat((panel.querySelector('.emp-prior1-commission') || {}).value) || 0;
+      var prior2Base = parseFloat((panel.querySelector('.emp-prior2-base') || {}).value) || 0;
+      var prior2OT = parseFloat((panel.querySelector('.emp-prior2-overtime') || {}).value) || 0;
+      var prior2Bonus = parseFloat((panel.querySelector('.emp-prior2-bonus') || {}).value) || 0;
+      var prior2Comm = parseFloat((panel.querySelector('.emp-prior2-commission') || {}).value) || 0;
+      if (empName || ytdBase || prior1Base) {
+        employments.push({
+          employer: empName, position: position, payType: payType, payFreq: payFreq,
+          baseRate: baseRate, startDate: startDate, asOfDate: asOfDate, payPeriods: payPeriods,
+          ytd: { base: ytdBase, overtime: ytdOT, bonus: ytdBonus, commission: ytdComm, other: ytdOther },
+          prior1: { base: prior1Base, overtime: prior1OT, bonus: prior1Bonus, commission: prior1Comm },
+          prior2: { base: prior2Base, overtime: prior2OT, bonus: prior2Bonus, commission: prior2Comm }
+        });
+      }
+    });
+
+    // Read results
+    var monthlyBase = txt(doc,'resultMonthlyBase');
+    var monthlyVariable = txt(doc,'resultMonthlyVariable');
+    var monthlyTotal = txt(doc,'resultMonthlyTotal');
+    var qualifyingIncome = txt(doc,'resultQualifyingIncome');
+
+    // Read flags
+    var flags = [];
+    var flagEls = doc.querySelectorAll('#flagsContainer .flag-item, #flagsContainer li');
+    flagEls.forEach(function (el) { flags.push(el.textContent.trim()); });
+
+    // Read docs required
+    var docs = [];
+    var docEls = doc.querySelectorAll('#docsContainer .doc-item, #docsContainer li');
+    docEls.forEach(function (el) { docs.push(el.textContent.trim()); });
+
+    // Read per-employment breakdown tables from results
+    var breakdowns = [];
+    var breakdownEls = doc.querySelectorAll('#empBreakdownContainer .calc-section');
+    breakdownEls.forEach(function (sec) {
+      var title = sec.querySelector('h2, h3');
+      var rows = [];
+      sec.querySelectorAll('tr').forEach(function (tr) {
+        var cells = tr.querySelectorAll('td');
+        if (cells.length >= 2) {
+          rows.push({ label: cells[0].textContent.trim(), value: cells[cells.length - 1].textContent.trim() });
+        }
+      });
+      breakdowns.push({ title: title ? title.textContent.trim() : '', rows: rows });
+    });
+
+    return {
+      employments: employments,
+      results: {
+        monthlyBase: monthlyBase, monthlyVariable: monthlyVariable,
+        monthlyTotal: monthlyTotal, qualifyingIncome: qualifyingIncome
+      },
+      flags: flags,
+      docs: docs,
+      breakdowns: breakdowns
+    };
+  };
+
+  renderers['var-income'] = function (data) {
+    var res = data.results;
+    var html = '';
+
+    // Employment details
+    if (data.employments && data.employments.length) {
+      data.employments.forEach(function (emp, i) {
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">Employment ' + (i + 1) + (emp.employer ? ' — ' + emp.employer : '') + '</h4>';
+        html += '<div class="rpt-params">';
+        if (emp.employer) html += '<div class="rpt-param"><span>Employer</span><span>' + emp.employer + '</span></div>';
+        if (emp.position) html += '<div class="rpt-param"><span>Position</span><span>' + emp.position + '</span></div>';
+        html += '<div class="rpt-param"><span>Pay Type</span><span>' + emp.payType + '</span></div>';
+        if (emp.baseRate) html += '<div class="rpt-param"><span>' + (emp.payType === 'HOURLY' ? 'Hourly Rate' : 'Annual Salary') + '</span><span>' + (emp.payType === 'HOURLY' ? fmt(emp.baseRate) + '/hr' : fmt0(emp.baseRate)) + '</span></div>';
+        if (emp.startDate) html += '<div class="rpt-param"><span>Start Date</span><span>' + emp.startDate + '</span></div>';
+        html += '</div>';
+
+        // YTD earnings
+        html += '<table class="rpt-table"><thead><tr><th>Earnings Type</th><th class="rpt-num">YTD</th><th class="rpt-num">Prior Year 1</th><th class="rpt-num">Prior Year 2</th></tr></thead><tbody>';
+        html += '<tr><td>Base</td><td class="rpt-num">' + fmt(emp.ytd.base) + '</td><td class="rpt-num">' + fmt(emp.prior1.base) + '</td><td class="rpt-num">' + fmt(emp.prior2.base) + '</td></tr>';
+        if (emp.ytd.overtime || emp.prior1.overtime || emp.prior2.overtime) html += '<tr><td>Overtime</td><td class="rpt-num">' + fmt(emp.ytd.overtime) + '</td><td class="rpt-num">' + fmt(emp.prior1.overtime) + '</td><td class="rpt-num">' + fmt(emp.prior2.overtime) + '</td></tr>';
+        if (emp.ytd.bonus || emp.prior1.bonus || emp.prior2.bonus) html += '<tr><td>Bonus</td><td class="rpt-num">' + fmt(emp.ytd.bonus) + '</td><td class="rpt-num">' + fmt(emp.prior1.bonus) + '</td><td class="rpt-num">' + fmt(emp.prior2.bonus) + '</td></tr>';
+        if (emp.ytd.commission || emp.prior1.commission || emp.prior2.commission) html += '<tr><td>Commission</td><td class="rpt-num">' + fmt(emp.ytd.commission) + '</td><td class="rpt-num">' + fmt(emp.prior1.commission) + '</td><td class="rpt-num">' + fmt(emp.prior2.commission) + '</td></tr>';
+        if (emp.ytd.other) html += '<tr><td>Other</td><td class="rpt-num">' + fmt(emp.ytd.other) + '</td><td class="rpt-num">—</td><td class="rpt-num">—</td></tr>';
+        html += '</tbody></table></div>';
+      });
+    }
+
+    // Breakdowns from computed results
+    if (data.breakdowns && data.breakdowns.length) {
+      data.breakdowns.forEach(function (bd) {
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">' + bd.title + '</h4>';
+        if (bd.rows.length) {
+          html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
+          bd.rows.forEach(function (r) {
+            html += '<tr><td>' + r.label + '</td><td class="rpt-num">' + r.value + '</td></tr>';
+          });
+          html += '</tbody></table>';
+        }
+        html += '</div>';
+      });
+    }
+
+    // Income summary
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Income Summary</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Category</th><th class="rpt-num">Monthly</th></tr></thead><tbody>';
+    html += '<tr><td>Monthly Base Income</td><td class="rpt-num">' + res.monthlyBase + '</td></tr>';
+    html += '<tr><td>Monthly Variable Income</td><td class="rpt-num">' + res.monthlyVariable + '</td></tr>';
+    html += '<tr><td>Total Monthly Usable</td><td class="rpt-num">' + res.monthlyTotal + '</td></tr>';
+    html += '</tbody></table>';
+    html += '<div class="rpt-grand-total"><span>Qualifying Monthly Income</span><span>' + res.qualifyingIncome + '</span></div>';
+    html += '</div>';
+
+    // Flags
+    if (data.flags && data.flags.length) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Flags & Observations</h4>';
+      html += '<ul style="margin:0;padding-left:1.25rem;font-size:0.85em">';
+      data.flags.forEach(function (f) { html += '<li>' + f + '</li>'; });
+      html += '</ul></div>';
+    }
+
+    // Required docs
+    if (data.docs && data.docs.length) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Required Documentation</h4>';
+      html += '<ul style="margin:0;padding-left:1.25rem;font-size:0.85em">';
+      data.docs.forEach(function (d) { html += '<li>' + d + '</li>'; });
+      html += '</ul></div>';
+    }
+    return html;
+  };
+
+  pdfGenerators['var-income'] = function (data) {
+    var res = data.results;
+    var content = [];
+
+    // Employment details
+    if (data.employments && data.employments.length) {
+      data.employments.forEach(function (emp, i) {
+        content.push({ text: 'Employment ' + (i + 1) + (emp.employer ? ' — ' + emp.employer : ''), style: 'sectionTitle', margin: [0, 8, 0, 4] });
+        var body = [
+          [{ text: 'Earnings', style: 'tableHeader' }, { text: 'YTD', style: 'tableHeader', alignment: 'right' }, { text: 'Prior Yr 1', style: 'tableHeader', alignment: 'right' }, { text: 'Prior Yr 2', style: 'tableHeader', alignment: 'right' }],
+          ['Base', { text: fmt(emp.ytd.base), alignment: 'right' }, { text: fmt(emp.prior1.base), alignment: 'right' }, { text: fmt(emp.prior2.base), alignment: 'right' }]
+        ];
+        if (emp.ytd.overtime || emp.prior1.overtime) body.push(['Overtime', { text: fmt(emp.ytd.overtime), alignment: 'right' }, { text: fmt(emp.prior1.overtime), alignment: 'right' }, { text: fmt(emp.prior2.overtime), alignment: 'right' }]);
+        if (emp.ytd.bonus || emp.prior1.bonus) body.push(['Bonus', { text: fmt(emp.ytd.bonus), alignment: 'right' }, { text: fmt(emp.prior1.bonus), alignment: 'right' }, { text: fmt(emp.prior2.bonus), alignment: 'right' }]);
+        if (emp.ytd.commission || emp.prior1.commission) body.push(['Commission', { text: fmt(emp.ytd.commission), alignment: 'right' }, { text: fmt(emp.prior1.commission), alignment: 'right' }, { text: fmt(emp.prior2.commission), alignment: 'right' }]);
+        content.push({ table: { headerRows: 1, widths: ['*', 80, 80, 80], body: body }, layout: 'lightHorizontalLines' });
+      });
+    }
+
+    // Results
+    content.push({ text: 'Income Summary', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+    var rBody = [
+      [{ text: 'Category', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }],
+      ['Monthly Base', { text: res.monthlyBase, alignment: 'right' }],
+      ['Monthly Variable', { text: res.monthlyVariable, alignment: 'right' }],
+      ['Total Usable', { text: res.monthlyTotal, alignment: 'right' }]
+    ];
+    content.push({ table: { headerRows: 1, widths: ['*', 120], body: rBody }, layout: 'lightHorizontalLines' });
+    content.push({ columns: [{ text: 'Qualifying Monthly Income', bold: true, fontSize: 12, color: '#2d6a4f' }, { text: res.qualifyingIncome, alignment: 'right', bold: true, fontSize: 12, color: '#2d6a4f' }], margin: [0, 8, 0, 0] });
+
+    // Flags
+    if (data.flags && data.flags.length) {
+      content.push({ text: 'Flags & Observations', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ ul: data.flags.map(function (f) { return { text: f, fontSize: 9 }; }) });
+    }
+    return content;
   };
 
   /* ---- Public API ---- */

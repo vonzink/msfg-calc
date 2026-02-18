@@ -5,7 +5,7 @@
 
 /* ---- Sections ---- */
 .calc-section {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .calc-section h2 {
@@ -13,10 +13,10 @@
   align-items: center;
   gap: var(--space-sm);
   color: var(--brand-primary);
-  font-size: 1.15rem;
-  padding-bottom: var(--space-sm);
+  font-size: 1.1rem;
+  padding-bottom: var(--space-xs);
   border-bottom: 2px solid var(--color-gray-100);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .calc-section h2 .section-number {
@@ -58,7 +58,7 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 0.6rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1.5px solid var(--color-gray-300);
   border-radius: 6px;
   font-size: 0.9rem;
@@ -216,7 +216,7 @@
 .result-card {
   background: var(--color-gray-50);
   border-radius: var(--border-radius);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   text-align: center;
   border: 1px solid var(--color-gray-100);
   transition: box-shadow var(--transition);
@@ -250,9 +250,9 @@
   background: linear-gradient(135deg, var(--brand-light) 0%, #e8f5e8 100%);
   border: 2px solid var(--brand-primary);
   border-radius: var(--border-radius);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   text-align: center;
-  margin: var(--space-lg) 0;
+  margin: var(--space-md) 0;
 }
 
 .result-highlight__label {
@@ -263,7 +263,7 @@
 }
 
 .result-highlight__value {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--brand-secondary);
 }
@@ -342,7 +342,7 @@
 
 .calc-steps__body {
   display: none;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   background: var(--color-white);
 }
 
@@ -353,7 +353,7 @@
 .calc-step {
   background: var(--color-gray-50);
   border-radius: var(--border-radius);
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
   border-left: 4px solid var(--brand-accent);
   margin-bottom: var(--space-md);
 }

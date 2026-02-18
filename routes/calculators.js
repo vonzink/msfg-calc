@@ -11,7 +11,7 @@ function findCalc(slug) {
 
 const generalCalcs = [
   { slug: 'apr',             view: 'calculators/apr',             title: 'APR Calculator',                css: 'apr' },
-  { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator',           css: 'fha' },
+  { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator' },
   { slug: 'va-prequal',      view: 'calculators/va-prequal',      title: 'VA Pre-Qualification Worksheet', css: 'va-prequal' },
   { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator' },
   { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator' },
@@ -21,7 +21,6 @@ const generalCalcs = [
     slug: 'refi',
     view: 'calculators/refi',
     title: 'Refinance Analysis Tool',
-    css: 'refi',
     cdnScripts: [
       '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>',
       '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>'
@@ -31,7 +30,7 @@ const generalCalcs = [
   { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator' },
   { slug: 'fha-refi',        view: 'calculators/fha-refi',        title: 'FHA Refinance Calculator' },
   { slug: 'amortization',    view: 'calculators/amortization',    title: 'Amortization Calculator' },
-  { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer', css: 'var-income' }
+  { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer' }
 ];
 
 generalCalcs.forEach(gc => {
@@ -80,7 +79,6 @@ incomeCalcs.forEach(ic => {
     res.render(`calculators/${ic.view}`, {
       title: ic.title,
       calc: findCalc(`income/${ic.slug}`),
-      extraHead: '<link rel="stylesheet" href="/css/calculators/income.css">',
       extraScripts: `<script src="/js/calculators/${ic.view}.js"></script>`
     });
   });

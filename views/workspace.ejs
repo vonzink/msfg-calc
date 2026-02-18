@@ -48,7 +48,7 @@
     <div class="workspace__selector-inner">
       <input type="text" class="workspace__search" id="wsSelectorSearch" placeholder="Search calculators..." autocomplete="off">
       <div class="workspace__selector-grid" id="wsSelectorGrid">
-        <% categories.filter(c => c.id !== 'tools').forEach(cat => { %>
+        <% categories.forEach(cat => { %>
           <div class="workspace__selector-group" data-cat="<%= cat.id %>">
             <div class="workspace__selector-label" style="border-left: 3px solid <%= cat.color %>;">
               <%= cat.label %>

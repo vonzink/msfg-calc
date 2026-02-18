@@ -21,7 +21,7 @@
 }
 
 .residual-status {
-  padding: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--border-radius);
   text-align: center;
   font-weight: 600;
@@ -40,11 +40,11 @@
 
 .dti-display {
   text-align: center;
-  margin: var(--space-xl) 0;
+  margin: var(--space-lg) 0;
 }
 
 .dti-value {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
 }
 
@@ -75,7 +75,7 @@
 
 .region-key {
   margin-top: var(--space-lg);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   background: var(--color-gray-50);
   border-radius: var(--border-radius);
 }
