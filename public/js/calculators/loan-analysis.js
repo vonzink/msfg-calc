@@ -75,7 +75,8 @@
         phone: el('laLoPhone').value.trim(),
         email: el('laLoEmail').value.trim(),
         company: el('laLoCompany').value.trim()
-      }
+      },
+      notes: el('laNotes').value.trim()
     };
   }
 
@@ -122,6 +123,15 @@
     el('laResOldTotal').innerHTML     = '<strong>' + fmt(s.oldLoan.total) + '</strong>';
     el('laResNewTotal').innerHTML     = '<strong>' + fmt(s.newLoan.total) + '</strong>';
 
+    // Notes
+    var notesSection = el('laResNotesSection');
+    if (s.notes) {
+      el('laResNotes').textContent = s.notes;
+      notesSection.style.display = '';
+    } else {
+      notesSection.style.display = 'none';
+    }
+
     resultsEl.style.display = '';
     resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -133,6 +143,7 @@
       if (inputs[i].id === 'laLoCompany') continue;
       inputs[i].value = '';
     }
+    el('laNotes').value = '';
     // Reset selects to defaults
     el('laOldLoanType').value = 'Conventional';
     el('laNewLoanType').value = 'Conventional';

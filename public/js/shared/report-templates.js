@@ -1891,7 +1891,8 @@
         phone: txt(doc, 'laLoPhone'),
         email: txt(doc, 'laLoEmail'),
         company: txt(doc, 'laLoCompany')
-      }
+      },
+      notes: txt(doc, 'laNotes')
     };
   };
 
@@ -1945,6 +1946,12 @@
       if (lo.email) html += '<div class="rpt-param"><span>Email</span><span>' + lo.email + '</span></div>';
       if (lo.company) html += '<div class="rpt-param"><span>Company</span><span>' + lo.company + '</span></div>';
       html += '</div></div>';
+    }
+
+    // Notes
+    if (data.notes) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Notes</h4>';
+      html += '<p style="white-space:pre-wrap;margin:0;color:#555">' + data.notes.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p></div>';
     }
 
     return html;
@@ -2004,6 +2011,12 @@
       if (lo.email) loRows.push(['Email', lo.email]);
       if (lo.company) loRows.push(['Company', lo.company]);
       content.push({ table: { widths: [80, '*'], body: loRows }, layout: 'noBorders' });
+    }
+
+    // Notes
+    if (data.notes) {
+      content.push({ text: 'Notes', style: 'sectionTitle', margin: [0, 12, 0, 4] });
+      content.push({ text: data.notes, color: '#555', margin: [0, 0, 0, 8] });
     }
 
     return content;

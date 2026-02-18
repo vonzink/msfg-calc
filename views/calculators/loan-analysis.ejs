@@ -214,6 +214,17 @@
       </div>
     </div>
 
+    <!-- Additional Notes -->
+    <div class="calc-section">
+      <h2>Additional Notes</h2>
+      <div class="form-group">
+        <label for="laNotes">Notes / Comments
+          <span class="help-icon" data-help="Free-form notes that will appear on the cover page and in the session report.">?</span>
+        </label>
+        <textarea id="laNotes" rows="4" placeholder="Add any additional notes, conditions, or comments for the borrower…" style="width: 100%; resize: vertical;"></textarea>
+      </div>
+    </div>
+
     <!-- Action Bar -->
     <div class="action-bar" style="border-top: none;">
       <button class="btn btn-secondary" id="laResetBtn" type="button">Reset</button>
@@ -269,6 +280,12 @@
             <tr><td><strong>Total Payment</strong></td><td id="laResOldTotal"><strong>--</strong></td><td id="laResNewTotal"><strong>--</strong></td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Notes (rendered) -->
+      <div class="calc-section" id="laResNotesSection" style="display: none;">
+        <h2>Notes</h2>
+        <p id="laResNotes" style="white-space: pre-wrap; color: var(--color-gray-700);"></p>
       </div>
     </div>
 
