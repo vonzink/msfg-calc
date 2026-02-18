@@ -549,7 +549,7 @@
     if (!mismoData) return;
 
     function tryPopulate(attempt) {
-      if (attempt > 8) return;
+      if (attempt > 10) return;
       try {
         var doc = iframe.contentDocument || iframe.contentWindow.document;
         var nested = doc ? doc.querySelector('iframe') : null;
@@ -564,7 +564,11 @@
           }
         }
       } catch (e) { /* skip */ }
-      populatePanel(slug);
+      // Try to populate; retry with backoff if 0 fields were set
+      var count = populatePanel(slug);
+      if (count === 0 && attempt < 10) {
+        setTimeout(function() { tryPopulate(attempt + 1); }, 300);
+      }
     }
 
     setTimeout(function() { tryPopulate(0); }, 400);
@@ -579,29 +583,29 @@
   }
 
   function populatePanel(slug) {
-    if (!mismoData || !MSFG.MISMOParser) return;
+    if (!mismoData || !MSFG.MISMOParser) return 0;
 
     var mapFn = MSFG.MISMOParser.getCalcMap(slug);
-    if (!mapFn) return;
+    if (!mapFn) return 0;
 
     var fieldMap = mapFn(mismoData);
-    if (!fieldMap || Object.keys(fieldMap).length === 0) return;
+    if (!fieldMap || Object.keys(fieldMap).length === 0) return 0;
 
     var panelEl = document.getElementById('ws-panel-' + slug);
-    if (!panelEl) return;
+    if (!panelEl) return 0;
 
     var iframe = panelEl.querySelector('.ws-panel__iframe');
-    if (!iframe) return;
+    if (!iframe) return 0;
 
-    populateIframeFields(iframe, slug, fieldMap);
+    return populateIframeFields(iframe, slug, fieldMap);
   }
 
   function populateIframeFields(iframe, slug, fieldMap) {
     var outerDoc;
     try {
       outerDoc = iframe.contentDocument || iframe.contentWindow.document;
-    } catch (e) { return; }
-    if (!outerDoc) return;
+    } catch (e) { return 0; }
+    if (!outerDoc) return 0;
 
     var reactKeys = {};
     var domKeys = {};
@@ -651,6 +655,7 @@
     if (populated > 0) {
       highlightPanel(slug, populated);
     }
+    return populated;
   }
 
   function setInputValue(el, val) {

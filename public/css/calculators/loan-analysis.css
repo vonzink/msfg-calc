@@ -1,13 +1,6 @@
 /* =====================================================
-   Cover Letter (Loan Analysis) — Custom Styles
+   Cover Letter — Custom Styles
    ===================================================== */
-
-.la-logo-preview {
-  max-width: 280px;
-  height: auto;
-  margin: 0 auto;
-  display: block;
-}
 
 /* ---- Section Toggle Bar ---- */
 .la-section-toggles {
@@ -57,9 +50,243 @@
   cursor: pointer;
 }
 
-.la-toggle input[type="checkbox"]:checked + span,
 .la-toggle:has(input:checked) {
   color: var(--brand-primary, #2d6a4f);
   border-color: var(--brand-primary, #2d6a4f);
   background: rgba(45, 106, 79, 0.06);
+}
+
+/* ---- Letter Preview Container ---- */
+.la-letter-preview {
+  margin-top: var(--space-xl, 32px);
+}
+
+.la-letter {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 56px;
+  background: #fff;
+  border: 1px solid var(--color-gray-200, #e2e6ea);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  color: var(--color-gray-800, #343a40);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+/* Logo */
+.la-letter__logo {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--brand-primary, #2d6a4f);
+}
+
+.la-letter__logo img {
+  max-width: 220px;
+  height: auto;
+}
+
+/* Date */
+.la-letter__date {
+  text-align: right;
+  color: var(--color-gray-500, #6c757d);
+  font-size: 0.88rem;
+  margin-bottom: 24px;
+}
+
+/* Address block */
+.la-letter__address {
+  margin-bottom: 20px;
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+/* Greeting */
+.la-letter__greeting {
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+/* Intro */
+.la-letter__intro {
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Section blocks */
+.la-letter__section {
+  margin-bottom: 24px;
+}
+
+.la-letter__section h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--brand-primary, #2d6a4f);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--color-gray-200, #e2e6ea);
+  padding-bottom: 6px;
+  margin: 0 0 12px 0;
+}
+
+/* Letter Tables */
+.la-letter-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+
+.la-letter-table th {
+  text-align: right;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-bottom: 2px solid var(--color-gray-200, #e2e6ea);
+  color: var(--color-gray-600, #6c757d);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.la-letter-table th:first-child {
+  text-align: left;
+}
+
+.la-letter-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--color-gray-100, #f0f1f3);
+}
+
+.la-letter-table td:not(:first-child) {
+  text-align: right;
+}
+
+.la-letter-table tr.la-table-total td {
+  border-top: 2px solid var(--color-gray-300, #ced4da);
+  border-bottom: none;
+  padding-top: 8px;
+}
+
+/* Savings Grid */
+.la-savings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.la-savings-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px;
+  background: var(--color-gray-50, #f8f9fa);
+  border-radius: var(--radius-md, 8px);
+}
+
+.la-savings-label {
+  font-size: 0.78rem;
+  color: var(--color-gray-500, #6c757d);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+.la-savings-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-gray-800, #343a40);
+}
+
+.la-positive {
+  color: var(--brand-primary, #2d6a4f) !important;
+}
+
+.la-savings-highlight {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(45, 106, 79, 0.06);
+  border: 1px solid rgba(45, 106, 79, 0.15);
+  border-radius: var(--radius-md, 8px);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Signature */
+.la-letter__signature {
+  margin-top: 36px;
+  padding-top: 8px;
+}
+
+.la-sig-closing {
+  margin: 0 0 24px 0;
+  font-style: italic;
+}
+
+.la-sig-name {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--brand-primary, #2d6a4f);
+}
+
+.la-sig-line {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-gray-600, #6c757d);
+  line-height: 1.5;
+}
+
+/* Disclaimer */
+.la-letter__disclaimer {
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-gray-200, #e2e6ea);
+  font-size: 0.72rem;
+  color: var(--color-gray-400, #adb5bd);
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .la-letter {
+    padding: 24px 20px;
+  }
+  .la-savings-grid {
+    grid-template-columns: 1fr;
+  }
+  .la-letter-table {
+    font-size: 0.82rem;
+  }
+  .la-letter-table td,
+  .la-letter-table th {
+    padding: 5px 8px;
+  }
+}
+
+/* Print */
+@media print {
+  .la-section-toggles,
+  .action-bar,
+  .calc-page__header,
+  .calc-page__footer,
+  [data-section] {
+    display: none !important;
+  }
+  .la-letter-preview {
+    display: block !important;
+    margin: 0;
+  }
+  .la-letter {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    max-width: 100%;
+  }
 }

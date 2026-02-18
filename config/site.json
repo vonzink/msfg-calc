@@ -12,5 +12,13 @@
   "ai": {
     "provider": "",
     "apiKey": ""
+  },
+  "emailSignature": {
+    "name": "",
+    "title": "",
+    "phone": "",
+    "email": "",
+    "nmls": "",
+    "company": ""
   }
 }

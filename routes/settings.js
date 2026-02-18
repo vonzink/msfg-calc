@@ -135,6 +135,27 @@ router.post('/update', (req, res) => {
   res.redirect('/settings?saved=1');
 });
 
+// --- Email Signature ---
+
+router.post('/email-signature', (req, res) => {
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
+
+  if (!config.emailSignature) {
+    config.emailSignature = { name: '', title: '', phone: '', email: '', nmls: '', company: '' };
+  }
+
+  const fields = ['name', 'title', 'phone', 'email', 'nmls', 'company'];
+  fields.forEach(field => {
+    if (typeof req.body['sig_' + field] === 'string') {
+      config.emailSignature[field] = req.body['sig_' + field].trim().slice(0, 200);
+    }
+  });
+
+  writeConfig(config);
+  res.redirect('/settings?saved=1');
+});
+
 // --- AI Configuration ---
 
 router.post('/ai', (req, res) => {

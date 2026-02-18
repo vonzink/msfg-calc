@@ -59,6 +59,62 @@
       </form>
     </div>
 
+    <!-- Email Signature (Cover Letter) -->
+    <div class="calc-section">
+      <h2>Email Signature</h2>
+      <p style="font-size: 0.88rem; color: var(--color-gray-500); margin-bottom: var(--space-md);">
+        Configure your default loan officer signature. This auto-populates on every Cover Letter.
+      </p>
+
+      <form action="/settings/email-signature" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="sigName">Full Name</label>
+            <input type="text" id="sigName" name="sig_name"
+                   value="<%= config.emailSignature ? config.emailSignature.name : '' %>"
+                   placeholder="e.g. John Doe">
+          </div>
+          <div class="form-group">
+            <label for="sigTitle">Title</label>
+            <input type="text" id="sigTitle" name="sig_title"
+                   value="<%= config.emailSignature ? config.emailSignature.title : '' %>"
+                   placeholder="e.g. Loan Officer">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top: var(--space-md);">
+          <div class="form-group">
+            <label for="sigPhone">Phone</label>
+            <input type="tel" id="sigPhone" name="sig_phone"
+                   value="<%= config.emailSignature ? config.emailSignature.phone : '' %>"
+                   placeholder="(555) 123-4567">
+          </div>
+          <div class="form-group">
+            <label for="sigEmail">Email</label>
+            <input type="email" id="sigEmail" name="sig_email"
+                   value="<%= config.emailSignature ? config.emailSignature.email : '' %>"
+                   placeholder="john@msfginfo.com">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top: var(--space-md);">
+          <div class="form-group">
+            <label for="sigNmls">NMLS #</label>
+            <input type="text" id="sigNmls" name="sig_nmls"
+                   value="<%= config.emailSignature ? config.emailSignature.nmls : '' %>"
+                   placeholder="e.g. 123456">
+          </div>
+          <div class="form-group">
+            <label for="sigCompany">Company</label>
+            <input type="text" id="sigCompany" name="sig_company"
+                   value="<%= config.emailSignature ? config.emailSignature.company : '' %>"
+                   placeholder="e.g. Mountain States Financial Group">
+          </div>
+        </div>
+        <div class="action-bar">
+          <button type="submit" class="btn btn-primary">Save Signature</button>
+        </div>
+      </form>
+    </div>
+
     <!-- AI Configuration -->
     <div class="calc-section">
       <h2>AI Configuration</h2>

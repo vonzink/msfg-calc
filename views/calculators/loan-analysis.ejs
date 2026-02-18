@@ -1,7 +1,13 @@
+<script>
+  window.__emailSignature = <%- JSON.stringify(typeof site !== 'undefined' && site.emailSignature ? site.emailSignature : {}) %>;
+  window.__companyLogo = '<%= typeof site !== "undefined" ? site.logo.src : "/images/msfg-logo.png" %>';
+  window.__companyName = '<%= typeof site !== "undefined" ? site.companyName : "MSFG" %>';
+</script>
+
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>Cover Letter</h1>
-    <p>Generate a branded cover letter with borrower details, loan comparison, and loan officer information. Auto-fills from MISMO data in the workspace.</p>
+    <p>Generate a professional cover letter for loan presentations. Auto-fills from MISMO data in the workspace.</p>
   </div>
 
   <div class="calc-page__body">
@@ -13,13 +19,16 @@
       <label class="la-toggle"><input type="checkbox" id="laTogOldLoan" checked data-toggle="old-loan"> Current Loan</label>
       <label class="la-toggle"><input type="checkbox" id="laTogNewLoan" checked data-toggle="new-loan"> Proposed Loan</label>
       <label class="la-toggle"><input type="checkbox" id="laTogClosing" checked data-toggle="closing"> Closing Costs</label>
-      <label class="la-toggle"><input type="checkbox" id="laTogLo" checked data-toggle="lo"> Loan Officer</label>
-      <label class="la-toggle"><input type="checkbox" id="laTogNotes" checked data-toggle="notes"> Notes</label>
+      <label class="la-toggle"><input type="checkbox" id="laTogSummary" checked data-toggle="summary"> Summary</label>
     </div>
 
-    <!-- Company Logo Preview -->
-    <div class="calc-section" style="text-align: center;">
-      <img src="/images/msfg-logo.png" alt="<%= typeof site !== 'undefined' ? site.company : 'MSFG' %>" class="la-logo-preview">
+    <!-- Greeting / Intro -->
+    <div class="calc-section">
+      <h2>Greeting / Intro</h2>
+      <div class="form-group">
+        <label for="laIntro">Customize the opening paragraph of your cover letter</label>
+        <textarea id="laIntro" rows="3" style="width: 100%; resize: vertical;">Thank you for the opportunity to work with you on your home financing needs. Below is a summary of the loan options we discussed.</textarea>
+      </div>
     </div>
 
     <!-- Borrower Information -->
@@ -194,116 +203,36 @@
       </div>
     </div>
 
-    <!-- Loan Officer Information -->
-    <div class="calc-section" data-section="lo">
-      <h2>Loan Officer Information</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="laLoName">Loan Officer Name</label>
-          <input type="text" id="laLoName" placeholder="e.g. John Doe">
-        </div>
-        <div class="form-group">
-          <label for="laLoNmls">NMLS #</label>
-          <input type="text" id="laLoNmls" placeholder="e.g. 123456">
-        </div>
-      </div>
-      <div class="form-grid" style="margin-top: var(--space-md);">
-        <div class="form-group">
-          <label for="laLoPhone">Phone</label>
-          <input type="tel" id="laLoPhone" placeholder="(555) 123-4567">
-        </div>
-        <div class="form-group">
-          <label for="laLoEmail">Email</label>
-          <input type="email" id="laLoEmail" placeholder="john@msfginfo.com">
-        </div>
-      </div>
-      <div class="form-grid" style="margin-top: var(--space-md);">
-        <div class="form-group">
-          <label for="laLoCompany">Company</label>
-          <input type="text" id="laLoCompany" value="Mountain States Financial Group" placeholder="Company name">
-        </div>
+    <!-- Summary -->
+    <div class="calc-section" data-section="summary">
+      <h2>Summary</h2>
+      <div class="form-group">
+        <label for="laSummary">Summary / Closing Notes
+          <span class="help-icon" data-help="This text appears below the loan details in the generated cover letter.">?</span>
+        </label>
+        <textarea id="laSummary" rows="4" placeholder="Add any additional notes, conditions, or comments for the borrower..." style="width: 100%; resize: vertical;"></textarea>
       </div>
     </div>
 
-    <!-- Additional Notes -->
-    <div class="calc-section" data-section="notes">
-      <h2>Additional Notes</h2>
-      <div class="form-group">
-        <label for="laNotes">Notes / Comments
-          <span class="help-icon" data-help="Free-form notes that will appear on the cover page and in the session report.">?</span>
-        </label>
-        <textarea id="laNotes" rows="4" placeholder="Add any additional notes, conditions, or comments for the borrower..." style="width: 100%; resize: vertical;"></textarea>
-      </div>
-    </div>
+    <!-- Hidden fields for MISMO LO data override -->
+    <input type="hidden" id="laLoName">
+    <input type="hidden" id="laLoNmls">
+    <input type="hidden" id="laLoPhone">
+    <input type="hidden" id="laLoEmail">
+    <input type="hidden" id="laLoCompany">
 
     <!-- Action Bar -->
     <div class="action-bar" style="border-top: none;">
       <button class="btn btn-secondary" id="laResetBtn" type="button">Reset</button>
-      <button class="btn btn-primary" id="laGenerateBtn" type="button">Generate Cover Page</button>
+      <button class="btn btn-primary" id="laGenerateBtn" type="button">Generate Cover Letter</button>
     </div>
 
-    <!-- Results / Preview Section -->
-    <div id="laResults" style="display: none;">
-
-      <!-- Summary Cards -->
-      <div class="calc-section" data-section="closing">
-        <h2>Savings Summary</h2>
-        <div class="results-grid">
-          <div class="result-card">
-            <div class="result-card__label">Monthly Savings</div>
-            <div class="result-card__value" id="laResMonthlySavings">--</div>
-          </div>
-          <div class="result-card">
-            <div class="result-card__label">Net Closing Costs</div>
-            <div class="result-card__value" id="laResNetCosts">--</div>
-          </div>
-          <div class="result-card">
-            <div class="result-card__label">Breakeven</div>
-            <div class="result-card__value" id="laResBreakeven">--</div>
-          </div>
-        </div>
-        <div class="result-highlight" style="margin-top: var(--space-lg);">
-          <div class="result-highlight__label">Lifetime Interest Savings</div>
-          <div class="result-highlight__value" id="laResLifetimeSavings">--</div>
-        </div>
-      </div>
-
-      <!-- Comparison Table -->
-      <div class="calc-section">
-        <h2>Loan Comparison</h2>
-        <table class="data-table" id="laComparisonTable">
-          <thead>
-            <tr>
-              <th></th>
-              <th data-section="old-loan">Current Loan</th>
-              <th data-section="new-loan">Proposed Loan</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Lender</td><td id="laResOldLender" data-section="old-loan">--</td><td id="laResNewLender" data-section="new-loan">--</td></tr>
-            <tr><td>Loan Type</td><td id="laResOldType" data-section="old-loan">--</td><td id="laResNewType" data-section="new-loan">--</td></tr>
-            <tr><td>Loan Amount</td><td id="laResOldAmount" data-section="old-loan">--</td><td id="laResNewAmount" data-section="new-loan">--</td></tr>
-            <tr><td>Interest Rate</td><td id="laResOldRate" data-section="old-loan">--</td><td id="laResNewRate" data-section="new-loan">--</td></tr>
-            <tr><td>Term</td><td id="laResOldTerm" data-section="old-loan">--</td><td id="laResNewTerm" data-section="new-loan">--</td></tr>
-            <tr><td>Monthly P&I</td><td id="laResOldPI" data-section="old-loan">--</td><td id="laResNewPI" data-section="new-loan">--</td></tr>
-            <tr><td>Monthly MI</td><td id="laResOldMI" data-section="old-loan">--</td><td id="laResNewMI" data-section="new-loan">--</td></tr>
-            <tr><td>Monthly Escrow</td><td id="laResOldEscrow" data-section="old-loan">--</td><td id="laResNewEscrow" data-section="new-loan">--</td></tr>
-            <tr><td><strong>Total Payment</strong></td><td id="laResOldTotal" data-section="old-loan"><strong>--</strong></td><td id="laResNewTotal" data-section="new-loan"><strong>--</strong></td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Notes (rendered) -->
-      <div class="calc-section" id="laResNotesSection" data-section="notes" style="display: none;">
-        <h2>Notes</h2>
-        <p id="laResNotes" style="white-space: pre-wrap; color: var(--color-gray-700);"></p>
+    <!-- Cover Letter Preview -->
+    <div id="laResults" class="la-letter-preview" style="display: none;">
+      <div class="la-letter" id="laLetterContent">
+        <!-- Populated by generate() -->
       </div>
     </div>
 
-  </div>
-
-  <div class="calc-page__footer">
-    <div class="calc-page__footer-title">Important Disclaimers</div>
-    <p>This is a preliminary analysis for discussion purposes only. Actual rates, terms, and closing costs may vary. Not a commitment to lend. Subject to underwriting approval. NMLS Consumer Access: <a href="https://www.nmlsconsumeraccess.org" target="_blank">nmlsconsumeraccess.org</a></p>
   </div>
 </div>
