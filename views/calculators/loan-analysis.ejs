@@ -1,0 +1,281 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Loan Analysis</h1>
+    <p>Generate a branded cover page with borrower details, loan comparison, savings analysis, and loan officer information.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- Company Logo Preview -->
+    <div class="calc-section" style="text-align: center;">
+      <img src="/images/msfg-logo.png" alt="<%= typeof site !== 'undefined' ? site.company : 'MSFG' %>" class="la-logo-preview">
+    </div>
+
+    <!-- Borrower Information -->
+    <div class="calc-section">
+      <h2>Borrower Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="laBorrowerName">Borrower Name</label>
+          <input type="text" id="laBorrowerName" placeholder="e.g. John & Jane Smith">
+        </div>
+        <div class="form-group">
+          <label for="laCoBorrowerName">Co-Borrower Name</label>
+          <input type="text" id="laCoBorrowerName" placeholder="(optional)">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laStreet">Street Address</label>
+          <input type="text" id="laStreet" placeholder="123 Main St">
+        </div>
+        <div class="form-group">
+          <label for="laCity">City</label>
+          <input type="text" id="laCity" placeholder="Denver">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laState">State</label>
+          <input type="text" id="laState" placeholder="CO">
+        </div>
+        <div class="form-group">
+          <label for="laZip">Zip Code</label>
+          <input type="text" id="laZip" placeholder="80202">
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Loan -->
+    <div class="calc-section">
+      <h2>Current Loan</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="laOldLender">Lender</label>
+          <input type="text" id="laOldLender" placeholder="e.g. Wells Fargo">
+        </div>
+        <div class="form-group">
+          <label for="laOldLoanType">Loan Type</label>
+          <select id="laOldLoanType">
+            <option value="Conventional">Conventional</option>
+            <option value="FHA">FHA</option>
+            <option value="VA">VA</option>
+            <option value="USDA">USDA</option>
+            <option value="Jumbo">Jumbo</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laOldAmount">Loan Amount ($)</label>
+          <input type="number" id="laOldAmount" step="1000" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="laOldRate">Interest Rate (%)</label>
+          <input type="number" id="laOldRate" step="0.125" placeholder="0.000">
+        </div>
+        <div class="form-group">
+          <label for="laOldTerm">Original Term (Years)</label>
+          <select id="laOldTerm">
+            <option value="10">10 Years</option>
+            <option value="15">15 Years</option>
+            <option value="20">20 Years</option>
+            <option value="25">25 Years</option>
+            <option value="30" selected>30 Years</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laOldPayment">Monthly P&I ($)
+            <span class="help-icon" data-help="Leave blank to auto-calculate from loan amount, rate, and term.">?</span>
+          </label>
+          <input type="number" id="laOldPayment" step="0.01" placeholder="Auto-calculated">
+        </div>
+        <div class="form-group">
+          <label for="laOldMI">Monthly MI ($)</label>
+          <input type="number" id="laOldMI" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="laOldEscrow">Monthly Escrow ($)
+            <span class="help-icon" data-help="Taxes + insurance escrowed monthly.">?</span>
+          </label>
+          <input type="number" id="laOldEscrow" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+
+    <!-- Proposed Loan -->
+    <div class="calc-section">
+      <h2>Proposed Loan</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="laNewLender">Lender</label>
+          <input type="text" id="laNewLender" placeholder="e.g. Mountain States Financial Group">
+        </div>
+        <div class="form-group">
+          <label for="laNewLoanType">Loan Type</label>
+          <select id="laNewLoanType">
+            <option value="Conventional">Conventional</option>
+            <option value="FHA">FHA</option>
+            <option value="VA">VA</option>
+            <option value="USDA">USDA</option>
+            <option value="Jumbo">Jumbo</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laNewAmount">Loan Amount ($)</label>
+          <input type="number" id="laNewAmount" step="1000" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="laNewRate">Interest Rate (%)</label>
+          <input type="number" id="laNewRate" step="0.125" placeholder="0.000">
+        </div>
+        <div class="form-group">
+          <label for="laNewTerm">Term (Years)</label>
+          <select id="laNewTerm">
+            <option value="10">10 Years</option>
+            <option value="15">15 Years</option>
+            <option value="20">20 Years</option>
+            <option value="25">25 Years</option>
+            <option value="30" selected>30 Years</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laNewPayment">Monthly P&I ($)
+            <span class="help-icon" data-help="Leave blank to auto-calculate from loan amount, rate, and term.">?</span>
+          </label>
+          <input type="number" id="laNewPayment" step="0.01" placeholder="Auto-calculated">
+        </div>
+        <div class="form-group">
+          <label for="laNewMI">Monthly MI ($)</label>
+          <input type="number" id="laNewMI" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="laNewEscrow">Monthly Escrow ($)
+            <span class="help-icon" data-help="Taxes + insurance escrowed monthly.">?</span>
+          </label>
+          <input type="number" id="laNewEscrow" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+
+    <!-- Closing Costs -->
+    <div class="calc-section">
+      <h2>Closing Costs</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="laClosingCosts">Estimated Closing Costs ($)</label>
+          <input type="number" id="laClosingCosts" step="100" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="laCredits">Lender Credits ($)
+            <span class="help-icon" data-help="Credits applied to reduce closing costs.">?</span>
+          </label>
+          <input type="number" id="laCredits" step="100" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Officer Information -->
+    <div class="calc-section">
+      <h2>Loan Officer Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="laLoName">Loan Officer Name</label>
+          <input type="text" id="laLoName" placeholder="e.g. John Doe">
+        </div>
+        <div class="form-group">
+          <label for="laLoNmls">NMLS #</label>
+          <input type="text" id="laLoNmls" placeholder="e.g. 123456">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laLoPhone">Phone</label>
+          <input type="tel" id="laLoPhone" placeholder="(555) 123-4567">
+        </div>
+        <div class="form-group">
+          <label for="laLoEmail">Email</label>
+          <input type="email" id="laLoEmail" placeholder="john@msfginfo.com">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label for="laLoCompany">Company</label>
+          <input type="text" id="laLoCompany" value="Mountain States Financial Group" placeholder="Company name">
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar" style="border-top: none;">
+      <button class="btn btn-secondary" id="laResetBtn" type="button">Reset</button>
+      <button class="btn btn-primary" id="laGenerateBtn" type="button">Generate Cover Page</button>
+    </div>
+
+    <!-- Results / Preview Section -->
+    <div id="laResults" style="display: none;">
+
+      <!-- Summary Cards -->
+      <div class="calc-section">
+        <h2>Savings Summary</h2>
+        <div class="results-grid">
+          <div class="result-card">
+            <div class="result-card__label">Monthly Savings</div>
+            <div class="result-card__value" id="laResMonthlySavings">--</div>
+          </div>
+          <div class="result-card">
+            <div class="result-card__label">Net Closing Costs</div>
+            <div class="result-card__value" id="laResNetCosts">--</div>
+          </div>
+          <div class="result-card">
+            <div class="result-card__label">Breakeven</div>
+            <div class="result-card__value" id="laResBreakeven">--</div>
+          </div>
+        </div>
+        <div class="result-highlight" style="margin-top: var(--space-lg);">
+          <div class="result-highlight__label">Lifetime Interest Savings</div>
+          <div class="result-highlight__value" id="laResLifetimeSavings">--</div>
+        </div>
+      </div>
+
+      <!-- Comparison Table -->
+      <div class="calc-section">
+        <h2>Loan Comparison</h2>
+        <table class="data-table" id="laComparisonTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Current Loan</th>
+              <th>Proposed Loan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Lender</td><td id="laResOldLender">--</td><td id="laResNewLender">--</td></tr>
+            <tr><td>Loan Type</td><td id="laResOldType">--</td><td id="laResNewType">--</td></tr>
+            <tr><td>Loan Amount</td><td id="laResOldAmount">--</td><td id="laResNewAmount">--</td></tr>
+            <tr><td>Interest Rate</td><td id="laResOldRate">--</td><td id="laResNewRate">--</td></tr>
+            <tr><td>Term</td><td id="laResOldTerm">--</td><td id="laResNewTerm">--</td></tr>
+            <tr><td>Monthly P&I</td><td id="laResOldPI">--</td><td id="laResNewPI">--</td></tr>
+            <tr><td>Monthly MI</td><td id="laResOldMI">--</td><td id="laResNewMI">--</td></tr>
+            <tr><td>Monthly Escrow</td><td id="laResOldEscrow">--</td><td id="laResNewEscrow">--</td></tr>
+            <tr><td><strong>Total Payment</strong></td><td id="laResOldTotal"><strong>--</strong></td><td id="laResNewTotal"><strong>--</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Important Disclaimers</div>
+    <p>This is a preliminary analysis for discussion purposes only. Actual rates, terms, and closing costs may vary. Not a commitment to lend. Subject to underwriting approval. NMLS Consumer Access: <a href="https://www.nmlsconsumeraccess.org" target="_blank">nmlsconsumeraccess.org</a></p>
+  </div>
+</div>

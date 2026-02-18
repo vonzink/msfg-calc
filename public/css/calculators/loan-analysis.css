@@ -1,0 +1,10 @@
+/* =====================================================
+   Loan Analysis — Custom Styles
+   ===================================================== */
+
+.la-logo-preview {
+  max-width: 280px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}

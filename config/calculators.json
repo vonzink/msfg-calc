@@ -51,6 +51,7 @@
     { "slug": "income/schedule-f", "name": "Schedule F Income", "category": "income", "icon": "🌾", "hasCalculations": true, "description": "Farm income from Schedule F" },
     { "slug": "llpm", "name": "LLPM Tool", "category": "tools", "icon": "📋", "hasCalculations": false, "description": "Loan-Level Price Matrix analysis" },
     { "slug": "batch-llpm", "name": "Batch LLPM Tool", "category": "tools", "icon": "📊", "hasCalculations": false, "description": "Bulk LLPA pricing from CSV/Excel borrower data" },
-    { "slug": "mismo", "name": "MISMO Document Analyzer", "category": "tools", "icon": "📄", "hasCalculations": false, "description": "Parse and analyze MISMO XML documents" }
+    { "slug": "mismo", "name": "MISMO Document Analyzer", "category": "tools", "icon": "📄", "hasCalculations": false, "description": "Parse and analyze MISMO XML documents" },
+    { "slug": "loan-analysis", "name": "Loan Analysis", "category": "tools", "icon": "📑", "hasCalculations": false, "description": "Cover page with borrower info, loan comparison, closing costs, and loan officer details" }
   ]
 }

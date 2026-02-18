@@ -1,6 +1,7 @@
 /* =====================================================
    MSFG Report Page
-   Branded report cards, income grouping, pdfmake PDF.
+   Branded report cards, income grouping, drag-to-reorder,
+   pdfmake PDF.
    ===================================================== */
 (function() {
   'use strict';
@@ -13,6 +14,13 @@
   var COMPANY = 'Mountain States Financial Group';
   var LOGO_URL = '/images/msfg-logo.png';
   var DOMAIN = 'msfginfo.com';
+
+  var DRAG_HANDLE_SVG =
+    '<svg class="report-item__drag-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">' +
+      '<circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/>' +
+      '<circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>' +
+      '<circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/>' +
+    '</svg>';
 
   function formatTime(iso) {
     var d = new Date(iso);
@@ -45,8 +53,10 @@
     var div = document.createElement('div');
     div.className = 'report-item';
     div.setAttribute('data-id', item.id);
+    div.setAttribute('draggable', 'true');
     div.innerHTML =
       '<div class="report-item__header">' +
+        '<div class="report-item__drag-handle" title="Drag to reorder">' + DRAG_HANDLE_SVG + '</div>' +
         '<div class="report-item__info">' +
           '<span class="report-item__icon">' + item.icon + '</span>' +
           '<span class="report-item__name">' + item.name + '</span>' +
@@ -60,6 +70,113 @@
         brandedFooter(item.timestamp) +
       '</div>';
     return div;
+  }
+
+  /* ================================================
+     Drag & Drop Reordering
+     ================================================ */
+  var dragSrcEl = null;
+
+  function handleDragStart(e) {
+    dragSrcEl = this;
+    this.classList.add('report-item--dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.getAttribute('data-id'));
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    var target = findCardParent(e.target);
+    if (!target || target === dragSrcEl) return;
+
+    // Remove existing indicators
+    clearDropIndicators();
+
+    // Determine if we should insert before or after
+    var rect = target.getBoundingClientRect();
+    var midY = rect.top + rect.height / 2;
+    if (e.clientY < midY) {
+      target.classList.add('report-item--drag-over-top');
+    } else {
+      target.classList.add('report-item--drag-over-bottom');
+    }
+  }
+
+  function handleDragLeave(e) {
+    var target = findCardParent(e.target);
+    if (target) {
+      target.classList.remove('report-item--drag-over-top', 'report-item--drag-over-bottom');
+    }
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var target = findCardParent(e.target);
+    if (!target || !dragSrcEl || target === dragSrcEl) return;
+
+    var rect = target.getBoundingClientRect();
+    var midY = rect.top + rect.height / 2;
+    var insertBefore = e.clientY < midY;
+
+    if (insertBefore) {
+      itemsContainer.insertBefore(dragSrcEl, target);
+    } else {
+      itemsContainer.insertBefore(dragSrcEl, target.nextSibling);
+    }
+
+    clearDropIndicators();
+    persistOrder();
+  }
+
+  function handleDragEnd() {
+    if (dragSrcEl) dragSrcEl.classList.remove('report-item--dragging');
+    dragSrcEl = null;
+    clearDropIndicators();
+  }
+
+  function clearDropIndicators() {
+    var items = itemsContainer.querySelectorAll('.report-item');
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.remove('report-item--drag-over-top', 'report-item--drag-over-bottom');
+    }
+  }
+
+  function findCardParent(el) {
+    while (el && el !== itemsContainer) {
+      if (el.classList && el.classList.contains('report-item')) return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function persistOrder() {
+    var cards = itemsContainer.querySelectorAll('.report-item');
+    var orderedIds = [];
+    for (var i = 0; i < cards.length; i++) {
+      var rawId = cards[i].getAttribute('data-id');
+      // Income group has comma-separated ids
+      if (rawId && rawId.indexOf(',') !== -1) {
+        rawId.split(',').forEach(function(id) { orderedIds.push(id); });
+      } else if (rawId) {
+        orderedIds.push(rawId);
+      }
+    }
+    MSFG.Report.reorderItems(orderedIds);
+  }
+
+  function wireUpDragAndDrop() {
+    var cards = itemsContainer.querySelectorAll('.report-item');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].addEventListener('dragstart', handleDragStart);
+      cards[i].addEventListener('dragover', handleDragOver);
+      cards[i].addEventListener('dragleave', handleDragLeave);
+      cards[i].addEventListener('drop', handleDrop);
+      cards[i].addEventListener('dragend', handleDragEnd);
+    }
   }
 
   /* ---- Render ---- */
@@ -106,6 +223,7 @@
         var incDiv = document.createElement('div');
         incDiv.className = 'report-item report-item--income-group';
         incDiv.setAttribute('data-id', incomeItems.map(function(i) { return i.id; }).join(','));
+        incDiv.setAttribute('draggable', 'true');
 
         var bodyHTML = '<div class="rpt-brand-bar">' +
           '<img src="' + LOGO_URL + '" class="rpt-brand-logo" alt="MSFG">' +
@@ -134,11 +252,12 @@
 
         bodyHTML += brandedFooter(incomeItems[0].timestamp);
 
-        // Header shows item count
+        // Header shows item count with drag handle
         incDiv.innerHTML =
           '<div class="report-item__header">' +
+            '<div class="report-item__drag-handle" title="Drag to reorder">' + DRAG_HANDLE_SVG + '</div>' +
             '<div class="report-item__info">' +
-              '<span class="report-item__icon">📝</span>' +
+              '<span class="report-item__icon">' + String.fromCodePoint(0x1F4DD) + '</span>' +
               '<span class="report-item__name">Income Calculators (' + incomeItems.length + ')</span>' +
             '</div>' +
             '<button class="report-item__remove report-item__remove--all" data-ids="' +
@@ -160,6 +279,9 @@
           }
         });
       });
+
+      // Wire up drag-and-drop
+      wireUpDragAndDrop();
     });
   }
 

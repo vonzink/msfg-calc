@@ -30,7 +30,8 @@ const generalCalcs = [
   { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator' },
   { slug: 'fha-refi',        view: 'calculators/fha-refi',        title: 'FHA Refinance Calculator' },
   { slug: 'amortization',    view: 'calculators/amortization',    title: 'Amortization Calculator' },
-  { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer' }
+  { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer' },
+  { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Loan Analysis',              css: 'loan-analysis' }
 ];
 
 generalCalcs.forEach(gc => {

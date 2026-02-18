@@ -54,6 +54,9 @@
         req.onsuccess = function() {
           var items = req.result || [];
           items.sort(function(a, b) {
+            var aOrd = typeof a.order === 'number' ? a.order : Infinity;
+            var bOrd = typeof b.order === 'number' ? b.order : Infinity;
+            if (aOrd !== bOrd) return aOrd - bOrd;
             return new Date(a.timestamp) - new Date(b.timestamp);
           });
           resolve(items);
@@ -176,22 +179,29 @@
     },
 
     addItem: function(item) {
-      var newItem = {
-        id: generateId(),
-        name: item.name || 'Calculator',
-        icon: item.icon || '',
-        slug: item.slug || '',
-        timestamp: new Date().toISOString(),
-        data: item.data || null,
-        imageData: item.imageData || null,
-        version: item.data ? 2 : 1
-      };
       var self = this;
-      return dbPut(newItem).then(function() {
-        return enforceMax();
-      }).then(function() {
-        self._updateBadge();
-        return newItem.id;
+      return dbGetAll().then(function(items) {
+        var maxOrder = 0;
+        items.forEach(function(it) {
+          if (typeof it.order === 'number' && it.order > maxOrder) maxOrder = it.order;
+        });
+        var newItem = {
+          id: generateId(),
+          name: item.name || 'Calculator',
+          icon: item.icon || '',
+          slug: item.slug || '',
+          timestamp: new Date().toISOString(),
+          data: item.data || null,
+          imageData: item.imageData || null,
+          version: item.data ? 2 : 1,
+          order: maxOrder + 1
+        };
+        return dbPut(newItem).then(function() {
+          return enforceMax();
+        }).then(function() {
+          self._updateBadge();
+          return newItem.id;
+        });
       });
     },
 
@@ -211,6 +221,21 @@
 
     getCount: function() {
       return dbCount();
+    },
+
+    reorderItems: function(orderedIds) {
+      return dbGetAll().then(function(items) {
+        var byId = {};
+        items.forEach(function(item) { byId[item.id] = item; });
+        var promises = [];
+        orderedIds.forEach(function(id, idx) {
+          if (byId[id]) {
+            byId[id].order = idx + 1;
+            promises.push(dbPut(byId[id]));
+          }
+        });
+        return Promise.all(promises);
+      });
     },
 
     _updateBadge: function() {

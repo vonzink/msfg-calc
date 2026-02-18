@@ -80,12 +80,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-sm);
   padding: var(--space-md) var(--space-lg);
   background: var(--color-gray-50);
   border-bottom: 1px solid var(--color-gray-100);
 }
 
-.report-item__info { display: flex; align-items: center; gap: var(--space-sm); }
+.report-item__info { display: flex; align-items: center; gap: var(--space-sm); flex: 1; min-width: 0; }
 .report-item__icon { font-size: 1.25rem; }
 .report-item__name { font-weight: 600; font-size: 1rem; color: var(--color-gray-800); }
 .report-item__time { font-size: 0.78rem; color: var(--color-gray-400); margin-left: var(--space-sm); }
@@ -356,6 +357,44 @@
 }
 
 
+/* =====================================================
+   Drag & Drop Reordering
+   ===================================================== */
+.report-item__drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  cursor: grab;
+  color: var(--color-gray-400, #bbb);
+  flex-shrink: 0;
+  transition: color var(--transition);
+  user-select: none;
+}
+.report-item__drag-handle:hover {
+  color: var(--color-gray-600, #666);
+}
+.report-item__drag-handle:active {
+  cursor: grabbing;
+}
+
+.report-item__drag-icon {
+  pointer-events: none;
+}
+
+.report-item--dragging {
+  opacity: 0.5;
+  box-shadow: var(--shadow-lg, 0 10px 40px rgba(0,0,0,0.15));
+}
+
+.report-item--drag-over-top {
+  border-top: 3px solid var(--brand-primary, #2d6a4f) !important;
+}
+
+.report-item--drag-over-bottom {
+  border-bottom: 3px solid var(--brand-primary, #2d6a4f) !important;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .rpt-comparison { grid-template-columns: 1fr; }
@@ -374,7 +413,8 @@
   .report-page__actions,
   .report-item__remove,
   .report-item__remove--all,
-  .report-page__header-count {
+  .report-page__header-count,
+  .report-item__drag-handle {
     display: none !important;
   }
 
