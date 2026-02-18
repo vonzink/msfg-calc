@@ -24,6 +24,7 @@
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
   }
   function pct(n) { return n.toFixed(2) + '%'; }
+  function ratePct(n) { return parseFloat(n).toFixed(3) + '%'; }
 
   /* ---- income averaging policy label ---- */
   function methodLabel(y1, y2) {
@@ -742,7 +743,7 @@
     html += '<div class="rpt-param"><span>Purchase Price</span><span>' + fmt0(inp.price) + '</span></div>';
     html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + ' (' + fmt0(down) + ')</span></div>';
     html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(loan) + '</span></div>';
-    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + pct(inp.rate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + ratePct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + ' years</span></div>';
     html += '<div class="rpt-param"><span>Expected Investment Return</span><span>' + pct(inp.investReturn) + '</span></div>';
     html += '<div class="rpt-param"><span>Annual Property Appreciation</span><span>' + pct(inp.appreciation) + '</span></div>';
@@ -790,7 +791,7 @@
     html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Purchase Price</span><span>' + fmt0(inp.price) + '</span></div>';
     html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + ' (' + fmt0(down) + ')</span></div>';
-    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + pct(inp.rate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + ratePct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + ' years</span></div>';
     html += '<div class="rpt-param"><span>Property Tax Rate</span><span>' + pct(inp.taxRate) + '</span></div>';
     html += '<div class="rpt-param"><span>Home Appreciation</span><span>' + pct(inp.appreciation) + '</span></div>';
@@ -896,7 +897,7 @@
     html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Parameters</h4>';
     html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(inp.loanAmount) + '</span></div>';
-    html += '<div class="rpt-param"><span>Note Rate</span><span>' + pct(inp.rate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Note Rate</span><span>' + ratePct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + '</span></div>';
     html += '<div class="rpt-param"><span>Discount Points</span><span>' + pct(inp.discountPoints) + '</span></div>';
     if (inp.financedFees) html += '<div class="rpt-param"><span>Total Financed Fees</span><span>' + fmt0(inp.financedFees) + '</span></div>';
@@ -927,7 +928,7 @@
     html += '<div class="rpt-comparison"><div class="rpt-compare-col"><h4>Current Loan</h4>';
     html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Balance</span><span>' + fmt0(inp.currentBalance) + '</span></div>';
-    html += '<div class="rpt-param"><span>Rate</span><span>' + pct(inp.currentRate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Rate</span><span>' + ratePct(inp.currentRate) + '</span></div>';
     if (inp.currentLoanType) html += '<div class="rpt-param"><span>Loan Type</span><span>' + inp.currentLoanType + '</span></div>';
     if (inp.remainingTerm) html += '<div class="rpt-param"><span>Remaining Term</span><span>' + inp.remainingTerm + ' mo</span></div>';
     if (inp.propertyValue) html += '<div class="rpt-param"><span>Property Value</span><span>' + fmt0(inp.propertyValue) + '</span></div>';
@@ -936,7 +937,7 @@
     html += '<div class="rpt-compare-col"><h4>Refinance Offer</h4>';
     html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>New Amount</span><span>' + fmt0(inp.newAmount) + '</span></div>';
-    html += '<div class="rpt-param"><span>New Rate</span><span>' + pct(inp.newRate) + '</span></div>';
+    html += '<div class="rpt-param"><span>New Rate</span><span>' + ratePct(inp.newRate) + '</span></div>';
     if (inp.refiLoanType) html += '<div class="rpt-param"><span>Loan Type</span><span>' + inp.refiLoanType + '</span></div>';
     if (inp.newTerm) html += '<div class="rpt-param"><span>New Term</span><span>' + inp.newTerm + ' mo</span></div>';
     html += '<div class="rpt-param" style="font-weight:600"><span>New Monthly P&I</span><span>' + (now.newPayment || '') + '</span></div>';
@@ -1070,7 +1071,7 @@
     html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Parameters</h4>';
     html += '<div class="rpt-params">';
     html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(inp.loanAmount) + '</span></div>';
-    html += '<div class="rpt-param"><span>Note Rate</span><span>' + pct(inp.noteRate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Note Rate</span><span>' + ratePct(inp.noteRate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.loanTerm + '</span></div>';
     html += '<div class="rpt-param"><span>Buydown Type</span><span>' + inp.buydownType + '</span></div>';
     html += '</div></div>';
@@ -1135,8 +1136,8 @@
     if (inp.borrower) html += '<div class="rpt-param"><span>Borrower</span><span>' + inp.borrower + '</span></div>';
     html += '<div class="rpt-param"><span>Current Unpaid Balance</span><span>' + fmt0(inp.currentUpb) + '</span></div>';
     html += '<div class="rpt-param"><span>Original Loan Amount</span><span>' + fmt0(inp.originalLoan) + '</span></div>';
-    html += '<div class="rpt-param"><span>Current Interest Rate</span><span>' + pct(inp.oldRate) + '</span></div>';
-    html += '<div class="rpt-param"><span>New Interest Rate</span><span>' + pct(inp.newRate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Current Interest Rate</span><span>' + ratePct(inp.oldRate) + '</span></div>';
+    html += '<div class="rpt-param"><span>New Interest Rate</span><span>' + ratePct(inp.newRate) + '</span></div>';
     html += '</div></div>';
     html += '<div class="rpt-section"><h4 class="rpt-section-title">FHA Streamline Results</h4>';
     html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Amount</th></tr></thead><tbody>';
@@ -1159,7 +1160,7 @@
     if (inp.address) html += '<div class="rpt-param"><span>Property Address</span><span>' + inp.address + '</span></div>';
     html += '<div class="rpt-param"><span>Purchase Price</span><span>' + fmt0(inp.purchasePrice) + '</span></div>';
     html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + '</span></div>';
-    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + pct(inp.rate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + ratePct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Gross Monthly Rents</span><span>' + fmt0(inp.grossRents) + '</span></div>';
     html += '</div></div>';
     html += '<div class="rpt-section"><h4 class="rpt-section-title">Investment Analysis</h4>';
@@ -1244,7 +1245,7 @@
   pdfGenerators['cash-vs-mortgage'] = function (data) {
     var inp = data.inputs; var brk = data.breakdown; var res = data.results;
     return pdfKeyValue(data,
-      [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', pct(inp.rate)], ['Term', inp.term + ' yrs'], ['Investment Return', pct(inp.investReturn)], ['Appreciation', pct(inp.appreciation)], ['Period', inp.period + ' yrs']],
+      [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', ratePct(inp.rate)], ['Term', inp.term + ' yrs'], ['Investment Return', pct(inp.investReturn)], ['Appreciation', pct(inp.appreciation)], ['Period', inp.period + ' yrs']],
       [['Cash Net Cost', brk.cash.total], ['Mortgage Net Cost', brk.mortgage.total], ['Difference', res.difference]],
       'Recommendation', null
     ).concat([{ text: res.recommendation, bold: true, fontSize: 11, color: '#2d6a4f', margin: [0, 8, 0, 0] }]);
@@ -1269,7 +1270,7 @@
   pdfGenerators['apr'] = function (data) {
     var inp = data.inputs; var res = data.results;
     return pdfKeyValue(data,
-      [['Loan Amount', fmt0(inp.loanAmount)], ['Note Rate', pct(inp.rate)], ['Term', inp.term], ['Points', pct(inp.discountPoints)]],
+      [['Loan Amount', fmt0(inp.loanAmount)], ['Note Rate', ratePct(inp.rate)], ['Term', inp.term], ['Points', pct(inp.discountPoints)]],
       [['Monthly P&I', res.monthlyPayment], ['Amount Financed', res.amountFinanced], ['Finance Charges', res.financeCharges], ['APR Spread', res.aprSpread], ['APR', res.apr]]
     );
   };
@@ -1283,7 +1284,7 @@
     var loanParams = [
       ['', 'Current Loan', 'Refinance Offer'],
       ['Balance / Amount', fmt0(inp.currentBalance), fmt0(inp.newAmount)],
-      ['Rate', pct(inp.currentRate), pct(inp.newRate)]
+      ['Rate', ratePct(inp.currentRate), ratePct(inp.newRate)]
     ];
     if (inp.currentLoanType || inp.refiLoanType) loanParams.push(['Loan Type', inp.currentLoanType || '—', inp.refiLoanType || '—']);
     if (inp.remainingTerm || inp.newTerm) loanParams.push(['Term', (inp.remainingTerm || '—') + ' mo', (inp.newTerm || '—') + ' mo']);
@@ -1379,7 +1380,7 @@
   pdfGenerators['buy-vs-rent'] = function (data) {
     var inp = data.inputs; var res = data.results;
     return pdfKeyValue(data,
-      [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', pct(inp.rate)], ['Rent', fmt0(inp.rent) + '/mo'], ['Period', inp.period + ' yrs']],
+      [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', ratePct(inp.rate)], ['Rent', fmt0(inp.rent) + '/mo'], ['Period', inp.period + ' yrs']],
       [['Monthly Payment', res.monthlyPayment], ['Total Own Cost', res.ownCost], ['Total Rent Cost', res.rentCost], ['Net Equity', res.equity], ['Difference', res.difference]]
     ).concat(res.recommendation ? [{ text: res.recommendation, bold: true, fontSize: 11, color: '#2d6a4f', margin: [0, 8, 0, 0] }] : []);
   };
@@ -1397,7 +1398,7 @@
   pdfGenerators['buydown'] = function (data) {
     var inp = data.inputs; var res = data.results;
     var content = pdfKeyValue(data,
-      [['Loan Amount', fmt0(inp.loanAmount)], ['Note Rate', pct(inp.noteRate)], ['Term', inp.loanTerm], ['Buydown Type', inp.buydownType]],
+      [['Loan Amount', fmt0(inp.loanAmount)], ['Note Rate', ratePct(inp.noteRate)], ['Term', inp.loanTerm], ['Buydown Type', inp.buydownType]],
       [['Full Rate Payment', res.basePayment], ['Year 1 Payment', res.year1Payment], ['Year 1 Savings', res.year1Savings], ['Total Buydown Cost', res.totalCost]]
     );
     // Year-by-year table
@@ -1435,7 +1436,7 @@
   pdfGenerators['fha-refi'] = function (data) {
     var inp = data.inputs; var res = data.results;
     return pdfKeyValue(data,
-      [['Borrower', inp.borrower || '—'], ['Current UPB', fmt0(inp.currentUpb)], ['Original Loan', fmt0(inp.originalLoan)], ['Current Rate', pct(inp.oldRate)], ['New Rate', pct(inp.newRate)]],
+      [['Borrower', inp.borrower || '—'], ['Current UPB', fmt0(inp.currentUpb)], ['Original Loan', fmt0(inp.originalLoan)], ['Current Rate', ratePct(inp.oldRate)], ['New Rate', ratePct(inp.newRate)]],
       [['Closing Costs', res.totalClosingCosts], ['Base Loan', res.baseLoan], ['New UFMIP', res.newUfmip], ['UFMIP Refund', res.ufmipRefund], ['Max Streamline Mortgage', res.finalMortgage]]
     );
   };
@@ -1443,7 +1444,7 @@
   pdfGenerators['reo'] = function (data) {
     var inp = data.inputs; var res = data.results;
     return pdfKeyValue(data,
-      [['Property', inp.address || '—'], ['Purchase Price', fmt0(inp.purchasePrice)], ['Down Payment', pct(inp.downPct)], ['Rate', pct(inp.rate)], ['Gross Rents', fmt0(inp.grossRents) + '/mo']],
+      [['Property', inp.address || '—'], ['Purchase Price', fmt0(inp.purchasePrice)], ['Down Payment', pct(inp.downPct)], ['Rate', ratePct(inp.rate)], ['Gross Rents', fmt0(inp.grossRents) + '/mo']],
       [['Renovation Total', res.renoTotal], ['Cash Invested', res.cashInvested], ['Monthly NOI', res.noiMonthly], ['Year 1 Cap Rate', res.year1CapRate], ['Year 1 Cash Flow', res.year1CashFlow], ['Year 1 Cash-on-Cash', res.year1CoC]]
     );
   };
@@ -1551,7 +1552,7 @@
     html += '<div class="rpt-param"><span>Home Value</span><span>' + fmt0(inp.homeValue) + '</span></div>';
     html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + ' (' + fmt0(inp.downPayment) + ')</span></div>';
     html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(inp.loanAmount) + '</span></div>';
-    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + pct(inp.rate) + '</span></div>';
+    html += '<div class="rpt-param"><span>Interest Rate</span><span>' + ratePct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + ' years</span></div>';
     if (inp.taxYr) html += '<div class="rpt-param"><span>Annual Property Tax</span><span>' + fmt0(inp.taxYr) + '</span></div>';
     if (inp.insYr) html += '<div class="rpt-param"><span>Annual Insurance</span><span>' + fmt0(inp.insYr) + '</span></div>';
@@ -1606,7 +1607,7 @@
     var inp = data.inputs; var res = data.results;
     var params = [
       ['Home Value', fmt0(inp.homeValue)], ['Down Payment', pct(inp.downPct) + ' (' + fmt0(inp.downPayment) + ')'],
-      ['Loan Amount', fmt0(inp.loanAmount)], ['Interest Rate', pct(inp.rate)],
+      ['Loan Amount', fmt0(inp.loanAmount)], ['Interest Rate', ratePct(inp.rate)],
       ['Loan Term', inp.term + ' years']
     ];
     if (inp.taxYr) params.push(['Annual Property Tax', fmt0(inp.taxYr)]);

@@ -787,16 +787,19 @@ function updateMIDisplay(prefix, miData) {
         setCardStatus('cardNetSavings', a.refiNowNetSavings > 0 ? 'favorable' : 'unfavorable');
 
         // Payment comparison (include user-entered MI if applicable)
+        var currentTotal = r.currentPayment + r.currentMonthlyMI;
+        var refiTotal = r.refiPayment + r.refiMonthlyMI;
+
         if (r.currentMonthlyMI > 0) {
             setText('compareCurrentPayment',
-                formatMoney(r.currentPayment) + ' + ' + formatMoney(r.currentMonthlyMI) + ' MI');
+                formatMoney(currentTotal) + ' (P&I ' + formatMoney(r.currentPayment) + ' + MI ' + formatMoney(r.currentMonthlyMI) + ')');
         } else {
             setText('compareCurrentPayment', formatMoney(r.currentPayment));
         }
 
         if (r.refiMonthlyMI > 0) {
             setText('compareNewPayment',
-                formatMoney(r.refiPayment) + ' + ' + formatMoney(r.refiMonthlyMI) + ' MI');
+                formatMoney(refiTotal) + ' (P&I ' + formatMoney(r.refiPayment) + ' + MI ' + formatMoney(r.refiMonthlyMI) + ')');
         } else {
             setText('compareNewPayment', formatMoney(r.refiPayment));
         }

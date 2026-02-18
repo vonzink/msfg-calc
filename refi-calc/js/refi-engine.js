@@ -563,14 +563,20 @@ const RefiEngine = (() => {
             ? inputs.costOfWaitingEnabled
             : true;
 
+        // Include user-entered MI in the effective payments for savings/breakeven.
+        // MI difference affects monthly savings: if current MI > refi MI, that's
+        // additional savings; if refi MI > current MI, that's additional cost.
+        const currentPaymentWithMI = round2(currentPayment + currentMonthlyMI);
+        const refiPaymentWithMI = round2(refiPayment + refiMonthlyMI);
+
         // Cost of waiting analysis — cashOutDebtPayments is passed through
         // to be factored into the monthly savings calculation
         const analysis = calcCostOfWaiting({
             currentBalance: inputs.currentBalance,
             currentRate: inputs.currentRate,
             currentTermRemaining: inputs.currentTermRemaining,
-            currentPayment,
-            refiNowPayment: refiPayment,
+            currentPayment: currentPaymentWithMI,
+            refiNowPayment: refiPaymentWithMI,
             refiLoanAmount: inputs.refiLoanAmount,
             refiRate: inputs.refiRate,
             refiTerm: inputs.refiTerm,
@@ -589,11 +595,11 @@ const RefiEngine = (() => {
         let doubleRefi = null;
         if (costOfWaitingEnabled && inputs.monthsToWait > 0) {
             doubleRefi = calcDoubleRefi({
-                currentPayment,
+                currentPayment: currentPaymentWithMI,
                 refiLoanAmount: inputs.refiLoanAmount,
                 refiRate: inputs.refiRate,
                 refiTerm: inputs.refiTerm,
-                refiNowPayment: refiPayment,
+                refiNowPayment: refiPaymentWithMI,
                 futureRate: inputs.futureRate,
                 monthsToWait: inputs.monthsToWait,
                 closingCosts: costs.totalBreakeven,
