@@ -77,7 +77,13 @@
       panelsContainer.querySelectorAll('.ws-panel').forEach(function(p) { p.remove(); });
       document.querySelectorAll('.workspace__selector-btn.active').forEach(function(b) { b.classList.remove('active'); });
       sessionStorage.removeItem('msfg-workspace-panels');
+      sessionStorage.removeItem('msfg-workspace-inputs');
       updateState();
+    });
+
+    // Save calculator inputs before navigating away
+    window.addEventListener('beforeunload', function() {
+      saveAllInputs();
     });
 
     // Listen for tally updates from iframes (same-origin only)
@@ -225,11 +231,13 @@
       applyZoomToIframe(iframe, val);
     });
 
-    // Apply embed mode + default zoom when iframe loads, then populate MISMO data
+    // Apply embed mode + default zoom when iframe loads, then populate MISMO data + restore inputs
     iframe.addEventListener('load', function() {
       applyZoomToIframe(iframe, panel.zoom);
-      // Wait for iframe + nested iframes to load, then populate
+      // Wait for iframe + nested iframes to load, then populate MISMO
       schedulePopulate(iframe, slug);
+      // Restore saved user inputs AFTER MISMO population
+      scheduleRestore(iframe, slug);
     });
 
     // Collapse toggle
@@ -341,6 +349,161 @@
         if (btn) btn.classList.add('active');
       });
     } catch (e) { /* corrupted data, skip */ }
+  }
+
+  /* ---- Persist/restore calculator input values across navigation ---- */
+  function saveAllInputs() {
+    var data = {};
+    activePanels.forEach(function(panel) {
+      var inputs = extractPanelInputs(panel.slug);
+      if (inputs) data[panel.slug] = inputs;
+    });
+    try {
+      sessionStorage.setItem('msfg-workspace-inputs', JSON.stringify(data));
+    } catch (e) { /* quota exceeded or private mode */ }
+  }
+
+  function extractPanelInputs(slug) {
+    var panelEl = document.getElementById('ws-panel-' + slug);
+    if (!panelEl) return null;
+    var iframe = panelEl.querySelector('.ws-panel__iframe');
+    if (!iframe) return null;
+
+    try {
+      var outerDoc = iframe.contentDocument || iframe.contentWindow.document;
+      if (!outerDoc) return null;
+      var nestedIframe = outerDoc.querySelector('iframe');
+
+      if (nestedIframe) {
+        // Legacy calc with nested iframe (refi, fha-refi, income, etc.)
+        var innerWin = nestedIframe.contentWindow;
+        var innerDoc = nestedIframe.contentDocument || innerWin.document;
+
+        // Check for known API (refi-calc has RefiUI.readAllInputs)
+        if (innerWin && innerWin.RefiUI && typeof innerWin.RefiUI.readAllInputs === 'function') {
+          return { _api: 'RefiUI', data: innerWin.RefiUI.readAllInputs() };
+        }
+
+        // Generic DOM scrape for nested legacy calcs
+        if (innerDoc && innerDoc.body) {
+          return { _api: 'dom', data: scrapeInputs(innerDoc) };
+        }
+        return null;
+      }
+
+      // Direct EJS calculator (single iframe)
+      return { _api: 'dom', data: scrapeInputs(outerDoc) };
+    } catch (e) {
+      return null; // cross-origin or not loaded
+    }
+  }
+
+  function scrapeInputs(doc) {
+    var data = {};
+    var elements = doc.querySelectorAll('input[id], select[id], textarea[id]');
+    for (var i = 0; i < elements.length; i++) {
+      var el = elements[i];
+      // Skip hidden fields that are computed, and skip file inputs
+      if (el.type === 'hidden' || el.type === 'file') continue;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        data[el.id] = { t: el.type, c: el.checked, v: el.value };
+      } else {
+        data[el.id] = { t: el.tagName.toLowerCase(), v: el.value };
+      }
+    }
+    return data;
+  }
+
+  function scheduleRestore(iframe, slug) {
+    var stored = sessionStorage.getItem('msfg-workspace-inputs');
+    if (!stored) return;
+    try {
+      var allData = JSON.parse(stored);
+      if (!allData[slug]) return;
+    } catch (e) { return; }
+
+    // Run after MISMO population completes (MISMO starts at 400ms with retries)
+    function tryRestore(attempt) {
+      if (attempt > 15) return;
+      try {
+        var doc = iframe.contentDocument || iframe.contentWindow.document;
+        var nested = doc ? doc.querySelector('iframe') : null;
+        if (nested) {
+          var nestedDoc = null;
+          try { nestedDoc = nested.contentDocument || nested.contentWindow.document; } catch (e) {}
+          if (!nestedDoc || !nestedDoc.body || !nestedDoc.body.innerHTML) {
+            // Nested iframe not ready yet, wait for it
+            nested.addEventListener('load', function() {
+              setTimeout(function() { restorePanelInputs(slug); }, 600);
+            });
+            return;
+          }
+        }
+      } catch (e) { /* skip */ }
+      restorePanelInputs(slug);
+    }
+
+    // Delay to run after MISMO population (400ms start + retries)
+    setTimeout(function() { tryRestore(0); }, 1200);
+  }
+
+  function restorePanelInputs(slug) {
+    var stored = sessionStorage.getItem('msfg-workspace-inputs');
+    if (!stored) return;
+    try {
+      var allData = JSON.parse(stored);
+      var panelData = allData[slug];
+      if (!panelData) return;
+      applyPanelInputs(slug, panelData);
+    } catch (e) { /* corrupted */ }
+  }
+
+  function applyPanelInputs(slug, panelData) {
+    var panelEl = document.getElementById('ws-panel-' + slug);
+    if (!panelEl) return;
+    var iframe = panelEl.querySelector('.ws-panel__iframe');
+    if (!iframe) return;
+
+    try {
+      var outerDoc = iframe.contentDocument || iframe.contentWindow.document;
+      if (!outerDoc) return;
+      var nestedIframe = outerDoc.querySelector('iframe');
+
+      if (panelData._api === 'RefiUI' && nestedIframe) {
+        var innerWin = nestedIframe.contentWindow;
+        if (innerWin && innerWin.RefiUI && typeof innerWin.RefiUI.writeAllInputs === 'function') {
+          innerWin.RefiUI.writeAllInputs(panelData.data);
+          return;
+        }
+      }
+
+      // Generic DOM restore
+      var targetDoc = outerDoc;
+      if (nestedIframe) {
+        try {
+          var nd = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
+          if (nd && nd.body) targetDoc = nd;
+        } catch (e) { /* cross-origin */ }
+      }
+
+      var fields = panelData.data;
+      if (!fields) return;
+      var keys = Object.keys(fields);
+      for (var i = 0; i < keys.length; i++) {
+        var id = keys[i];
+        var el = targetDoc.getElementById(id);
+        if (!el) continue;
+        var info = fields[id];
+        if (info.t === 'checkbox' || info.t === 'radio') {
+          el.checked = info.c;
+          triggerEvent(el, 'change');
+        } else if (el.tagName === 'SELECT') {
+          setSelectValue(el, info.v);
+        } else {
+          setInputValue(el, info.v);
+        }
+      }
+    } catch (e) { /* cross-origin or not loaded */ }
   }
 
   function updateTallyFromMessage(data) {

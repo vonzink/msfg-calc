@@ -551,15 +551,12 @@ const RefiEngine = (() => {
         // Closing costs
         const costs = calcClosingCosts(inputs.fees);
 
-        // MI difference (current monthly MI - refi monthly MI)
-        // Use user-entered MI values when provided, falling back to auto-calculated
-        const currentMonthlyMI = (inputs.currentMIMonthlyDollar !== undefined && inputs.currentMIMonthlyDollar > 0)
-            ? inputs.currentMIMonthlyDollar
-            : (currentMI.monthlyMI || 0);
-        const refiMonthlyMI = (inputs.fees && inputs.fees.feeMonthlyMI > 0)
-            ? inputs.fees.feeMonthlyMI
-            : (refiMI.monthlyMI || 0);
-        const miMonthlySavings = round2(currentMonthlyMI - refiMonthlyMI);
+        // MI values: use ONLY what the user entered. Auto-calc is hint-only.
+        // User input of 0 means 0 MI — no fallback to auto-calculated values.
+        const currentMonthlyMI = (inputs.currentMIMonthlyDollar !== undefined)
+            ? inputs.currentMIMonthlyDollar : 0;
+        const refiMonthlyMI = inputs.fees
+            ? (inputs.fees.feeMonthlyMI || 0) : 0;
 
         // Cost of Waiting enabled flag (defaults to true for backward compat)
         const costOfWaitingEnabled = inputs.costOfWaitingEnabled !== undefined
@@ -657,6 +654,8 @@ const RefiEngine = (() => {
             },
             currentMI,
             refiMI,
+            currentMonthlyMI,
+            refiMonthlyMI,
             inputs // pass through for reference
         };
     }
