@@ -58,5 +58,55 @@
         </div>
       </form>
     </div>
+
+    <!-- AI Configuration -->
+    <div class="calc-section">
+      <h2>AI Configuration</h2>
+      <p style="font-size: 0.88rem; color: var(--color-gray-500); margin-bottom: var(--space-md);">
+        Configure an AI provider for enhanced features across the site (e.g. Variable Income Analyzer).
+        Your API key is stored securely on the server and never sent to the browser.
+      </p>
+
+      <form id="aiSettingsForm" action="/settings/ai" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="aiProvider">AI Provider</label>
+            <select id="aiProvider" name="aiProvider">
+              <option value="" <%= maskedAi.provider === '' ? 'selected' : '' %>>None (disabled)</option>
+              <option value="openai" <%= maskedAi.provider === 'openai' ? 'selected' : '' %>>OpenAI</option>
+              <option value="anthropic" <%= maskedAi.provider === 'anthropic' ? 'selected' : '' %>>Anthropic</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="aiApiKey">API Key</label>
+            <div style="display: flex; gap: var(--space-xs);">
+              <input type="password" id="aiApiKey" name="aiApiKey"
+                     value="<%= maskedAi.hasKey ? maskedAi.apiKeyMasked : '' %>"
+                     placeholder="<%= maskedAi.hasKey ? 'Key saved — enter new key to replace' : 'Paste your API key' %>"
+                     style="flex: 1;"
+                     autocomplete="off">
+              <button type="button" class="btn btn-secondary" id="aiToggleKey" title="Show / hide key" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">👁</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: var(--space-sm); margin-top: var(--space-md); flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary">Save AI Settings</button>
+          <button type="button" class="btn btn-secondary" id="aiTestBtn">Test Connection</button>
+          <% if (maskedAi.hasKey) { %>
+            <button type="button" class="btn btn-secondary" id="aiClearBtn" style="color: var(--color-danger, #dc3545); border-color: var(--color-danger, #dc3545);">Clear API Key</button>
+          <% } %>
+          <span id="aiTestResult" style="font-size: 0.85rem; margin-left: var(--space-sm);"></span>
+        </div>
+      </form>
+
+      <% if (maskedAi.hasKey) { %>
+        <div style="margin-top: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-gray-50); border-radius: var(--border-radius); font-size: 0.85rem;">
+          <strong>Status:</strong> <span style="color: #2d6a4f;">✓ API key configured</span>
+          &nbsp;·&nbsp; Provider: <strong><%= maskedAi.provider === 'openai' ? 'OpenAI' : maskedAi.provider === 'anthropic' ? 'Anthropic' : 'None' %></strong>
+          &nbsp;·&nbsp; Key: <code><%= maskedAi.apiKeyMasked %></code>
+        </div>
+      <% } %>
+    </div>
   </div>
 </div>

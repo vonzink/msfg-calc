@@ -8,5 +8,9 @@
     "height": "auto"
   },
   "favicon": "/images/favicon-32x32.png",
-  "domain": "msfginfo.com"
+  "domain": "msfginfo.com",
+  "ai": {
+    "provider": "",
+    "apiKey": ""
+  }
 }

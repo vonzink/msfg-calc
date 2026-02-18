@@ -68,6 +68,8 @@ module.exports = [
         clearInterval: 'readonly',
         requestAnimationFrame: 'readonly',
         alert: 'readonly',
+        confirm: 'readonly',
+        fetch: 'readonly',
         Blob: 'readonly',
         URL: 'readonly',
         URLSearchParams: 'readonly',
@@ -77,9 +79,12 @@ module.exports = [
         Intl: 'readonly',
         Event: 'readonly',
         HTMLElement: 'readonly',
+        Image: 'readonly',
+        DOMParser: 'readonly',
         html2canvas: 'readonly',
         Chart: 'readonly',
         jspdf: 'readonly',
+        pdfMake: 'readonly',
         MSFG: 'writable'
       }
     },

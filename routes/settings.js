@@ -66,13 +66,27 @@ const upload = multer({
 
 router.use(requireAuth);
 
+function maskKey(key) {
+  if (!key || key.length < 8) return key ? '••••••••' : '';
+  return key.slice(0, 4) + '••••••••' + key.slice(-4);
+}
+
 router.get('/', (req, res) => {
   const config = readConfig();
   if (!config) return res.status(500).render('404', { title: 'Configuration Error' });
 
+  // Never send the full API key to the browser
+  const ai = config.ai || { provider: '', apiKey: '' };
+  const maskedAi = {
+    provider: ai.provider || '',
+    apiKeyMasked: maskKey(ai.apiKey),
+    hasKey: !!(ai.apiKey)
+  };
+
   res.render('settings', {
     title: 'Site Settings',
     config,
+    maskedAi,
     extraScripts: '<script src="/js/settings.js"></script>',
     saved: req.query.saved === '1'
   });
@@ -119,6 +133,113 @@ router.post('/update', (req, res) => {
 
   writeConfig(config);
   res.redirect('/settings?saved=1');
+});
+
+// --- AI Configuration ---
+
+router.post('/ai', (req, res) => {
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
+
+  if (!config.ai) config.ai = { provider: '', apiKey: '' };
+
+  // Provider
+  const allowedProviders = ['openai', 'anthropic', ''];
+  const provider = (req.body.aiProvider || '').trim().toLowerCase();
+  config.ai.provider = allowedProviders.includes(provider) ? provider : '';
+
+  // API key — only update if a new key is submitted (not the masked placeholder)
+  const newKey = (req.body.aiApiKey || '').trim();
+  if (newKey && !newKey.includes('••')) {
+    config.ai.apiKey = newKey;
+  }
+
+  writeConfig(config);
+  res.redirect('/settings?saved=1');
+});
+
+router.post('/ai/clear', (req, res) => {
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
+
+  config.ai = { provider: '', apiKey: '' };
+  writeConfig(config);
+  res.redirect('/settings?saved=1');
+});
+
+router.post('/ai/test', express.json(), (req, res) => {
+  const config = readConfig();
+  if (!config || !config.ai || !config.ai.apiKey) {
+    return res.json({ success: false, message: 'No API key configured.' });
+  }
+
+  const provider = config.ai.provider;
+  const apiKey = config.ai.apiKey;
+
+  if (provider === 'openai') {
+    const https = require('https');
+    const options = {
+      hostname: 'api.openai.com',
+      path: '/v1/models',
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + apiKey }
+    };
+    const req2 = https.request(options, (resp) => {
+      let data = '';
+      resp.on('data', (chunk) => { data += chunk; });
+      resp.on('end', () => {
+        if (resp.statusCode === 200) {
+          res.json({ success: true, message: 'OpenAI API key is valid.' });
+        } else {
+          const body = JSON.parse(data || '{}');
+          res.json({ success: false, message: body.error?.message || ('HTTP ' + resp.statusCode) });
+        }
+      });
+    });
+    req2.on('error', (err) => {
+      res.json({ success: false, message: 'Connection error: ' + err.message });
+    });
+    req2.end();
+
+  } else if (provider === 'anthropic') {
+    const https = require('https');
+    const body = JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1,
+      messages: [{ role: 'user', content: 'Hi' }]
+    });
+    const options = {
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'content-length': Buffer.byteLength(body)
+      }
+    };
+    const req2 = https.request(options, (resp) => {
+      let data = '';
+      resp.on('data', (chunk) => { data += chunk; });
+      resp.on('end', () => {
+        if (resp.statusCode === 200) {
+          res.json({ success: true, message: 'Anthropic API key is valid.' });
+        } else {
+          const parsed = JSON.parse(data || '{}');
+          res.json({ success: false, message: parsed.error?.message || ('HTTP ' + resp.statusCode) });
+        }
+      });
+    });
+    req2.on('error', (err) => {
+      res.json({ success: false, message: 'Connection error: ' + err.message });
+    });
+    req2.write(body);
+    req2.end();
+
+  } else {
+    res.json({ success: false, message: 'No AI provider selected.' });
+  }
 });
 
 module.exports = router;

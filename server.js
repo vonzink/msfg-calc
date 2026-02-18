@@ -59,7 +59,11 @@ app.set('layout', 'layouts/main');
 
 // Make config available to all templates
 app.use((req, res, next) => {
-  res.locals.site = getSiteConfig();
+  const cfg = getSiteConfig();
+  // Strip sensitive fields before exposing to templates
+  const safeCfg = Object.assign({}, cfg);
+  delete safeCfg.ai;
+  res.locals.site = safeCfg;
   res.locals.calculators = calcConfig.calculators;
   res.locals.categories = calcConfig.categories;
   res.locals.currentPath = req.path;
