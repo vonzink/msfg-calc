@@ -1,6 +1,6 @@
 /* =====================================================
    Variable Income Analyzer
-   — Upload zone + Fannie Mae B3-3.1 trending engine
+   — Multi-paystub upload, W-2 upload, Fannie Mae B3-3.1
    ===================================================== */
 'use strict';
 
@@ -170,6 +170,45 @@
   function valStr(el) { return el ? el.value.trim() : ''; }
   function valNum(el) { return el ? parseFloat(el.value) || 0 : 0; }
 
+  function escHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  function genId() {
+    return 'stub_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+  }
+
+  function formatDateShort(isoDate) {
+    if (!isoDate) return '?';
+    var parts = isoDate.split('-');
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
+  }
+
+  function amountSpan(label, value) {
+    var display = (value != null && value > 0) ? fmt(value) : '--';
+    return '<span class="stub-card__amount"><strong>' + label + ':</strong> ' + display + '</span>';
+  }
+
+  // ---- Data Stores ----
+
+  // stubStore: Map<empIndex, Array<StubData>>
+  var stubStore = new Map();
+  // w2Store: Map<empIndex, Array<W2Data>>
+  var w2Store = new Map();
+
+  function getStubs(empIndex) {
+    if (!stubStore.has(empIndex)) stubStore.set(empIndex, []);
+    return stubStore.get(empIndex);
+  }
+
+  function getW2s(empIndex) {
+    if (!w2Store.has(empIndex)) w2Store.set(empIndex, []);
+    return w2Store.get(empIndex);
+  }
+
   // ---- Employment Panel Management ----
 
   var container = document.getElementById('employmentsContainer');
@@ -181,15 +220,28 @@
   function getPanels() { return $$('.employment-panel', container); }
 
   function reindexPanels() {
+    // Rebuild stores with new indices
+    var newStubStore = new Map();
+    var newW2Store = new Map();
+
     getPanels().forEach(function (panel, i) {
+      var oldIndex = parseInt(panel.getAttribute('data-emp-index'), 10);
+      if (stubStore.has(oldIndex)) newStubStore.set(i, stubStore.get(oldIndex));
+      if (w2Store.has(oldIndex)) newW2Store.set(i, w2Store.get(oldIndex));
+
       panel.setAttribute('data-emp-index', i);
       $('.emp-panel-title', panel).textContent = 'Employment ' + (i + 1);
       var removeBtn = $('.remove-emp-btn', panel);
       if (removeBtn) removeBtn.style.display = i === 0 ? 'none' : '';
-      // Update upload zone index
-      var uz = $('.upload-zone', panel);
-      if (uz) uz.setAttribute('data-emp-index', i);
+
+      // Update all data-emp-index attributes within the panel
+      $$('[data-emp-index]', panel).forEach(function (el) {
+        el.setAttribute('data-emp-index', i);
+      });
     });
+
+    stubStore = newStubStore;
+    w2Store = newW2Store;
     updatePriorYearLabels();
   }
 
@@ -214,54 +266,78 @@
     toggle();
   }
 
+  // ---- Upload Zone Logic (Paystubs + W-2) ----
+
   function initUploadZone(panel) {
-    var zone = $('.upload-zone', panel);
-    if (!zone) return;
+    $$('.upload-zone', panel).forEach(function (zone) {
+      var fileInput = $('.upload-zone__input', zone);
+      var statusEl = $('.upload-zone__status', zone);
+      var uploadType = zone.getAttribute('data-upload-type') || 'paystub';
 
-    var fileInput = $('.upload-zone__input', zone);
-    var statusEl = $('.upload-zone__status', zone);
+      // Click to upload
+      zone.addEventListener('click', function (e) {
+        if (e.target === fileInput || zone.classList.contains('processing')) return;
+        fileInput.click();
+      });
 
-    // Click to upload
-    zone.addEventListener('click', function (e) {
-      if (e.target === fileInput || zone.classList.contains('processing')) return;
-      fileInput.click();
-    });
+      fileInput.addEventListener('change', function () {
+        if (fileInput.files.length > 0) {
+          if (uploadType === 'w2') {
+            processW2File(fileInput.files[0], panel, zone, statusEl);
+          } else {
+            processStubFile(fileInput.files[0], panel, zone, statusEl);
+          }
+        }
+      });
 
-    fileInput.addEventListener('change', function () {
-      if (fileInput.files.length > 0) processFile(fileInput.files[0], panel, zone, statusEl);
-    });
+      // Drag and drop
+      zone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+      });
 
-    // Drag and drop
-    zone.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      zone.classList.add('drag-over');
-    });
+      zone.addEventListener('dragleave', function () {
+        zone.classList.remove('drag-over');
+      });
 
-    zone.addEventListener('dragleave', function () {
-      zone.classList.remove('drag-over');
-    });
-
-    zone.addEventListener('drop', function (e) {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      if (e.dataTransfer.files.length > 0) {
-        processFile(e.dataTransfer.files[0], panel, zone, statusEl);
-      }
+      zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+          if (uploadType === 'w2') {
+            processW2File(e.dataTransfer.files[0], panel, zone, statusEl);
+          } else {
+            processStubFile(e.dataTransfer.files[0], panel, zone, statusEl);
+          }
+        }
+      });
     });
   }
 
-  function processFile(file, panel, zone, statusEl) {
-    // Validate file type
+  function setZoneStatus(zone, statusEl, type, html) {
+    statusEl.className = 'upload-zone__status';
+    if (type === 'loading') statusEl.className += ' status--loading';
+    else if (type === 'success') statusEl.className += ' status--success';
+    else if (type === 'error') statusEl.className += ' status--error';
+    statusEl.innerHTML = html;
+  }
+
+  function validateFile(file) {
     var allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
-    if (allowed.indexOf(file.type) === -1) {
+    return allowed.indexOf(file.type) !== -1;
+  }
+
+  // ---- Paystub Upload ----
+
+  function processStubFile(file, panel, zone, statusEl) {
+    if (!validateFile(file)) {
       setZoneStatus(zone, statusEl, 'error', 'Unsupported file type. Use PNG, JPG, WebP, or PDF.');
       return;
     }
 
-    // Show loading state
     setZoneStatus(zone, statusEl, 'loading', '<span class="spinner"></span> Analyzing paystub...');
     zone.classList.add('processing');
-    zone.classList.remove('has-data', 'has-error');
+    zone.classList.remove('has-error');
 
     var formData = new FormData();
     formData.append('file', file);
@@ -272,9 +348,28 @@
       .then(function (result) {
         zone.classList.remove('processing');
         if (result.success && result.data) {
-          populatePanel(panel, result.data);
-          setZoneStatus(zone, statusEl, 'success', 'Fields populated from paystub. Please verify.');
+          var empIndex = parseInt(panel.getAttribute('data-emp-index'), 10);
+          var stubData = result.data;
+          stubData.id = genId();
+
+          var stubs = getStubs(empIndex);
+          stubs.push(stubData);
+
+          // Sort by payPeriodEnd ascending
+          stubs.sort(function (a, b) {
+            return (a.payPeriodEnd || '').localeCompare(b.payPeriodEnd || '');
+          });
+
+          renderStubCards(panel, empIndex);
+          syncPanelFromStubs(panel, empIndex);
+          updateCoverageIndicator(panel, empIndex);
+
+          setZoneStatus(zone, statusEl, 'success', stubs.length + ' stub(s) uploaded. Add more for 30-day coverage.');
           zone.classList.add('has-data');
+
+          // Reset file input so same file can be re-selected
+          var fileInput = $('.upload-zone__input', zone);
+          if (fileInput) fileInput.value = '';
         } else {
           setZoneStatus(zone, statusEl, 'error', result.message || 'AI extraction failed.');
           zone.classList.add('has-error');
@@ -287,37 +382,356 @@
       });
   }
 
-  function setZoneStatus(zone, statusEl, type, html) {
-    statusEl.className = 'upload-zone__status';
-    if (type === 'loading') statusEl.className += ' status--loading';
-    else if (type === 'success') statusEl.className += ' status--success';
-    else if (type === 'error') statusEl.className += ' status--error';
-    statusEl.innerHTML = html;
+  // ---- W-2 Upload ----
+
+  function processW2File(file, panel, zone, statusEl) {
+    if (!validateFile(file)) {
+      setZoneStatus(zone, statusEl, 'error', 'Unsupported file type. Use PNG, JPG, WebP, or PDF.');
+      return;
+    }
+
+    setZoneStatus(zone, statusEl, 'loading', '<span class="spinner"></span> Analyzing W-2...');
+    zone.classList.add('processing');
+    zone.classList.remove('has-error');
+
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('slug', 'var-income-w2');
+
+    fetch('/api/ai/extract', { method: 'POST', body: formData })
+      .then(function (resp) { return resp.json(); })
+      .then(function (result) {
+        zone.classList.remove('processing');
+        if (result.success && result.data) {
+          var empIndex = parseInt(panel.getAttribute('data-emp-index'), 10);
+          var w2Data = result.data;
+          w2Data.id = genId();
+
+          var w2s = getW2s(empIndex);
+          w2s.push(w2Data);
+
+          // Sort by taxYear descending (most recent first)
+          w2s.sort(function (a, b) { return (b.taxYear || 0) - (a.taxYear || 0); });
+
+          renderW2Cards(panel, empIndex);
+          syncW2ToTable(panel, empIndex);
+
+          setZoneStatus(zone, statusEl, 'success', w2s.length + ' W-2(s) uploaded.');
+          zone.classList.add('has-data');
+
+          var fileInput = $('.upload-zone__input', zone);
+          if (fileInput) fileInput.value = '';
+        } else {
+          setZoneStatus(zone, statusEl, 'error', result.message || 'W-2 extraction failed.');
+          zone.classList.add('has-error');
+        }
+      })
+      .catch(function (err) {
+        zone.classList.remove('processing');
+        setZoneStatus(zone, statusEl, 'error', 'Network error: ' + err.message);
+        zone.classList.add('has-error');
+      });
   }
 
-  function populatePanel(panel, data) {
-    if (data.employerName) $('.emp-employer-name', panel).value = data.employerName;
-    if (data.position) $('.emp-position', panel).value = data.position;
+  // ---- Stub Card Rendering ----
 
-    if (data.payType) {
+  function renderStubCards(panel, empIndex) {
+    var cardsContainer = $('.stub-cards', panel);
+    if (!cardsContainer) return;
+
+    var stubs = getStubs(empIndex);
+    cardsContainer.innerHTML = '';
+
+    if (stubs.length === 0) return;
+
+    stubs.forEach(function (stub, i) {
+      var card = document.createElement('div');
+      card.className = 'stub-card';
+      card.setAttribute('data-stub-id', stub.id);
+
+      var startStr = formatDateShort(stub.payPeriodStart);
+      var endStr = formatDateShort(stub.payPeriodEnd);
+      var checkStr = stub.checkDate ? formatDateShort(stub.checkDate) : '';
+      var isMostRecent = (i === stubs.length - 1);
+
+      var html = '<div class="stub-card__header">';
+      html += '<span class="stub-card__dates">' + startStr + ' &mdash; ' + endStr + '</span>';
+      if (checkStr) html += '<span class="stub-card__check-date">Paid: ' + checkStr + '</span>';
+      html += '<button class="stub-card__remove" type="button" title="Remove stub" data-stub-id="' + stub.id + '">&times;</button>';
+      html += '</div>';
+
+      html += '<div class="stub-card__amounts">';
+      html += amountSpan('Base', stub.currentBase);
+      html += amountSpan('OT', stub.currentOvertime);
+      html += amountSpan('Bonus', stub.currentBonus);
+      html += amountSpan('Comm', stub.currentCommission);
+      if (stub.currentOther > 0) html += amountSpan('Other', stub.currentOther);
+      html += '</div>';
+
+      if (isMostRecent) {
+        html += '<div class="stub-card__badge">Most Recent (YTD source)</div>';
+      }
+
+      card.innerHTML = html;
+      cardsContainer.appendChild(card);
+    });
+
+    // Bind remove buttons
+    $$('.stub-card__remove', cardsContainer).forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var stubId = btn.getAttribute('data-stub-id');
+        removeStub(panel, empIndex, stubId);
+      });
+    });
+  }
+
+  // ---- W-2 Card Rendering ----
+
+  function renderW2Cards(panel, empIndex) {
+    var cardsContainer = $('.w2-cards', panel);
+    if (!cardsContainer) return;
+
+    var w2s = getW2s(empIndex);
+    cardsContainer.innerHTML = '';
+
+    if (w2s.length === 0) return;
+
+    w2s.forEach(function (w2) {
+      var card = document.createElement('div');
+      card.className = 'w2-card';
+      card.setAttribute('data-w2-id', w2.id);
+
+      var html = '<span class="w2-card__year">' + (w2.taxYear || '?') + '</span>';
+      if (w2.employerName) html += '<span class="w2-card__employer">' + escHtml(w2.employerName) + '</span>';
+      html += '<span class="w2-card__total">W&amp;T: ' + fmt(w2.wagesTipsComp || 0) + '</span>';
+      html += '<button class="w2-card__remove" type="button" title="Remove W-2" data-w2-id="' + w2.id + '">&times;</button>';
+
+      card.innerHTML = html;
+      cardsContainer.appendChild(card);
+    });
+
+    // Bind remove buttons
+    $$('.w2-card__remove', cardsContainer).forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var w2Id = btn.getAttribute('data-w2-id');
+        removeW2(panel, empIndex, w2Id);
+      });
+    });
+  }
+
+  // ---- Sync Paystub Data to Form Fields ----
+
+  function syncPanelFromStubs(panel, empIndex) {
+    var stubs = getStubs(empIndex);
+    if (stubs.length === 0) return;
+
+    // First stub: employer details (only if fields are empty)
+    var first = stubs[0];
+    var nameField = $('.emp-employer-name', panel);
+    if (first.employerName && !nameField.value) nameField.value = first.employerName;
+
+    var posField = $('.emp-position', panel);
+    if (first.position && !posField.value) posField.value = first.position;
+
+    if (first.payType) {
       var payTypeSelect = $('.emp-pay-type', panel);
-      payTypeSelect.value = data.payType;
+      payTypeSelect.value = first.payType;
       payTypeSelect.dispatchEvent(new Event('change'));
     }
 
-    if (data.payFrequency) $('.emp-pay-frequency', panel).value = data.payFrequency;
+    if (first.payFrequency) $('.emp-pay-frequency', panel).value = first.payFrequency;
+    if (first.baseRate != null) $('.emp-base-rate', panel).value = first.baseRate;
+    if (first.hoursPerWeek != null) $('.emp-hours-per-week', panel).value = first.hoursPerWeek;
 
-    if (data.baseRate != null) $('.emp-base-rate', panel).value = data.baseRate;
-    if (data.hoursPerWeek != null) $('.emp-hours-per-week', panel).value = data.hoursPerWeek;
-    if (data.asOfDate) $('.emp-as-of-date', panel).value = data.asOfDate;
-    if (data.payPeriodsYTD != null) $('.emp-pay-periods-ytd', panel).value = data.payPeriodsYTD;
-
-    if (data.ytdBase != null) $('.emp-ytd-base', panel).value = data.ytdBase;
-    if (data.ytdOvertime != null) $('.emp-ytd-overtime', panel).value = data.ytdOvertime;
-    if (data.ytdBonus != null) $('.emp-ytd-bonus', panel).value = data.ytdBonus;
-    if (data.ytdCommission != null) $('.emp-ytd-commission', panel).value = data.ytdCommission;
-    if (data.ytdOther != null) $('.emp-ytd-other', panel).value = data.ytdOther;
+    // Most recent stub: YTD data (always overwrite with latest)
+    var latest = stubs[stubs.length - 1];
+    if (latest.payPeriodEnd) $('.emp-as-of-date', panel).value = latest.payPeriodEnd;
+    if (latest.payPeriodsYTD != null) $('.emp-pay-periods-ytd', panel).value = latest.payPeriodsYTD;
+    if (latest.ytdBase != null) $('.emp-ytd-base', panel).value = latest.ytdBase;
+    if (latest.ytdOvertime != null) $('.emp-ytd-overtime', panel).value = latest.ytdOvertime;
+    if (latest.ytdBonus != null) $('.emp-ytd-bonus', panel).value = latest.ytdBonus;
+    if (latest.ytdCommission != null) $('.emp-ytd-commission', panel).value = latest.ytdCommission;
+    if (latest.ytdOther != null) $('.emp-ytd-other', panel).value = latest.ytdOther;
   }
+
+  // ---- Sync W-2 Data to Prior Year Table ----
+
+  function syncW2ToTable(panel, empIndex) {
+    var w2s = getW2s(empIndex);
+    if (w2s.length === 0) return;
+
+    var currentYear = new Date().getFullYear();
+
+    // Map W-2s to prior year rows by year
+    w2s.forEach(function (w2) {
+      if (!w2.taxYear) return;
+
+      var rowNum = null;
+      if (w2.taxYear === currentYear - 1) rowNum = 1;
+      else if (w2.taxYear === currentYear - 2) rowNum = 2;
+
+      if (rowNum) {
+        var baseField = $('.emp-prior' + rowNum + '-base', panel);
+        var otField = $('.emp-prior' + rowNum + '-overtime', panel);
+        var bonusField = $('.emp-prior' + rowNum + '-bonus', panel);
+        var commField = $('.emp-prior' + rowNum + '-commission', panel);
+
+        if (baseField) baseField.value = w2.base || 0;
+        if (otField) otField.value = w2.overtime || 0;
+        if (bonusField) bonusField.value = w2.bonus || 0;
+        if (commField) commField.value = w2.commission || 0;
+      }
+    });
+  }
+
+  // ---- Remove Stub / W-2 ----
+
+  function removeStub(panel, empIndex, stubId) {
+    var stubs = getStubs(empIndex);
+    var filtered = stubs.filter(function (s) { return s.id !== stubId; });
+    stubStore.set(empIndex, filtered);
+
+    renderStubCards(panel, empIndex);
+    updateCoverageIndicator(panel, empIndex);
+
+    if (filtered.length > 0) {
+      syncPanelFromStubs(panel, empIndex);
+    }
+
+    // Update paystub upload zone status
+    var zone = $('[data-upload-type="paystub"].upload-zone', panel);
+    if (zone) {
+      var statusEl = $('.upload-zone__status', zone);
+      if (filtered.length === 0) {
+        zone.classList.remove('has-data');
+        setZoneStatus(zone, statusEl, '', '');
+      } else {
+        setZoneStatus(zone, statusEl, 'success', filtered.length + ' stub(s) uploaded. Add more for 30-day coverage.');
+      }
+    }
+  }
+
+  function removeW2(panel, empIndex, w2Id) {
+    var w2s = getW2s(empIndex);
+    var filtered = w2s.filter(function (w) { return w.id !== w2Id; });
+    w2Store.set(empIndex, filtered);
+
+    renderW2Cards(panel, empIndex);
+
+    // Update W-2 upload zone status
+    var zone = $('[data-upload-type="w2"].upload-zone', panel);
+    if (zone) {
+      var statusEl = $('.upload-zone__status', zone);
+      if (filtered.length === 0) {
+        zone.classList.remove('has-data');
+        setZoneStatus(zone, statusEl, '', '');
+      } else {
+        setZoneStatus(zone, statusEl, 'success', filtered.length + ' W-2(s) uploaded.');
+      }
+    }
+  }
+
+  // ---- Coverage Calculation ----
+
+  function calculateCoverage(stubs) {
+    var dated = stubs.filter(function (s) { return s.payPeriodStart && s.payPeriodEnd; });
+
+    if (dated.length === 0) {
+      return { totalDays: 0, rangeLabel: 'No date range available', gaps: [] };
+    }
+
+    dated.sort(function (a, b) { return a.payPeriodStart.localeCompare(b.payPeriodStart); });
+
+    var earliest = dated[0].payPeriodStart;
+    var latest = dated[dated.length - 1].payPeriodEnd;
+
+    var startDate = new Date(earliest + 'T00:00:00');
+    var endDate = new Date(latest + 'T00:00:00');
+    var totalDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Detect gaps
+    var gaps = [];
+    for (var i = 1; i < dated.length; i++) {
+      var prevEnd = new Date(dated[i - 1].payPeriodEnd + 'T00:00:00');
+      var currStart = new Date(dated[i].payPeriodStart + 'T00:00:00');
+      var gapDays = Math.round((currStart - prevEnd) / (1000 * 60 * 60 * 24)) - 1;
+      if (gapDays > 1) {
+        gaps.push({
+          days: gapDays,
+          label: formatDateShort(dated[i - 1].payPeriodEnd) + ' to ' + formatDateShort(dated[i].payPeriodStart)
+        });
+      }
+    }
+
+    var rangeLabel = formatDateShort(earliest) + ' &mdash; ' + formatDateShort(latest);
+
+    return { totalDays: totalDays, rangeLabel: rangeLabel, gaps: gaps };
+  }
+
+  function updateCoverageIndicator(panel, empIndex) {
+    var indicator = $('.coverage-indicator', panel);
+    if (!indicator) return;
+
+    var stubs = getStubs(empIndex);
+
+    if (stubs.length === 0) {
+      indicator.style.display = 'none';
+      return;
+    }
+
+    indicator.style.display = '';
+
+    var coverage = calculateCoverage(stubs);
+
+    var html = '<div class="coverage-indicator__bar">';
+
+    if (coverage.totalDays >= 30) {
+      html += '<span class="coverage-indicator__icon coverage-indicator__icon--ok">&#10003;</span>';
+      html += '<span>Coverage: ' + coverage.rangeLabel + ' (' + coverage.totalDays + ' days)</span>';
+    } else if (coverage.totalDays > 0) {
+      html += '<span class="coverage-indicator__icon coverage-indicator__icon--warn">&#9888;</span>';
+      html += '<span>Coverage: ' + coverage.rangeLabel + ' (' + coverage.totalDays + ' days) &mdash; need 30 days</span>';
+    } else {
+      html += '<span class="coverage-indicator__icon coverage-indicator__icon--warn">&#9888;</span>';
+      html += '<span>Could not determine coverage dates from stubs</span>';
+    }
+
+    html += '</div>';
+
+    // Gaps warning
+    if (coverage.gaps.length > 0) {
+      html += '<div class="coverage-indicator__gaps">';
+      html += '<strong>Gaps:</strong> ';
+      coverage.gaps.forEach(function (gap, i) {
+        if (i > 0) html += '; ';
+        html += gap.label + ' (' + gap.days + ' day' + (gap.days > 1 ? 's' : '') + ')';
+      });
+      html += '</div>';
+    }
+
+    // Current-period base variance warning
+    if (stubs.length >= 2) {
+      var baseAmounts = stubs.map(function (s) { return s.currentBase || 0; }).filter(function (b) { return b > 0; });
+      if (baseAmounts.length >= 2) {
+        var minBase = Math.min.apply(null, baseAmounts);
+        var maxBase = Math.max.apply(null, baseAmounts);
+        if (minBase > 0) {
+          var baseVar = (maxBase - minBase) / minBase;
+          if (baseVar > 0.10) {
+            html += '<div class="coverage-indicator__warn">';
+            html += 'Current-period base varies ' + (baseVar * 100).toFixed(0) + '% across stubs &mdash; verify hours or comp change.';
+            html += '</div>';
+          }
+        }
+      }
+    }
+
+    indicator.innerHTML = html;
+  }
+
+  // ---- Clone / Reset ----
 
   function clonePanel() {
     var template = getPanels()[0];
@@ -328,13 +742,20 @@
     $$('select', clone).forEach(function (sel) { sel.selectedIndex = 0; });
     $$('input[type="checkbox"]', clone).forEach(function (cb) { cb.checked = false; });
 
-    // Reset upload zone
-    var zone = $('.upload-zone', clone);
-    if (zone) {
+    // Reset upload zones
+    $$('.upload-zone', clone).forEach(function (zone) {
       zone.classList.remove('has-data', 'has-error', 'processing');
       var status = $('.upload-zone__status', zone);
       if (status) { status.className = 'upload-zone__status'; status.innerHTML = ''; }
-    }
+    });
+
+    // Clear stub cards, W-2 cards, coverage
+    var stubCards = $('.stub-cards', clone);
+    if (stubCards) stubCards.innerHTML = '';
+    var w2Cards = $('.w2-cards', clone);
+    if (w2Cards) w2Cards.innerHTML = '';
+    var coverage = $('.coverage-indicator', clone);
+    if (coverage) { coverage.style.display = 'none'; coverage.innerHTML = ''; }
 
     // Reset hourly fields
     var hourlyFields = $('.emp-hourly-fields', clone);
@@ -351,10 +772,55 @@
     var removeBtn = $('.remove-emp-btn', clone);
     if (removeBtn) {
       removeBtn.addEventListener('click', function () {
+        var idx = parseInt(clone.getAttribute('data-emp-index'), 10);
+        stubStore.delete(idx);
+        w2Store.delete(idx);
         clone.remove();
         reindexPanels();
       });
     }
+  }
+
+  function resetAll() {
+    // Remove extra panels
+    var panels = getPanels();
+    for (var i = panels.length - 1; i > 0; i--) {
+      panels[i].remove();
+    }
+
+    // Clear stores
+    stubStore.clear();
+    w2Store.clear();
+
+    // Clear first panel
+    var first = getPanels()[0];
+    $$('input[type="text"], input[type="number"], input[type="date"]', first).forEach(function (inp) { inp.value = ''; });
+    $$('select', first).forEach(function (sel) { sel.selectedIndex = 0; });
+    $$('input[type="checkbox"]', first).forEach(function (cb) { cb.checked = false; });
+
+    // Reset upload zones
+    $$('.upload-zone', first).forEach(function (zone) {
+      zone.classList.remove('has-data', 'has-error', 'processing');
+      var status = $('.upload-zone__status', zone);
+      if (status) { status.className = 'upload-zone__status'; status.innerHTML = ''; }
+    });
+
+    // Clear stub cards, W-2 cards, coverage
+    var stubCards = $('.stub-cards', first);
+    if (stubCards) stubCards.innerHTML = '';
+    var w2Cards = $('.w2-cards', first);
+    if (w2Cards) w2Cards.innerHTML = '';
+    var coverage = $('.coverage-indicator', first);
+    if (coverage) { coverage.style.display = 'none'; coverage.innerHTML = ''; }
+
+    // Reset hourly fields display
+    var hourlyFields = $('.emp-hourly-fields', first);
+    if (hourlyFields) hourlyFields.style.display = 'none';
+    var rateLabel = $('.emp-rate-label', first);
+    if (rateLabel) rateLabel.textContent = 'Annual Salary';
+
+    resultsSection.style.display = 'none';
+    reindexPanels();
   }
 
   // ---- Gather Input from Panel ----
@@ -376,12 +842,14 @@
     }
 
     var priorYears = [];
+    var currentYear = new Date().getFullYear();
+
     var p1Base = valNum($('.emp-prior1-base', panel));
     var p1OT = valNum($('.emp-prior1-overtime', panel));
     var p1Bonus = valNum($('.emp-prior1-bonus', panel));
     var p1Comm = valNum($('.emp-prior1-commission', panel));
     if (p1Base > 0 || p1OT > 0 || p1Bonus > 0 || p1Comm > 0) {
-      priorYears.push({ year: new Date().getFullYear() - 1, base: p1Base, overtime: p1OT, bonus: p1Bonus, commission: p1Comm });
+      priorYears.push({ year: currentYear - 1, base: p1Base, overtime: p1OT, bonus: p1Bonus, commission: p1Comm });
     }
 
     var p2Base = valNum($('.emp-prior2-base', panel));
@@ -389,7 +857,7 @@
     var p2Bonus = valNum($('.emp-prior2-bonus', panel));
     var p2Comm = valNum($('.emp-prior2-commission', panel));
     if (p2Base > 0 || p2OT > 0 || p2Bonus > 0 || p2Comm > 0) {
-      priorYears.push({ year: new Date().getFullYear() - 2, base: p2Base, overtime: p2OT, bonus: p2Bonus, commission: p2Comm });
+      priorYears.push({ year: currentYear - 2, base: p2Base, overtime: p2OT, bonus: p2Bonus, commission: p2Comm });
     }
 
     return {
@@ -408,7 +876,7 @@
         commission: valNum($('.emp-ytd-commission', panel))
       },
       priorYears: priorYears,
-      employerCount: 1, // set properly at aggregate level
+      employerCount: 1,
       jobChangedOrNewRole: compChange,
       hasEmploymentGap: false
     };
@@ -438,6 +906,37 @@
       totalBonus += result.monthlyByType.bonus;
       totalComm += result.monthlyByType.commission;
 
+      // Stub-based flags
+      var empIndex = parseInt(panel.getAttribute('data-emp-index'), 10);
+      var stubs = getStubs(empIndex);
+
+      if (stubs.length > 0) {
+        var coverage = calculateCoverage(stubs);
+
+        if (coverage.totalDays > 0 && coverage.totalDays < 30) {
+          addFlag(result.flags, 'warn', 'COVERAGE_SHORT',
+            'Paystub coverage is ' + coverage.totalDays + ' days for ' + result.employerName + '; Fannie Mae B3-3.1-02 requires at least 30 days.');
+        }
+
+        if (coverage.gaps.length > 0) {
+          addFlag(result.flags, 'info', 'STUB_GAPS',
+            'Gaps detected between paystub periods for ' + result.employerName + '. Verify continuous employment.');
+        }
+
+        // Current-period base variance
+        if (stubs.length >= 2) {
+          var baseAmounts = stubs.map(function (s) { return s.currentBase || 0; }).filter(function (b) { return b > 0; });
+          if (baseAmounts.length >= 2) {
+            var minB = Math.min.apply(null, baseAmounts);
+            var maxB = Math.max.apply(null, baseAmounts);
+            if (minB > 0 && (maxB - minB) / minB > 0.10) {
+              addFlag(result.flags, 'warn', 'STUB_BASE_VARIANCE',
+                'Current-period base varies >10% across stubs for ' + result.employerName + '. Possible hours fluctuation or comp change.');
+            }
+          }
+        }
+      }
+
       // Merge flags and docs
       result.flags.forEach(function (f) {
         var dup = allFlags.some(function (ef) { return ef.code === f.code && ef.message === f.message; });
@@ -450,8 +949,8 @@
         allNotes.push('[' + result.employerName + '] ' + n);
       });
 
-      // Build calc steps for this employment
-      calcSteps.push('<strong>' + result.employerName + '</strong>');
+      // Build calc steps
+      calcSteps.push('<strong>' + escHtml(result.employerName) + '</strong>');
       calcSteps.push('  Base: ' + fmt(result.monthlyByType.base) + '/mo');
       if (result.monthlyByType.overtime > 0) calcSteps.push('  Overtime: ' + fmt(result.monthlyByType.overtime) + '/mo');
       if (result.monthlyByType.bonus > 0) calcSteps.push('  Bonus: ' + fmt(result.monthlyByType.bonus) + '/mo');
@@ -556,46 +1055,8 @@
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function escHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-  }
-
-  function resetAll() {
-    // Remove extra panels
-    var panels = getPanels();
-    for (var i = panels.length - 1; i > 0; i--) {
-      panels[i].remove();
-    }
-
-    // Clear first panel
-    var first = getPanels()[0];
-    $$('input[type="text"], input[type="number"], input[type="date"]', first).forEach(function (inp) { inp.value = ''; });
-    $$('select', first).forEach(function (sel) { sel.selectedIndex = 0; });
-    $$('input[type="checkbox"]', first).forEach(function (cb) { cb.checked = false; });
-
-    // Reset upload zone
-    var zone = $('.upload-zone', first);
-    if (zone) {
-      zone.classList.remove('has-data', 'has-error', 'processing');
-      var status = $('.upload-zone__status', zone);
-      if (status) { status.className = 'upload-zone__status'; status.innerHTML = ''; }
-    }
-
-    // Reset hourly fields display
-    var hourlyFields = $('.emp-hourly-fields', first);
-    if (hourlyFields) hourlyFields.style.display = 'none';
-    var rateLabel = $('.emp-rate-label', first);
-    if (rateLabel) rateLabel.textContent = 'Annual Salary';
-
-    resultsSection.style.display = 'none';
-    reindexPanels();
-  }
-
   // ---- Initialize ----
 
-  // Init first panel
   var firstPanel = getPanels()[0];
   initPayTypeToggle(firstPanel);
   initUploadZone(firstPanel);
@@ -605,17 +1066,12 @@
   var firstRemoveBtn = $('.remove-emp-btn', firstPanel);
   if (firstRemoveBtn) {
     firstRemoveBtn.addEventListener('click', function () {
-      // Should never fire for index 0, but safety
+      // Should never fire for index 0
     });
   }
 
-  // Add employment button
   addBtn.addEventListener('click', clonePanel);
-
-  // Calculate button
   calcBtn.addEventListener('click', calculate);
-
-  // Reset button
   resetBtn.addEventListener('click', resetAll);
 
 })();

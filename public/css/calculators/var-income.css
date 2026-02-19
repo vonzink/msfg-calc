@@ -264,3 +264,222 @@
 
 .breakdown-table .trend-stable { color: var(--color-success); }
 .breakdown-table .trend-declining { color: var(--color-danger); }
+
+/* ---- Compact Upload Zone (W-2) ---- */
+
+.upload-zone--compact {
+  padding: var(--space-sm) var(--space-md);
+  flex-direction: row;
+  gap: var(--space-sm);
+  text-align: left;
+}
+
+.upload-zone--compact .upload-zone__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.upload-zone--compact .upload-zone__text strong {
+  font-size: 0.88rem;
+}
+
+.upload-zone--compact .upload-zone__text span {
+  font-size: 0.75rem;
+}
+
+.upload-zone--compact .upload-zone__status {
+  font-size: 0.8rem;
+  margin-left: auto;
+  min-height: auto;
+}
+
+/* ---- Stub Cards ---- */
+
+.stub-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.stub-cards:empty {
+  display: none;
+}
+
+.stub-card {
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 6px;
+  padding: var(--space-sm) var(--space-md);
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.stub-card:hover {
+  border-color: var(--color-gray-300);
+}
+
+.stub-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: 4px;
+}
+
+.stub-card__dates {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-gray-700);
+}
+
+.stub-card__check-date {
+  font-size: 0.78rem;
+  color: var(--color-gray-400);
+}
+
+.stub-card__remove {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.stub-card__remove:hover {
+  color: var(--color-danger);
+}
+
+.stub-card__amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--space-md);
+  font-size: 0.82rem;
+  color: var(--color-gray-600);
+}
+
+.stub-card__amount strong {
+  color: var(--color-gray-500);
+  font-weight: 600;
+}
+
+.stub-card__badge {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--brand-primary);
+  background: rgba(37, 99, 235, 0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ---- W-2 Cards ---- */
+
+.w2-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.w2-cards:empty {
+  display: none;
+}
+
+.w2-card {
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 6px;
+  padding: var(--space-xs) var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  transition: border-color 0.2s;
+}
+
+.w2-card:hover {
+  border-color: var(--color-gray-300);
+}
+
+.w2-card__year {
+  font-weight: 700;
+  color: var(--brand-primary);
+  min-width: 3em;
+}
+
+.w2-card__employer {
+  color: var(--color-gray-600);
+}
+
+.w2-card__total {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.w2-card__remove {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.w2-card__remove:hover {
+  color: var(--color-danger);
+}
+
+/* ---- Coverage Indicator ---- */
+
+.coverage-indicator {
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+}
+
+.coverage-indicator__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 600;
+}
+
+.coverage-indicator__icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.coverage-indicator__icon--ok {
+  color: var(--color-success);
+}
+
+.coverage-indicator__icon--warn {
+  color: #f59e0b;
+}
+
+.coverage-indicator__gaps {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--color-danger);
+  font-weight: 400;
+}
+
+.coverage-indicator__warn {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: #f59e0b;
+  font-weight: 400;
+}

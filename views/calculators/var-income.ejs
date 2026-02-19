@@ -11,13 +11,36 @@
 
       <!-- Employment 1 (template that gets cloned for additional employers) -->
       <div class="employment-panel" data-emp-index="0">
+
+        <!-- Paystub Upload + Stub Cards + Coverage -->
         <div class="calc-section">
           <h2>
             <span class="emp-panel-title">Employment 1</span>
             <button class="btn btn-sm btn-secondary remove-emp-btn" type="button" style="margin-left: auto; display: none;">Remove</button>
           </h2>
 
-          <!-- Employment Details -->
+          <div class="upload-zone" data-emp-index="0" data-upload-type="paystub">
+            <div class="upload-zone__icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="upload-zone__text">
+              <strong>Upload Paystubs</strong>
+              <span>Drop or click to upload paystub images/PDFs. Upload 2&ndash;3 stubs for 30-day coverage.</span>
+            </div>
+            <input type="file" class="upload-zone__input" accept="image/*,application/pdf" style="display: none;">
+            <div class="upload-zone__status"></div>
+          </div>
+
+          <!-- JS-rendered stub cards -->
+          <div class="stub-cards" data-emp-index="0"></div>
+
+          <!-- JS-rendered coverage indicator -->
+          <div class="coverage-indicator" data-emp-index="0" style="display: none;"></div>
+        </div>
+
+        <!-- Employment Details -->
+        <div class="calc-section">
+          <h2>Employment Details</h2>
           <div class="form-grid">
             <div class="form-group">
               <label>Employer Name</label>
@@ -93,7 +116,9 @@
 
         <!-- Paystub YTD Data -->
         <div class="calc-section">
-          <h2>Paystub YTD Earnings</h2>
+          <h2>Paystub YTD Earnings
+            <span class="help-icon" data-help="Auto-filled from the most recent uploaded paystub. You can override any values.">?</span>
+          </h2>
           <div class="form-grid">
             <div class="form-group">
               <label>Paystub As-Of Date
@@ -152,7 +177,24 @@
           <p style="font-size: 0.85rem; color: var(--color-gray-500); margin-bottom: var(--space-md);">
             Enter prior year totals from W-2s or tax returns. Two years recommended for trending analysis.
           </p>
-          <table class="data-table">
+
+          <!-- W-2 Upload Zone -->
+          <div class="upload-zone upload-zone--compact" data-emp-index="0" data-upload-type="w2">
+            <div class="upload-zone__icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="upload-zone__text">
+              <strong>Upload W-2</strong>
+              <span>Drop or click to upload a W-2 image/PDF to auto-fill prior year earnings</span>
+            </div>
+            <input type="file" class="upload-zone__input" accept="image/*,application/pdf" style="display: none;">
+            <div class="upload-zone__status"></div>
+          </div>
+
+          <!-- W-2 cards (JS-rendered) -->
+          <div class="w2-cards" data-emp-index="0"></div>
+
+          <table class="data-table" style="margin-top: var(--space-md);">
             <thead>
               <tr>
                 <th>Year</th>
@@ -164,14 +206,14 @@
             </thead>
             <tbody>
               <tr>
-                <td class="emp-prior-year-label-1">2025</td>
+                <td class="emp-prior-year-label-1">--</td>
                 <td><input type="number" class="emp-prior1-base" step="0.01" placeholder="0.00"></td>
                 <td><input type="number" class="emp-prior1-overtime" step="0.01" placeholder="0.00"></td>
                 <td><input type="number" class="emp-prior1-bonus" step="0.01" placeholder="0.00"></td>
                 <td><input type="number" class="emp-prior1-commission" step="0.01" placeholder="0.00"></td>
               </tr>
               <tr>
-                <td class="emp-prior-year-label-2">2024</td>
+                <td class="emp-prior-year-label-2">--</td>
                 <td><input type="number" class="emp-prior2-base" step="0.01" placeholder="0.00"></td>
                 <td><input type="number" class="emp-prior2-overtime" step="0.01" placeholder="0.00"></td>
                 <td><input type="number" class="emp-prior2-bonus" step="0.01" placeholder="0.00"></td>
@@ -181,20 +223,6 @@
           </table>
         </div>
 
-        <!-- AI Upload Zone (Phase 2 placeholder) -->
-        <div class="calc-section">
-          <div class="upload-zone" data-emp-index="0">
-            <div class="upload-zone__icon">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            </div>
-            <div class="upload-zone__text">
-              <strong>Upload Paystub</strong>
-              <span>Drag &amp; drop or click to upload a paystub image/PDF for AI-powered field extraction</span>
-            </div>
-            <input type="file" class="upload-zone__input" accept="image/*,application/pdf" style="display: none;">
-            <div class="upload-zone__status"></div>
-          </div>
-        </div>
       </div>
     </div>
 
