@@ -73,6 +73,7 @@
       existingMortgage: {},
       fees: {},
       escrow: {},
+      prepaids: {},
       housing: {},
       qualification: {},
       liabilities: []
@@ -197,9 +198,10 @@
           if (summaries) {
             var sumList = qnAll(summaries, 'INTEGRATED_DISCLOSURE_SECTION_SUMMARY');
             sumList.forEach(function (s) {
-              var sType = s.getAttribute('IntegratedDisclosureSectionType');
               var sd = qn(s, 'INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL');
-              if (sType && sd) {
+              if (!sd) return;
+              var sType = txt(sd, 'IntegratedDisclosureSectionType');
+              if (sType) {
                 data.fees['_section_' + sType] = num(sd, 'IntegratedDisclosureSectionTotalAmount');
               }
             });
@@ -225,7 +227,7 @@
       if (housingNode) {
         var heList = qnAll(housingNode, 'HOUSING_EXPENSE');
         heList.forEach(function (he) {
-          var heType = he.getAttribute('HousingExpenseType');
+          var heType = txt(he, 'HousingExpenseType');
           var amt = num(he, 'HousingExpensePaymentAmount');
           if (heType === 'FirstMortgagePrincipalAndInterest') data.housing.pi = amt;
           else if (heType === 'HomeownersInsurance') data.housing.insuranceMo = amt;
@@ -238,27 +240,82 @@
       /* ---- Escrow ---- */
       var escrowNode = qn(loan, 'ESCROW');
       if (escrowNode) {
+        /* Escrow detail (cushion, initial balance) */
+        var escrowDetail = qn(escrowNode, 'ESCROW_DETAIL');
+        if (escrowDetail) {
+          data.escrow.cushionMonths = num(escrowDetail, 'EscrowCushionNumberOfMonthsCount');
+          data.escrow.initialBalance = num(escrowDetail, 'EscrowAccountInitialBalanceAmount');
+          data.escrow.aggregateAdjustment = num(escrowDetail, 'EscrowAggregateAccountingAdjustmentAmount');
+        }
+
+        /* Escrow items (tax, insurance deposits) */
         var escrowItems = qn(escrowNode, 'ESCROW_ITEMS');
         if (escrowItems) {
           var eiList = qnAll(escrowItems, 'ESCROW_ITEM');
           eiList.forEach(function (ei) {
-            var eiType = ei.getAttribute('EscrowItemType');
             var eid = qn(ei, 'ESCROW_ITEM_DETAIL');
             if (!eid) return;
+            var eiType = txt(eid, 'EscrowItemType');
             var annual = num(eid, 'EscrowAnnualPaymentAmount');
             var monthly = num(eid, 'EscrowMonthlyPaymentAmount');
             var months = num(eid, 'EscrowCollectedNumberOfMonthsCount');
+            var estimated = num(eid, 'EscrowItemEstimatedTotalAmount');
             if (eiType === 'CountyPropertyTax') {
               data.escrow.taxAnnual = annual;
               data.escrow.taxMonthly = monthly;
               data.escrow.taxMonths = months;
+              data.escrow.taxDeposit = estimated;
             } else if (eiType === 'HazardInsurance') {
               data.escrow.insAnnual = annual;
               data.escrow.insMonthly = monthly;
               data.escrow.insMonths = months;
+              data.escrow.insDeposit = estimated;
             }
           });
         }
+      }
+
+      /* ---- Prepaid Items ---- */
+      /* PREPAID_ITEMS lives under CLOSING_INFORMATION in MISMO 3.4 */
+      var closingInfo = qn(loan, 'CLOSING_INFORMATION');
+      var prepaidNode = closingInfo ? qn(closingInfo, 'PREPAID_ITEMS') : null;
+      if (!prepaidNode) prepaidNode = qn(loan, 'PREPAID_ITEMS');
+      if (!prepaidNode && escrowNode) prepaidNode = qn(escrowNode, 'PREPAID_ITEMS');
+      if (prepaidNode) {
+        data.prepaids = {};
+        var piList = qnAll(prepaidNode, 'PREPAID_ITEM');
+        piList.forEach(function (pi) {
+          var pid = qn(pi, 'PREPAID_ITEM_DETAIL');
+          if (!pid) return;
+          var piType = txt(pid, 'PrepaidItemType');
+          if (piType === 'HazardInsurancePremium') {
+            data.prepaids.hazardInsurance = num(pid, 'PrepaidItemMonthsPaidCount') > 0
+              ? num(pid, 'PrepaidItemMonthsPaidCount') * (num(pid, 'PrepaidItemPerDiemAmount') || 0)
+              : 0;
+            /* Check payment amount for actual total */
+            var payments = qn(pi, 'PREPAID_ITEM_PAYMENTS');
+            if (payments) {
+              var payList = qnAll(payments, 'PREPAID_ITEM_PAYMENT');
+              payList.forEach(function (pay) {
+                var amt = num(pay, 'PrepaidItemActualPaymentAmount');
+                if (amt > 0) data.prepaids.hazardInsurance = amt;
+              });
+            }
+            data.prepaids.hazardInsuranceMonths = num(pid, 'PrepaidItemMonthsPaidCount');
+          } else if (piType === 'PrepaidInterest') {
+            data.prepaids.interestPerDiem = num(pid, 'PrepaidItemPerDiemAmount');
+            data.prepaids.interestDays = num(pid, 'PrepaidItemPaidFromDate') || 0;
+            /* Check payment amount for actual prepaid interest */
+            var payments2 = qn(pi, 'PREPAID_ITEM_PAYMENTS');
+            if (payments2) {
+              var payList2 = qnAll(payments2, 'PREPAID_ITEM_PAYMENT');
+              payList2.forEach(function (pay) {
+                var amt = num(pay, 'PrepaidItemActualPaymentAmount');
+                if (amt > 0) data.prepaids.interestTotal = amt;
+              });
+            }
+          }
+        });
       }
 
       /* ---- Qualification ---- */
@@ -401,6 +458,15 @@
 
   var CALC_MAPS = {};
 
+  /* ---- Helper: find a fee by checking multiple possible keys ---- */
+  function feeAmt(fees) {
+    var keys = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0; i < keys.length; i++) {
+      if (fees[keys[i]]) return fees[keys[i]].amount;
+    }
+    return 0;
+  }
+
   /* ---- Refinance Calculator (refi) ---- */
   CALC_MAPS['refi'] = function (data) {
     var m = {};
@@ -411,6 +477,15 @@
     if (data.loan.rate) m['refiRate'] = data.loan.rate;
     if (data.loan.termMonths) m['refiTerm'] = data.loan.termMonths;
 
+    // MI from projected payments or housing expenses
+    if (data.loan.miPayment) m['refiMIMonthlyInput'] = data.loan.miPayment;
+    else if (data.housing.mi) m['refiMIMonthlyInput'] = data.housing.mi;
+
+    // Monthly escrow
+    if (data.escrow.taxMonthly || data.escrow.insMonthly) {
+      m['monthlyEscrow'] = (data.escrow.taxMonthly || 0) + (data.escrow.insMonthly || 0);
+    }
+
     // Loan type mapping
     if (data.loan.mortgageType) {
       var typeMap = { 'Conventional': 'Conventional', 'FHA': 'FHA', 'VA': 'VA', 'USDA': 'USDA',
@@ -419,26 +494,71 @@
       m['refiLoanType'] = loanType;
     }
 
-    // Individual fees
+    // Individual fees — check both FeeType and FeeTypeOtherDescription variants
     var fees = data.fees || {};
-    if (fees['OriginationFee']) m['feeOrigination'] = fees['OriginationFee'].amount;
-    if (fees['UnderwritingFee'] || fees['Processing Fee']) m['feeUnderwriting'] = (fees['UnderwritingFee'] || fees['Processing Fee']).amount;
-    if (fees['AppraisalFee']) m['feeAppraisal'] = fees['AppraisalFee'].amount;
-    if (fees['CreditReportFee']) m['feeCreditReport'] = fees['CreditReportFee'].amount;
-    if (fees['FloodCertification']) m['feeFloodCert'] = fees['FloodCertification'].amount;
-    if (fees['Technology Fee']) m['feeTechnology'] = fees['Technology Fee'].amount;
-    if (fees['VerificationOfEmploymentFee']) m['feeVOE'] = fees['VerificationOfEmploymentFee'].amount;
-    if (fees['TitleLendersCoveragePremium']) m['feeTitleLenders'] = fees['TitleLendersCoveragePremium'].amount;
-    if (fees['SettlementFee']) m['feeTitleSettlement'] = fees['SettlementFee'].amount;
-    if (fees['TitleClosingProtectionLetterFee']) m['feeTitleCPL'] = fees['TitleClosingProtectionLetterFee'].amount;
-    if (fees['RecordingFeeForDeed']) m['feeRecording'] = fees['RecordingFeeForDeed'].amount;
-    if (fees['E-Recording Fee']) m['feeERecording'] = fees['E-Recording Fee'].amount;
-    if (fees['Title - Tax Cert Fee']) m['feeTitleTaxCert'] = fees['Title - Tax Cert Fee'].amount;
-    if (fees['MERSRegistrationFee']) m['feeMERS'] = fees['MERSRegistrationFee'].amount;
-    if (fees['TaxRelatedServiceFee'] || fees['Tax Related Service Fee']) m['feeTaxService'] = (fees['TaxRelatedServiceFee'] || fees['Tax Related Service Fee']).amount;
-    if (fees['VerificationOfTaxReturnFee'] || fees['Verification Of Tax Return Fee']) m['feeVOT'] = (fees['VerificationOfTaxReturnFee'] || fees['Verification Of Tax Return Fee']).amount;
 
-    // Escrow prepaids
+    // Origination charges
+    var origAmt = feeAmt(fees, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
+    if (origAmt) m['feeOrigination'] = origAmt;
+
+    var uwAmt = feeAmt(fees, 'Underwriting Fee', 'UnderwritingFee', 'Processing Fee', 'ProcessingFee');
+    if (uwAmt) m['feeUnderwriting'] = uwAmt;
+
+    var discAmt = feeAmt(fees, 'LoanDiscountPoints', 'Loan Discount Points', 'DiscountPoints');
+    if (discAmt) m['feeDiscount'] = discAmt;
+
+    // Services borrower cannot shop for
+    var appraisalAmt = feeAmt(fees, 'AppraisalFee', 'Appraisal Fee');
+    if (appraisalAmt) m['feeAppraisal'] = appraisalAmt;
+
+    var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
+    if (creditAmt) m['feeCreditReport'] = creditAmt;
+
+    var floodAmt = feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
+    if (floodAmt) m['feeFloodCert'] = floodAmt;
+
+    var techAmt = feeAmt(fees, 'Technology Fee', 'TechnologyFee');
+    if (techAmt) m['feeTechnology'] = techAmt;
+
+    var voeAmt = feeAmt(fees, 'VerificationOfEmploymentFee', 'Verification Of Employment Fee');
+    if (voeAmt) m['feeVOE'] = voeAmt;
+
+    var votAmt = feeAmt(fees, 'VerificationOfTaxReturnFee', 'Verification Of Tax Return Fee');
+    if (votAmt) m['feeVOT'] = votAmt;
+
+    var taxSvcAmt = feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
+    if (taxSvcAmt) m['feeTaxService'] = taxSvcAmt;
+
+    var mersAmt = feeAmt(fees, 'MERSRegistrationFee', 'MERS Registration Fee');
+    if (mersAmt) m['feeMERS'] = mersAmt;
+
+    // Services borrower can shop for
+    var titleLendersAmt = feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
+    if (titleLendersAmt) m['feeTitleLenders'] = titleLendersAmt;
+
+    var settlementAmt = feeAmt(fees, 'SettlementFee', 'Settlement Fee');
+    if (settlementAmt) m['feeTitleSettlement'] = settlementAmt;
+
+    var cplAmt = feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
+    if (cplAmt) m['feeTitleCPL'] = cplAmt;
+
+    var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
+    if (recordingAmt) m['feeRecording'] = recordingAmt;
+
+    var eRecAmt = feeAmt(fees, 'E-Recording Fee', 'ERecordingFee');
+    if (eRecAmt) m['feeERecording'] = eRecAmt;
+
+    var taxCertAmt = feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
+    if (taxCertAmt) m['feeTitleTaxCert'] = taxCertAmt;
+
+    var wireAmt = feeAmt(fees, 'WireTransferFee', 'Wire Transfer Fee');
+    if (wireAmt) m['feeOther'] = (m['feeOther'] || 0) + wireAmt;
+
+    // Prepaids & Escrow deposits
+    var prepaids = data.prepaids || {};
+    if (prepaids.interestTotal || prepaids.interestPerDiem) {
+      m['feePrepaidInterest'] = prepaids.interestTotal || prepaids.interestPerDiem;
+    }
     if (data.escrow.taxMonthly) m['feeEscrowTax'] = data.escrow.taxMonthly;
     if (data.escrow.insMonthly) m['feeEscrowInsurance'] = data.escrow.insMonthly;
 
@@ -450,14 +570,73 @@
     var m = {};
     if (data.loan.amount) m['loanAmount'] = data.loan.amount;
     if (data.loan.rate) m['interestRate'] = data.loan.rate;
+    if (data.loan.termMonths) m['loanTerm'] = data.loan.termMonths / 12;
     if (data.loan.discountPoints) m['discountPoints'] = data.loan.discountPoints;
-    // Fees
+
     var fees = data.fees || {};
-    if (fees['OriginationFee']) m['originationFee'] = fees['OriginationFee'].amount;
-    if (fees['CreditReportFee']) m['creditReportFee'] = fees['CreditReportFee'].amount;
-    if (fees['FloodCertification']) m['floodCertFee'] = fees['FloodCertification'].amount;
-    if (fees['TitleLendersCoveragePremium']) m['titleInsurance'] = fees['TitleLendersCoveragePremium'].amount;
-    if (fees['RecordingFeeForDeed']) m['recordingFees'] = fees['RecordingFeeForDeed'].amount;
+
+    // Financed fees
+    var origAmt = feeAmt(fees, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
+    if (origAmt) m['originationFee'] = origAmt;
+
+    var uwAmt = feeAmt(fees, 'Underwriting Fee', 'UnderwritingFee');
+    if (uwAmt) m['underwritingFee'] = uwAmt;
+
+    var procAmt = feeAmt(fees, 'Processing Fee', 'ProcessingFee');
+    if (procAmt) m['processingFee'] = procAmt;
+
+    var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
+    if (creditAmt) m['creditReportFee'] = creditAmt;
+
+    var floodAmt = feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
+    if (floodAmt) m['floodCertFee'] = floodAmt;
+
+    var taxSvcAmt = feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
+    if (taxSvcAmt) m['taxServiceFee'] = taxSvcAmt;
+
+    // Compute other financed fees (technology, VOE, wire transfer, MERS, etc.)
+    var otherFinanced = 0;
+    var techAmt = feeAmt(fees, 'Technology Fee', 'TechnologyFee');
+    if (techAmt) otherFinanced += techAmt;
+    var voeAmt = feeAmt(fees, 'VerificationOfEmploymentFee', 'Verification Of Employment Fee');
+    if (voeAmt) otherFinanced += voeAmt;
+    var wireAmt = feeAmt(fees, 'WireTransferFee', 'Wire Transfer Fee');
+    if (wireAmt) otherFinanced += wireAmt;
+    var mersAmt = feeAmt(fees, 'MERSRegistrationFee', 'MERS Registration Fee');
+    if (mersAmt) otherFinanced += mersAmt;
+    if (otherFinanced > 0) m['otherFinancedFees'] = otherFinanced;
+
+    // Prepaid fees
+    var prepaids = data.prepaids || {};
+    if (prepaids.interestTotal || prepaids.interestPerDiem) {
+      m['prepaidInterest'] = prepaids.interestTotal || prepaids.interestPerDiem;
+    }
+
+    // MI
+    if (data.loan.miPayment) m['monthlyMI'] = data.loan.miPayment;
+    else if (data.housing.mi) m['monthlyMI'] = data.housing.mi;
+
+    // Escrow reserves
+    if (data.escrow.initialBalance) m['escrowReserves'] = data.escrow.initialBalance;
+
+    // Title & Recording
+    var titleAmt = feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
+    var settlementAmt = feeAmt(fees, 'SettlementFee', 'Settlement Fee');
+    var cplAmt = feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
+    var taxCertAmt = feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
+    var totalTitle = titleAmt + settlementAmt + cplAmt + taxCertAmt;
+    if (totalTitle > 0) m['titleInsurance'] = totalTitle;
+
+    var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
+    var eRecAmt = feeAmt(fees, 'E-Recording Fee', 'ERecordingFee');
+    var totalRecording = recordingAmt + eRecAmt;
+    if (totalRecording > 0) m['recordingFees'] = totalRecording;
+
+    // Prepaid hazard insurance
+    if (prepaids.hazardInsurance) {
+      m['otherPrepaidFees'] = (m['otherPrepaidFees'] || 0) + prepaids.hazardInsurance;
+    }
+
     return m;
   };
 
@@ -518,6 +697,17 @@
     var m = {};
     if (data.escrow.taxAnnual) m['annualTax'] = data.escrow.taxAnnual;
     if (data.escrow.insAnnual) m['annualIns'] = data.escrow.insAnnual;
+    if (typeof data.escrow.cushionMonths === 'number') m['cushionMonths'] = data.escrow.cushionMonths;
+
+    // Loan type mapping for escrow calculator
+    if (data.loan.purpose) {
+      var purposeMap = { 'Refinance': 'Refinance', 'Purchase': 'Purchase' };
+      if (purposeMap[data.loan.purpose]) m['loanType'] = purposeMap[data.loan.purpose];
+    }
+
+    // Property state
+    if (data.property.state) m['state'] = data.property.state;
+
     return m;
   };
 
@@ -557,17 +747,17 @@
     return m;
   };
 
-  /* ---- Amortization (React SPA) ---- */
+  /* ---- Amortization Calculator (native EJS) ---- */
   CALC_MAPS['amortization'] = function (data) {
     var m = {};
-    if (data.property.value) m['__react_homeValue'] = data.property.value;
-    if (data.loan.downPct) m['__react_downPct'] = data.loan.downPct;
-    if (data.loan.rate) m['__react_rate'] = data.loan.rate;
-    if (data.loan.termMonths) m['__react_term'] = data.loan.termMonths / 12;
-    if (data.escrow.taxAnnual) m['__react_taxYr'] = data.escrow.taxAnnual;
-    if (data.escrow.insAnnual) m['__react_insYr'] = data.escrow.insAnnual;
-    if (data.housing.hoa) m['__react_hoaMo'] = data.housing.hoa;
-    if (data.housing.mi) m['__react_pmiMo'] = data.housing.mi;
+    if (data.property.value) m['homePrice'] = data.property.value;
+    if (data.loan.downPayment) m['downPaymentDollar'] = data.loan.downPayment;
+    if (data.loan.downPct) m['downPaymentPercent'] = data.loan.downPct;
+    if (data.loan.rate) m['interestRate'] = data.loan.rate;
+    if (data.loan.termMonths) m['__amort_term'] = data.loan.termMonths / 12;
+    if (data.escrow.taxAnnual) m['propertyTax'] = data.escrow.taxAnnual;
+    if (data.escrow.insAnnual) m['homeInsurance'] = data.escrow.insAnnual;
+    if (data.housing.mi) m['pmi'] = data.housing.mi;
     return m;
   };
 

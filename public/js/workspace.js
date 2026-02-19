@@ -772,10 +772,13 @@
 
     var reactKeys = {};
     var domKeys = {};
+    var amortKeys = {};
 
     Object.keys(fieldMap).forEach(function(key) {
       if (key.indexOf('__react_') === 0) {
         reactKeys[key.replace('__react_', '')] = fieldMap[key];
+      } else if (key.indexOf('__amort_') === 0) {
+        amortKeys[key.replace('__amort_', '')] = fieldMap[key];
       } else {
         domKeys[key] = fieldMap[key];
       }
@@ -809,10 +812,26 @@
       populated++;
     });
 
-    // Handle React SPA (amortization)
+    // Handle React SPA (legacy amortization)
     if (Object.keys(reactKeys).length > 0) {
       var reactCount = populateReactApp(nestedIframe || iframe, reactKeys);
       populated += reactCount;
+    }
+
+    // Handle amortization native EJS special keys (term toggle buttons)
+    if (Object.keys(amortKeys).length > 0) {
+      Object.keys(amortKeys).forEach(function(key) {
+        if (key === 'term') {
+          var termYears = String(Math.round(amortKeys[key]));
+          var termBtn = targetDoc.querySelector('.amort-term-btn[data-years="' + termYears + '"]');
+          if (termBtn) {
+            targetDoc.querySelectorAll('.amort-term-btn[data-years]').forEach(function(b) { b.classList.remove('active'); });
+            termBtn.classList.add('active');
+            triggerEvent(termBtn, 'click');
+            populated++;
+          }
+        }
+      });
     }
 
     if (populated > 0) {
