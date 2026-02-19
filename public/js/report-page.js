@@ -11,9 +11,11 @@
   var actionsBar = document.getElementById('reportActions');
   var countEl = document.getElementById('reportCount');
 
-  var COMPANY = 'Mountain States Financial Group';
-  var LOGO_URL = '/images/msfg-logo.png';
-  var DOMAIN = 'msfginfo.com';
+  var cfg = window.__siteConfig || {};
+  var COMPANY_NAME = cfg.companyName || 'Mountain State Financial Group LLC';
+  var COMPANY = COMPANY_NAME + (cfg.nmls ? ', NMLS# ' + cfg.nmls : '');
+  var LOGO_URL = cfg.logo || '/images/msfg-logo.png';
+  var DOMAIN = cfg.domain || 'msfginfo.com';
 
   var DRAG_HANDLE_SVG =
     '<svg class="report-item__drag-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">' +

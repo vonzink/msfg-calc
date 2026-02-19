@@ -1,6 +1,8 @@
 {
   "siteName": "MSFG Calculator Suite",
-  "companyName": "Mountain States Financial Group",
+  "companyName": "Mountain State Financial Group LLC",
+  "nmls": "1314257",
+  "equalHousingLogo": "https://msfg-media.s3.us-west-2.amazonaws.com/Assets/LOGOS/EQUAL+HOUSING+LENDER.png",
   "logo": {
     "src": "/images/msfg-logo.png",
     "alt": "MSFG Home Loans",

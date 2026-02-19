@@ -52,7 +52,7 @@ app.use(helmet({
         "https://fonts.googleapis.com"
       ],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "blob:"],
+      imgSrc: ["'self'", "data:", "blob:", "https://msfg-media.s3.us-west-2.amazonaws.com"],
       frameSrc: ["'self'"],
       connectSrc: ["'self'", "https://cdnjs.cloudflare.com"]
     }
