@@ -29,7 +29,15 @@ const generalCalcs = [
   { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI' },
   { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator' },
   { slug: 'fha-refi',        view: 'calculators/fha-refi',        title: 'FHA Refinance Calculator' },
-  { slug: 'amortization',    view: 'calculators/amortization',    title: 'Amortization Calculator' },
+  {
+    slug: 'amortization',
+    view: 'calculators/amortization',
+    title: 'Amortization Calculator',
+    css: 'amortization',
+    cdnScripts: [
+      '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>'
+    ]
+  },
   { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer' },
   { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' }
 ];

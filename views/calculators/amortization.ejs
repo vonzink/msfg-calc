@@ -1,8 +1,227 @@
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>Amortization Calculator</h1>
+    <p>Calculate your monthly mortgage payment, view amortization schedule, and see the impact of extra payments.</p>
   </div>
-  <div class="calc-page__body" style="padding: 0;">
-    <iframe src="/legacy/amort-calc/index.html" style="width: 100%; min-height: 85vh; border: none; display: block;"></iframe>
+
+  <div class="calc-page__body">
+
+    <!-- ===== 1. Loan Details ===== -->
+    <div class="calc-section">
+      <h2><span class="section-number">1</span> Loan Details</h2>
+
+      <!-- Home Price with Range Slider -->
+      <div class="form-group" style="margin-bottom: var(--space-md);">
+        <label for="homePrice">Home Price</label>
+        <div class="amort-slider-row">
+          <input type="number" id="homePrice" value="400000" min="50000" max="2000000" step="5000">
+          <input type="range" id="homePriceSlider" min="50000" max="2000000" step="5000" value="400000" class="amort-range">
+        </div>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <!-- Down Payment (dual $ / %) -->
+        <div class="form-group">
+          <label>Down Payment</label>
+          <div class="amort-dual-input">
+            <div class="amort-dual-input__field">
+              <span class="amort-dual-input__prefix">$</span>
+              <input type="number" id="downPaymentDollar" value="80000" min="0" step="1000">
+            </div>
+            <div class="amort-dual-input__field">
+              <input type="number" id="downPaymentPercent" value="20" min="0" max="100" step="0.5">
+              <span class="amort-dual-input__suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loan Amount (computed) -->
+        <div class="form-group">
+          <label for="loanAmount">Loan Amount</label>
+          <input type="text" id="loanAmount" value="$320,000" readonly class="calculated-field">
+        </div>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-top: var(--space-md);">
+        <!-- Interest Rate -->
+        <div class="form-group">
+          <label for="interestRate">Interest Rate (%)</label>
+          <input type="number" id="interestRate" value="6.500" min="0" max="15" step="0.125">
+        </div>
+
+        <!-- Start Date -->
+        <div class="form-group">
+          <label for="startMonth">Start Date</label>
+          <div class="amort-date-row">
+            <select id="startMonth"></select>
+            <select id="startYear"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loan Term Toggle -->
+      <div class="form-group" style="margin-top: var(--space-md);">
+        <label>Loan Term</label>
+        <div class="amort-term-toggle" id="termToggle">
+          <button type="button" class="amort-term-btn active" data-years="30">30 yr</button>
+          <button type="button" class="amort-term-btn" data-years="20">20 yr</button>
+          <button type="button" class="amort-term-btn" data-years="15">15 yr</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2. Taxes & Insurance ===== -->
+    <div class="calc-section">
+      <h2><span class="section-number">2</span> Taxes & Insurance</h2>
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="form-group">
+          <label for="propertyTax">
+            Property Tax
+            <span class="amort-period-toggle" id="taxToggle" data-field="propertyTax">
+              <button type="button" class="active" data-period="annual">/yr</button>
+              <button type="button" data-period="monthly">/mo</button>
+            </span>
+          </label>
+          <input type="number" id="propertyTax" value="4800" min="0" step="100" data-period="annual">
+        </div>
+        <div class="form-group">
+          <label for="homeInsurance">
+            Home Insurance
+            <span class="amort-period-toggle" id="insuranceToggle" data-field="homeInsurance">
+              <button type="button" class="active" data-period="annual">/yr</button>
+              <button type="button" data-period="monthly">/mo</button>
+            </span>
+          </label>
+          <input type="number" id="homeInsurance" value="1800" min="0" step="100" data-period="annual">
+        </div>
+        <div class="form-group">
+          <label for="pmi">
+            PMI ($/mo)
+            <span class="help-icon" data-help="Private Mortgage Insurance. Auto-removed when LTV reaches 80%.">?</span>
+          </label>
+          <input type="number" id="pmi" value="0" min="0" step="10">
+          <small id="pmiNote"></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 3. Extra Payments ===== -->
+    <div class="calc-section">
+      <h2>
+        <span class="section-number">3</span> Extra Payments
+        <button type="button" class="amort-section-toggle" id="extraPaymentToggle">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </h2>
+      <div id="extraPaymentSection" style="display: none;">
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label for="extraPayment">Extra Payment Amount ($)</label>
+            <input type="number" id="extraPayment" value="0" min="0" step="50">
+          </div>
+          <div class="form-group">
+            <label>Frequency</label>
+            <div class="amort-term-toggle" id="extraFreqToggle">
+              <button type="button" class="amort-term-btn active" data-freq="monthly">Monthly</button>
+              <button type="button" class="amort-term-btn" data-freq="annually">Annually</button>
+              <button type="button" class="amort-term-btn" data-freq="one-time">One-Time</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-top: var(--space-md);">
+          <div class="form-group" id="extraStartDateGroup">
+            <label>Extra Payment Start Date</label>
+            <div class="amort-date-row">
+              <select id="extraStartMonth"></select>
+              <select id="extraStartYear"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 4. Results Summary ===== -->
+    <div class="calc-section" id="resultsSection" style="display: none;">
+      <h2><span class="section-number">4</span> Results</h2>
+
+      <div class="result-highlight">
+        <div class="result-highlight__label">Monthly Payment (P&I)</div>
+        <div class="result-highlight__value" id="resultMonthlyPI">$0.00</div>
+      </div>
+
+      <div class="results-grid" style="margin-top: var(--space-md);">
+        <div class="result-card">
+          <div class="result-card__label">Total Monthly Payment</div>
+          <div class="result-card__value" id="resultTotalMonthly">$0.00</div>
+          <small class="result-card__detail" id="resultMonthlyDetail"></small>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Total Interest</div>
+          <div class="result-card__value" id="resultTotalInterest">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Total Cost of Loan</div>
+          <div class="result-card__value" id="resultTotalCost">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Payoff Date</div>
+          <div class="result-card__value" id="resultPayoffDate">--</div>
+        </div>
+      </div>
+
+      <!-- Extra payment savings (shown only when extras apply) -->
+      <div id="extraSavingsRow" class="amort-savings-row" style="display: none;">
+        <div class="amort-savings-item">
+          <span class="amort-savings-label">Interest Saved</span>
+          <span class="amort-savings-value success" id="resultInterestSaved">$0</span>
+        </div>
+        <div class="amort-savings-item">
+          <span class="amort-savings-label">Time Saved</span>
+          <span class="amort-savings-value success" id="resultTimeSaved">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 5. Amortization Chart ===== -->
+    <div class="calc-section" id="chartSection" style="display: none;">
+      <h2><span class="section-number">5</span> Amortization Chart</h2>
+      <div class="amort-chart-wrap">
+        <canvas id="amortChart"></canvas>
+      </div>
+    </div>
+
+    <!-- ===== 6. Amortization Schedule ===== -->
+    <div class="calc-section" id="scheduleSection" style="display: none;">
+      <h2><span class="section-number">6</span> Amortization Schedule</h2>
+      <div class="action-bar" style="border-top: none; margin-top: 0; padding-top: 0; justify-content: flex-start; margin-bottom: var(--space-md);">
+        <button type="button" class="btn btn-sm btn-secondary" onclick="AmortCalc.exportCSV()">Export CSV</button>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="window.print()">Print</button>
+      </div>
+      <div class="amort-schedule-wrap">
+        <table class="data-table amort-table" id="scheduleTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Payment</th>
+              <th>Principal</th>
+              <th>Interest</th>
+              <th>Extra</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 7. Show Calculations ===== -->
+    <%- include('../partials/show-calculations', { calcId: 'amortization' }) %>
+
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Amortization Calculation Method</div>
+    <p>Monthly payment uses the standard mortgage formula. Extra payments are applied directly to principal. PMI is automatically removed when LTV reaches 80%.</p>
   </div>
 </div>
