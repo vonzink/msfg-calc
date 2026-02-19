@@ -1,8 +1,280 @@
 <div class="calc-page">
   <div class="calc-page__header">
-    <h1>Income Calculator 1040</h1>
+    <h1>Form 1040 Page 1 Income Calculator</h1>
+    <p>Calculate qualifying income from W-2 wages, alimony, pensions, unemployment, and Social Security using standard underwriting guidelines.</p>
   </div>
-  <div class="calc-page__body" style="padding: 0;">
-    <iframe src="/legacy/income/IncomeCalculator1040.html" style="width: 100%; min-height: 80vh; border: none; display: block;"></iframe>
+
+  <div class="calc-page__body">
+
+    <!-- Upload Zone -->
+    <div class="calc-section">
+      <h2>Upload Form 1040</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Upload Page 1 of an IRS Form 1040 to auto-fill fields. Upload one per tax year (max 2).</p>
+
+      <div class="upload-zone" data-upload-type="income-1040">
+        <div class="upload-zone__icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="upload-zone__text">
+          <strong>Upload Form 1040 (Page 1)</strong>
+          <span>Drop or click to upload a 1040 image or PDF</span>
+        </div>
+        <input type="file" class="upload-zone__input" accept="image/*,application/pdf" style="display: none;">
+        <div class="upload-zone__status"></div>
+      </div>
+
+      <!-- JS-rendered document cards -->
+      <div id="docCards"></div>
+    </div>
+
+    <!-- Policy Explanation -->
+    <div class="calc-section">
+      <div class="policy-box">
+        <h5>Income Averaging Policy</h5>
+        <p>
+          If two years are provided and the most recent year exceeds the prior year, the average of both years
+          is divided by 24 months. Otherwise, only the most recent year is divided by 12 months.
+        </p>
+      </div>
+    </div>
+
+    <!-- W-2 Income Section -->
+    <div class="calc-section">
+      <h2>W-2 Wage Income (Line 1)</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Enter W-2 wages for up to 4 employers. Use taxable wages from Box 1 of each W-2.</p>
+
+      <table class="income-table">
+        <thead>
+          <tr>
+            <th>Employer</th>
+            <th>Year 1 (Most Recent)</th>
+            <th>Year 2 (Prior)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Employer 1</td>
+            <td><input type="number" id="w2_1_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="w2_1_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Employer 2</td>
+            <td><input type="number" id="w2_2_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="w2_2_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Employer 3</td>
+            <td><input type="number" id="w2_3_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="w2_3_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Employer 4</td>
+            <td><input type="number" id="w2_4_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="w2_4_y2" value="0" oninput="calculate()"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-result">
+        <span class="label">W-2 Monthly Income:</span>
+        <span class="value" id="w2_month">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Alimony Section -->
+    <div class="calc-section">
+      <h2>Alimony Received (Line 2a)</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Alimony received under divorce agreements executed before 2019.</p>
+
+      <table class="income-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Year 1 (Most Recent)</th>
+            <th>Year 2 (Prior)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Alimony Received</td>
+            <td><input type="number" id="alimony1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="alimony2" value="0" oninput="calculate()"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-result">
+        <span class="label">Alimony Monthly Income:</span>
+        <span class="value" id="alimony_month">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Pension/Annuity Section -->
+    <div class="calc-section">
+      <h2>Pension/Annuity Distributions (Lines 4a-5b)</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Enter IRA distributions and pension/annuity amounts. Use taxable amounts for qualification.</p>
+
+      <table class="income-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Line</th>
+            <th>Year 1 (Most Recent)</th>
+            <th>Year 2 (Prior)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pension 1 - IRA Distributions</td>
+            <td class="line-number">4a/4b</td>
+            <td><input type="number" id="pen1_15_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="pen1_15_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Pension 1 - Pensions/Annuities</td>
+            <td class="line-number">5a/5b</td>
+            <td><input type="number" id="pen1_16_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="pen1_16_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Pension 2 - IRA Distributions</td>
+            <td class="line-number">4a/4b</td>
+            <td><input type="number" id="pen2_15_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="pen2_15_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Pension 2 - Pensions/Annuities</td>
+            <td class="line-number">5a/5b</td>
+            <td><input type="number" id="pen2_16_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="pen2_16_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Pension 3 - IRA Distributions</td>
+            <td class="line-number">4a/4b</td>
+            <td><input type="number" id="pen3_15_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="pen3_15_y2" value="0" oninput="calculate()"></td>
+          </tr>
+          <tr>
+            <td>Pension 3 - Pensions/Annuities</td>
+            <td class="line-number">5a/5b</td>
+            <td><input type="number" id="pen3_16_y1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="pen3_16_y2" value="0" oninput="calculate()"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-result">
+        <span class="label">Pension Monthly Income:</span>
+        <span class="value" id="pension_month">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Unemployment Section -->
+    <div class="calc-section">
+      <h2>Unemployment Compensation (Line 7)</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Unemployment compensation is generally not usable for qualification unless documented as seasonal employment.</p>
+
+      <table class="income-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Year 1 (Most Recent)</th>
+            <th>Year 2 (Prior)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Unemployment Compensation</td>
+            <td><input type="number" id="unemp1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="unemp2" value="0" oninput="calculate()"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-result">
+        <span class="label">Unemployment Monthly Income:</span>
+        <span class="value" id="unemp_month">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Social Security Section -->
+    <div class="calc-section">
+      <h2>Social Security Benefits (Line 6a/6b)</h2>
+      <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Enter Social Security benefits. Use the gross amount (6a) unless tax-exempt grossing up is needed.</p>
+
+      <table class="income-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Year 1 (Most Recent)</th>
+            <th>Year 2 (Prior)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Social Security Benefits</td>
+            <td><input type="number" id="ss1" value="0" oninput="calculate()"></td>
+            <td><input type="number" id="ss2" value="0" oninput="calculate()"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-result">
+        <span class="label">Social Security Monthly Income:</span>
+        <span class="value" id="ss_month">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Combined Results -->
+    <div class="calc-section">
+      <h2>Combined Results</h2>
+
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-card__label">W-2 Income</div>
+          <div class="result-card__value" id="result_w2">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Alimony</div>
+          <div class="result-card__value" id="result_alimony">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Pension</div>
+          <div class="result-card__value" id="result_pension">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Unemployment</div>
+          <div class="result-card__value" id="result_unemp">$0.00</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Social Security</div>
+          <div class="result-card__value" id="result_ss">$0.00</div>
+        </div>
+      </div>
+
+      <div class="result-highlight" style="margin-top: var(--space-lg);">
+        <div class="result-highlight__label">Total Monthly Income</div>
+        <div class="result-highlight__value" id="combined1040">$0.00</div>
+      </div>
+
+      <div class="action-bar">
+        <button type="button" class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
+        <button type="button" class="btn btn-ghost" onclick="clearAll()">Clear All</button>
+      </div>
+    </div>
+
+    <%- include('../../partials/show-calculations', { calcId: 'income-1040' }) %>
+
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Form 1040 Income Guidelines</div>
+    <p>
+      This calculator covers Page 1 income sources: W-2 wages, alimony (pre-2019 agreements),
+      IRA/pension distributions, unemployment compensation, and Social Security benefits.
+      Self-employment income, rental income, and business income require separate analysis
+      using Schedule C, E, or business tax returns.
+    </p>
   </div>
 </div>

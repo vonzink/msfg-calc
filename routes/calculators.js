@@ -70,7 +70,7 @@ router.get('/income-questionnaire', (req, res) => {
 });
 
 const incomeCalcs = [
-  { slug: '1040',              view: 'income/1040',              title: 'Form 1040 Income Calculator' },
+  { slug: '1040',              view: 'income/1040',              title: 'Form 1040 Income Calculator', css: 'income-1040' },
   { slug: '1065',              view: 'income/1065',              title: 'Form 1065 Income Calculator' },
   { slug: '1120',              view: 'income/1120',              title: 'Form 1120 Income Calculator' },
   { slug: '1120s',             view: 'income/1120s',             title: 'Form 1120S Income Calculator' },
@@ -88,9 +88,14 @@ const incomeCalcs = [
 incomeCalcs.forEach(ic => {
   router.get(`/income/${ic.slug}`, (req, res) => {
     const ver = res.locals.v;
+    const extraHeadParts = [];
+    if (ic.css) extraHeadParts.push(`<link rel="stylesheet" href="/css/calculators/${ic.css}.css?v=${ver}">`);
+    if (ic.cdnScripts) extraHeadParts.push(...ic.cdnScripts);
+
     res.render(`calculators/${ic.view}`, {
       title: ic.title,
       calc: findCalc(`income/${ic.slug}`),
+      extraHead: extraHeadParts.length ? extraHeadParts.join('') : undefined,
       extraScripts: `<script src="/js/calculators/${ic.view}.js?v=${ver}"></script>`
     });
   });
