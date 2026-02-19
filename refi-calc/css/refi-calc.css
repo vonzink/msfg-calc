@@ -1133,6 +1133,16 @@
     margin-left: 0.25rem;
 }
 
+/* Payment breakdown detail — fine print below totals */
+.payment-detail {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--gray);
+    font-weight: 400;
+    margin-top: 0.15rem;
+    line-height: 1.3;
+}
+
 /* Fee MI display in closing costs */
 .fee-mi-display {
     font-size: 1rem;

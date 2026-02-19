@@ -132,8 +132,9 @@
                 </div>
 
                 <div class="total-row" style="margin-top:1rem;">
-                    <label>Computed Current Monthly P&I:</label>
+                    <label>Computed Current Monthly Payment:</label>
                     <span class="total-value" id="currentPaymentDisplay">$0.00</span>
+                    <span class="payment-detail" id="currentPaymentDetail"></span>
                 </div>
             </div>
         </div>
@@ -200,8 +201,9 @@
                 </div>
 
                 <div class="total-row" style="margin-top:1rem;">
-                    <label>New Monthly P&I Payment:</label>
+                    <label>New Monthly Payment:</label>
                     <span class="total-value" id="refiPaymentDisplay">$0.00</span>
+                    <span class="payment-detail" id="refiPaymentDetail"></span>
                 </div>
             </div>
         </div>
@@ -528,6 +530,7 @@
                     <div class="total-row" style="margin-top:1rem;">
                         <label>Future Monthly Payment (at future rate):</label>
                         <span class="total-value" id="futurePaymentDisplay">$0.00</span>
+                        <span class="payment-detail" id="futurePaymentDetail"></span>
                     </div>
                 </div>
             </div>
@@ -602,12 +605,14 @@
                 <!-- Payment Comparison -->
                 <div class="comparison-grid">
                     <div class="comparison-item">
-                        <h4>Current P&I Payment</h4>
+                        <h4>Current Payment</h4>
                         <div class="value" id="compareCurrentPayment">$0.00</div>
+                        <div class="payment-detail" id="compareCurrentDetail"></div>
                     </div>
                     <div class="comparison-item">
-                        <h4>New P&I Payment</h4>
+                        <h4>New Payment</h4>
                         <div class="value" id="compareNewPayment">$0.00</div>
+                        <div class="payment-detail" id="compareNewDetail"></div>
                     </div>
                 </div>
             </div>
@@ -626,6 +631,7 @@
                     <div class="result-card" id="cardFuturePayment">
                         <h3>Future Monthly Payment</h3>
                         <div class="result-value" id="resultFuturePayment">$0.00</div>
+                        <div class="payment-detail" id="resultFutureDetail"></div>
                     </div>
                     <div class="result-card" id="cardFutureSavings">
                         <h3>Future Monthly Savings vs Current</h3>

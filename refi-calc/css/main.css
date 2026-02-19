@@ -1539,6 +1539,11 @@ input.input-highlight {
   .region-column h5 { font-size: 8.5pt !important; margin-bottom: 0.1rem !important; }
   .region-column ul { font-size: 8pt !important; }
 
+  /* ---- Payment breakdown detail ---- */
+  .payment-detail {
+    font-size: 7pt !important;
+  }
+
   /* ---- Page break hints ---- */
   h2, h3, h4 {
     page-break-after: avoid !important;

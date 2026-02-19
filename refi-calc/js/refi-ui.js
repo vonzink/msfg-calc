@@ -45,6 +45,7 @@ const RefiUI = (() => {
         dom.manualPaymentSection = document.getElementById('manualPaymentSection');
         dom.currentPaymentManual = document.getElementById('currentPaymentManual');
         dom.currentPaymentDisplay = document.getElementById('currentPaymentDisplay');
+        dom.currentPaymentDetail = document.getElementById('currentPaymentDetail');
 
         // Current MI display + editable input
         dom.currentMIInfo = document.getElementById('currentMIInfo');
@@ -63,6 +64,7 @@ const RefiUI = (() => {
         dom.refiTerm = document.getElementById('refiTerm');
         dom.refiLoanType = document.getElementById('refiLoanType');
         dom.refiPaymentDisplay = document.getElementById('refiPaymentDisplay');
+        dom.refiPaymentDetail = document.getElementById('refiPaymentDetail');
 
         // Refi MI display + editable inputs
         dom.refiMIInfo = document.getElementById('refiMIInfo');
@@ -85,6 +87,7 @@ const RefiUI = (() => {
         dom.futureMIInput = document.getElementById('futureMIInput');
         dom.futureMIModeBtn = document.getElementById('futureMIModeBtn');
         dom.futurePaymentDisplay = document.getElementById('futurePaymentDisplay');
+        dom.futurePaymentDetail = document.getElementById('futurePaymentDetail');
 
         // Cost of Waiting toggle
         dom.costOfWaitingToggle = document.getElementById('costOfWaitingToggle');
@@ -343,11 +346,11 @@ function updateLiveCalculations() {
     const currentPmt = RefiEngine.calcMonthlyPayment(currentBalance, currentRate, currentTermRemaining);
     const currentPmtBase = dom.manualPaymentToggle.checked ? num(dom.currentPaymentManual) : currentPmt;
 
-    if (escrow > 0) {
-        dom.currentPaymentDisplay.textContent = formatMoney(currentPmtBase + escrow)
-            + ' (P&I ' + formatMoney(currentPmtBase) + ' + T&I ' + formatMoney(escrow) + ')';
-    } else {
-        dom.currentPaymentDisplay.textContent = formatMoney(currentPmtBase);
+    dom.currentPaymentDisplay.textContent = escrow > 0 ? formatMoney(currentPmtBase + escrow) : formatMoney(currentPmtBase);
+    if (dom.currentPaymentDetail) {
+        dom.currentPaymentDetail.textContent = escrow > 0
+            ? 'P&I ' + formatMoney(currentPmtBase) + ' + T&I ' + formatMoney(escrow)
+            : '';
     }
     dom.currentPaymentDisplay.title = dom.manualPaymentToggle.checked ? 'Manual entry' : 'Computed from balance, rate & term';
 
@@ -370,11 +373,11 @@ function updateLiveCalculations() {
 
     // Refi payment
     const refiPmt = RefiEngine.calcMonthlyPayment(refiLoanAmount, refiRate, refiTerm);
-    if (escrow > 0) {
-        dom.refiPaymentDisplay.textContent = formatMoney(refiPmt + escrow)
-            + ' (P&I ' + formatMoney(refiPmt) + ' + T&I ' + formatMoney(escrow) + ')';
-    } else {
-        dom.refiPaymentDisplay.textContent = formatMoney(refiPmt);
+    dom.refiPaymentDisplay.textContent = escrow > 0 ? formatMoney(refiPmt + escrow) : formatMoney(refiPmt);
+    if (dom.refiPaymentDetail) {
+        dom.refiPaymentDetail.textContent = escrow > 0
+            ? 'P&I ' + formatMoney(refiPmt) + ' + T&I ' + formatMoney(escrow)
+            : '';
     }
 
     // Refi MI — update LTV and hints, user controls values
@@ -414,15 +417,13 @@ function updateLiveCalculations() {
         const futureMIDollar = dom.futureMIInput && dom.futureMIModeBtn
             ? resolveMIDollar(dom.futureMIInput, dom.futureMIModeBtn, refiLoanAmount, false) : 0;
         const futureTotalPmt = RefiEngine.round2(futurePmt + futureMIDollar + escrow);
-        const parts = [];
-        parts.push('P&I ' + formatMoney(futurePmt));
-        if (futureMIDollar > 0) parts.push('MI ' + formatMoney(futureMIDollar));
-        if (escrow > 0) parts.push('T&I ' + formatMoney(escrow));
-        if (parts.length > 1 || escrow > 0) {
-            dom.futurePaymentDisplay.textContent = formatMoney(futureTotalPmt)
-                + ' (' + parts.join(' + ') + ')';
-        } else {
-            dom.futurePaymentDisplay.textContent = formatMoney(futurePmt);
+        const futureParts = [];
+        futureParts.push('P&I ' + formatMoney(futurePmt));
+        if (futureMIDollar > 0) futureParts.push('MI ' + formatMoney(futureMIDollar));
+        if (escrow > 0) futureParts.push('T&I ' + formatMoney(escrow));
+        dom.futurePaymentDisplay.textContent = futureParts.length > 1 ? formatMoney(futureTotalPmt) : formatMoney(futurePmt);
+        if (dom.futurePaymentDetail) {
+            dom.futurePaymentDetail.textContent = futureParts.length > 1 ? futureParts.join(' + ') : '';
         }
     }
 
@@ -845,22 +846,16 @@ function updateMIDisplay(prefix, miData) {
         if (r.currentMonthlyMI > 0) currentParts.push('MI ' + formatMoney(r.currentMonthlyMI));
         if (escrow > 0) currentParts.push('T&I ' + formatMoney(escrow));
 
-        if (currentParts.length > 1) {
-            setText('compareCurrentPayment', formatMoney(currentTotal) + ' (' + currentParts.join(' + ') + ')');
-        } else {
-            setText('compareCurrentPayment', formatMoney(r.currentPayment));
-        }
+        setText('compareCurrentPayment', currentParts.length > 1 ? formatMoney(currentTotal) : formatMoney(r.currentPayment));
+        setText('compareCurrentDetail', currentParts.length > 1 ? currentParts.join(' + ') : '');
 
         // Build breakdown parts for new payment
         const refiParts = ['P&I ' + formatMoney(r.refiPayment)];
         if (r.refiMonthlyMI > 0) refiParts.push('MI ' + formatMoney(r.refiMonthlyMI));
         if (escrow > 0) refiParts.push('T&I ' + formatMoney(escrow));
 
-        if (refiParts.length > 1) {
-            setText('compareNewPayment', formatMoney(refiTotal) + ' (' + refiParts.join(' + ') + ')');
-        } else {
-            setText('compareNewPayment', formatMoney(r.refiPayment));
-        }
+        setText('compareNewPayment', refiParts.length > 1 ? formatMoney(refiTotal) : formatMoney(r.refiPayment));
+        setText('compareNewDetail', refiParts.length > 1 ? refiParts.join(' + ') : '');
 
         // Cost of waiting metrics (populate even if hidden so PDF can use them)
         setText('resultExtraInterest', formatMoney(analysis.extraInterest));
@@ -868,11 +863,8 @@ function updateMIDisplay(prefix, miData) {
         if (analysis.futureMI > 0) futureParts.push('MI ' + formatMoney(analysis.futureMI));
         if (escrow > 0) futureParts.push('T&I ' + formatMoney(escrow));
         const futureTotal = r.futurePayment + escrow;
-        if (futureParts.length > 1) {
-            setText('resultFuturePayment', formatMoney(futureTotal) + ' (' + futureParts.join(' + ') + ')');
-        } else {
-            setText('resultFuturePayment', formatMoney(r.futurePayment));
-        }
+        setText('resultFuturePayment', futureParts.length > 1 ? formatMoney(futureTotal) : formatMoney(r.futurePayment));
+        setText('resultFutureDetail', futureParts.length > 1 ? futureParts.join(' + ') : '');
         setText('resultFutureSavings', formatMoney(analysis.futureMonthlySavings));
         setText('resultBreakevenWait', analysis.breakevenWait === Infinity ? 'N/A' : analysis.breakevenWait + ' months');
 
