@@ -6,6 +6,16 @@ const cookieParser = require('cookie-parser');
 const expressLayouts = require('express-ejs-layouts');
 
 const fs = require('fs');
+const { execSync } = require('child_process');
+
+// Asset version — computed once at startup for cache-busting.
+// Uses short git hash so deploys automatically bust CloudFront cache.
+let ASSET_VERSION;
+try {
+  ASSET_VERSION = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+} catch (e) {
+  ASSET_VERSION = Date.now().toString(36);
+}
 
 // Calculator config is static — loaded once at startup
 const calcConfig = require('./config/calculators.json');
@@ -67,6 +77,7 @@ app.use((req, res, next) => {
   res.locals.calculators = calcConfig.calculators;
   res.locals.categories = calcConfig.categories;
   res.locals.currentPath = req.path;
+  res.locals.v = ASSET_VERSION;
   next();
 });
 
@@ -79,18 +90,28 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Legacy standalone apps (served via iframe from EJS wrappers)
+
+// Helper: serve a static HTML file with cache-busting ?v= injected on local JS/CSS tags
+function serveLegacyHtml(filePath) {
+  const template = fs.readFileSync(filePath, 'utf-8');
+  return (req, res) => {
+    const html = template
+      .replace(/(src|href)="((?:js|css)\/[^"]+\.(?:js|css))"/g, `$1="$2?v=${ASSET_VERSION}"`)
+      .replace(/(src|href)="(\/js\/[^"]+\.(?:js|css))"/g, `$1="$2?v=${ASSET_VERSION}"`);
+    res.type('html').send(html);
+  };
+}
+
+app.get('/legacy/refi-calc/index.html', serveLegacyHtml(path.join(__dirname, 'refi-calc', 'index.html')));
 app.use('/legacy/amort-calc', express.static(path.join(__dirname, 'amort-calc')));
 
-app.get('/calculators/llpm', (req, res) => {
-  res.sendFile(path.join(__dirname, 'llpm-calc', 'LLPMTool.html'));
-});
+app.get('/calculators/llpm', serveLegacyHtml(path.join(__dirname, 'llpm-calc', 'LLPMTool.html')));
 app.use('/calculators/llpm', express.static(path.join(__dirname, 'llpm-calc')));
 
+app.get('/calculators/batch-llpm', serveLegacyHtml(path.join(__dirname, 'batch-llpm', 'index.html')));
 app.use('/calculators/batch-llpm', express.static(path.join(__dirname, 'batch-llpm')));
 
-app.get('/calculators/mismo', (req, res) => {
-  res.sendFile(path.join(__dirname, 'gen-calc', 'mismo-calc', 'MISMO_Document_Analyzer.html'));
-});
+app.get('/calculators/mismo', serveLegacyHtml(path.join(__dirname, 'gen-calc', 'mismo-calc', 'MISMO_Document_Analyzer.html')));
 app.use('/calculators/mismo', express.static(path.join(__dirname, 'gen-calc', 'mismo-calc')));
 
 // Routes

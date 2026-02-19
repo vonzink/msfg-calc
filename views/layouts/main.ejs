@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/base.css?v=<%= v %>">
+  <link rel="stylesheet" href="/css/layout.css?v=<%= v %>">
+  <link rel="stylesheet" href="/css/components.css?v=<%= v %>">
   <%- typeof extraHead !== 'undefined' ? extraHead : '' %>
 </head>
 <body<%= typeof bodyClass !== 'undefined' ? ' class="' + bodyClass + '"' : '' %>>
@@ -29,10 +29,9 @@
     <% if (calc.slug) { %>window.__calcSlug = '<%= calc.slug %>';<% } %>
   </script>
   <% } %>
-  <% var _v = '20260217g'; %>
-  <script src="/js/shared/utils.js?v=<%= _v %>"></script>
-  <script src="/js/shared/report-templates.js?v=<%= _v %>"></script>
-  <script src="/js/shared/report.js?v=<%= _v %>"></script>
+  <script src="/js/shared/utils.js?v=<%= v %>"></script>
+  <script src="/js/shared/report-templates.js?v=<%= v %>"></script>
+  <script src="/js/shared/report.js?v=<%= v %>"></script>
   <%- typeof extraScripts !== 'undefined' ? extraScripts : '' %>
 </body>
 </html>

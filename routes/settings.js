@@ -87,7 +87,7 @@ router.get('/', (req, res) => {
     title: 'Site Settings',
     config,
     maskedAi,
-    extraScripts: '<script src="/js/settings.js"></script>',
+    extraScripts: `<script src="/js/settings.js?v=${res.locals.v}"></script>`,
     saved: req.query.saved === '1'
   });
 });

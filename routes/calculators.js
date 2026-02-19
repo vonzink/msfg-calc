@@ -36,15 +36,16 @@ const generalCalcs = [
 
 generalCalcs.forEach(gc => {
   router.get(`/${gc.slug}`, (req, res) => {
+    const ver = res.locals.v;
     const extraHeadParts = [];
-    if (gc.css) extraHeadParts.push(`<link rel="stylesheet" href="/css/calculators/${gc.css}.css">`);
+    if (gc.css) extraHeadParts.push(`<link rel="stylesheet" href="/css/calculators/${gc.css}.css?v=${ver}">`);
     if (gc.cdnScripts) extraHeadParts.push(...gc.cdnScripts);
 
     res.render(gc.view, {
       title: gc.title,
       calc: findCalc(gc.slug),
       extraHead: extraHeadParts.length ? extraHeadParts.join('') : undefined,
-      extraScripts: `<script src="/js/calculators/${gc.slug}.js"></script>`
+      extraScripts: `<script src="/js/calculators/${gc.slug}.js?v=${ver}"></script>`
     });
   });
 });
@@ -52,10 +53,11 @@ generalCalcs.forEach(gc => {
 /* ---- Income Calculators ---- */
 
 router.get('/income-questionnaire', (req, res) => {
+  const ver = res.locals.v;
   res.render('calculators/income/questionnaire', {
     title: 'Income Questionnaire',
     calc: findCalc('income-questionnaire'),
-    extraScripts: '<script src="/js/calculators/income/questionnaire.js"></script>'
+    extraScripts: `<script src="/js/calculators/income/questionnaire.js?v=${ver}"></script>`
   });
 });
 
@@ -77,10 +79,11 @@ const incomeCalcs = [
 
 incomeCalcs.forEach(ic => {
   router.get(`/income/${ic.slug}`, (req, res) => {
+    const ver = res.locals.v;
     res.render(`calculators/${ic.view}`, {
       title: ic.title,
       calc: findCalc(`income/${ic.slug}`),
-      extraScripts: `<script src="/js/calculators/${ic.view}.js"></script>`
+      extraScripts: `<script src="/js/calculators/${ic.view}.js?v=${ver}"></script>`
     });
   });
 });
