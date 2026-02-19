@@ -1451,75 +1451,92 @@
 
   /* ---- General: Amortization ---- */
   extractors['amortization'] = function (doc) {
-    // React SPA — extract by reading inputs and visible text
-    var inputs = doc.querySelectorAll('input[type="number"]');
-    var labels = [];
-    inputs.forEach(function (inp) {
-      var lbl = inp.closest('label') || (inp.parentElement && inp.parentElement.querySelector('label'));
-      var labelText = '';
-      if (inp.previousElementSibling && inp.previousElementSibling.tagName === 'LABEL') labelText = inp.previousElementSibling.textContent.trim();
-      else if (inp.closest('.flex') && inp.closest('.flex').querySelector('label')) labelText = inp.closest('.flex').querySelector('label').textContent.trim();
-      else if (lbl) labelText = lbl.textContent.trim();
-      labels.push({ label: labelText, value: parseFloat(inp.value) || 0 });
-    });
+    var homeValue = val(doc, 'homePrice');
+    var downDollar = val(doc, 'downPaymentDollar');
+    var downPct = val(doc, 'downPaymentPercent');
+    var loanAmount = homeValue - downDollar;
+    var rate = val(doc, 'interestRate');
+    var termBtn = doc.querySelector('#termToggle .amort-term-btn.active');
+    var term = termBtn ? parseInt(termBtn.dataset.years, 10) : 30;
 
-    var homeValue = 0, downPct = 0, rate = 0, term = 0, taxYr = 0, insYr = 0;
-    labels.forEach(function (item) {
-      var l = item.label.toLowerCase();
-      if (l.indexOf('home') >= 0 && l.indexOf('value') >= 0) homeValue = item.value;
-      else if (l.indexOf('down') >= 0 && l.indexOf('%') >= 0) downPct = item.value;
-      else if (l.indexOf('rate') >= 0 || l.indexOf('interest') >= 0) rate = item.value;
-      else if (l.indexOf('term') >= 0 || l.indexOf('years') >= 0) term = item.value;
-      else if (l.indexOf('tax') >= 0 && l.indexOf('year') >= 0) taxYr = item.value;
-      else if (l.indexOf('insurance') >= 0 || l.indexOf('ins') >= 0) insYr = item.value;
-    });
+    // Taxes & insurance — read raw value and period
+    var taxInput = doc.getElementById('propertyTax');
+    var taxVal = taxInput ? parseFloat(taxInput.value) || 0 : 0;
+    var taxPeriod = taxInput ? taxInput.dataset.period : 'annual';
+    var taxYr = taxPeriod === 'monthly' ? taxVal * 12 : taxVal;
 
-    var loanAmount = homeValue * (1 - downPct / 100);
-    var downPayment = homeValue * downPct / 100;
+    var insInput = doc.getElementById('homeInsurance');
+    var insVal = insInput ? parseFloat(insInput.value) || 0 : 0;
+    var insPeriod = insInput ? insInput.dataset.period : 'annual';
+    var insYr = insPeriod === 'monthly' ? insVal * 12 : insVal;
 
-    // Read the displayed total payment from the page
-    var paymentEl = doc.querySelector('.text-3xl.font-bold');
-    var totalPayment = paymentEl ? paymentEl.textContent.trim() : '';
+    var monthlyPMI = val(doc, 'pmi');
 
-    // Extract full amortization schedule from the table
+    // Extra payments
+    var extraAmount = val(doc, 'extraPayment');
+    var freqBtn = doc.querySelector('#extraFreqToggle .amort-term-btn.active');
+    var extraFreq = freqBtn ? freqBtn.dataset.freq : 'monthly';
+    var startMonthSel = doc.getElementById('extraStartMonth');
+    var startYearSel = doc.getElementById('extraStartYear');
+    var extraStartMonth = startMonthSel ? parseInt(startMonthSel.value, 10) : 0;
+    var extraStartYear = startYearSel ? parseInt(startYearSel.value, 10) : new Date().getFullYear();
+
+    // Read results from DOM
+    var totalPayment = txt(doc, 'resultMonthlyPI');
+    var totalMonthly = txt(doc, 'resultTotalMonthly');
+    var totalInterestText = txt(doc, 'resultTotalInterest');
+    var totalCostText = txt(doc, 'resultTotalCost');
+    var payoffDate = txt(doc, 'resultPayoffDate');
+    var interestSaved = txt(doc, 'resultInterestSaved');
+    var timeSaved = txt(doc, 'resultTimeSaved');
+    var monthlyDetail = txt(doc, 'resultMonthlyDetail');
+
+    // Capture chart as base64 image
+    var chartImage = '';
+    var canvas = doc.getElementById('amortChart');
+    if (canvas) {
+      try { chartImage = canvas.toDataURL('image/png'); } catch (e) { /* cross-origin */ }
+    }
+
+    // Extract full schedule from table rows (including collapsed month rows)
     var schedule = [];
     var totalInterest = 0;
     var totalPrincipal = 0;
-    var table = doc.querySelector('table[aria-labelledby="amort-table-heading"]') || doc.querySelector('.outer-table table');
-    if (table) {
-      var rows = table.querySelectorAll('tbody tr');
-      rows.forEach(function (row) {
-        var cells = row.querySelectorAll('td');
-        // Skip year header rows (they have colspan or fewer cells)
-        if (cells.length < 7) return;
-        var pmtNum = parseInt(cells[0].textContent.trim(), 10);
-        if (isNaN(pmtNum)) return;
-        var interest = parseFloat((cells[3].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
-        var principal = parseFloat((cells[6].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
-        totalInterest += interest;
-        totalPrincipal += principal;
-        schedule.push({
-          num: pmtNum,
-          date: cells[1].textContent.trim(),
-          rate: cells[2].textContent.trim(),
-          interest: interest,
-          payment: parseFloat((cells[4].textContent || '').replace(/[^0-9.\-]/g, '')) || 0,
-          extra: parseFloat((cells[5].textContent || '').replace(/[^0-9.\-]/g, '')) || 0,
-          principal: principal,
-          balance: parseFloat((cells[7].textContent || '').replace(/[^0-9.\-]/g, '')) || 0
-        });
+    var totalExtra = 0;
+    var monthRows = doc.querySelectorAll('.amort-month-row');
+    monthRows.forEach(function (row) {
+      var cells = row.querySelectorAll('td');
+      if (cells.length < 7) return;
+      var pmtNum = parseInt(cells[0].textContent.trim(), 10);
+      if (isNaN(pmtNum)) return;
+      var principal = parseFloat((cells[3].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
+      var interest = parseFloat((cells[4].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
+      var extra = parseFloat((cells[5].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
+      var balance = parseFloat((cells[6].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
+      totalPrincipal += principal;
+      totalInterest += interest;
+      totalExtra += extra;
+      schedule.push({
+        num: pmtNum,
+        date: cells[1].textContent.trim(),
+        payment: parseFloat((cells[2].textContent || '').replace(/[^0-9.\-]/g, '')) || 0,
+        principal: principal,
+        interest: interest,
+        extra: extra,
+        balance: balance
       });
-    }
+    });
 
-    // Build yearly summaries from schedule
+    // Build yearly summaries
     var yearlyMap = {};
     schedule.forEach(function (pmt) {
-      var yr = pmt.date ? pmt.date.replace(/.*,\s*/, '') : '';
+      var yr = pmt.date ? pmt.date.split(' ').pop() : '';
       if (!yr) return;
-      if (!yearlyMap[yr]) yearlyMap[yr] = { year: yr, interest: 0, principal: 0, payments: 0, count: 0 };
+      if (!yearlyMap[yr]) yearlyMap[yr] = { year: yr, interest: 0, principal: 0, extra: 0, payments: 0, count: 0 };
       yearlyMap[yr].interest += pmt.interest;
       yearlyMap[yr].principal += pmt.principal;
-      yearlyMap[yr].payments += pmt.payment + pmt.extra;
+      yearlyMap[yr].extra += pmt.extra;
+      yearlyMap[yr].payments += pmt.payment;
       yearlyMap[yr].count++;
     });
     var yearlySummary = [];
@@ -1527,16 +1544,25 @@
 
     return {
       inputs: {
-        homeValue: homeValue, downPct: downPct, downPayment: downPayment,
+        homeValue: homeValue, downPct: downPct, downPayment: downDollar,
         loanAmount: loanAmount, rate: rate, term: term,
-        taxYr: taxYr, insYr: insYr
+        taxYr: taxYr, insYr: insYr, monthlyPMI: monthlyPMI,
+        extraAmount: extraAmount, extraFreq: extraFreq,
+        extraStartMonth: extraStartMonth, extraStartYear: extraStartYear
       },
       results: {
-        totalPayment: totalPayment,
+        monthlyPI: totalPayment,
+        totalMonthly: totalMonthly,
+        monthlyDetail: monthlyDetail,
         totalInterest: totalInterest,
         totalPrincipal: totalPrincipal,
-        totalCost: totalInterest + loanAmount
+        totalExtra: totalExtra,
+        totalCost: totalCostText,
+        payoffDate: payoffDate,
+        interestSaved: interestSaved,
+        timeSaved: timeSaved
       },
+      chartImage: chartImage,
       schedule: schedule,
       yearlySummary: yearlySummary
     };
@@ -1556,28 +1582,53 @@
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + ' years</span></div>';
     if (inp.taxYr) html += '<div class="rpt-param"><span>Annual Property Tax</span><span>' + fmt0(inp.taxYr) + '</span></div>';
     if (inp.insYr) html += '<div class="rpt-param"><span>Annual Insurance</span><span>' + fmt0(inp.insYr) + '</span></div>';
+    if (inp.monthlyPMI) html += '<div class="rpt-param"><span>Monthly PMI</span><span>' + fmt(inp.monthlyPMI) + '</span></div>';
     html += '</div></div>';
 
     // Payment summary
     html += '<div class="rpt-section"><h4 class="rpt-section-title">Payment Summary</h4>';
     html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Value</th></tr></thead><tbody>';
-    if (res.totalPayment) html += '<tr><td>Monthly Payment</td><td class="rpt-num">' + res.totalPayment + '</td></tr>';
+    if (res.monthlyPI) html += '<tr><td>Monthly P&I</td><td class="rpt-num">' + res.monthlyPI + '</td></tr>';
+    if (res.totalMonthly) html += '<tr><td>Total Monthly Payment</td><td class="rpt-num">' + res.totalMonthly + '</td></tr>';
+    if (res.monthlyDetail) html += '<tr><td colspan="2" style="font-size:0.78rem;color:#6c757d;">' + res.monthlyDetail + '</td></tr>';
     if (res.totalPrincipal) html += '<tr><td>Total Principal</td><td class="rpt-num">' + fmt(res.totalPrincipal) + '</td></tr>';
     if (res.totalInterest) html += '<tr><td>Total Interest Paid</td><td class="rpt-num">' + fmt(res.totalInterest) + '</td></tr>';
+    if (res.totalExtra) html += '<tr><td>Total Extra Payments</td><td class="rpt-num">' + fmt(res.totalExtra) + '</td></tr>';
     html += '</tbody></table>';
     if (res.totalCost) {
-      html += '<div class="rpt-grand-total"><span>Total Cost of Loan</span><span>' + fmt(res.totalCost) + '</span></div>';
+      html += '<div class="rpt-grand-total"><span>Total Cost of Loan</span><span>' + res.totalCost + '</span></div>';
+    }
+    if (res.payoffDate) {
+      html += '<div class="rpt-grand-total" style="margin-top:4px"><span>Payoff Date</span><span>' + res.payoffDate + '</span></div>';
     }
     html += '</div>';
+
+    // Extra payment info & savings
+    if (inp.extraAmount && inp.extraAmount > 0) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Extra Payment Impact</h4>';
+      html += '<div class="rpt-params">';
+      html += '<div class="rpt-param"><span>Extra Payment</span><span>' + fmt(inp.extraAmount) + ' (' + inp.extraFreq + ')</span></div>';
+      if (res.interestSaved) html += '<div class="rpt-param"><span>Interest Saved</span><span style="color:#28a745;font-weight:700">' + res.interestSaved + '</span></div>';
+      if (res.timeSaved && res.timeSaved !== '--') html += '<div class="rpt-param"><span>Time Saved</span><span style="color:#28a745;font-weight:700">' + res.timeSaved + '</span></div>';
+      html += '</div></div>';
+    }
+
+    // Chart image
+    if (data.chartImage) {
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Amortization Chart</h4>';
+      html += '<img src="' + data.chartImage + '" style="width:100%;max-width:700px;border-radius:6px;margin:4px 0;" alt="Amortization Chart">';
+      html += '</div>';
+    }
 
     // Yearly summary
     if (data.yearlySummary && data.yearlySummary.length) {
       html += '<div class="rpt-section"><h4 class="rpt-section-title">Annual Breakdown</h4>';
-      html += '<table class="rpt-table"><thead><tr><th>Year</th><th class="rpt-num">Principal</th><th class="rpt-num">Interest</th><th class="rpt-num">Total Paid</th></tr></thead><tbody>';
+      html += '<table class="rpt-table"><thead><tr><th>Year</th><th class="rpt-num">Principal</th><th class="rpt-num">Interest</th><th class="rpt-num">Extra</th><th class="rpt-num">Total Paid</th></tr></thead><tbody>';
       data.yearlySummary.forEach(function (yr) {
         html += '<tr><td>' + yr.year + '</td>';
         html += '<td class="rpt-num">' + fmt(yr.principal) + '</td>';
         html += '<td class="rpt-num">' + fmt(yr.interest) + '</td>';
+        html += '<td class="rpt-num">' + (yr.extra ? fmt(yr.extra) : '—') + '</td>';
         html += '<td class="rpt-num">' + fmt(yr.payments) + '</td></tr>';
       });
       html += '</tbody></table></div>';
@@ -1587,15 +1638,15 @@
     if (data.schedule && data.schedule.length) {
       html += '<div class="rpt-section"><h4 class="rpt-section-title">Full Amortization Schedule (' + data.schedule.length + ' payments)</h4>';
       html += '<table class="rpt-table" style="font-size:0.78rem"><thead><tr>';
-      html += '<th>#</th><th>Date</th><th class="rpt-num">Rate</th><th class="rpt-num">Payment</th>';
-      html += '<th class="rpt-num">Principal</th><th class="rpt-num">Interest</th><th class="rpt-num">Balance</th>';
+      html += '<th>#</th><th>Date</th><th class="rpt-num">Payment</th>';
+      html += '<th class="rpt-num">Principal</th><th class="rpt-num">Interest</th><th class="rpt-num">Extra</th><th class="rpt-num">Balance</th>';
       html += '</tr></thead><tbody>';
       data.schedule.forEach(function (pmt) {
         html += '<tr><td>' + pmt.num + '</td><td>' + pmt.date + '</td>';
-        html += '<td class="rpt-num">' + pmt.rate + '</td>';
-        html += '<td class="rpt-num">' + fmt(pmt.payment + pmt.extra) + '</td>';
+        html += '<td class="rpt-num">' + fmt(pmt.payment) + '</td>';
         html += '<td class="rpt-num">' + fmt(pmt.principal) + '</td>';
         html += '<td class="rpt-num">' + fmt(pmt.interest) + '</td>';
+        html += '<td class="rpt-num">' + (pmt.extra ? fmt(pmt.extra) : '—') + '</td>';
         html += '<td class="rpt-num">' + fmt(pmt.balance) + '</td></tr>';
       });
       html += '</tbody></table></div>';
@@ -1612,11 +1663,17 @@
     ];
     if (inp.taxYr) params.push(['Annual Property Tax', fmt0(inp.taxYr)]);
     if (inp.insYr) params.push(['Annual Insurance', fmt0(inp.insYr)]);
+    if (inp.monthlyPMI) params.push(['Monthly PMI', fmt(inp.monthlyPMI)]);
+    if (inp.extraAmount) params.push(['Extra Payment', fmt(inp.extraAmount) + ' (' + inp.extraFreq + ')']);
     var results = [];
-    if (res.totalPayment) results.push(['Monthly Payment', res.totalPayment]);
+    if (res.monthlyPI) results.push(['Monthly P&I', res.monthlyPI]);
+    if (res.totalMonthly) results.push(['Total Monthly', res.totalMonthly]);
     if (res.totalPrincipal) results.push(['Total Principal', fmt(res.totalPrincipal)]);
     if (res.totalInterest) results.push(['Total Interest Paid', fmt(res.totalInterest)]);
-    if (res.totalCost) results.push(['Total Cost of Loan', fmt(res.totalCost)]);
+    if (res.totalCost) results.push(['Total Cost of Loan', res.totalCost]);
+    if (res.payoffDate) results.push(['Payoff Date', res.payoffDate]);
+    if (res.interestSaved) results.push(['Interest Saved', res.interestSaved]);
+    if (res.timeSaved && res.timeSaved !== '--') results.push(['Time Saved', res.timeSaved]);
     var content = pdfKeyValue(data, params, results);
 
     // Yearly summary
@@ -1626,12 +1683,18 @@
         { text: 'Year', style: 'tableHeader' },
         { text: 'Principal', style: 'tableHeader', alignment: 'right' },
         { text: 'Interest', style: 'tableHeader', alignment: 'right' },
+        { text: 'Extra', style: 'tableHeader', alignment: 'right' },
         { text: 'Total Paid', style: 'tableHeader', alignment: 'right' }
       ]];
       data.yearlySummary.forEach(function (yr) {
-        yrBody.push([yr.year, { text: fmt(yr.principal), alignment: 'right' }, { text: fmt(yr.interest), alignment: 'right' }, { text: fmt(yr.payments), alignment: 'right' }]);
+        yrBody.push([yr.year,
+          { text: fmt(yr.principal), alignment: 'right' },
+          { text: fmt(yr.interest), alignment: 'right' },
+          { text: yr.extra ? fmt(yr.extra) : '—', alignment: 'right' },
+          { text: fmt(yr.payments), alignment: 'right' }
+        ]);
       });
-      content.push({ table: { headerRows: 1, widths: ['*', 90, 90, 90], body: yrBody }, layout: 'lightHorizontalLines' });
+      content.push({ table: { headerRows: 1, widths: ['*', 80, 80, 60, 80], body: yrBody }, layout: 'lightHorizontalLines' });
     }
 
     // Full schedule
@@ -1642,18 +1705,20 @@
         { text: 'Payment', style: 'tableHeader', alignment: 'right' },
         { text: 'Principal', style: 'tableHeader', alignment: 'right' },
         { text: 'Interest', style: 'tableHeader', alignment: 'right' },
+        { text: 'Extra', style: 'tableHeader', alignment: 'right' },
         { text: 'Balance', style: 'tableHeader', alignment: 'right' }
       ]];
       data.schedule.forEach(function (pmt) {
         sBody.push([
           String(pmt.num), pmt.date,
-          { text: fmt(pmt.payment + pmt.extra), alignment: 'right' },
+          { text: fmt(pmt.payment), alignment: 'right' },
           { text: fmt(pmt.principal), alignment: 'right' },
           { text: fmt(pmt.interest), alignment: 'right' },
+          { text: pmt.extra ? fmt(pmt.extra) : '—', alignment: 'right' },
           { text: fmt(pmt.balance), alignment: 'right' }
         ]);
       });
-      content.push({ table: { headerRows: 1, widths: [25, 70, 75, 75, 75, 80], body: sBody }, layout: 'lightHorizontalLines', fontSize: 7 });
+      content.push({ table: { headerRows: 1, widths: [22, 55, 65, 65, 65, 50, 75], body: sBody }, layout: 'lightHorizontalLines', fontSize: 7 });
     }
     return content;
   };
