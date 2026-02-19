@@ -9,6 +9,17 @@
 const RefiAdvice = (() => {
     'use strict';
 
+    // Local currency formatter — avoids dependency on RefiUI
+    function formatMoney(val) {
+        if (val === Infinity || val === -Infinity || isNaN(val)) return 'N/A';
+        const absVal = Math.abs(val);
+        const formatted = '$' + absVal.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        return val < 0 ? '-' + formatted : formatted;
+    }
+
     // -------------------------------------------------
     // RENDER ADVICE
     // -------------------------------------------------
@@ -60,7 +71,7 @@ const RefiAdvice = (() => {
         const a = results.analysis;
         const target = results.inputs.targetBreakeven;
         const stay = results.inputs.planToStayMonths;
-        const fmt = RefiUI.formatMoney;
+        const fmt = formatMoney;
         const co = results.cashOut;
         const costOfWaitingEnabled = results.inputs.costOfWaitingEnabled !== false;
 
@@ -299,7 +310,7 @@ const RefiAdvice = (() => {
         const a = results.analysis;
         const target = results.inputs.targetBreakeven;
         const stay = results.inputs.planToStayMonths;
-        const fmt = RefiUI.formatMoney;
+        const fmt = formatMoney;
         const rateDrop = results.inputs.currentRate - results.inputs.refiRate;
 
         const hasPositiveSavings = a.monthlySavingsNow > 0;

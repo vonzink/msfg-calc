@@ -959,7 +959,7 @@
       html += '<div class="rpt-section"><h4 class="rpt-section-title">Cost of Waiting</h4>';
       html += '<table class="rpt-table"><thead><tr><th>Metric</th><th class="rpt-num">Value</th></tr></thead><tbody>';
       html += '<tr><td>Extra Interest While Waiting</td><td class="rpt-num">' + cow.extraInterest + '</td></tr>';
-      html += '<tr><td>Future Monthly P&I</td><td class="rpt-num">' + cow.futurePayment + '</td></tr>';
+      html += '<tr><td>Future Monthly Payment</td><td class="rpt-num">' + cow.futurePayment + '</td></tr>';
       html += '<tr><td>Future Monthly Savings</td><td class="rpt-num">' + cow.futureSavings + '</td></tr>';
       html += '<tr><td>Breakeven (If You Wait)</td><td class="rpt-num">' + cow.breakevenWait + '</td></tr>';
       html += '</tbody></table>';
@@ -1314,7 +1314,7 @@
       var cowBody = [
         [{ text: 'Metric', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }],
         ['Extra Interest While Waiting', { text: cow.extraInterest, alignment: 'right' }],
-        ['Future Monthly P&I', { text: cow.futurePayment, alignment: 'right' }],
+        ['Future Monthly Payment', { text: cow.futurePayment, alignment: 'right' }],
         ['Future Monthly Savings', { text: cow.futureSavings, alignment: 'right' }],
         ['Breakeven (If You Wait)', { text: cow.breakevenWait, alignment: 'right' }]
       ];

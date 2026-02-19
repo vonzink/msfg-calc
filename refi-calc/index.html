@@ -122,6 +122,15 @@
                     </div>
                 </div>
 
+                <!-- Monthly Escrow (Taxes & Insurance) — shared across all scenarios -->
+                <div class="input-grid" style="margin-top:1rem;">
+                    <div class="input-group">
+                        <label for="monthlyEscrow">Monthly Escrow — Taxes & Insurance ($)</label>
+                        <input type="number" id="monthlyEscrow" value="0" min="0" step="1">
+                        <span class="field-hint">Same for all scenarios. Added to payment displays only — does not affect breakeven.</span>
+                    </div>
+                </div>
+
                 <div class="total-row" style="margin-top:1rem;">
                     <label>Computed Current Monthly P&I:</label>
                     <span class="total-value" id="currentPaymentDisplay">$0.00</span>
@@ -506,10 +515,18 @@
                             <label for="monthsToWait">Months Until Future Rate Available</label>
                             <input type="number" id="monthsToWait" value="6" min="1" max="60" step="1">
                         </div>
+                        <div class="input-group">
+                            <label for="futureMIInput">Expected Monthly MI</label>
+                            <div class="mi-input-wrap">
+                                <input type="number" id="futureMIInput" value="0" min="0" step="0.01" class="mi-input">
+                                <button type="button" class="mi-mode-btn" id="futureMIModeBtn" data-mode="dollar" title="Toggle between $ and %">$</button>
+                            </div>
+                            <span class="form-note">Monthly mortgage insurance on the future loan (enter 0 if none)</span>
+                        </div>
                     </div>
 
                     <div class="total-row" style="margin-top:1rem;">
-                        <label>Future Monthly P&I Payment (at future rate):</label>
+                        <label>Future Monthly Payment (at future rate):</label>
                         <span class="total-value" id="futurePaymentDisplay">$0.00</span>
                     </div>
                 </div>
@@ -607,7 +624,7 @@
                         <div class="result-value" id="resultExtraInterest">$0.00</div>
                     </div>
                     <div class="result-card" id="cardFuturePayment">
-                        <h3>Future P&I Payment</h3>
+                        <h3>Future Monthly Payment</h3>
                         <div class="result-value" id="resultFuturePayment">$0.00</div>
                     </div>
                     <div class="result-card" id="cardFutureSavings">

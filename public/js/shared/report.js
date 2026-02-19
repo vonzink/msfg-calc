@@ -185,6 +185,27 @@
         items.forEach(function(it) {
           if (typeof it.order === 'number' && it.order > maxOrder) maxOrder = it.order;
         });
+
+        var isCoverLetter = (item.slug === 'loan-analysis');
+        var newOrder;
+        var bumpPromises = [];
+
+        if (isCoverLetter) {
+          // Cover letter always goes to position 0 (first)
+          newOrder = 0;
+          // Bump all existing items' order up by 1 so nothing collides
+          items.forEach(function(it) {
+            if (typeof it.order === 'number') {
+              it.order = it.order + 1;
+            } else {
+              it.order = maxOrder + 2;
+            }
+            bumpPromises.push(dbPut(it));
+          });
+        } else {
+          newOrder = maxOrder + 1;
+        }
+
         var newItem = {
           id: generateId(),
           name: item.name || 'Calculator',
@@ -194,9 +215,12 @@
           data: item.data || null,
           imageData: item.imageData || null,
           version: item.data ? 2 : 1,
-          order: maxOrder + 1
+          order: newOrder
         };
-        return dbPut(newItem).then(function() {
+
+        return Promise.all(bumpPromises).then(function() {
+          return dbPut(newItem);
+        }).then(function() {
           return enforceMax();
         }).then(function() {
           self._updateBadge();

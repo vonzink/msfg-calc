@@ -53,80 +53,92 @@ const RefiEngine = (() => {
     }
 
     // -------------------------------------------------
+    // FEE CONFIGURATION — Single source of truth
+    // -------------------------------------------------
+
+    const FEE_CONFIG = [
+        // Origination Charges
+        { group: 'origination', id: 'feeOrigination', label: 'Origination Fee / Points' },
+        { group: 'origination', id: 'feeUnderwriting', label: 'Underwriting / Processing Fee' },
+        { group: 'origination', id: 'feeDiscount', label: 'Discount Points' },
+        { group: 'origination', id: 'feeLenderCredit', label: 'Lender Credit' },
+
+        // Services Borrower Cannot Shop
+        { group: 'cannotShop', id: 'feeAppraisal', label: 'Appraisal Fee' },
+        { group: 'cannotShop', id: 'feeCreditReport', label: 'Credit Report Fee' },
+        { group: 'cannotShop', id: 'feeFloodCert', label: 'Flood Certification' },
+        { group: 'cannotShop', id: 'feeMERS', label: 'MERS Registration Fee' },
+        { group: 'cannotShop', id: 'feeTaxService', label: 'Tax Related Service Fee' },
+        { group: 'cannotShop', id: 'feeTechnology', label: 'Technology Fee' },
+        { group: 'cannotShop', id: 'feeVOE', label: 'Verification of Employment Fee' },
+        { group: 'cannotShop', id: 'feeVOT', label: 'Verification of Tax Return Fee' },
+
+        // Services Borrower Can Shop For
+        { group: 'canShop', id: 'feeERecording', label: 'E-Recording Fee' },
+        { group: 'canShop', id: 'feeTitleCPL', label: 'Title - Closing Protection Letter Fee' },
+        { group: 'canShop', id: 'feeTitleLenders', label: 'Title - Lenders Coverage Premium' },
+        { group: 'canShop', id: 'feeTitleSettlement', label: 'Title - Settlement Fee' },
+        { group: 'canShop', id: 'feeTitleTaxCert', label: 'Title - Tax Cert Fee' },
+
+        // Taxes & Government Fees
+        { group: 'govFees', id: 'feeRecording', label: 'Recording Fee for Deed' },
+
+        // Prepaids (excluded from breakeven)
+        { group: 'prepaids', id: 'feePrepaidInterest', label: 'Prepaid Interest', excludeFromBreakeven: true },
+
+        // Initial Escrow (excluded from breakeven)
+        { group: 'escrow', id: 'feeEscrowTax', label: 'County Property Tax', excludeFromBreakeven: true },
+        { group: 'escrow', id: 'feeEscrowInsurance', label: 'Hazard Insurance', excludeFromBreakeven: true },
+
+        // Mortgage Insurance / Funding Fees
+        { group: 'mi', id: 'feeUpfrontMI', label: 'Upfront MI / Funding Fee' },
+        { group: 'mi', id: 'feeMonthlyMI', label: 'Monthly MI', monthlySeparate: true },
+
+        // Other
+        { group: 'other', id: 'feeOther', label: 'Other Fees' }
+    ];
+
+    // -------------------------------------------------
     // CLOSING COSTS AGGREGATION
     // -------------------------------------------------
 
     /**
      * Given the individual fee values, compute category totals
      * and the breakeven-eligible total (excluding prepaids & escrow).
+     * Grouping is driven by FEE_CONFIG.
      *
      * @param {object} fees - All fee field values keyed by field id
      * @returns {object} { origination, cannotShop, canShop, govFees,
-     *                      prepaids, escrow, other,
+     *                      prepaids, escrow, other, upfrontMI, monthlyMI,
      *                      totalBreakeven, totalAll }
      */
     function calcClosingCosts(fees) {
-        const origination = round2(
-            (fees.feeOrigination || 0) +
-            (fees.feeUnderwriting || 0) +
-            (fees.feeDiscount || 0) +
-            (fees.feeLenderCredit || 0)   // negative reduces total
-        );
+        // Sum fees by group from FEE_CONFIG
+        const sums = {};
+        FEE_CONFIG.forEach(item => {
+            if (item.monthlySeparate) return;
+            if (!sums[item.group]) sums[item.group] = 0;
+            sums[item.group] += (fees[item.id] || 0);
+        });
 
-        const cannotShop = round2(
-            (fees.feeAppraisal || 0) +
-            (fees.feeCreditReport || 0) +
-            (fees.feeFloodCert || 0) +
-            (fees.feeMERS || 0) +
-            (fees.feeTaxService || 0) +
-            (fees.feeTechnology || 0) +
-            (fees.feeVOE || 0) +
-            (fees.feeVOT || 0)
-        );
-
-        const canShop = round2(
-            (fees.feeERecording || 0) +
-            (fees.feeTitleCPL || 0) +
-            (fees.feeTitleLenders || 0) +
-            (fees.feeTitleSettlement || 0) +
-            (fees.feeTitleTaxCert || 0)
-        );
-
-        const govFees = round2(fees.feeRecording || 0);
-
-        const prepaids = round2(fees.feePrepaidInterest || 0);
-
-        const escrow = round2(
-            (fees.feeEscrowTax || 0) +
-            (fees.feeEscrowInsurance || 0)
-        );
-
-        const other = round2(fees.feeOther || 0);
-
-        // Upfront MI / Funding Fee (included in breakeven)
-        const upfrontMI = round2(fees.feeUpfrontMI || 0);
-
-        // Monthly MI (tracked separately, not part of closing cost totals)
-        const monthlyMI = round2(fees.feeMonthlyMI || 0);
+        const origination = round2(sums.origination || 0);
+        const cannotShop  = round2(sums.cannotShop || 0);
+        const canShop     = round2(sums.canShop || 0);
+        const govFees     = round2(sums.govFees || 0);
+        const prepaids    = round2(sums.prepaids || 0);
+        const escrow      = round2(sums.escrow || 0);
+        const other       = round2(sums.other || 0);
+        const upfrontMI   = round2(sums.mi || 0);
+        const monthlyMI   = round2(fees.feeMonthlyMI || 0);
 
         // Breakeven-eligible: everything EXCEPT prepaids and escrow
         const totalBreakeven = round2(origination + cannotShop + canShop + govFees + other + upfrontMI);
-
-        // Grand total of all costs
         const totalAll = round2(totalBreakeven + prepaids + escrow);
 
         return {
-            origination,
-            cannotShop,
-            canShop,
-            govFees,
-            prepaids,
-            escrow,
-            other,
-            upfrontMI,
-            monthlyMI,
-            totalBreakeven,
-            totalAll
+            origination, cannotShop, canShop, govFees,
+            prepaids, escrow, other, upfrontMI, monthlyMI,
+            totalBreakeven, totalAll
         };
     }
 
@@ -188,7 +200,8 @@ const RefiEngine = (() => {
             monthsToWait,
             closingCosts,
             planToStayMonths,
-            cashOutDebtPayments = 0
+            cashOutDebtPayments = 0,
+            futureMI = 0
         } = params;
 
         // 1. P&I savings (before cash-out adjustments)
@@ -212,11 +225,15 @@ const RefiEngine = (() => {
             monthsToWait
         );
 
-        // 5. Future payment at the future rate on the remaining balance
-        //    We use the same loan term (refiTerm) for the future refinance
-        //    Note: for the wait scenario, the cash-out amount would also need to be
-        //    added to the future balance, but we assume same loan amount structure.
-        const futurePayment = calcMonthlyPayment(balanceAfterWait, futureRate, refiTerm);
+        // 5. Future payment at the future rate on the remaining balance.
+        //    DESIGN NOTE: Both "refi now" and "wait & refi" use the full refiTerm
+        //    (e.g., 360 months) because refinancing creates a NEW loan with its own
+        //    full term — you don't get a shorter loan just because you waited.
+        //    The timing difference is handled in the net savings comparison: the
+        //    "wait" scenario only earns savings for (planToStayMonths - monthsToWait)
+        //    months, while "refi now" earns for the full planToStayMonths.
+        const futurePIPayment = calcMonthlyPayment(balanceAfterWait, futureRate, refiTerm);
+        const futurePayment = round2(futurePIPayment + futureMI);
         const piSavingsWait = round2(currentPayment - futurePayment);
         const futureMonthlySavings = round2(piSavingsWait + cashOutDebtPayments);
 
@@ -249,7 +266,9 @@ const RefiEngine = (() => {
             cashOutDebtPayments,
             extraInterest,
             balanceAfterWait: round2(balanceAfterWait),
+            futurePIPayment,
             futurePayment,
+            futureMI,
             piSavingsWait,
             futureMonthlySavings,
             effectiveTotalCost,
@@ -293,7 +312,8 @@ const RefiEngine = (() => {
             monthsToWait,
             closingCosts,
             planToStayMonths,
-            cashOutDebtPayments = 0
+            cashOutDebtPayments = 0,
+            futureMI = 0
         } = params;
 
         // Phase 1: savings from first refi during the waiting period
@@ -306,7 +326,9 @@ const RefiEngine = (() => {
         );
 
         // Phase 2: second refi at future rate on remaining balance, fresh term
-        const secondRefiPayment = calcMonthlyPayment(balanceAtSecondRefi, futureRate, refiTerm);
+        // Include future MI in the second refi payment
+        const secondRefiPIPayment = calcMonthlyPayment(balanceAtSecondRefi, futureRate, refiTerm);
+        const secondRefiPayment = round2(secondRefiPIPayment + futureMI);
         const piSavingsPhase2 = round2(currentPayment - secondRefiPayment);
         const monthlySavingsPhase2 = round2(piSavingsPhase2 + cashOutDebtPayments);
 
@@ -513,6 +535,32 @@ const RefiEngine = (() => {
      * @returns {object} Complete results package
      */
     function runAnalysis(inputs) {
+        // --- Input validation ---
+        const errors = [];
+        if (!inputs.currentBalance || inputs.currentBalance <= 0)
+            errors.push('Current loan balance must be greater than zero.');
+        if (inputs.currentRate === undefined || inputs.currentRate <= 0 || inputs.currentRate >= 30)
+            errors.push('Current interest rate must be between 0% and 30%.');
+        if (!inputs.currentTermRemaining || inputs.currentTermRemaining <= 0)
+            errors.push('Remaining term must be greater than zero.');
+        if (!inputs.refiLoanAmount || inputs.refiLoanAmount <= 0)
+            errors.push('Refinance loan amount must be greater than zero.');
+        if (inputs.refiRate === undefined || inputs.refiRate <= 0 || inputs.refiRate >= 30)
+            errors.push('Refinance interest rate must be between 0% and 30%.');
+        if (!inputs.refiTerm || inputs.refiTerm <= 0)
+            errors.push('Refinance loan term must be greater than zero.');
+        if (!inputs.planToStayMonths || inputs.planToStayMonths <= 0)
+            errors.push('Plan-to-stay period must be greater than zero.');
+        if (inputs.costOfWaitingEnabled) {
+            if (inputs.futureRate === undefined || inputs.futureRate <= 0 || inputs.futureRate >= 30)
+                errors.push('Future interest rate must be between 0% and 30%.');
+            if (!inputs.monthsToWait || inputs.monthsToWait <= 0)
+                errors.push('Months to wait must be greater than zero.');
+        }
+        if (errors.length > 0) {
+            return { valid: false, errors };
+        }
+
         // Current payment
         const currentPaymentComputed = calcMonthlyPayment(
             inputs.currentBalance,
@@ -569,6 +617,10 @@ const RefiEngine = (() => {
         const currentPaymentWithMI = round2(currentPayment + currentMonthlyMI);
         const refiPaymentWithMI = round2(refiPayment + refiMonthlyMI);
 
+        // Future MI: user-entered MI for the future/wait refinance scenario
+        const futureMI = costOfWaitingEnabled
+            ? (inputs.futureMIDollar || 0) : 0;
+
         // Cost of waiting analysis — cashOutDebtPayments is passed through
         // to be factored into the monthly savings calculation
         const analysis = calcCostOfWaiting({
@@ -584,7 +636,8 @@ const RefiEngine = (() => {
             monthsToWait: costOfWaitingEnabled ? inputs.monthsToWait : 0,
             closingCosts: costs.totalBreakeven,
             planToStayMonths: inputs.planToStayMonths,
-            cashOutDebtPayments
+            cashOutDebtPayments,
+            futureMI
         });
 
         // Future payment (for display)
@@ -604,7 +657,8 @@ const RefiEngine = (() => {
                 monthsToWait: inputs.monthsToWait,
                 closingCosts: costs.totalBreakeven,
                 planToStayMonths: inputs.planToStayMonths,
-                cashOutDebtPayments
+                cashOutDebtPayments,
+                futureMI
             });
         }
 
@@ -637,6 +691,7 @@ const RefiEngine = (() => {
             : generateAmortization(inputs.refiLoanAmount, inputs.refiRate, inputs.refiTerm, 60);
 
         return {
+            valid: true,
             currentPaymentComputed,
             currentPayment,
             refiPayment,
@@ -662,6 +717,7 @@ const RefiEngine = (() => {
             refiMI,
             currentMonthlyMI,
             refiMonthlyMI,
+            futureMI,
             inputs // pass through for reference
         };
     }
@@ -671,6 +727,7 @@ const RefiEngine = (() => {
     // -------------------------------------------------
 
     return {
+        FEE_CONFIG,
         calcMonthlyPayment,
         calcClosingCosts,
         calcBreakevenNow,

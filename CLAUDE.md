@@ -47,13 +47,14 @@ Some calculators are standalone HTML apps served via iframe stubs during migrati
 ## Conventions
 
 ### JavaScript Style
-- **ES5 with `var`** — No `const`/`let`, no arrow functions, no template literals in client-side code. Server-side (Node) uses modern JS.
+- **ES6+** — Use `const`/`let` (prefer `const`), arrow functions, and template literals in both client-side and server-side code. No `var`.
 - **`'use strict'`** at the top of every JS file.
-- **IIFE pattern** for calculator scripts that don't need global functions:
+- **IIFE or revealing module pattern** for calculator scripts that don't need global functions:
   ```js
-  (function() {
+  const MyModule = (() => {
     'use strict';
     // ...
+    return { publicFn };
   })();
   ```
 - Files that expose functions via inline `onclick` handlers (e.g. `va-prequal.js`) use file-level strict mode without IIFE.

@@ -88,7 +88,8 @@ const RefiCharts = (() => {
                 fill: false,
                 tension: 0.1,
                 pointRadius: 0,
-                pointHitRadius: 8
+                pointHitRadius: 8,
+                pointStyle: 'circle'
             }
         ];
 
@@ -103,7 +104,8 @@ const RefiCharts = (() => {
                 tension: 0.1,
                 pointRadius: 0,
                 pointHitRadius: 8,
-                borderDash: [8, 4]
+                borderDash: [8, 4],
+                pointStyle: 'rect'
             });
         }
 
@@ -119,7 +121,8 @@ const RefiCharts = (() => {
                 tension: 0.1,
                 pointRadius: 0,
                 pointHitRadius: 8,
-                borderDash: [4, 2]
+                borderDash: [4, 2],
+                pointStyle: 'triangle'
             });
         }
 
@@ -522,7 +525,8 @@ const RefiCharts = (() => {
                 fill: true,
                 tension: 0.2,
                 pointRadius: 0,
-                pointHitRadius: 6
+                pointHitRadius: 6,
+                pointStyle: 'circle'
             },
             {
                 label: `Refi Now (${results.inputs.refiRate}%) — Cumulative Interest`,
@@ -533,7 +537,8 @@ const RefiCharts = (() => {
                 fill: true,
                 tension: 0.2,
                 pointRadius: 0,
-                pointHitRadius: 6
+                pointHitRadius: 6,
+                pointStyle: 'rect'
             }
         ];
 
@@ -548,7 +553,8 @@ const RefiCharts = (() => {
                 tension: 0.2,
                 pointRadius: 0,
                 pointHitRadius: 6,
-                borderDash: [6, 3]
+                borderDash: [6, 3],
+                pointStyle: 'triangle'
             });
         }
 

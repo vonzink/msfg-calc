@@ -13,6 +13,15 @@ const RefiUI = (() => {
     const dom = {};
     let lastResults = null;
 
+    // Debounce helper — delays rapid-fire calls for typing events
+    function debounce(fn, delay) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+        };
+    }
+
     // -------------------------------------------------
     // INITIALIZATION
     // -------------------------------------------------
@@ -45,6 +54,9 @@ const RefiUI = (() => {
         dom.currentMIHint = document.getElementById('currentMIHint');
         dom.currentMINote = document.getElementById('currentMINote');
 
+        // Monthly Escrow (shared across all scenarios, display-only)
+        dom.monthlyEscrow = document.getElementById('monthlyEscrow');
+
         // Refi offer
         dom.refiLoanAmount = document.getElementById('refiLoanAmount');
         dom.refiRate = document.getElementById('refiRate');
@@ -70,6 +82,8 @@ const RefiUI = (() => {
         // Future rate
         dom.futureRate = document.getElementById('futureRate');
         dom.monthsToWait = document.getElementById('monthsToWait');
+        dom.futureMIInput = document.getElementById('futureMIInput');
+        dom.futureMIModeBtn = document.getElementById('futureMIModeBtn');
         dom.futurePaymentDisplay = document.getElementById('futurePaymentDisplay');
 
         // Cost of Waiting toggle
@@ -91,22 +105,10 @@ const RefiUI = (() => {
         dom.targetBreakeven = document.getElementById('targetBreakeven');
         dom.planToStayMonths = document.getElementById('planToStayMonths');
 
-        // Fee fields (all start with "fee")
+        // Fee fields — driven by FEE_CONFIG
         dom.fees = {};
-        const feeIds = [
-            'feeOrigination', 'feeUnderwriting', 'feeDiscount', 'feeLenderCredit',
-            'feeAppraisal', 'feeCreditReport', 'feeFloodCert', 'feeMERS',
-            'feeTaxService', 'feeTechnology', 'feeVOE', 'feeVOT',
-            'feeERecording', 'feeTitleCPL', 'feeTitleLenders',
-            'feeTitleSettlement', 'feeTitleTaxCert',
-            'feeRecording',
-            'feePrepaidInterest',
-            'feeEscrowTax', 'feeEscrowInsurance',
-            'feeUpfrontMI', 'feeMonthlyMI',
-            'feeOther'
-        ];
-        feeIds.forEach(id => {
-            dom.fees[id] = document.getElementById(id);
+        RefiEngine.FEE_CONFIG.forEach(item => {
+            dom.fees[item.id] = document.getElementById(item.id);
         });
 
         // Fee totals
@@ -156,27 +158,25 @@ const RefiUI = (() => {
     // -------------------------------------------------
 
     function bindEvents() {
+        const debouncedLiveCalc = debounce(updateLiveCalculations, 150);
+
         // Calculate button
         dom.btnCalculate.addEventListener('click', runCalculation);
 
         // Reset button
         dom.btnReset.addEventListener('click', resetAll);
 
-        // Manual payment toggle
+        // Toggle events — immediate (not debounced)
         dom.manualPaymentToggle.addEventListener('change', () => {
             dom.manualPaymentSection.style.display =
                 dom.manualPaymentToggle.checked ? 'block' : 'none';
             updateLiveCalculations();
         });
-
-        // Cost of Waiting toggle
         dom.costOfWaitingToggle.addEventListener('change', () => {
             dom.costOfWaitingFields.style.display =
                 dom.costOfWaitingToggle.checked ? 'block' : 'none';
             updateLiveCalculations();
         });
-
-        // Cash out toggle
         dom.cashOutToggle.addEventListener('change', () => {
             dom.cashOutFields.style.display =
                 dom.cashOutToggle.checked ? 'block' : 'none';
@@ -187,29 +187,30 @@ const RefiUI = (() => {
         dom.btnAddDebt.addEventListener('click', addDebtRow);
         dom.btnAutoSum.addEventListener('click', autoSumDebts);
 
-        // Cash out live updates
-        dom.cashOutDebtPayments.addEventListener('input', updateLiveCalculations);
-        dom.cashOutAmount.addEventListener('input', updateLiveCalculations);
+        // Typing inputs — debounced
+        dom.cashOutDebtPayments.addEventListener('input', debouncedLiveCalc);
+        dom.cashOutAmount.addEventListener('input', debouncedLiveCalc);
 
-        // Delegate debt row input changes
+        // Delegate debt row input changes — debounced
         dom.debtRows.addEventListener('input', (e) => {
             if (e.target.classList.contains('debt-payment') || e.target.classList.contains('debt-balance')) {
-                updateLiveCalculations();
+                debouncedLiveCalc();
             }
         });
 
-        // Live update payment displays when inputs change
+        // Live update payment displays — debounced for typing
         const liveInputs = [
             dom.currentBalance, dom.currentRate, dom.currentTermRemaining,
             dom.currentPaymentManual, dom.currentPropertyValue,
+            dom.monthlyEscrow,
             dom.refiLoanAmount, dom.refiRate, dom.refiTerm,
             dom.futureRate, dom.monthsToWait
         ];
         liveInputs.forEach(input => {
-            if (input) input.addEventListener('input', updateLiveCalculations);
+            if (input) input.addEventListener('input', debouncedLiveCalc);
         });
 
-        // Loan type dropdowns trigger MI recalculation
+        // Dropdown changes — immediate
         if (dom.currentLoanType) dom.currentLoanType.addEventListener('change', updateLiveCalculations);
         if (dom.refiLoanType) dom.refiLoanType.addEventListener('change', updateLiveCalculations);
 
@@ -218,9 +219,9 @@ const RefiUI = (() => {
             if (input) input.addEventListener('input', updateClosingCostTotals);
         });
 
-        // MI editable inputs — live update & sync to closing costs
+        // MI editable inputs — debounced
         [dom.currentMIInput, dom.refiMIMonthlyInput, dom.refiMIUpfrontInput].forEach(input => {
-            if (input) input.addEventListener('input', updateLiveCalculations);
+            if (input) input.addEventListener('input', debouncedLiveCalc);
         });
 
         // MI mode toggle buttons ($ / %)
@@ -233,6 +234,12 @@ const RefiUI = (() => {
         bindMIModeToggle('refiMIUpfrontModeBtn', 'refiMIUpfrontInput', 'refiMIUpfrontHint', function() {
             return num(dom.refiLoanAmount);
         });
+        bindMIModeToggle('futureMIModeBtn', 'futureMIInput', null, function() {
+            return num(dom.refiLoanAmount);
+        });
+
+        // Future MI input — debounced
+        if (dom.futureMIInput) dom.futureMIInput.addEventListener('input', debouncedLiveCalc);
 
         // Print
         dom.btnPrint.addEventListener('click', () => {
@@ -330,17 +337,19 @@ function updateLiveCalculations() {
     const refiRate = num(dom.refiRate);
     const refiTerm = num(dom.refiTerm);
     const refiLoanType = dom.refiLoanType ? dom.refiLoanType.value : 'Conventional';
+    const escrow = num(dom.monthlyEscrow);
 
     // Current payment
     const currentPmt = RefiEngine.calcMonthlyPayment(currentBalance, currentRate, currentTermRemaining);
+    const currentPmtBase = dom.manualPaymentToggle.checked ? num(dom.currentPaymentManual) : currentPmt;
 
-    if (dom.manualPaymentToggle.checked) {
-        dom.currentPaymentDisplay.textContent = formatMoney(num(dom.currentPaymentManual));
-        dom.currentPaymentDisplay.title = 'Manual entry';
+    if (escrow > 0) {
+        dom.currentPaymentDisplay.textContent = formatMoney(currentPmtBase + escrow)
+            + ' (P&I ' + formatMoney(currentPmtBase) + ' + T&I ' + formatMoney(escrow) + ')';
     } else {
-        dom.currentPaymentDisplay.textContent = formatMoney(currentPmt);
-        dom.currentPaymentDisplay.title = 'Computed from balance, rate & term';
+        dom.currentPaymentDisplay.textContent = formatMoney(currentPmtBase);
     }
+    dom.currentPaymentDisplay.title = dom.manualPaymentToggle.checked ? 'Manual entry' : 'Computed from balance, rate & term';
 
     // Current MI — update LTV and hint, but user controls the value
     if (typeof RefiMI !== 'undefined') {
@@ -361,7 +370,12 @@ function updateLiveCalculations() {
 
     // Refi payment
     const refiPmt = RefiEngine.calcMonthlyPayment(refiLoanAmount, refiRate, refiTerm);
-    dom.refiPaymentDisplay.textContent = formatMoney(refiPmt);
+    if (escrow > 0) {
+        dom.refiPaymentDisplay.textContent = formatMoney(refiPmt + escrow)
+            + ' (P&I ' + formatMoney(refiPmt) + ' + T&I ' + formatMoney(escrow) + ')';
+    } else {
+        dom.refiPaymentDisplay.textContent = formatMoney(refiPmt);
+    }
 
     // Refi MI — update LTV and hints, user controls values
     if (typeof RefiMI !== 'undefined') {
@@ -397,7 +411,19 @@ function updateLiveCalculations() {
     // Future payment (only update if Cost of Waiting is enabled)
     if (dom.costOfWaitingToggle.checked) {
         const futurePmt = RefiEngine.calcMonthlyPayment(refiLoanAmount, num(dom.futureRate), refiTerm);
-        dom.futurePaymentDisplay.textContent = formatMoney(futurePmt);
+        const futureMIDollar = dom.futureMIInput && dom.futureMIModeBtn
+            ? resolveMIDollar(dom.futureMIInput, dom.futureMIModeBtn, refiLoanAmount, false) : 0;
+        const futureTotalPmt = RefiEngine.round2(futurePmt + futureMIDollar + escrow);
+        const parts = [];
+        parts.push('P&I ' + formatMoney(futurePmt));
+        if (futureMIDollar > 0) parts.push('MI ' + formatMoney(futureMIDollar));
+        if (escrow > 0) parts.push('T&I ' + formatMoney(escrow));
+        if (parts.length > 1 || escrow > 0) {
+            dom.futurePaymentDisplay.textContent = formatMoney(futureTotalPmt)
+                + ' (' + parts.join(' + ') + ')';
+        } else {
+            dom.futurePaymentDisplay.textContent = formatMoney(futurePmt);
+        }
     }
 
     // Cash out adjusted savings
@@ -467,6 +493,8 @@ function updateMIDisplay(prefix, miData) {
             currentMIMonthlyDollar: dom.currentMIInput && dom.currentMIModeBtn
                 ? resolveMIDollar(dom.currentMIInput, dom.currentMIModeBtn, currentBalance, false) : 0,
 
+            monthlyEscrow: num(dom.monthlyEscrow),
+
             refiLoanAmount: refiLoanAmount,
             refiRate: num(dom.refiRate),
             refiTerm: num(dom.refiTerm),
@@ -480,6 +508,9 @@ function updateMIDisplay(prefix, miData) {
             costOfWaitingEnabled: dom.costOfWaitingToggle.checked,
             futureRate: num(dom.futureRate),
             monthsToWait: num(dom.monthsToWait),
+            futureMIValue: num(dom.futureMIInput),
+            futureMIDollar: dom.futureMIInput && dom.futureMIModeBtn
+                ? resolveMIDollar(dom.futureMIInput, dom.futureMIModeBtn, num(dom.refiLoanAmount), false) : 0,
 
             targetBreakeven: num(dom.targetBreakeven),
             planToStayMonths: num(dom.planToStayMonths),
@@ -537,6 +568,9 @@ function updateMIDisplay(prefix, miData) {
         // Current loan type
         if (data.currentLoanType !== undefined && dom.currentLoanType) dom.currentLoanType.value = data.currentLoanType;
 
+        // Monthly Escrow
+        if (data.monthlyEscrow !== undefined) dom.monthlyEscrow.value = data.monthlyEscrow;
+
         // Refi offer
         if (data.refiLoanAmount !== undefined) dom.refiLoanAmount.value = data.refiLoanAmount;
         if (data.refiRate !== undefined) dom.refiRate.value = data.refiRate;
@@ -562,30 +596,12 @@ function updateMIDisplay(prefix, miData) {
 
         // Restore debt rows
         if (data.cashOutDebts && data.cashOutDebts.length > 0) {
-            dom.debtRows.innerHTML = '';
+            while (dom.debtRows.firstChild) dom.debtRows.removeChild(dom.debtRows.firstChild);
             debtRowCount = 0;
             data.cashOutDebts.forEach((debt, i) => {
-                debtRowCount++;
-                const row = document.createElement('div');
-                row.className = 'debt-row input-row';
-                const isFirst = i === 0;
-                row.innerHTML = `
-                    <input type="text" id="debtName${debtRowCount}" placeholder="Debt description" style="flex:2; min-width:150px;" value="${escHtml(debt.name || '')}">
-                    <div class="input-group" style="flex:1;">
-                        <label style="font-size:0.75rem;">Balance</label>
-                        <input type="number" class="debt-balance" value="${debt.balance || 0}" min="0" step="100">
-                    </div>
-                    <div class="input-group" style="flex:1;">
-                        <label style="font-size:0.75rem;">Monthly Pmt</label>
-                        <input type="number" class="debt-payment" value="${debt.payment || 0}" min="0" step="1">
-                    </div>
-                    <div class="input-group" style="flex:0.7;">
-                        <label style="font-size:0.75rem;">Rate %</label>
-                        <input type="number" class="debt-rate" value="${debt.rate || 0}" min="0" max="40" step="0.1">
-                    </div>
-                    ${!isFirst ? '<button type="button" class="btn btn-link" onclick="this.parentElement.remove();" style="color:var(--danger); flex:0;">&#10005;</button>' : ''}
-                `;
-                dom.debtRows.appendChild(row);
+                dom.debtRows.appendChild(
+                    buildDebtRow(debt.name, debt.balance, debt.payment, debt.rate, i > 0)
+                );
             });
         }
 
@@ -598,6 +614,7 @@ function updateMIDisplay(prefix, miData) {
         // Future rate
         if (data.futureRate !== undefined) dom.futureRate.value = data.futureRate;
         if (data.monthsToWait !== undefined) dom.monthsToWait.value = data.monthsToWait;
+        if (data.futureMIValue !== undefined && dom.futureMIInput) dom.futureMIInput.value = data.futureMIValue;
 
         // Advice settings
         if (data.targetBreakeven !== undefined) dom.targetBreakeven.value = data.targetBreakeven;
@@ -616,8 +633,10 @@ function updateMIDisplay(prefix, miData) {
             if (dom.refiMIMonthlyInput) dom.refiMIMonthlyInput.value = data.fees.feeMonthlyMI || 0;
             if (dom.refiMIUpfrontInput) dom.refiMIUpfrontInput.value = data.fees.feeUpfrontMI || 0;
         }
+        // Future MI
+        if (data.futureMIValue !== undefined && dom.futureMIInput) dom.futureMIInput.value = data.futureMIValue;
         // Reset MI mode buttons to dollar
-        ['currentMIModeBtn', 'refiMIMonthlyModeBtn', 'refiMIUpfrontModeBtn'].forEach(function(id) {
+        ['currentMIModeBtn', 'refiMIMonthlyModeBtn', 'refiMIUpfrontModeBtn', 'futureMIModeBtn'].forEach(function(id) {
             var btn = document.getElementById(id);
             if (btn) { btn.textContent = '$'; btn.setAttribute('data-mode', 'dollar'); }
         });
@@ -633,27 +652,63 @@ function updateMIDisplay(prefix, miData) {
 
     let debtRowCount = 1;
 
-    function addDebtRow() {
+    /**
+     * Create a labeled number input group for debt rows.
+     */
+    function createDebtInputGroup(labelText, className, defaultVal, min, step, max, flex) {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.style.cssText = `flex:${flex || '1'};`;
+
+        const label = document.createElement('label');
+        label.style.fontSize = '0.75rem';
+        label.textContent = labelText;
+        group.appendChild(label);
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = className;
+        input.value = defaultVal;
+        input.min = min;
+        input.step = step;
+        if (max !== undefined) input.max = max;
+        group.appendChild(input);
+
+        return group;
+    }
+
+    function buildDebtRow(name, balance, payment, rate, showRemove) {
         debtRowCount++;
         const row = document.createElement('div');
         row.className = 'debt-row input-row';
-        row.innerHTML = `
-            <input type="text" id="debtName${debtRowCount}" placeholder="Debt description" style="flex:2; min-width:150px;">
-            <div class="input-group" style="flex:1;">
-                <label style="font-size:0.75rem;">Balance</label>
-                <input type="number" class="debt-balance" value="0" min="0" step="100">
-            </div>
-            <div class="input-group" style="flex:1;">
-                <label style="font-size:0.75rem;">Monthly Pmt</label>
-                <input type="number" class="debt-payment" value="0" min="0" step="1">
-            </div>
-            <div class="input-group" style="flex:0.7;">
-                <label style="font-size:0.75rem;">Rate %</label>
-                <input type="number" class="debt-rate" value="0" min="0" max="40" step="0.1">
-            </div>
-            <button type="button" class="btn btn-link" onclick="this.parentElement.remove();" style="color:var(--danger); flex:0;">&#10005;</button>
-        `;
-        dom.debtRows.appendChild(row);
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.id = `debtName${debtRowCount}`;
+        nameInput.placeholder = 'Debt description';
+        nameInput.style.cssText = 'flex:2; min-width:150px;';
+        nameInput.value = name || '';
+        row.appendChild(nameInput);
+
+        row.appendChild(createDebtInputGroup('Balance', 'debt-balance', balance || 0, 0, 100));
+        row.appendChild(createDebtInputGroup('Monthly Pmt', 'debt-payment', payment || 0, 0, 1));
+        row.appendChild(createDebtInputGroup('Rate %', 'debt-rate', rate || 0, 0, 0.1, 40, '0.7'));
+
+        if (showRemove) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-link';
+            removeBtn.style.cssText = 'color:var(--danger); flex:0;';
+            removeBtn.textContent = '\u2715';
+            removeBtn.addEventListener('click', () => row.remove());
+            row.appendChild(removeBtn);
+        }
+
+        return row;
+    }
+
+    function addDebtRow() {
+        dom.debtRows.appendChild(buildDebtRow('', 0, 0, 0, true));
     }
 
     function autoSumDebts() {
@@ -673,20 +728,14 @@ function updateMIDisplay(prefix, miData) {
     function runCalculation() {
         const inputs = readAllInputs();
 
-        // Validation
-        if (inputs.currentBalance <= 0) {
-            alert('Please enter a valid current loan balance.');
-            dom.currentBalance.focus();
-            return;
-        }
-        if (inputs.refiLoanAmount <= 0) {
-            alert('Please enter a valid refinance loan amount.');
-            dom.refiLoanAmount.focus();
+        // Run engine (includes validation)
+        const results = RefiEngine.runAnalysis(inputs);
+
+        if (results.valid === false) {
+            alert('Please fix the following:\n\n' + results.errors.join('\n'));
             return;
         }
 
-        // Run engine
-        const results = RefiEngine.runAnalysis(inputs);
         lastResults = results;
 
         // Display results
@@ -750,7 +799,7 @@ function updateMIDisplay(prefix, miData) {
     // -------------------------------------------------
 
     function displayResults(r) {
-        const a = r.analysis;
+        const analysis = r.analysis;
 
         // Refinance Now metrics
         // If cash-out is active, show the adjusted label
@@ -758,97 +807,114 @@ function updateMIDisplay(prefix, miData) {
         if (r.cashOut.enabled && r.cashOut.debtPayments > 0) {
             savingsCard.querySelector('h3').textContent = 'Adjusted Monthly Savings';
             setText('resultMonthlySavings',
-                formatMoney(a.monthlySavingsNow) +
-                ' (P&I: ' + formatMoney(a.piSavingsNow) + ' + Debt: ' + formatMoney(a.cashOutDebtPayments) + ')'
+                formatMoney(analysis.monthlySavingsNow) +
+                ' (P&I: ' + formatMoney(analysis.piSavingsNow) + ' + Debt: ' + formatMoney(analysis.cashOutDebtPayments) + ')'
             );
         } else {
             savingsCard.querySelector('h3').textContent = 'Monthly P&I Savings';
-            setText('resultMonthlySavings', formatMoney(a.monthlySavingsNow));
+            setText('resultMonthlySavings', formatMoney(analysis.monthlySavingsNow));
         }
 
-        setText('resultBreakevenNow', a.breakevenNow === Infinity ? 'N/A' : a.breakevenNow + ' months');
-        setText('resultTotalClosingCost', formatMoney(a.closingCosts));
-        setText('resultNetSavings', formatMoney(a.refiNowNetSavings));
+        setText('resultBreakevenNow', analysis.breakevenNow === Infinity ? 'N/A' : analysis.breakevenNow + ' months');
+        setText('resultTotalClosingCost', formatMoney(analysis.closingCosts));
+        setText('resultNetSavings', formatMoney(analysis.refiNowNetSavings));
 
         // Color-code monthly savings card
-        setCardStatus('cardMonthlySavings', a.monthlySavingsNow > 0 ? 'favorable' : 'unfavorable');
+        setCardStatus('cardMonthlySavings', analysis.monthlySavingsNow > 0 ? 'favorable' : 'unfavorable');
 
         // Color-code breakeven card
         const targetBE = r.inputs.targetBreakeven;
-        if (a.breakevenNow === Infinity) {
+        if (analysis.breakevenNow === Infinity) {
             setCardStatus('cardBreakevenNow', 'unfavorable');
-        } else if (a.breakevenNow <= targetBE) {
+        } else if (analysis.breakevenNow <= targetBE) {
             setCardStatus('cardBreakevenNow', 'favorable');
         } else {
             setCardStatus('cardBreakevenNow', 'neutral');
         }
 
         // Net savings card
-        setCardStatus('cardNetSavings', a.refiNowNetSavings > 0 ? 'favorable' : 'unfavorable');
+        setCardStatus('cardNetSavings', analysis.refiNowNetSavings > 0 ? 'favorable' : 'unfavorable');
 
-        // Payment comparison (include user-entered MI if applicable)
-        var currentTotal = r.currentPayment + r.currentMonthlyMI;
-        var refiTotal = r.refiPayment + r.refiMonthlyMI;
+        // Payment comparison (include user-entered MI and escrow if applicable)
+        const escrow = r.inputs.monthlyEscrow || 0;
+        const currentTotal = r.currentPayment + r.currentMonthlyMI + escrow;
+        const refiTotal = r.refiPayment + r.refiMonthlyMI + escrow;
 
-        if (r.currentMonthlyMI > 0) {
-            setText('compareCurrentPayment',
-                formatMoney(currentTotal) + ' (P&I ' + formatMoney(r.currentPayment) + ' + MI ' + formatMoney(r.currentMonthlyMI) + ')');
+        // Build breakdown parts for current payment
+        const currentParts = ['P&I ' + formatMoney(r.currentPayment)];
+        if (r.currentMonthlyMI > 0) currentParts.push('MI ' + formatMoney(r.currentMonthlyMI));
+        if (escrow > 0) currentParts.push('T&I ' + formatMoney(escrow));
+
+        if (currentParts.length > 1) {
+            setText('compareCurrentPayment', formatMoney(currentTotal) + ' (' + currentParts.join(' + ') + ')');
         } else {
             setText('compareCurrentPayment', formatMoney(r.currentPayment));
         }
 
-        if (r.refiMonthlyMI > 0) {
-            setText('compareNewPayment',
-                formatMoney(refiTotal) + ' (P&I ' + formatMoney(r.refiPayment) + ' + MI ' + formatMoney(r.refiMonthlyMI) + ')');
+        // Build breakdown parts for new payment
+        const refiParts = ['P&I ' + formatMoney(r.refiPayment)];
+        if (r.refiMonthlyMI > 0) refiParts.push('MI ' + formatMoney(r.refiMonthlyMI));
+        if (escrow > 0) refiParts.push('T&I ' + formatMoney(escrow));
+
+        if (refiParts.length > 1) {
+            setText('compareNewPayment', formatMoney(refiTotal) + ' (' + refiParts.join(' + ') + ')');
         } else {
             setText('compareNewPayment', formatMoney(r.refiPayment));
         }
 
         // Cost of waiting metrics (populate even if hidden so PDF can use them)
-        setText('resultExtraInterest', formatMoney(a.extraInterest));
-        setText('resultFuturePayment', formatMoney(r.futurePayment));
-        setText('resultFutureSavings', formatMoney(a.futureMonthlySavings));
-        setText('resultBreakevenWait', a.breakevenWait === Infinity ? 'N/A' : a.breakevenWait + ' months');
+        setText('resultExtraInterest', formatMoney(analysis.extraInterest));
+        const futureParts = ['P&I ' + formatMoney(analysis.futurePIPayment)];
+        if (analysis.futureMI > 0) futureParts.push('MI ' + formatMoney(analysis.futureMI));
+        if (escrow > 0) futureParts.push('T&I ' + formatMoney(escrow));
+        const futureTotal = r.futurePayment + escrow;
+        if (futureParts.length > 1) {
+            setText('resultFuturePayment', formatMoney(futureTotal) + ' (' + futureParts.join(' + ') + ')');
+        } else {
+            setText('resultFuturePayment', formatMoney(r.futurePayment));
+        }
+        setText('resultFutureSavings', formatMoney(analysis.futureMonthlySavings));
+        setText('resultBreakevenWait', analysis.breakevenWait === Infinity ? 'N/A' : analysis.breakevenWait + ' months');
 
-        setCardStatus('cardExtraInterest', a.extraInterest > 0 ? 'unfavorable' : 'favorable');
-        setCardStatus('cardFutureSavings', a.futureMonthlySavings > 0 ? 'favorable' : 'unfavorable');
-        if (a.breakevenWait === Infinity) {
+        setCardStatus('cardExtraInterest', analysis.extraInterest > 0 ? 'unfavorable' : 'favorable');
+        setCardStatus('cardFutureSavings', analysis.futureMonthlySavings > 0 ? 'favorable' : 'unfavorable');
+        if (analysis.breakevenWait === Infinity) {
             setCardStatus('cardBreakevenWait', 'unfavorable');
-        } else if (a.breakevenWait <= targetBE) {
+        } else if (analysis.breakevenWait <= targetBE) {
             setCardStatus('cardBreakevenWait', 'favorable');
         } else {
             setCardStatus('cardBreakevenWait', 'neutral');
         }
 
         // Breakdown cards
-        setText('breakdownNowCosts', formatMoney(a.closingCosts));
-        setText('breakdownNowSavings', formatMoney(a.monthlySavingsNow) + '/mo');
-        setText('breakdownNowBreakeven', a.breakevenNow === Infinity ? 'N/A' : a.breakevenNow + ' mo');
-        setText('breakdownNowNet', formatMoney(a.refiNowNetSavings));
+        setText('breakdownNowCosts', formatMoney(analysis.closingCosts));
+        setText('breakdownNowSavings', formatMoney(analysis.monthlySavingsNow) + '/mo');
+        setText('breakdownNowBreakeven', analysis.breakevenNow === Infinity ? 'N/A' : analysis.breakevenNow + ' mo');
+        setText('breakdownNowNet', formatMoney(analysis.refiNowNetSavings));
 
-        setText('breakdownWaitCosts', formatMoney(a.closingCosts));
-        setText('breakdownWaitExtra', formatMoney(a.extraInterest));
-        setText('breakdownWaitEffective', formatMoney(a.effectiveTotalCost));
-        setText('breakdownWaitSavings', formatMoney(a.futureMonthlySavings) + '/mo');
-        setText('breakdownWaitBreakeven', a.breakevenWait === Infinity ? 'N/A' : a.breakevenWait + ' mo');
-        setText('breakdownWaitNet', formatMoney(a.waitNetSavings));
+        setText('breakdownWaitCosts', formatMoney(analysis.closingCosts));
+        setText('breakdownWaitExtra', formatMoney(analysis.extraInterest));
+        setText('breakdownWaitEffective', formatMoney(analysis.effectiveTotalCost));
+        setText('breakdownWaitSavings', formatMoney(analysis.futureMonthlySavings) + '/mo');
+        setText('breakdownWaitBreakeven', analysis.breakevenWait === Infinity ? 'N/A' : analysis.breakevenWait + ' mo');
+        setText('breakdownWaitNet', formatMoney(analysis.waitNetSavings));
 
         // Difference card
         const diffCard = document.getElementById('differenceCard');
         const diffValue = document.getElementById('resultDifference');
         const diffExplain = document.getElementById('differenceExplain');
 
-        diffValue.textContent = formatMoney(Math.abs(a.netDifference));
+        diffValue.textContent = formatMoney(Math.abs(analysis.netDifference));
         diffCard.classList.remove('positive', 'negative');
 
-        if (a.netDifference > 0) {
+        if (analysis.netDifference > 0) {
             diffCard.classList.add('positive');
-            diffValue.textContent = '+' + formatMoney(a.netDifference);
-            diffExplain.textContent = `Refinancing NOW saves you ${formatMoney(a.netDifference)} more than waiting over your ${r.inputs.planToStayMonths}-month stay.`;
-        } else if (a.netDifference < 0) {
+            diffValue.textContent = '+' + formatMoney(analysis.netDifference);
+            diffExplain.textContent = `Refinancing NOW saves you ${formatMoney(analysis.netDifference)} more than waiting over your ${r.inputs.planToStayMonths}-month stay.`;
+        } else if (analysis.netDifference < 0) {
             diffCard.classList.add('negative');
-            diffValue.textContent = '-' + formatMoney(Math.abs(a.netDifference));
-            diffExplain.textContent = `Waiting and refinancing later saves you ${formatMoney(Math.abs(a.netDifference))} more over your ${r.inputs.planToStayMonths}-month stay.`;
+            diffValue.textContent = '-' + formatMoney(Math.abs(analysis.netDifference));
+            diffExplain.textContent = `Waiting and refinancing later saves you ${formatMoney(Math.abs(analysis.netDifference))} more over your ${r.inputs.planToStayMonths}-month stay.`;
         } else {
             diffExplain.textContent = 'Both scenarios produce the same net savings.';
         }
@@ -871,7 +937,7 @@ function updateMIDisplay(prefix, miData) {
         }
         section.style.display = '';
 
-        const a = r.analysis;
+        const analysis = r.analysis;
         const targetBE = r.inputs.targetBreakeven;
 
         // Target rate label
@@ -904,24 +970,24 @@ function updateMIDisplay(prefix, miData) {
         }
 
         // 3-Way comparison
-        setText('compare3NowCosts', formatMoney(a.closingCosts));
-        setText('compare3NowSavings', formatMoney(a.monthlySavingsNow) + '/mo');
-        setText('compare3NowNet', formatMoney(a.refiNowNetSavings));
+        setText('compare3NowCosts', formatMoney(analysis.closingCosts));
+        setText('compare3NowSavings', formatMoney(analysis.monthlySavingsNow) + '/mo');
+        setText('compare3NowNet', formatMoney(analysis.refiNowNetSavings));
 
         setText('compare3DoubleCosts', formatMoney(dr.totalCosts));
         setText('compare3DoublePhase1', formatMoney(dr.phase1Savings));
         setText('compare3DoublePhase2', formatMoney(dr.phase2Savings));
         setText('compare3DoubleNet', formatMoney(dr.netSavings));
 
-        setText('compare3WaitCosts', formatMoney(a.effectiveTotalCost));
-        setText('compare3WaitSavings', formatMoney(a.futureMonthlySavings) + '/mo');
-        setText('compare3WaitNet', formatMoney(a.waitNetSavings));
+        setText('compare3WaitCosts', formatMoney(analysis.effectiveTotalCost));
+        setText('compare3WaitSavings', formatMoney(analysis.futureMonthlySavings) + '/mo');
+        setText('compare3WaitNet', formatMoney(analysis.waitNetSavings));
 
         // Determine best strategy
         const scenarios = [
-            { label: 'Refi Now Only', net: a.refiNowNetSavings },
+            { label: 'Refi Now Only', net: analysis.refiNowNetSavings },
             { label: 'Refi Now + Refi Again', net: dr.netSavings },
-            { label: 'Wait & Refi Once', net: a.waitNetSavings }
+            { label: 'Wait & Refi Once', net: analysis.waitNetSavings }
         ];
         scenarios.sort((x, y) => y.net - x.net);
         const best = scenarios[0];
@@ -952,7 +1018,7 @@ function updateMIDisplay(prefix, miData) {
 
     function buildMathDetails(r) {
         const container = document.getElementById('mathStepsContainer');
-        const a = r.analysis;
+        const analysis = r.analysis;
 
         let html = '';
 
@@ -989,7 +1055,7 @@ function updateMIDisplay(prefix, miData) {
                 <div class="math-step">
                     <div class="step-label">P&I Savings</div>
                     <div class="step-formula">${formatMoney(r.currentPayment)} - ${formatMoney(r.refiPayment)}</div>
-                    <div class="step-result">= ${formatMoney(a.piSavingsNow)} per month</div>
+                    <div class="step-result">= ${formatMoney(analysis.piSavingsNow)} per month</div>
                 </div>
                 <div class="math-step">
                     <div class="step-label">Debt Payments Eliminated (Cash Out)</div>
@@ -997,8 +1063,8 @@ function updateMIDisplay(prefix, miData) {
                 </div>
                 <div class="math-step">
                     <div class="step-label">Total Adjusted Monthly Savings</div>
-                    <div class="step-formula">${formatMoney(a.piSavingsNow)} + ${formatMoney(r.cashOut.debtPayments)}</div>
-                    <div class="step-result">= ${formatMoney(a.monthlySavingsNow)} per month</div>
+                    <div class="step-formula">${formatMoney(analysis.piSavingsNow)} + ${formatMoney(r.cashOut.debtPayments)}</div>
+                    <div class="step-result">= ${formatMoney(analysis.monthlySavingsNow)} per month</div>
                 </div>
             </div>`;
         } else {
@@ -1007,7 +1073,7 @@ function updateMIDisplay(prefix, miData) {
                 <h4>Monthly Savings (Refinance Now)</h4>
                 <div class="math-step">
                     <div class="step-formula">${formatMoney(r.currentPayment)} - ${formatMoney(r.refiPayment)}</div>
-                    <div class="step-result">= ${formatMoney(a.monthlySavingsNow)} per month</div>
+                    <div class="step-result">= ${formatMoney(analysis.monthlySavingsNow)} per month</div>
                 </div>
             </div>`;
         }
@@ -1018,8 +1084,8 @@ function updateMIDisplay(prefix, miData) {
             <h4>Breakeven (Refinance Now)</h4>
             <div class="math-step">
                 <div class="step-label">Breakeven = Total Closing Costs / Monthly Savings</div>
-                <div class="step-formula">${formatMoney(a.closingCosts)} / ${formatMoney(a.monthlySavingsNow)}</div>
-                <div class="step-result">= ${a.breakevenNow === Infinity ? 'N/A (no savings)' : a.breakevenNow + ' months'}</div>
+                <div class="step-formula">${formatMoney(analysis.closingCosts)} / ${formatMoney(analysis.monthlySavingsNow)}</div>
+                <div class="step-result">= ${analysis.breakevenNow === Infinity ? 'N/A (no savings)' : analysis.breakevenNow + ' months'}</div>
             </div>
         </div>`;
 
@@ -1029,32 +1095,32 @@ function updateMIDisplay(prefix, miData) {
             <div class="math-group">
                 <h4>Cost of Waiting Analysis</h4>
                 <div class="math-step">
-                    <div class="step-label">Extra interest paid while waiting (${a.monthsToWait} months)</div>
-                    <div class="step-formula">${formatMoney(a.monthlySavingsNow)} &times; ${a.monthsToWait} months</div>
-                    <div class="step-result">= ${formatMoney(a.extraInterest)}</div>
+                    <div class="step-label">Extra interest paid while waiting (${analysis.monthsToWait} months)</div>
+                    <div class="step-formula">${formatMoney(analysis.monthlySavingsNow)} &times; ${analysis.monthsToWait} months</div>
+                    <div class="step-result">= ${formatMoney(analysis.extraInterest)}</div>
                 </div>
                 <div class="math-step">
-                    <div class="step-label">Balance after waiting ${a.monthsToWait} months</div>
-                    <div class="step-result">= ${formatMoney(a.balanceAfterWait)}</div>
+                    <div class="step-label">Balance after waiting ${analysis.monthsToWait} months</div>
+                    <div class="step-result">= ${formatMoney(analysis.balanceAfterWait)}</div>
                 </div>
                 <div class="math-step">
-                    <div class="step-label">Future P&I Payment (${r.inputs.futureRate}% on ${formatMoney(a.balanceAfterWait)})</div>
+                    <div class="step-label">Future P&I Payment (${r.inputs.futureRate}% on ${formatMoney(analysis.balanceAfterWait)})</div>
                     <div class="step-result">= ${formatMoney(r.futurePayment)}</div>
                 </div>
                 <div class="math-step">
                     <div class="step-label">Future monthly savings vs current</div>
                     <div class="step-formula">${formatMoney(r.currentPayment)} - ${formatMoney(r.futurePayment)}</div>
-                    <div class="step-result">= ${formatMoney(a.futureMonthlySavings)} per month</div>
+                    <div class="step-result">= ${formatMoney(analysis.futureMonthlySavings)} per month</div>
                 </div>
                 <div class="math-step">
                     <div class="step-label">Effective total cost if waiting</div>
-                    <div class="step-formula">${formatMoney(a.closingCosts)} + ${formatMoney(a.extraInterest)}</div>
-                    <div class="step-result">= ${formatMoney(a.effectiveTotalCost)}</div>
+                    <div class="step-formula">${formatMoney(analysis.closingCosts)} + ${formatMoney(analysis.extraInterest)}</div>
+                    <div class="step-result">= ${formatMoney(analysis.effectiveTotalCost)}</div>
                 </div>
                 <div class="math-step">
                     <div class="step-label">Adjusted breakeven if waiting</div>
-                    <div class="step-formula">${formatMoney(a.effectiveTotalCost)} / ${formatMoney(a.futureMonthlySavings)}</div>
-                    <div class="step-result">= ${a.breakevenWait === Infinity ? 'N/A (no savings)' : a.breakevenWait + ' months'}</div>
+                    <div class="step-formula">${formatMoney(analysis.effectiveTotalCost)} / ${formatMoney(analysis.futureMonthlySavings)}</div>
+                    <div class="step-result">= ${analysis.breakevenWait === Infinity ? 'N/A (no savings)' : analysis.breakevenWait + ' months'}</div>
                 </div>
             </div>`;
         }
@@ -1102,8 +1168,8 @@ function updateMIDisplay(prefix, miData) {
             <h4>Net Savings Comparison (over ${r.inputs.planToStayMonths} months)</h4>
             <div class="math-step">
                 <div class="step-label">Refinance Now Net Savings</div>
-                <div class="step-formula">(${formatMoney(a.monthlySavingsNow)} &times; ${r.inputs.planToStayMonths}) - ${formatMoney(a.closingCosts)}</div>
-                <div class="step-result">= ${formatMoney(a.refiNowNetSavings)}</div>
+                <div class="step-formula">(${formatMoney(analysis.monthlySavingsNow)} &times; ${r.inputs.planToStayMonths}) - ${formatMoney(analysis.closingCosts)}</div>
+                <div class="step-result">= ${formatMoney(analysis.refiNowNetSavings)}</div>
             </div>`;
 
         if (r.doubleRefi) {
@@ -1118,12 +1184,12 @@ function updateMIDisplay(prefix, miData) {
             html += `
             <div class="math-step">
                 <div class="step-label">Wait & Refinance Net Savings</div>
-                <div class="step-formula">(${formatMoney(a.futureMonthlySavings)} &times; ${Math.max(0, r.inputs.planToStayMonths - a.monthsToWait)}) - ${formatMoney(a.effectiveTotalCost)}</div>
-                <div class="step-result">= ${formatMoney(a.waitNetSavings)}</div>
+                <div class="step-formula">(${formatMoney(analysis.futureMonthlySavings)} &times; ${Math.max(0, r.inputs.planToStayMonths - analysis.monthsToWait)}) - ${formatMoney(analysis.effectiveTotalCost)}</div>
+                <div class="step-result">= ${formatMoney(analysis.waitNetSavings)}</div>
             </div>
             <div class="math-step">
                 <div class="step-label">Difference (Now vs Wait)</div>
-                <div class="step-result" style="font-size:1.1rem;">= ${formatMoney(a.netDifference)} ${a.netDifference > 0 ? '(Refinance Now is better)' : a.netDifference < 0 ? '(Waiting is better)' : '(Equal)'}</div>
+                <div class="step-result" style="font-size:1.1rem;">= ${formatMoney(analysis.netDifference)} ${analysis.netDifference > 0 ? '(Refinance Now is better)' : analysis.netDifference < 0 ? '(Waiting is better)' : '(Equal)'}</div>
             </div>`;
         }
 
@@ -1140,56 +1206,52 @@ function updateMIDisplay(prefix, miData) {
         const container = document.getElementById('closingCostTableContainer');
         const fees = r.inputs.fees;
         const costs = r.costs;
+        const config = RefiEngine.FEE_CONFIG;
 
-        const rows = [
-            { section: true, label: 'Origination Charges' },
-            { label: 'Origination Fee / Points', value: fees.feeOrigination },
-            { label: 'Underwriting / Processing Fee', value: fees.feeUnderwriting },
-            { label: 'Discount Points', value: fees.feeDiscount },
-            { label: 'Lender Credit', value: fees.feeLenderCredit },
-            { subtotal: true, label: 'Origination Total', value: costs.origination },
+        // Group display metadata
+        const groupMeta = {
+            origination: { label: 'Origination Charges', costKey: 'origination', subtotalLabel: 'Origination Total' },
+            cannotShop:  { label: 'Services Borrower Cannot Shop', costKey: 'cannotShop', subtotalLabel: 'Cannot Shop Total' },
+            canShop:     { label: 'Services Borrower Can Shop For', costKey: 'canShop', subtotalLabel: 'Can Shop Total' },
+            govFees:     { label: 'Taxes & Government Fees', costKey: 'govFees', subtotalLabel: 'Government Fees Total' },
+            mi:          { label: 'Mortgage Insurance / Funding Fees' },
+            other:       { label: 'Other', costKey: 'other', subtotalLabel: null }
+        };
+        const groupOrder = ['origination', 'cannotShop', 'canShop', 'govFees', 'mi', 'other'];
 
-            { section: true, label: 'Services Borrower Cannot Shop' },
-            { label: 'Appraisal Fee', value: fees.feeAppraisal },
-            { label: 'Credit Report Fee', value: fees.feeCreditReport },
-            { label: 'Flood Certification', value: fees.feeFloodCert },
-            { label: 'MERS Registration Fee', value: fees.feeMERS },
-            { label: 'Tax Related Service Fee', value: fees.feeTaxService },
-            { label: 'Technology Fee', value: fees.feeTechnology },
-            { label: 'Verification of Employment Fee', value: fees.feeVOE },
-            { label: 'Verification of Tax Return Fee', value: fees.feeVOT },
-            { subtotal: true, label: 'Cannot Shop Total', value: costs.cannotShop },
+        // Build rows from FEE_CONFIG
+        const rows = [];
+        groupOrder.forEach(group => {
+            const meta = groupMeta[group];
+            if (!meta) return;
+            rows.push({ section: true, label: meta.label });
 
-            { section: true, label: 'Services Borrower Can Shop For' },
-            { label: 'E-Recording Fee', value: fees.feeERecording },
-            { label: 'Title - Closing Protection Letter Fee', value: fees.feeTitleCPL },
-            { label: 'Title - Lenders Coverage Premium', value: fees.feeTitleLenders },
-            { label: 'Title - Settlement Fee', value: fees.feeTitleSettlement },
-            { label: 'Title - Tax Cert Fee', value: fees.feeTitleTaxCert },
-            { subtotal: true, label: 'Can Shop Total', value: costs.canShop },
+            config.filter(item => item.group === group).forEach(item => {
+                const row = { label: item.label, value: fees[item.id] || 0 };
+                if (item.monthlySeparate) row.note = '/month (not in closing cost total)';
+                rows.push(row);
+            });
 
-            { section: true, label: 'Taxes & Government Fees' },
-            { label: 'Recording Fee for Deed', value: fees.feeRecording },
-            { subtotal: true, label: 'Government Fees Total', value: costs.govFees },
+            if (meta.subtotalLabel) {
+                rows.push({ subtotal: true, label: meta.subtotalLabel, value: costs[meta.costKey] });
+            }
+        });
 
-            { section: true, label: 'Mortgage Insurance / Funding Fees' },
-            { label: 'Upfront MI / Funding Fee', value: fees.feeUpfrontMI || 0 },
-            { label: 'Monthly MI', value: fees.feeMonthlyMI || 0, note: '/month (not in closing cost total)' },
+        rows.push({ grand: true, label: 'Total Closing Costs (for Breakeven)', value: costs.totalBreakeven });
 
-            { section: true, label: 'Other' },
-            { label: 'Other Fees', value: fees.feeOther },
+        // Excluded section (prepaids & escrow)
+        rows.push({ section: true, label: 'Excluded from Breakeven', excluded: true });
+        config.filter(item => item.excludeFromBreakeven).forEach(item => {
+            rows.push({ label: item.label, value: fees[item.id] || 0, excluded: true });
+        });
+        rows.push({
+            subtotal: true, label: 'Total Prepaids & Escrow',
+            value: RefiEngine.round2(costs.prepaids + costs.escrow), excluded: true
+        });
 
-            { grand: true, label: 'Total Closing Costs (for Breakeven)', value: costs.totalBreakeven },
+        rows.push({ grand: true, label: 'Total All Closing Costs', value: costs.totalAll });
 
-            { section: true, label: 'Excluded from Breakeven', excluded: true },
-            { label: 'Prepaid Interest', value: costs.prepaids, excluded: true },
-            { label: 'Escrow - Property Tax', value: fees.feeEscrowTax, excluded: true },
-            { label: 'Escrow - Hazard Insurance', value: fees.feeEscrowInsurance, excluded: true },
-            { subtotal: true, label: 'Total Prepaids & Escrow', value: RefiEngine.round2(costs.prepaids + costs.escrow), excluded: true },
-
-            { grand: true, label: 'Total All Closing Costs', value: costs.totalAll },
-        ];
-
+        // Render table
         let html = '<table class="closing-summary-table">';
         html += '<thead><tr><th>Fee Description</th><th class="amount-col">Amount</th></tr></thead><tbody>';
 
@@ -1224,6 +1286,7 @@ function updateMIDisplay(prefix, miData) {
         dom.manualPaymentToggle.checked = false;
         dom.manualPaymentSection.style.display = 'none';
         dom.currentPaymentManual.value = 0;
+        dom.monthlyEscrow.value = 0;
 
         // Refi
         dom.refiLoanAmount.value = 485000;
@@ -1236,8 +1299,9 @@ function updateMIDisplay(prefix, miData) {
         if (dom.currentMIInput) dom.currentMIInput.value = 0;
         if (dom.refiMIMonthlyInput) dom.refiMIMonthlyInput.value = 0;
         if (dom.refiMIUpfrontInput) dom.refiMIUpfrontInput.value = 0;
+        if (dom.futureMIInput) dom.futureMIInput.value = 0;
         // Reset MI mode buttons to dollar
-        ['currentMIModeBtn', 'refiMIMonthlyModeBtn', 'refiMIUpfrontModeBtn'].forEach(function(id) {
+        ['currentMIModeBtn', 'refiMIMonthlyModeBtn', 'refiMIUpfrontModeBtn', 'futureMIModeBtn'].forEach(function(id) {
             var btn = document.getElementById(id);
             if (btn) { btn.textContent = '$'; btn.setAttribute('data-mode', 'dollar'); }
         });
@@ -1248,23 +1312,9 @@ function updateMIDisplay(prefix, miData) {
         dom.cashOutAmount.value = 0;
         dom.cashOutDebtPayments.value = 0;
         // Reset debt rows to a single empty row
-        dom.debtRows.innerHTML = `
-            <div class="debt-row input-row">
-                <input type="text" id="debtName1" placeholder="Debt description" style="flex:2; min-width:150px;">
-                <div class="input-group" style="flex:1;">
-                    <label style="font-size:0.75rem;">Balance</label>
-                    <input type="number" class="debt-balance" value="0" min="0" step="100">
-                </div>
-                <div class="input-group" style="flex:1;">
-                    <label style="font-size:0.75rem;">Monthly Pmt</label>
-                    <input type="number" class="debt-payment" value="0" min="0" step="1">
-                </div>
-                <div class="input-group" style="flex:0.7;">
-                    <label style="font-size:0.75rem;">Rate %</label>
-                    <input type="number" class="debt-rate" value="0" min="0" max="40" step="0.1">
-                </div>
-            </div>`;
-        debtRowCount = 1;
+        while (dom.debtRows.firstChild) dom.debtRows.removeChild(dom.debtRows.firstChild);
+        debtRowCount = 0;
+        dom.debtRows.appendChild(buildDebtRow('', 0, 0, 0, false));
 
         // Cost of Waiting
         dom.costOfWaitingToggle.checked = true;

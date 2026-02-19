@@ -1159,8 +1159,8 @@ input.input-highlight {
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
-    font-size: 8pt !important;
-    line-height: 1.25 !important;
+    font-size: 10pt !important;
+    line-height: 1.3 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -1228,7 +1228,7 @@ input.input-highlight {
   }
 
   .section h2 {
-    font-size: 9pt !important;
+    font-size: 11pt !important;
     margin: 0 0 0.2rem !important;
   }
 
@@ -1236,7 +1236,7 @@ input.input-highlight {
     width: 16px !important;
     height: 16px !important;
     line-height: 16px !important;
-    font-size: 7pt !important;
+    font-size: 8pt !important;
     margin-right: 0.25rem !important;
   }
 
@@ -1267,7 +1267,7 @@ input.input-highlight {
   }
 
   label {
-    font-size: 7pt !important;
+    font-size: 8.5pt !important;
     font-weight: 500 !important;
     margin-bottom: 0 !important;
     color: #555 !important;
@@ -1279,7 +1279,7 @@ input.input-highlight {
     border: none !important;
     background: none !important;
     padding: 0 !important;
-    font-size: 7.5pt !important;
+    font-size: 9pt !important;
     font-weight: 600 !important;
     color: #333 !important;
     text-align: right !important;
@@ -1298,7 +1298,7 @@ input.input-highlight {
   }
 
   .input-row label {
-    font-size: 7pt !important;
+    font-size: 8.5pt !important;
     min-width: 0 !important;
   }
 
@@ -1316,8 +1316,8 @@ input.input-highlight {
     border-radius: 2px !important;
     border-width: 1px !important;
   }
-  .total-row label { font-size: 7.5pt !important; }
-  .total-row .total-value { font-size: 8pt !important; }
+  .total-row label { font-size: 9pt !important; }
+  .total-row .total-value { font-size: 10pt !important; }
 
   /* ---- Results ---- */
   .results-section {
@@ -1328,7 +1328,7 @@ input.input-highlight {
     page-break-inside: avoid;
   }
   .results-section h2 {
-    font-size: 9pt !important;
+    font-size: 11pt !important;
     margin: 0 0 0.25rem !important;
   }
 
@@ -1344,12 +1344,12 @@ input.input-highlight {
     border-width: 1px !important;
   }
   .result-card h3 {
-    font-size: 6pt !important;
+    font-size: 7.5pt !important;
     margin: 0 0 0.05rem !important;
     letter-spacing: 0 !important;
   }
-  .result-value { font-size: 9pt !important; }
-  .result-sub { font-size: 6pt !important; margin-top: 0.05rem !important; }
+  .result-value { font-size: 11pt !important; }
+  .result-sub { font-size: 7.5pt !important; margin-top: 0.05rem !important; }
 
   /* ---- Highlight results ---- */
   .result-highlight,
@@ -1359,7 +1359,7 @@ input.input-highlight {
     border-width: 1px !important;
   }
   .result-highlight h3,
-  .highlight-result h3 { font-size: 7pt !important; margin-bottom: 0 !important; }
+  .highlight-result h3 { font-size: 8.5pt !important; margin-bottom: 0 !important; }
   .result-highlight .big-value,
   .highlight-result .big-value { font-size: 11pt !important; }
 
@@ -1369,7 +1369,7 @@ input.input-highlight {
     margin-top: 0.15rem !important;
     border-width: 1px !important;
   }
-  .difference h3 { font-size: 8pt !important; margin-bottom: 0.1rem !important; }
+  .difference h3 { font-size: 9.5pt !important; margin-bottom: 0.1rem !important; }
   .difference-value { font-size: 11pt !important; margin: 0.1rem 0 !important; }
 
   /* ---- Breakdown cards ---- */
@@ -1382,16 +1382,16 @@ input.input-highlight {
     border-radius: 4px !important;
   }
   .breakdown-card h3 {
-    font-size: 8pt !important;
+    font-size: 9.5pt !important;
     margin: 0 0 0.15rem !important;
     padding-bottom: 0.1rem !important;
   }
   .breakdown-item {
     padding: 0.05rem 0 !important;
-    font-size: 7pt !important;
+    font-size: 8.5pt !important;
   }
   .breakdown-item:last-child {
-    font-size: 8pt !important;
+    font-size: 9.5pt !important;
     margin-top: 0.1rem !important;
     padding-top: 0.15rem !important;
   }
@@ -1404,10 +1404,10 @@ input.input-highlight {
     text-align: left !important;
     break-inside: avoid;
   }
-  .conclusion h3 { font-size: 9pt !important; margin-bottom: 0.15rem !important; }
-  .conclusion p { font-size: 7.5pt !important; margin: 0.1rem 0 !important; }
+  .conclusion h3 { font-size: 11pt !important; margin-bottom: 0.15rem !important; }
+  .conclusion p { font-size: 9pt !important; margin: 0.1rem 0 !important; }
   .recommendation {
-    font-size: 8pt !important;
+    font-size: 9.5pt !important;
     padding: 0.2rem 0.4rem !important;
     margin: 0.15rem 0 !important;
     border-width: 1px !important;
@@ -1426,12 +1426,12 @@ input.input-highlight {
   }
   .comparison-item h4,
   .residual-item h4 {
-    font-size: 6.5pt !important;
+    font-size: 8pt !important;
     margin-bottom: 0 !important;
   }
   .comparison-item .value,
   .residual-item .value {
-    font-size: 9pt !important;
+    font-size: 11pt !important;
   }
 
   /* ---- Calculation steps ---- */
@@ -1447,7 +1447,7 @@ input.input-highlight {
   }
   .collapsible-header h2,
   .chart-header h2 {
-    font-size: 8pt !important;
+    font-size: 9.5pt !important;
   }
   .collapsible-content,
   .chart-content {
@@ -1461,14 +1461,14 @@ input.input-highlight {
     padding: 0.25rem 0.4rem !important;
     margin: 0.2rem 0 !important;
   }
-  .math-section h3 { font-size: 8pt !important; margin-bottom: 0.2rem !important; }
+  .math-section h3 { font-size: 9.5pt !important; margin-bottom: 0.2rem !important; }
   .calculation-step {
     padding: 0.15rem 0.3rem !important;
     margin: 0.1rem 0 !important;
     border-left-width: 2px !important;
   }
-  .calculation-step h4 { font-size: 7.5pt !important; margin-bottom: 0.05rem !important; }
-  .calculation-step p { font-size: 7pt !important; margin: 0.05rem 0 !important; line-height: 1.3 !important; }
+  .calculation-step h4 { font-size: 9pt !important; margin-bottom: 0.05rem !important; }
+  .calculation-step p { font-size: 8.5pt !important; margin: 0.05rem 0 !important; line-height: 1.3 !important; }
 
   /* ---- Fee breakdown ---- */
   .fee-breakdown {
@@ -1477,7 +1477,7 @@ input.input-highlight {
   }
   .fee-section { margin-bottom: 0.2rem !important; }
   .fee-section h4 {
-    font-size: 7.5pt !important;
+    font-size: 9pt !important;
     margin-bottom: 0.1rem !important;
     padding-bottom: 0.05rem !important;
   }
@@ -1486,19 +1486,19 @@ input.input-highlight {
     gap: 0.1rem 0.3rem !important;
   }
   .fee-item { gap: 0 !important; }
-  .fee-item label { font-size: 6.5pt !important; }
-  .fee-item input { font-size: 7pt !important; max-width: 70px !important; }
+  .fee-item label { font-size: 8pt !important; }
+  .fee-item input { font-size: 8.5pt !important; max-width: 70px !important; }
   .fee-section-excluded { opacity: 1 !important; }
 
   /* ---- Tables ---- */
-  .editable-table { font-size: 7pt !important; }
-  .editable-table th { padding: 0.1rem 0.2rem !important; font-size: 6.5pt !important; }
+  .editable-table { font-size: 8.5pt !important; }
+  .editable-table th { padding: 0.1rem 0.2rem !important; font-size: 8pt !important; }
   .editable-table td { padding: 0.05rem 0.2rem !important; }
-  .editable-table input { width: 50px !important; font-size: 7pt !important; padding: 0.1rem !important; }
+  .editable-table input { width: 50px !important; font-size: 8.5pt !important; padding: 0.1rem !important; }
   .tables-container,
   .residual-tables-container { gap: 0.4rem !important; }
   .table-wrapper h3,
-  .residual-table-wrapper h3 { font-size: 8pt !important; margin-bottom: 0.15rem !important; }
+  .residual-table-wrapper h3 { font-size: 9.5pt !important; margin-bottom: 0.15rem !important; }
 
   /* ---- DTI / ratio displays ---- */
   .dti-display,
@@ -1508,18 +1508,18 @@ input.input-highlight {
     border-width: 1px !important;
   }
   .dti-display h3,
-  .ratio-display h3 { font-size: 7.5pt !important; margin-bottom: 0 !important; }
+  .ratio-display h3 { font-size: 9pt !important; margin-bottom: 0 !important; }
   .dti-value,
-  .ratio-value { font-size: 12pt !important; }
+  .ratio-value { font-size: 14pt !important; }
   .dti-guideline,
-  .ratio-guideline { font-size: 6.5pt !important; margin-top: 0.05rem !important; }
+  .ratio-guideline { font-size: 8pt !important; margin-top: 0.05rem !important; }
 
   /* ---- Status indicators ---- */
   .status-indicator,
   .residual-status {
     padding: 0.2rem !important;
     margin-top: 0.15rem !important;
-    font-size: 8pt !important;
+    font-size: 9.5pt !important;
     border-width: 1px !important;
   }
 
@@ -1527,17 +1527,17 @@ input.input-highlight {
   .footer {
     margin-top: 0.25rem !important;
     padding: 0.25rem 0.4rem !important;
-    font-size: 6.5pt !important;
+    font-size: 8pt !important;
     line-height: 1.3 !important;
   }
-  .footer-title { font-size: 7pt !important; margin-bottom: 0.1rem !important; }
+  .footer-title { font-size: 8.5pt !important; margin-bottom: 0.1rem !important; }
 
   /* ---- Region key ---- */
   .region-key { padding: 0.25rem !important; margin-top: 0.25rem !important; }
-  .region-key h4 { margin-bottom: 0.15rem !important; font-size: 7.5pt !important; }
+  .region-key h4 { margin-bottom: 0.15rem !important; font-size: 9pt !important; }
   .region-grid { gap: 0.2rem !important; }
-  .region-column h5 { font-size: 7pt !important; margin-bottom: 0.1rem !important; }
-  .region-column ul { font-size: 6.5pt !important; }
+  .region-column h5 { font-size: 8.5pt !important; margin-bottom: 0.1rem !important; }
+  .region-column ul { font-size: 8pt !important; }
 
   /* ---- Page break hints ---- */
   h2, h3, h4 {

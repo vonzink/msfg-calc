@@ -236,6 +236,14 @@
     line-height: 1.5;
 }
 
+.field-hint {
+    display: block;
+    color: var(--gray);
+    font-size: 0.78rem;
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
 /* =====================================================
    PAYMENT TOGGLE
    ===================================================== */
