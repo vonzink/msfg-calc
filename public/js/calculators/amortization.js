@@ -11,6 +11,7 @@ const AmortCalc = (() => {
   let chart = null;
   let currentSchedule = [];
   let baseSchedule = []; // schedule without extras, for savings comparison
+  let currentMode = 'purchase'; // 'purchase' or 'refinance'
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -20,11 +21,17 @@ const AmortCalc = (() => {
     cacheDom();
     populateDateSelectors();
     bindEvents();
+    updateLTVDisplay();
     calculate();
   };
 
   const cacheDom = () => {
-    // Loan inputs
+    // Mode toggle
+    dom.modeToggle        = document.getElementById('modeToggle');
+    dom.purchaseFields    = document.getElementById('purchaseFields');
+    dom.refiFields        = document.getElementById('refiFields');
+
+    // Loan inputs (purchase)
     dom.homePrice         = document.getElementById('homePrice');
     dom.homePriceSlider   = document.getElementById('homePriceSlider');
     dom.downPaymentDollar = document.getElementById('downPaymentDollar');
@@ -34,6 +41,19 @@ const AmortCalc = (() => {
     dom.startMonth        = document.getElementById('startMonth');
     dom.startYear         = document.getElementById('startYear');
     dom.termToggle        = document.getElementById('termToggle');
+
+    // Loan inputs (refinance)
+    dom.refiLoanAmount    = document.getElementById('refiLoanAmount');
+    dom.refiLoanSlider    = document.getElementById('refiLoanSlider');
+    dom.appraisedValue    = document.getElementById('appraisedValue');
+    dom.cashOut           = document.getElementById('cashOut');
+    dom.refiEquity        = document.getElementById('refiEquity');
+
+    // LTV display
+    dom.ltvDisplay        = document.getElementById('ltvDisplay');
+    dom.ltvValue          = document.getElementById('ltvValue');
+    dom.ltvFill           = document.getElementById('ltvFill');
+    dom.ltvNote           = document.getElementById('ltvNote');
 
     // Taxes & Insurance
     dom.propertyTax       = document.getElementById('propertyTax');
@@ -63,6 +83,10 @@ const AmortCalc = (() => {
     dom.extraSavingsRow   = document.getElementById('extraSavingsRow');
     dom.resultInterestSaved = document.getElementById('resultInterestSaved');
     dom.resultTimeSaved   = document.getElementById('resultTimeSaved');
+    dom.resultCashEquityCard  = document.getElementById('resultCashEquityCard');
+    dom.resultCashEquityLabel = document.getElementById('resultCashEquityLabel');
+    dom.resultCashEquityValue = document.getElementById('resultCashEquityValue');
+    dom.resultStartingLTV     = document.getElementById('resultStartingLTV');
 
     // Chart & Schedule
     dom.chartSection      = document.getElementById('chartSection');
@@ -107,29 +131,69 @@ const AmortCalc = (() => {
 
   /* ---------- Event Binding ---------- */
   const bindEvents = () => {
+    // Mode toggle (Purchase / Refinance)
+    dom.modeToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('.amort-term-btn');
+      if (!btn || btn.dataset.mode === currentMode) return;
+      dom.modeToggle.querySelectorAll('.amort-term-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setMode(btn.dataset.mode);
+    });
+
     // Home price ↔ slider sync
     dom.homePrice.addEventListener('input', () => {
       dom.homePriceSlider.value = dom.homePrice.value;
       syncDownPaymentFromPercent();
       updateSliderFill();
+      updateLTVDisplay();
       debouncedCalc();
     });
     dom.homePriceSlider.addEventListener('input', () => {
       dom.homePrice.value = dom.homePriceSlider.value;
       syncDownPaymentFromPercent();
       updateSliderFill();
+      updateLTVDisplay();
       debouncedCalc();
     });
 
     // Down payment sync
     dom.downPaymentDollar.addEventListener('input', () => {
       syncDownPaymentFromDollar();
+      updateLTVDisplay();
       debouncedCalc();
     });
     dom.downPaymentPercent.addEventListener('input', () => {
       syncDownPaymentFromPercent();
+      updateLTVDisplay();
       debouncedCalc();
     });
+
+    // Refi Loan Amount ↔ slider sync
+    dom.refiLoanAmount.addEventListener('input', () => {
+      dom.refiLoanSlider.value = dom.refiLoanAmount.value;
+      updateRefiSliderFill();
+      updateRefiEquityDisplay();
+      updateLTVDisplay();
+      debouncedCalc();
+    });
+    dom.refiLoanSlider.addEventListener('input', () => {
+      dom.refiLoanAmount.value = dom.refiLoanSlider.value;
+      updateRefiSliderFill();
+      updateRefiEquityDisplay();
+      updateLTVDisplay();
+      debouncedCalc();
+    });
+
+    // Appraised Value input
+    dom.appraisedValue.addEventListener('input', () => {
+      updateRefiEquityDisplay();
+      updateLTVDisplay();
+      debouncedCalc();
+    });
+
+    // Cash Out input
+    dom.cashOut.addEventListener('input', debouncedCalc);
+    dom.cashOut.addEventListener('change', calculate);
 
     // Standard inputs
     [dom.interestRate, dom.startMonth, dom.startYear, dom.propertyTax,
@@ -171,20 +235,12 @@ const AmortCalc = (() => {
 
     // Initial slider fill
     updateSliderFill();
+    updateRefiSliderFill();
 
-    // Auto-set PMI based on down payment %
+    // Auto-set PMI based on down payment % (purchase mode)
     dom.downPaymentPercent.addEventListener('change', () => {
-      const pct = MSFG.parseNum(dom.downPaymentPercent.value);
-      if (pct < 20 && MSFG.parseNum(dom.pmi.value) === 0) {
-        // Suggest typical PMI: ~0.5% of loan / 12
-        const loanAmt = getLoanAmount();
-        const suggestedPMI = Math.round((loanAmt * 0.005) / 12);
-        dom.pmi.value = suggestedPMI;
-        dom.pmiNote.textContent = 'Auto-estimated at 0.5% annual rate';
-      } else if (pct >= 20) {
-        dom.pmi.value = 0;
-        dom.pmiNote.textContent = '';
-      }
+      if (currentMode !== 'purchase') return;
+      updatePMISuggestion();
     });
   };
 
@@ -228,6 +284,123 @@ const AmortCalc = (() => {
     slider.style.setProperty('--fill', `${pct}%`);
   };
 
+  const updateRefiSliderFill = () => {
+    const slider = dom.refiLoanSlider;
+    const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+    slider.style.setProperty('--fill', `${pct}%`);
+  };
+
+  /* ---------- Mode Switch ---------- */
+  const setMode = (mode) => {
+    const prevMode = currentMode;
+    currentMode = mode;
+
+    if (mode === 'refinance') {
+      // Carry values: Purchase → Refi
+      if (prevMode === 'purchase') {
+        const loanAmt = getLoanAmount();
+        const hp = MSFG.parseNum(dom.homePrice.value);
+        dom.refiLoanAmount.value = loanAmt;
+        dom.refiLoanSlider.value = loanAmt;
+        dom.appraisedValue.value = hp;
+        dom.cashOut.value = 0;
+        updateRefiSliderFill();
+        updateRefiEquityDisplay();
+      }
+      dom.purchaseFields.style.display = 'none';
+      dom.refiFields.style.display = '';
+    } else {
+      // Carry values: Refi → Purchase
+      if (prevMode === 'refinance') {
+        const apprVal = MSFG.parseNum(dom.appraisedValue.value);
+        const refiLoan = MSFG.parseNum(dom.refiLoanAmount.value);
+        const dp = Math.max(apprVal - refiLoan, 0);
+        dom.homePrice.value = apprVal;
+        dom.homePriceSlider.value = Math.min(Math.max(apprVal, 50000), 2000000);
+        dom.downPaymentDollar.value = dp;
+        dom.downPaymentPercent.value = apprVal > 0 ? ((dp / apprVal) * 100).toFixed(1) : 0;
+        updateSliderFill();
+        updateLoanAmountDisplay();
+      }
+      dom.purchaseFields.style.display = '';
+      dom.refiFields.style.display = 'none';
+    }
+
+    updateLTVDisplay();
+    updatePMISuggestion();
+    calculate();
+  };
+
+  /* ---------- Refi Equity Display ---------- */
+  const updateRefiEquityDisplay = () => {
+    const apprVal = MSFG.parseNum(dom.appraisedValue.value);
+    const loanAmt = MSFG.parseNum(dom.refiLoanAmount.value);
+    const equity = Math.max(apprVal - loanAmt, 0);
+    dom.refiEquity.value = MSFG.formatCurrency(equity, 0);
+  };
+
+  /* ---------- LTV Display ---------- */
+  const updateLTVDisplay = () => {
+    let loanAmt, propertyVal;
+
+    if (currentMode === 'purchase') {
+      loanAmt = getLoanAmount();
+      propertyVal = MSFG.parseNum(dom.homePrice.value);
+    } else {
+      loanAmt = MSFG.parseNum(dom.refiLoanAmount.value);
+      propertyVal = MSFG.parseNum(dom.appraisedValue.value);
+    }
+
+    const ltv = propertyVal > 0 ? (loanAmt / propertyVal) * 100 : 0;
+    const ltvClamped = Math.min(ltv, 100); // clamp fill at 100%
+
+    dom.ltvValue.textContent = `${ltv.toFixed(1)}%`;
+    dom.ltvFill.style.width = `${ltvClamped}%`;
+
+    // Color coding
+    dom.ltvValue.classList.remove('warning', 'danger');
+    dom.ltvFill.classList.remove('warning', 'danger');
+
+    if (ltv > 95) {
+      dom.ltvValue.classList.add('danger');
+      dom.ltvFill.classList.add('danger');
+    } else if (ltv > 80) {
+      dom.ltvValue.classList.add('warning');
+      dom.ltvFill.classList.add('warning');
+    }
+
+    // Note
+    if (ltv > 80) {
+      dom.ltvNote.textContent = 'LTV exceeds 80% — PMI may be required';
+    } else {
+      dom.ltvNote.textContent = '';
+    }
+  };
+
+  /* ---------- PMI Auto-Suggest ---------- */
+  const updatePMISuggestion = () => {
+    let ltv, loanAmt;
+
+    if (currentMode === 'purchase') {
+      const hp = MSFG.parseNum(dom.homePrice.value);
+      loanAmt = getLoanAmount();
+      ltv = hp > 0 ? (loanAmt / hp) * 100 : 0;
+    } else {
+      loanAmt = MSFG.parseNum(dom.refiLoanAmount.value);
+      const apprVal = MSFG.parseNum(dom.appraisedValue.value);
+      ltv = apprVal > 0 ? (loanAmt / apprVal) * 100 : 0;
+    }
+
+    if (ltv > 80 && MSFG.parseNum(dom.pmi.value) === 0) {
+      const suggestedPMI = Math.round((loanAmt * 0.005) / 12);
+      dom.pmi.value = suggestedPMI;
+      dom.pmiNote.textContent = 'Auto-estimated at 0.5% annual rate';
+    } else if (ltv <= 80) {
+      dom.pmi.value = 0;
+      dom.pmiNote.textContent = '';
+    }
+  };
+
   /* ---------- Down Payment Sync ---------- */
   const syncDownPaymentFromDollar = () => {
     const hp = MSFG.parseNum(dom.homePrice.value);
@@ -256,9 +429,22 @@ const AmortCalc = (() => {
 
   /* ---------- Read Inputs ---------- */
   const getInputs = () => {
-    const homePrice = MSFG.parseNum(dom.homePrice.value);
-    const downPayment = MSFG.parseNum(dom.downPaymentDollar.value);
-    const principal = Math.max(homePrice - downPayment, 0);
+    let homePrice, downPayment, principal, propertyValue, cashOut;
+
+    if (currentMode === 'purchase') {
+      homePrice = MSFG.parseNum(dom.homePrice.value);
+      downPayment = MSFG.parseNum(dom.downPaymentDollar.value);
+      principal = Math.max(homePrice - downPayment, 0);
+      propertyValue = homePrice;
+      cashOut = 0;
+    } else {
+      principal = MSFG.parseNum(dom.refiLoanAmount.value);
+      propertyValue = MSFG.parseNum(dom.appraisedValue.value);
+      homePrice = propertyValue; // for backwards compat in schedule
+      downPayment = Math.max(propertyValue - principal, 0);
+      cashOut = MSFG.parseNum(dom.cashOut.value);
+    }
+
     const annualRate = MSFG.parseNum(dom.interestRate.value) / 100;
     const termYears = getActiveTerm();
     const startMonth = parseInt(dom.startMonth.value, 10);
@@ -280,8 +466,8 @@ const AmortCalc = (() => {
     const extraStartYear = parseInt(dom.extraStartYear.value, 10);
 
     return {
-      homePrice, downPayment, principal, annualRate, termYears,
-      startMonth, startYear,
+      mode: currentMode, homePrice, downPayment, principal, propertyValue, cashOut,
+      annualRate, termYears, startMonth, startYear,
       monthlyTax: propertyTax, monthlyIns: homeInsurance, monthlyPMI,
       extraAmount, extraFreq, extraStartMonth, extraStartYear
     };
@@ -300,7 +486,7 @@ const AmortCalc = (() => {
   /* ---------- Core: Generate Schedule ---------- */
   const generateSchedule = (inputs, includeExtras = true) => {
     const { principal, annualRate, termYears, startMonth, startYear,
-            homePrice, monthlyTax, monthlyIns, monthlyPMI,
+            propertyValue, monthlyTax, monthlyIns, monthlyPMI,
             extraAmount, extraFreq, extraStartMonth, extraStartYear } = inputs;
 
     if (principal <= 0 || termYears <= 0) return [];
@@ -352,7 +538,7 @@ const AmortCalc = (() => {
       if (balance < 0.005) balance = 0;
 
       // LTV & PMI
-      const ltv = homePrice > 0 ? (balance / homePrice) * 100 : 0;
+      const ltv = propertyValue > 0 ? (balance / propertyValue) * 100 : 0;
       const pmiActive = ltv > 80 && monthlyPMI > 0;
       const pmiThisMonth = pmiActive ? monthlyPMI : 0;
 
@@ -379,7 +565,12 @@ const AmortCalc = (() => {
 
   /* ---------- Main Calculate ---------- */
   const calculate = () => {
-    updateLoanAmountDisplay();
+    if (currentMode === 'purchase') {
+      updateLoanAmountDisplay();
+    } else {
+      updateRefiEquityDisplay();
+    }
+    updateLTVDisplay();
     const inputs = getInputs();
 
     if (inputs.principal <= 0) {
@@ -444,6 +635,21 @@ const AmortCalc = (() => {
     dom.resultTotalCost.textContent = MSFG.formatCurrency(totalPaid + (schedule.length * (inputs.monthlyTax + inputs.monthlyIns)) +
       schedule.reduce((s, r) => s + r.pmiThisMonth, 0), 0);
     dom.resultPayoffDate.textContent = `${MONTH_FULL[lastRow.month]} ${lastRow.year}`;
+
+    // Cash to Close / Equity + Starting LTV
+    if (inputs.mode === 'refinance') {
+      dom.resultCashEquityLabel.textContent = 'Equity';
+      const equity = Math.max(inputs.propertyValue - inputs.principal, 0);
+      dom.resultCashEquityValue.textContent = MSFG.formatCurrency(equity, 0);
+    } else {
+      dom.resultCashEquityLabel.textContent = 'Cash to Close';
+      dom.resultCashEquityValue.textContent = MSFG.formatCurrency(inputs.downPayment, 0);
+    }
+
+    const startingLTV = inputs.propertyValue > 0
+      ? ((inputs.principal / inputs.propertyValue) * 100).toFixed(1) + '%'
+      : '--';
+    dom.resultStartingLTV.textContent = startingLTV;
 
     // Extra payment savings
     if (totalExtra > 0 && baseSchedule.length > schedule.length) {
@@ -648,7 +854,7 @@ const AmortCalc = (() => {
   const exportCSV = () => {
     if (currentSchedule.length === 0) return;
 
-    const headers = ['Payment #', 'Date', 'Payment', 'Principal', 'Interest', 'Extra', 'Balance'];
+    const headers = ['Payment #', 'Date', 'Payment', 'Principal', 'Interest', 'Extra', 'Balance', 'LTV'];
     const csvRows = [headers.join(',')];
 
     currentSchedule.forEach(row => {
@@ -659,7 +865,8 @@ const AmortCalc = (() => {
         row.principal.toFixed(2),
         row.interest.toFixed(2),
         row.extra.toFixed(2),
-        row.balance.toFixed(2)
+        row.balance.toFixed(2),
+        row.ltv.toFixed(2)
       ].join(','));
     });
 
@@ -684,6 +891,33 @@ const AmortCalc = (() => {
     const n = inputs.termYears * 12;
 
     let html = '';
+
+    // Step 0: Loan Context
+    const startLTV = inputs.propertyValue > 0
+      ? ((inputs.principal / inputs.propertyValue) * 100).toFixed(1) : '0.0';
+
+    if (inputs.mode === 'refinance') {
+      html += `<div class="calc-step">
+        <h4>Refinance Loan Details</h4>
+        <span class="calc-step__values">
+          Loan Amount: ${MSFG.formatCurrency(inputs.principal, 0)}<br>
+          Appraised Value: ${MSFG.formatCurrency(inputs.propertyValue, 0)}<br>
+          ${inputs.cashOut > 0 ? `Cash Out: ${MSFG.formatCurrency(inputs.cashOut, 0)}<br>` : ''}
+          Equity: ${MSFG.formatCurrency(Math.max(inputs.propertyValue - inputs.principal, 0), 0)}<br>
+          Starting LTV: ${startLTV}%
+        </span>
+      </div>`;
+    } else {
+      html += `<div class="calc-step">
+        <h4>Purchase Loan Details</h4>
+        <span class="calc-step__values">
+          Home Price: ${MSFG.formatCurrency(inputs.homePrice, 0)}<br>
+          Down Payment: ${MSFG.formatCurrency(inputs.downPayment, 0)} (${inputs.homePrice > 0 ? ((inputs.downPayment / inputs.homePrice) * 100).toFixed(1) : 0}%)<br>
+          Loan Amount: ${MSFG.formatCurrency(inputs.principal, 0)}<br>
+          Starting LTV: ${startLTV}%
+        </span>
+      </div>`;
+    }
 
     // Step 1: Monthly Payment
     html += `<div class="calc-step">

@@ -10,36 +10,92 @@
     <div class="calc-section">
       <h2><span class="section-number">1</span> Loan Details</h2>
 
-      <!-- Home Price with Range Slider -->
+      <!-- Mode Toggle: Purchase / Refinance -->
       <div class="form-group" style="margin-bottom: var(--space-md);">
-        <label for="homePrice">Home Price</label>
-        <div class="amort-slider-row">
-          <input type="number" id="homePrice" value="400000" min="50000" max="2000000" step="5000">
-          <input type="range" id="homePriceSlider" min="50000" max="2000000" step="5000" value="400000" class="amort-range">
+        <div class="amort-term-toggle" id="modeToggle">
+          <button type="button" class="amort-term-btn active" data-mode="purchase">Purchase</button>
+          <button type="button" class="amort-term-btn" data-mode="refinance">Refinance</button>
         </div>
       </div>
 
-      <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-        <!-- Down Payment (dual $ / %) -->
-        <div class="form-group">
-          <label>Down Payment</label>
-          <div class="amort-dual-input">
-            <div class="amort-dual-input__field">
-              <span class="amort-dual-input__prefix">$</span>
-              <input type="number" id="downPaymentDollar" value="80000" min="0" step="1000">
-            </div>
-            <div class="amort-dual-input__field">
-              <input type="number" id="downPaymentPercent" value="20" min="0" max="100" step="0.5">
-              <span class="amort-dual-input__suffix">%</span>
-            </div>
+      <!-- ===== Purchase Fields ===== -->
+      <div id="purchaseFields">
+        <!-- Home Price with Range Slider -->
+        <div class="form-group" style="margin-bottom: var(--space-md);">
+          <label for="homePrice">Home Price</label>
+          <div class="amort-slider-row">
+            <input type="number" id="homePrice" value="400000" min="50000" max="2000000" step="5000">
+            <input type="range" id="homePriceSlider" min="50000" max="2000000" step="5000" value="400000" class="amort-range">
           </div>
         </div>
 
-        <!-- Loan Amount (computed) -->
-        <div class="form-group">
-          <label for="loanAmount">Loan Amount</label>
-          <input type="text" id="loanAmount" value="$320,000" readonly class="calculated-field">
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+          <!-- Down Payment (dual $ / %) -->
+          <div class="form-group">
+            <label>Down Payment</label>
+            <div class="amort-dual-input">
+              <div class="amort-dual-input__field">
+                <span class="amort-dual-input__prefix">$</span>
+                <input type="number" id="downPaymentDollar" value="80000" min="0" step="1000">
+              </div>
+              <div class="amort-dual-input__field">
+                <input type="number" id="downPaymentPercent" value="20" min="0" max="100" step="0.5">
+                <span class="amort-dual-input__suffix">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loan Amount (computed) -->
+          <div class="form-group">
+            <label for="loanAmount">Loan Amount</label>
+            <input type="text" id="loanAmount" value="$320,000" readonly class="calculated-field">
+          </div>
         </div>
+      </div>
+
+      <!-- ===== Refinance Fields ===== -->
+      <div id="refiFields" style="display: none;">
+        <!-- Loan Amount with Range Slider (master) -->
+        <div class="form-group" style="margin-bottom: var(--space-md);">
+          <label for="refiLoanAmount">Loan Amount</label>
+          <div class="amort-slider-row">
+            <input type="number" id="refiLoanAmount" value="320000" min="25000" max="2000000" step="5000">
+            <input type="range" id="refiLoanSlider" min="25000" max="2000000" step="5000" value="320000" class="amort-range">
+          </div>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+          <!-- Appraised Value -->
+          <div class="form-group">
+            <label for="appraisedValue">Appraised Value</label>
+            <input type="number" id="appraisedValue" value="400000" min="0" step="5000">
+          </div>
+
+          <!-- Cash Out -->
+          <div class="form-group">
+            <label for="cashOut">Cash Out</label>
+            <input type="number" id="cashOut" value="0" min="0" step="1000">
+          </div>
+        </div>
+
+        <!-- Equity (computed) -->
+        <div class="form-group" style="margin-top: var(--space-sm);">
+          <label for="refiEquity">Equity</label>
+          <input type="text" id="refiEquity" value="$80,000" readonly class="calculated-field">
+        </div>
+      </div>
+
+      <!-- ===== LTV Display (shared) ===== -->
+      <div class="amort-ltv-display" id="ltvDisplay" style="margin-top: var(--space-md);">
+        <div class="amort-ltv-header">
+          <span class="amort-ltv-label">Loan-to-Value (LTV)</span>
+          <span class="amort-ltv-value" id="ltvValue">80.0%</span>
+        </div>
+        <div class="amort-ltv-bar">
+          <div class="amort-ltv-fill" id="ltvFill" style="width: 80%;"></div>
+          <div class="amort-ltv-marker" style="left: 80%;"></div>
+        </div>
+        <small class="amort-ltv-note" id="ltvNote"></small>
       </div>
 
       <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-top: var(--space-md);">
@@ -166,6 +222,14 @@
         <div class="result-card">
           <div class="result-card__label">Payoff Date</div>
           <div class="result-card__value" id="resultPayoffDate">--</div>
+        </div>
+        <div class="result-card" id="resultCashEquityCard">
+          <div class="result-card__label" id="resultCashEquityLabel">Cash to Close</div>
+          <div class="result-card__value" id="resultCashEquityValue">$0</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Starting LTV</div>
+          <div class="result-card__value" id="resultStartingLTV">--</div>
         </div>
       </div>
 

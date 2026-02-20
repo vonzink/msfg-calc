@@ -354,6 +354,96 @@
   line-height: 1.3;
 }
 
+/* ---- LTV Display ---- */
+.amort-ltv-display {
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.amort-ltv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+}
+
+.amort-ltv-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.amort-ltv-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+.amort-ltv-value.warning {
+  color: #e67e22;
+}
+
+.amort-ltv-value.danger {
+  color: #dc3545;
+}
+
+.amort-ltv-bar {
+  position: relative;
+  height: 8px;
+  background: var(--color-gray-200);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.amort-ltv-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--brand-primary);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.amort-ltv-fill.warning {
+  background: #e67e22;
+}
+
+.amort-ltv-fill.danger {
+  background: #dc3545;
+}
+
+.amort-ltv-marker {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 14px;
+  background: var(--color-gray-500);
+  border-radius: 1px;
+  transform: translateX(-1px);
+}
+
+.amort-ltv-marker::after {
+  content: '80%';
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+}
+
+.amort-ltv-note {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: 0.75rem;
+  color: #e67e22;
+  font-weight: 500;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
   .amort-dual-input {
@@ -384,9 +474,14 @@
 @media print {
   .amort-range,
   .amort-section-toggle,
-  .amort-term-toggle,
   .amort-period-toggle,
-  .amort-chart-wrap {
+  .amort-chart-wrap,
+  .amort-ltv-display,
+  #modeToggle {
+    display: none !important;
+  }
+
+  .amort-term-toggle {
     display: none !important;
   }
 
