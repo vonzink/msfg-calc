@@ -85,6 +85,21 @@
                     </div>
                 </div>
 
+                <div class="payment-toggle-row">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="manualFullPaymentToggle">
+                        <span class="toggle-text">Override: Enter current full payment manually</span>
+                    </label>
+                </div>
+
+                <div class="input-grid" id="manualFullPaymentSection" style="display:none; margin-top:1rem;">
+                    <div class="input-group">
+                        <label for="currentFullPaymentManual">Current Full Monthly Payment ($)</label>
+                        <input type="number" id="currentFullPaymentManual" value="0" min="0" step="1">
+                        <span class="field-hint">Overrides the computed total — P&I, T&I, and MI are not added.</span>
+                    </div>
+                </div>
+
                 <!-- Current MI Info -->
                 <div class="mi-info-row" id="currentMIInfo" style="margin-top:1rem;">
                     <div class="mi-info-inner">

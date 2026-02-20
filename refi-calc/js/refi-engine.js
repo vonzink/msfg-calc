@@ -568,9 +568,12 @@ const RefiEngine = (() => {
             inputs.currentTermRemaining
         );
 
-        const currentPayment = inputs.useManualPayment
-            ? inputs.currentPaymentManual
-            : currentPaymentComputed;
+        // When full payment override is active, the user's value includes P&I + T&I + MI.
+        // Strip out escrow (T&I) so the engine compares P&I+MI vs P&I+MI.
+        // Escrow is the same on both sides and doesn't affect savings/breakeven.
+        const currentPayment = inputs.useManualFullPayment
+            ? round2(inputs.currentFullPaymentManual - (inputs.monthlyEscrow || 0))
+            : (inputs.useManualPayment ? inputs.currentPaymentManual : currentPaymentComputed);
 
         // Refi payment
         const refiPayment = calcMonthlyPayment(
@@ -601,8 +604,11 @@ const RefiEngine = (() => {
 
         // MI values: use ONLY what the user entered. Auto-calc is hint-only.
         // User input of 0 means 0 MI — no fallback to auto-calculated values.
-        const currentMonthlyMI = (inputs.currentMIMonthlyDollar !== undefined)
-            ? inputs.currentMIMonthlyDollar : 0;
+        // When full payment override is active, current MI is already included
+        // in the user's manually entered total — don't double-count it.
+        const currentMonthlyMI = inputs.useManualFullPayment
+            ? 0
+            : ((inputs.currentMIMonthlyDollar !== undefined) ? inputs.currentMIMonthlyDollar : 0);
         const refiMonthlyMI = inputs.fees
             ? (inputs.fees.feeMonthlyMI || 0) : 0;
 

@@ -44,6 +44,9 @@ const RefiUI = (() => {
         dom.manualPaymentToggle = document.getElementById('manualPaymentToggle');
         dom.manualPaymentSection = document.getElementById('manualPaymentSection');
         dom.currentPaymentManual = document.getElementById('currentPaymentManual');
+        dom.manualFullPaymentToggle = document.getElementById('manualFullPaymentToggle');
+        dom.manualFullPaymentSection = document.getElementById('manualFullPaymentSection');
+        dom.currentFullPaymentManual = document.getElementById('currentFullPaymentManual');
         dom.currentPaymentDisplay = document.getElementById('currentPaymentDisplay');
         dom.currentPaymentDetail = document.getElementById('currentPaymentDetail');
 
@@ -173,6 +176,21 @@ const RefiUI = (() => {
         dom.manualPaymentToggle.addEventListener('change', () => {
             dom.manualPaymentSection.style.display =
                 dom.manualPaymentToggle.checked ? 'block' : 'none';
+            // Mutually exclusive with full payment override
+            if (dom.manualPaymentToggle.checked && dom.manualFullPaymentToggle.checked) {
+                dom.manualFullPaymentToggle.checked = false;
+                dom.manualFullPaymentSection.style.display = 'none';
+            }
+            updateLiveCalculations();
+        });
+        dom.manualFullPaymentToggle.addEventListener('change', () => {
+            dom.manualFullPaymentSection.style.display =
+                dom.manualFullPaymentToggle.checked ? 'block' : 'none';
+            // Mutually exclusive with P&I override
+            if (dom.manualFullPaymentToggle.checked && dom.manualPaymentToggle.checked) {
+                dom.manualPaymentToggle.checked = false;
+                dom.manualPaymentSection.style.display = 'none';
+            }
             updateLiveCalculations();
         });
         dom.costOfWaitingToggle.addEventListener('change', () => {
@@ -204,7 +222,8 @@ const RefiUI = (() => {
         // Live update payment displays — debounced for typing
         const liveInputs = [
             dom.currentBalance, dom.currentRate, dom.currentTermRemaining,
-            dom.currentPaymentManual, dom.currentPropertyValue,
+            dom.currentPaymentManual, dom.currentFullPaymentManual,
+            dom.currentPropertyValue,
             dom.monthlyEscrow,
             dom.refiLoanAmount, dom.refiRate, dom.refiTerm,
             dom.futureRate, dom.monthsToWait
@@ -357,13 +376,31 @@ function updateLiveCalculations() {
     const currentPmt = RefiEngine.calcMonthlyPayment(currentBalance, currentRate, currentTermRemaining);
     const currentPmtBase = dom.manualPaymentToggle.checked ? num(dom.currentPaymentManual) : currentPmt;
 
-    dom.currentPaymentDisplay.textContent = escrow > 0 ? formatMoney(currentPmtBase + escrow) : formatMoney(currentPmtBase);
-    if (dom.currentPaymentDetail) {
-        dom.currentPaymentDetail.textContent = escrow > 0
-            ? 'P&I ' + formatMoney(currentPmtBase) + ' + T&I ' + formatMoney(escrow)
-            : '';
+    // Resolve current MI to dollars for display
+    const currentMIDollar = dom.currentMIInput && dom.currentMIModeBtn
+        ? resolveMIDollar(dom.currentMIInput, dom.currentMIModeBtn, currentBalance, false) : 0;
+
+    if (dom.manualFullPaymentToggle.checked) {
+        // Full payment override — display exactly what the user typed, no additions
+        const fullPmt = num(dom.currentFullPaymentManual);
+        dom.currentPaymentDisplay.textContent = formatMoney(fullPmt);
+        if (dom.currentPaymentDetail) {
+            dom.currentPaymentDetail.textContent = 'Manual full payment override';
+        }
+        dom.currentPaymentDisplay.title = 'Manual full payment entry';
+    } else {
+        // Computed: P&I + T&I + MI
+        const currentTotalPmt = RefiEngine.round2(currentPmtBase + escrow + currentMIDollar);
+        const currentParts = ['P&I ' + formatMoney(currentPmtBase)];
+        if (currentMIDollar > 0) currentParts.push('MI ' + formatMoney(currentMIDollar));
+        if (escrow > 0) currentParts.push('T&I ' + formatMoney(escrow));
+
+        dom.currentPaymentDisplay.textContent = currentParts.length > 1 ? formatMoney(currentTotalPmt) : formatMoney(currentPmtBase);
+        if (dom.currentPaymentDetail) {
+            dom.currentPaymentDetail.textContent = currentParts.length > 1 ? currentParts.join(' + ') : '';
+        }
+        dom.currentPaymentDisplay.title = dom.manualPaymentToggle.checked ? 'Manual P&I entry' : 'Computed from balance, rate & term';
     }
-    dom.currentPaymentDisplay.title = dom.manualPaymentToggle.checked ? 'Manual entry' : 'Computed from balance, rate & term';
 
     // Current MI — update LTV and hint, but user controls the value
     if (typeof RefiMI !== 'undefined') {
@@ -382,13 +419,20 @@ function updateLiveCalculations() {
         }
     }
 
-    // Refi payment
+    // Refi payment (including MI)
     const refiPmt = RefiEngine.calcMonthlyPayment(refiLoanAmount, refiRate, refiTerm);
-    dom.refiPaymentDisplay.textContent = escrow > 0 ? formatMoney(refiPmt + escrow) : formatMoney(refiPmt);
+    // MI is resolved below after MI display update, but we need it here for display.
+    // Pre-resolve refi monthly MI for the payment display.
+    const refiMIDollarForDisplay = dom.refiMIMonthlyInput && dom.refiMIMonthlyModeBtn
+        ? resolveMIDollar(dom.refiMIMonthlyInput, dom.refiMIMonthlyModeBtn, refiLoanAmount, false) : 0;
+    const refiTotalPmt = RefiEngine.round2(refiPmt + escrow + refiMIDollarForDisplay);
+    const refiDisplayParts = ['P&I ' + formatMoney(refiPmt)];
+    if (refiMIDollarForDisplay > 0) refiDisplayParts.push('MI ' + formatMoney(refiMIDollarForDisplay));
+    if (escrow > 0) refiDisplayParts.push('T&I ' + formatMoney(escrow));
+
+    dom.refiPaymentDisplay.textContent = refiDisplayParts.length > 1 ? formatMoney(refiTotalPmt) : formatMoney(refiPmt);
     if (dom.refiPaymentDetail) {
-        dom.refiPaymentDetail.textContent = escrow > 0
-            ? 'P&I ' + formatMoney(refiPmt) + ' + T&I ' + formatMoney(escrow)
-            : '';
+        dom.refiPaymentDetail.textContent = refiDisplayParts.length > 1 ? refiDisplayParts.join(' + ') : '';
     }
 
     // Refi MI — update LTV and hints, user controls values
@@ -439,8 +483,15 @@ function updateLiveCalculations() {
     }
 
     // Cash out adjusted savings
-    const currentPmtFinal = dom.manualPaymentToggle.checked ? num(dom.currentPaymentManual) : currentPmt;
-    const piSavings = RefiEngine.round2(currentPmtFinal - refiPmt);
+    // When full payment override is active, use the full amount directly (MI/escrow included)
+    // and compare against the full refi payment (P&I + MI) — escrow cancels out
+    const currentPmtFinal = dom.manualFullPaymentToggle.checked
+        ? num(dom.currentFullPaymentManual)
+        : (dom.manualPaymentToggle.checked ? num(dom.currentPaymentManual) : currentPmt);
+    const refiPmtFinal = dom.manualFullPaymentToggle.checked
+        ? RefiEngine.round2(refiPmt + refiMIDollarForDisplay + escrow)
+        : refiPmt;
+    const piSavings = RefiEngine.round2(currentPmtFinal - refiPmtFinal);
     const debtPayments = dom.cashOutToggle.checked ? num(dom.cashOutDebtPayments) : 0;
     const adjustedSavings = RefiEngine.round2(piSavings + debtPayments);
 
@@ -501,6 +552,8 @@ function updateMIDisplay(prefix, miData) {
             currentLoanType: dom.currentLoanType ? dom.currentLoanType.value : 'Conventional',
             useManualPayment: dom.manualPaymentToggle.checked,
             currentPaymentManual: num(dom.currentPaymentManual),
+            useManualFullPayment: dom.manualFullPaymentToggle.checked,
+            currentFullPaymentManual: num(dom.currentFullPaymentManual),
             currentMIValue: num(dom.currentMIInput),
             currentMIMonthlyDollar: dom.currentMIInput && dom.currentMIModeBtn
                 ? resolveMIDollar(dom.currentMIInput, dom.currentMIModeBtn, currentBalance, false) : 0,
@@ -576,6 +629,13 @@ function updateMIDisplay(prefix, miData) {
             dom.manualPaymentSection.style.display = data.useManualPayment ? 'block' : 'none';
         }
         if (data.currentPaymentManual !== undefined) dom.currentPaymentManual.value = data.currentPaymentManual;
+
+        // Full payment override toggle
+        if (data.useManualFullPayment !== undefined) {
+            dom.manualFullPaymentToggle.checked = data.useManualFullPayment;
+            dom.manualFullPaymentSection.style.display = data.useManualFullPayment ? 'block' : 'none';
+        }
+        if (data.currentFullPaymentManual !== undefined) dom.currentFullPaymentManual.value = data.currentFullPaymentManual;
 
         // Current loan type
         if (data.currentLoanType !== undefined && dom.currentLoanType) dom.currentLoanType.value = data.currentLoanType;
@@ -849,16 +909,22 @@ function updateMIDisplay(prefix, miData) {
 
         // Payment comparison (include user-entered MI and escrow if applicable)
         const escrow = r.inputs.monthlyEscrow || 0;
-        const currentTotal = r.currentPayment + r.currentMonthlyMI + escrow;
         const refiTotal = r.refiPayment + r.refiMonthlyMI + escrow;
 
         // Build breakdown parts for current payment
-        const currentParts = ['P&I ' + formatMoney(r.currentPayment)];
-        if (r.currentMonthlyMI > 0) currentParts.push('MI ' + formatMoney(r.currentMonthlyMI));
-        if (escrow > 0) currentParts.push('T&I ' + formatMoney(escrow));
+        if (r.inputs.useManualFullPayment) {
+            // Full payment override — display the user's original full payment amount
+            setText('compareCurrentPayment', formatMoney(r.inputs.currentFullPaymentManual));
+            setText('compareCurrentDetail', 'Manual full payment override');
+        } else {
+            const currentTotal = r.currentPayment + r.currentMonthlyMI + escrow;
+            const currentParts = ['P&I ' + formatMoney(r.currentPayment)];
+            if (r.currentMonthlyMI > 0) currentParts.push('MI ' + formatMoney(r.currentMonthlyMI));
+            if (escrow > 0) currentParts.push('T&I ' + formatMoney(escrow));
 
-        setText('compareCurrentPayment', currentParts.length > 1 ? formatMoney(currentTotal) : formatMoney(r.currentPayment));
-        setText('compareCurrentDetail', currentParts.length > 1 ? currentParts.join(' + ') : '');
+            setText('compareCurrentPayment', currentParts.length > 1 ? formatMoney(currentTotal) : formatMoney(r.currentPayment));
+            setText('compareCurrentDetail', currentParts.length > 1 ? currentParts.join(' + ') : '');
+        }
 
         // Build breakdown parts for new payment
         const refiParts = ['P&I ' + formatMoney(r.refiPayment)];
@@ -1034,7 +1100,7 @@ function updateMIDisplay(prefix, miData) {
                 <div class="step-formula">
                     P = ${formatMoney(r.inputs.currentBalance)} | r = ${r.inputs.currentRate}% / 12 = ${(r.inputs.currentRate / 1200).toFixed(8)} | n = ${r.inputs.currentTermRemaining}
                 </div>
-                <div class="step-result">= ${formatMoney(r.currentPaymentComputed)}${r.inputs.useManualPayment ? ' (overridden to ' + formatMoney(r.currentPayment) + ')' : ''}</div>
+                <div class="step-result">= ${formatMoney(r.currentPaymentComputed)}${r.inputs.useManualFullPayment ? ' (full payment override: ' + formatMoney(r.inputs.currentFullPaymentManual) + ')' : (r.inputs.useManualPayment ? ' (P&I overridden to ' + formatMoney(r.inputs.currentPaymentManual) + ')' : '')}</div>
             </div>
         </div>`;
 
@@ -1289,6 +1355,9 @@ function updateMIDisplay(prefix, miData) {
         dom.manualPaymentToggle.checked = false;
         dom.manualPaymentSection.style.display = 'none';
         dom.currentPaymentManual.value = 0;
+        dom.manualFullPaymentToggle.checked = false;
+        dom.manualFullPaymentSection.style.display = 'none';
+        dom.currentFullPaymentManual.value = 0;
         dom.monthlyEscrow.value = 0;
 
         // Refi
