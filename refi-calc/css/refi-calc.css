@@ -312,6 +312,33 @@
     font-size: 1rem;
 }
 
+/* Scenario context pills (rate / wait period) */
+.scenario-pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    vertical-align: middle;
+    margin-left: 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+}
+
+.scenario-pill:empty {
+    display: none;
+}
+
+.scenario-pill.refi-now-pill {
+    background: rgba(45, 106, 79, 0.12);
+    color: var(--primary);
+}
+
+.scenario-pill.wait-pill {
+    background: rgba(255, 193, 7, 0.18);
+    color: #8a6d00;
+}
+
 .breakdown-item {
     display: flex;
     justify-content: space-between;

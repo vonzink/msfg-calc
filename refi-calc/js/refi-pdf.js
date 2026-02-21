@@ -172,7 +172,7 @@ const RefiPDF = (() => {
                 ['Balance / Amount', fmt(r.inputs.currentBalance), fmt(r.inputs.refiLoanAmount), fmt(r.analysis.balanceAfterWait)],
                 ['Interest Rate', r.inputs.currentRate + '%', r.inputs.refiRate + '%', r.inputs.futureRate + '%'],
                 ['Term', r.inputs.currentTermRemaining + ' mo remaining', r.inputs.refiTerm + ' mo', r.inputs.refiTerm + ' mo'],
-                ['Monthly P&I', fmt(r.currentPayment) + currentMIStr, fmt(r.refiPayment) + refiMIStr, fmt(r.futurePayment)],
+                ['Monthly Payment', fmt(r.currentPayment) + currentMIStr, fmt(r.refiPayment) + refiMIStr, fmt(r.futurePayment)],
             ];
             colWidths = [35, 45, 45, 45];
         } else {
@@ -182,7 +182,7 @@ const RefiPDF = (() => {
                 ['Balance / Amount', fmt(r.inputs.currentBalance), fmt(r.inputs.refiLoanAmount)],
                 ['Interest Rate', r.inputs.currentRate + '%', r.inputs.refiRate + '%'],
                 ['Term', r.inputs.currentTermRemaining + ' mo remaining', r.inputs.refiTerm + ' mo'],
-                ['Monthly P&I', fmt(r.currentPayment) + currentMIStr, fmt(r.refiPayment) + refiMIStr],
+                ['Monthly Payment', fmt(r.currentPayment) + currentMIStr, fmt(r.refiPayment) + refiMIStr],
             ];
             colWidths = [50, 60, 60];
         }
@@ -225,7 +225,7 @@ const RefiPDF = (() => {
     function drawBreakevenResults(doc, y, r) {
         const a = r.analysis;
 
-        y = drawSectionTitle(doc, y, 'Refinance Now — Breakeven');
+        y = drawSectionTitle(doc, y, 'Refinance Now (' + r.inputs.refiRate + '%) — Breakeven');
 
         const data = [
             ['Metric', 'Value'],
@@ -269,8 +269,9 @@ const RefiPDF = (() => {
 
         y = drawSectionTitle(doc, y, 'Cost of Waiting Analysis');
 
+        const waitLabel = 'Wait ' + a.monthsToWait + ' mo (' + r.inputs.futureRate + '%)';
         const data = [
-            ['Metric', 'Refi Now', 'Wait & Refi'],
+            ['Metric', 'Refi Now (' + r.inputs.refiRate + '%)', waitLabel],
             ['Closing Costs', fmt(a.closingCosts), fmt(a.closingCosts)],
             ['Extra Interest (Waiting)', '—', fmt(a.extraInterest)],
             ['Effective Total Cost', fmt(a.closingCosts), fmt(a.effectiveTotalCost)],
@@ -523,13 +524,13 @@ const RefiPDF = (() => {
 
         const steps = [
             {
-                title: 'Current Monthly P&I',
+                title: 'Current Monthly Payment',
                 formula: `M = P × [r(1+r)^n] / [(1+r)^n - 1]`,
                 values: `P=${fmt(r.inputs.currentBalance)}, r=${r.inputs.currentRate}%/12, n=${r.inputs.currentTermRemaining}`,
                 result: fmt(r.currentPaymentComputed) + (r.inputs.useManualPayment ? ' (overridden: ' + fmt(r.currentPayment) + ')' : '')
             },
             {
-                title: 'Refi Monthly P&I',
+                title: 'New Monthly Payment',
                 formula: `P=${fmt(r.inputs.refiLoanAmount)}, r=${r.inputs.refiRate}%/12, n=${r.inputs.refiTerm}`,
                 result: fmt(r.refiPayment)
             },
@@ -554,7 +555,7 @@ const RefiPDF = (() => {
                 result: fmt(a.balanceAfterWait)
             },
             {
-                title: 'Future Payment',
+                title: 'Future Monthly Payment',
                 formula: `${fmt(a.balanceAfterWait)} at ${r.inputs.futureRate}% for ${r.inputs.refiTerm} months`,
                 result: fmt(r.futurePayment)
             },
