@@ -761,6 +761,125 @@
     return m;
   };
 
+  /* ---- Fee Worksheet ---- */
+  CALC_MAPS['fee-worksheet'] = function (data) {
+    var m = {};
+    var fees = data.fees || {};
+    var prepaids = data.prepaids || {};
+
+    // Borrower & Loan info
+    if (data.borrowerName) m['fwBorrowerName'] = data.borrowerName;
+    if (data.property.value) m['fwPropertyValue'] = data.property.value;
+    if (data.loan.amount) m['fwLoanAmount'] = data.loan.amount;
+    if (data.loan.noteAmount) m['fwTotalLoanAmt'] = data.loan.noteAmount;
+    else if (data.loan.amount) m['fwTotalLoanAmt'] = data.loan.amount;
+    if (data.loan.rate) m['fwRate'] = data.loan.rate;
+    if (data.loan.termMonths) m['fwTermMonths'] = data.loan.termMonths;
+    if (data.loan.apr) m['fwAPR'] = data.loan.apr;
+    if (data.loan.downPayment) m['fwDownPayment'] = data.loan.downPayment;
+
+    // Loan purpose
+    if (data.loan.purpose) {
+      var purposeMap = { 'Refinance': 'Refinance', 'Purchase': 'Purchase' };
+      if (purposeMap[data.loan.purpose]) m['fwLoanPurpose'] = purposeMap[data.loan.purpose];
+    }
+
+    // Occupancy
+    if (data.property.usage) {
+      var usageMap = { 'PrimaryResidence': 'Primary Residence', 'SecondHome': 'Second Home', 'Investment': 'Investment' };
+      if (usageMap[data.property.usage]) m['fwOccupancy'] = usageMap[data.property.usage];
+    }
+
+    // Property type
+    if (data.property.type) {
+      var typeMap = { 'Detached': 'Detached', 'Attached': 'Attached', 'Condominium': 'Condo', 'PUD': 'Townhome' };
+      if (typeMap[data.property.type]) m['fwPropertyType'] = typeMap[data.property.type];
+    }
+
+    // Product name
+    if (data.loan.productName) m['fwProduct'] = data.loan.productName;
+    else {
+      var prodParts = [];
+      if (data.loan.mortgageType) {
+        var mtMap = { 'Conventional': 'Conv', 'FHA': 'FHA', 'VA': 'VA', 'USDA': 'USDA',
+                      'FederalHousingAdministration': 'FHA', 'VeteransAffairs': 'VA' };
+        prodParts.push(mtMap[data.loan.mortgageType] || data.loan.mortgageType);
+      }
+      if (data.loan.termMonths) prodParts.push(Math.round(data.loan.termMonths / 12) + ' Year');
+      if (data.loan.amortType) {
+        var atMap = { 'Fixed': 'Fixed', 'AdjustableRate': 'ARM' };
+        prodParts.push(atMap[data.loan.amortType] || data.loan.amortType);
+      }
+      if (prodParts.length) m['fwProduct'] = prodParts.join(' ');
+    }
+
+    // Origination charges
+    var origAmt = feeAmt(fees, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
+    if (origAmt) m['fwOrigFee'] = origAmt;
+    var discAmt = feeAmt(fees, 'LoanDiscountPoints', 'Loan Discount Points', 'DiscountPoints');
+    if (discAmt) m['fwDiscountPts'] = discAmt;
+    var procAmt = feeAmt(fees, 'Processing Fee', 'ProcessingFee');
+    if (procAmt) m['fwProcessingFee'] = procAmt;
+    var uwAmt = feeAmt(fees, 'Underwriting Fee', 'UnderwritingFee');
+    if (uwAmt) m['fwUnderwritingFee'] = uwAmt;
+
+    // Services borrower cannot shop
+    var appraisalAmt = feeAmt(fees, 'AppraisalFee', 'Appraisal Fee');
+    if (appraisalAmt) m['fwAppraisalFee'] = appraisalAmt;
+    var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
+    if (creditAmt) m['fwCreditReportFee'] = creditAmt;
+    var techAmt = feeAmt(fees, 'Technology Fee', 'TechnologyFee');
+    if (techAmt) m['fwTechFee'] = techAmt;
+    var voeAmt = feeAmt(fees, 'VerificationOfEmploymentFee', 'Verification Of Employment Fee');
+    if (voeAmt) m['fwVOEFee'] = voeAmt;
+    var floodAmt = feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
+    if (floodAmt) m['fwFloodFee'] = floodAmt;
+    var taxSvcAmt = feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
+    if (taxSvcAmt) m['fwTaxServiceFee'] = taxSvcAmt;
+    var mersAmt = feeAmt(fees, 'MERSRegistrationFee', 'MERS Registration Fee');
+    if (mersAmt) m['fwMERSFee'] = mersAmt;
+
+    // Services borrower can shop for
+    var eRecAmt = feeAmt(fees, 'E-Recording Fee', 'ERecordingFee');
+    if (eRecAmt) m['fwERecordingFee'] = eRecAmt;
+    var cplAmt = feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
+    if (cplAmt) m['fwTitleCPL'] = cplAmt;
+    var titleLendersAmt = feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
+    if (titleLendersAmt) m['fwTitleLenders'] = titleLendersAmt;
+    var settlementAmt = feeAmt(fees, 'SettlementFee', 'Settlement Fee', 'Title - Settlement Fee');
+    if (settlementAmt) m['fwTitleSettlement'] = settlementAmt;
+    var taxCertAmt = feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
+    if (taxCertAmt) m['fwTitleTaxCert'] = taxCertAmt;
+    var wireAmt = feeAmt(fees, 'WireTransferFee', 'Wire Transfer Fee');
+    if (wireAmt) m['fwWireFee'] = wireAmt;
+
+    // Government fees
+    var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
+    if (recordingAmt) m['fwRecordingFee'] = recordingAmt;
+
+    // Prepaids — hazard insurance
+    if (data.escrow.insMonthly) m['fwHazInsAmt'] = data.escrow.insMonthly;
+    if (prepaids.hazardInsuranceMonths) m['fwHazInsMonths'] = prepaids.hazardInsuranceMonths;
+    else if (prepaids.hazardInsurance && data.escrow.insMonthly && data.escrow.insMonthly > 0) {
+      m['fwHazInsMonths'] = Math.round(prepaids.hazardInsurance / data.escrow.insMonthly);
+    }
+
+    // Prepaids — prepaid interest
+    if (prepaids.interestPerDiem) m['fwPrepaidIntPerDiem'] = prepaids.interestPerDiem;
+
+    // Escrow deposits
+    if (data.escrow.taxMonthly) m['fwEscTaxAmt'] = data.escrow.taxMonthly;
+    if (data.escrow.taxMonths) m['fwEscTaxMonths'] = data.escrow.taxMonths;
+    if (data.escrow.insMonthly) m['fwEscInsAmt'] = data.escrow.insMonthly;
+    if (data.escrow.insMonths) m['fwEscInsMonths'] = data.escrow.insMonths;
+
+    // Monthly housing
+    if (data.housing.mi) m['fwMonthlyMI'] = data.housing.mi;
+    if (data.housing.hoa) m['fwMonthlyHOA'] = data.housing.hoa;
+
+    return m;
+  };
+
   /* ---- Cover Letter / Loan Analysis ---- */
   CALC_MAPS['loan-analysis'] = function (data) {
     var m = {};

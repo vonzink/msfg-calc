@@ -1912,6 +1912,75 @@
     return content;
   };
 
+  /* ---- Fee Worksheet ---- */
+  extractors['fee-worksheet'] = function (doc) {
+    return {
+      borrower: txt(doc,'fwBorrowerName'),
+      fileNumber: txt(doc,'fwFileNumber'),
+      propertyValue: val(doc,'fwPropertyValue'),
+      loanAmount: val(doc,'fwLoanAmount'),
+      rate: val(doc,'fwRate'),
+      termMonths: val(doc,'fwTermMonths'),
+      product: txt(doc,'fwProduct'),
+      purpose: txt(doc,'fwLoanPurpose'),
+      origTotal: txt(doc,'fwOrigTotal'),
+      cannotShopTotal: txt(doc,'fwCannotShopTotal'),
+      canShopTotal: txt(doc,'fwCanShopTotal'),
+      govTotal: txt(doc,'fwGovTotal'),
+      prepaidsTotal: txt(doc,'fwPrepaidsTotal'),
+      escrowTotal: txt(doc,'fwEscrowTotal'),
+      otherTotal: txt(doc,'fwOtherTotal'),
+      fundsFromYou: txt(doc,'fwFundsFromYou'),
+      monthlyPI: txt(doc,'fwMonthlyPI'),
+      monthlyIns: txt(doc,'fwMonthlyIns'),
+      monthlyTax: txt(doc,'fwMonthlyTax'),
+      monthlyMI: val(doc,'fwMonthlyMI'),
+      monthlyHOA: val(doc,'fwMonthlyHOA'),
+      totalMonthly: txt(doc,'fwTotalMonthly')
+    };
+  };
+
+  renderers['fee-worksheet'] = function (data) {
+    var html = '';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Summary</h4>';
+    html += '<div class="rpt-params">';
+    if (data.borrower) html += '<div class="rpt-param"><span>Borrower(s)</span><span>' + data.borrower + '</span></div>';
+    if (data.fileNumber) html += '<div class="rpt-param"><span>File #</span><span>' + data.fileNumber + '</span></div>';
+    html += '<div class="rpt-param"><span>Property Value</span><span>' + fmt(data.propertyValue) + '</span></div>';
+    html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt(data.loanAmount) + '</span></div>';
+    html += '<div class="rpt-param"><span>Rate</span><span>' + ratePct(data.rate) + '</span></div>';
+    if (data.product) html += '<div class="rpt-param"><span>Product</span><span>' + data.product + '</span></div>';
+    if (data.purpose) html += '<div class="rpt-param"><span>Purpose</span><span>' + data.purpose + '</span></div>';
+    html += '</div></div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Closing Costs</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Section</th><th class="rpt-num">Amount</th></tr></thead><tbody>';
+    html += '<tr><td>Origination Charges</td><td class="rpt-num">' + data.origTotal + '</td></tr>';
+    html += '<tr><td>Services Borrower Cannot Shop</td><td class="rpt-num">' + data.cannotShopTotal + '</td></tr>';
+    html += '<tr><td>Services Borrower Can Shop For</td><td class="rpt-num">' + data.canShopTotal + '</td></tr>';
+    html += '<tr><td>Taxes & Government Fees</td><td class="rpt-num">' + data.govTotal + '</td></tr>';
+    html += '<tr><td>Prepaids</td><td class="rpt-num">' + data.prepaidsTotal + '</td></tr>';
+    html += '<tr><td>Initial Escrow</td><td class="rpt-num">' + data.escrowTotal + '</td></tr>';
+    html += '<tr><td>Other</td><td class="rpt-num">' + data.otherTotal + '</td></tr>';
+    html += '</tbody></table>';
+    html += '<div class="rpt-grand-total"><span>Estimated Funds From You</span><span>' + data.fundsFromYou + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="rpt-section"><h4 class="rpt-section-title">Monthly Housing Payment</h4>';
+    html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Amount</th></tr></thead><tbody>';
+    html += '<tr><td>First Mortgage (P&I)</td><td class="rpt-num">' + data.monthlyPI + '</td></tr>';
+    html += '<tr><td>Hazard Insurance</td><td class="rpt-num">' + data.monthlyIns + '</td></tr>';
+    html += '<tr><td>Property Tax</td><td class="rpt-num">' + data.monthlyTax + '</td></tr>';
+    if (data.monthlyMI) html += '<tr><td>MI</td><td class="rpt-num">' + fmt(data.monthlyMI) + '</td></tr>';
+    if (data.monthlyHOA) html += '<tr><td>HOA</td><td class="rpt-num">' + fmt(data.monthlyHOA) + '</td></tr>';
+    html += '</tbody></table>';
+    html += '<div class="rpt-grand-total"><span>Total Monthly Payment</span><span>' + data.totalMonthly + '</span></div>';
+    html += '</div>';
+
+    return html;
+  };
+
   /* ---- Loan Analysis (Cover Letter) ---- */
   extractors['loan-analysis'] = function (doc) {
     // Capture the generated letter HTML directly — this is the actual letter the user sees

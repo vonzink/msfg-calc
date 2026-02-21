@@ -1,0 +1,409 @@
+<script>
+  window.__companyLogo = '<%= typeof site !== "undefined" ? site.logo.src : "/images/msfg-logo.png" %>';
+  window.__companyName = '<%= typeof site !== "undefined" ? site.companyName : "MSFG" %>';
+  window.__emailSignature = <%- JSON.stringify(typeof site !== 'undefined' && site.emailSignature ? site.emailSignature : {}) %>;
+</script>
+
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Itemized Fee Worksheet</h1>
+    <p>Generate an itemized estimate of closing costs, prepaids, escrow, and monthly housing payment. Auto-fills from MISMO.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- ============ Loan Info Header ============ -->
+    <div class="calc-section">
+      <h2>Loan Information</h2>
+      <div class="form-grid form-grid--3col">
+        <div class="form-group">
+          <label for="fwBorrowerName">Borrower(s)</label>
+          <input type="text" id="fwBorrowerName" placeholder="e.g. John Smith, Jane Smith">
+        </div>
+        <div class="form-group">
+          <label for="fwFileNumber">File Number</label>
+          <input type="text" id="fwFileNumber" placeholder="e.g. R008580">
+        </div>
+        <div class="form-group">
+          <label for="fwPrepDate">Preparation Date</label>
+          <input type="date" id="fwPrepDate">
+        </div>
+      </div>
+      <div class="form-grid form-grid--4col">
+        <div class="form-group">
+          <label for="fwPropertyValue">Property Value ($)</label>
+          <input type="number" id="fwPropertyValue" value="0" min="0" step="1000">
+        </div>
+        <div class="form-group">
+          <label for="fwLoanPurpose">Loan Purpose</label>
+          <select id="fwLoanPurpose">
+            <option value="Purchase">Purchase</option>
+            <option value="Refinance">Refinance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fwProduct">Product</label>
+          <input type="text" id="fwProduct" placeholder="e.g. Conv 30 Year Fixed">
+        </div>
+        <div class="form-group">
+          <label for="fwDownPayment">Downpayment ($)</label>
+          <input type="number" id="fwDownPayment" value="0" min="0" step="1000">
+        </div>
+      </div>
+      <div class="form-grid form-grid--4col">
+        <div class="form-group">
+          <label for="fwLoanAmount">Loan Amount ($)</label>
+          <input type="number" id="fwLoanAmount" value="0" min="0" step="1000">
+        </div>
+        <div class="form-group">
+          <label for="fwOccupancy">Occupancy</label>
+          <select id="fwOccupancy">
+            <option value="Primary Residence">Primary Residence</option>
+            <option value="Second Home">Second Home</option>
+            <option value="Investment">Investment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fwRate">Interest Rate (%)</label>
+          <input type="number" id="fwRate" value="0" min="0" max="20" step="0.125">
+        </div>
+        <div class="form-group">
+          <label for="fwTotalLoanAmt">Total Loan Amt ($)</label>
+          <input type="number" id="fwTotalLoanAmt" value="0" min="0" step="1000">
+        </div>
+      </div>
+      <div class="form-grid form-grid--4col">
+        <div class="form-group">
+          <label for="fwPropertyType">Property Type</label>
+          <select id="fwPropertyType">
+            <option value="Detached">Detached</option>
+            <option value="Attached">Attached</option>
+            <option value="Condo">Condo</option>
+            <option value="Townhome">Townhome</option>
+            <option value="Multi-Family">Multi-Family</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fwAPR">APR (%)</label>
+          <input type="number" id="fwAPR" value="0" min="0" max="30" step="0.001">
+        </div>
+        <div class="form-group">
+          <label for="fwTermMonths">Term (Months)</label>
+          <input type="number" id="fwTermMonths" value="360" min="0" max="600" step="1">
+        </div>
+        <div class="form-group">&nbsp;</div>
+      </div>
+    </div>
+
+    <!-- ============ Fees Grid (2-column layout matching PDF) ============ -->
+    <div class="fw-columns">
+
+      <!-- LEFT COLUMN: Closing Costs -->
+      <div class="fw-col">
+
+        <!-- Origination Charges -->
+        <div class="fw-fee-section">
+          <div class="fw-fee-header">
+            <span>Origination Charges:</span>
+            <span class="fw-fee-total" id="fwOrigTotal">$0</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row">
+              <label>Origination Fee</label>
+              <input type="number" id="fwOrigFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Discount Points</label>
+              <input type="number" id="fwDiscountPts" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Processing Fee</label>
+              <input type="number" id="fwProcessingFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Underwriting Fee</label>
+              <input type="number" id="fwUnderwritingFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Borrower Cannot Shop -->
+        <div class="fw-fee-section">
+          <div class="fw-fee-header">
+            <span>Services Borrower Cannot Shop:</span>
+            <span class="fw-fee-total" id="fwCannotShopTotal">$0</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row">
+              <label>Appraisal Fee</label>
+              <input type="number" id="fwAppraisalFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Credit Report Fee</label>
+              <input type="number" id="fwCreditReportFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Technology Fee</label>
+              <input type="number" id="fwTechFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Verification of Employment Fee</label>
+              <input type="number" id="fwVOEFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Flood Cert Fee</label>
+              <input type="number" id="fwFloodFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Tax Service Fee</label>
+              <input type="number" id="fwTaxServiceFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>MERS Registration Fee</label>
+              <input type="number" id="fwMERSFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Borrower Can Shop For -->
+        <div class="fw-fee-section">
+          <div class="fw-fee-header">
+            <span>Services Borrower Can Shop For:</span>
+            <span class="fw-fee-total" id="fwCanShopTotal">$0</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row">
+              <label>E-Recording Fee</label>
+              <input type="number" id="fwERecordingFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Title - Closing Protection Letter Fee</label>
+              <input type="number" id="fwTitleCPL" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Title - Lenders Coverage Premium</label>
+              <input type="number" id="fwTitleLenders" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Title - Settlement Fee</label>
+              <input type="number" id="fwTitleSettlement" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Title - Tax Cert Fee</label>
+              <input type="number" id="fwTitleTaxCert" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Title - Owners Coverage Premium</label>
+              <input type="number" id="fwTitleOwners" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Wire Transfer Fee</label>
+              <input type="number" id="fwWireFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Estimated Funds Needed To Close -->
+        <div class="fw-fee-section fw-summary-section">
+          <div class="fw-fee-header fw-fee-header--bold">
+            <span>Total Estimated Funds Needed To Close</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row">
+              <label id="fwPurchasePriceLabel">Purchase Price</label>
+              <span class="fw-fee-value" id="fwPurchasePrice">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>Estimated Prepaid Items</label>
+              <span class="fw-fee-value" id="fwEstPrepaids">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>Estimated Closing Cost</label>
+              <span class="fw-fee-value" id="fwEstClosing">$0.00</span>
+            </div>
+            <div class="fw-fee-row fw-fee-row--subtotal">
+              <label>Total Due from Borrower at Closing (K)</label>
+              <span class="fw-fee-value" id="fwTotalDue">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>Loan Amount</label>
+              <span class="fw-fee-value" id="fwSummaryLoanAmt">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>Total Paid Already by or on Behalf of Borrower at Closing (L)</label>
+              <span class="fw-fee-value" id="fwTotalPaid">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>Seller Credits</label>
+              <input type="number" id="fwSellerCredits" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Lender Credits</label>
+              <input type="number" id="fwLenderCredits" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+          </div>
+          <div class="fw-fee-grand-total">
+            <span>Total Estimated Funds From You:</span>
+            <span id="fwFundsFromYou">$0.00</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Government Fees, Prepaids, Escrow, Monthly -->
+      <div class="fw-col">
+
+        <!-- Taxes and Other Government Fees -->
+        <div class="fw-fee-section">
+          <div class="fw-fee-header">
+            <span>Taxes and Other Government Fees:</span>
+            <span class="fw-fee-total" id="fwGovTotal">$0</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row">
+              <label>Recording Fee For Deed</label>
+              <input type="number" id="fwRecordingFee" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Transfer Taxes</label>
+              <input type="number" id="fwTransferTax" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Prepaids -->
+        <div class="fw-fee-section">
+          <div class="fw-fee-header">
+            <span>Prepaids:</span>
+            <span class="fw-fee-total" id="fwPrepaidsTotal">$0</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row fw-fee-row--multi">
+              <label>Hazard Insurance</label>
+              <div class="fw-fee-multi">
+                <span>$</span>
+                <input type="number" id="fwHazInsAmt" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--sm">
+                <span>x</span>
+                <input type="number" id="fwHazInsMonths" value="12" min="0" max="24" step="1" class="fw-fee-input fw-fee-input--xs">
+                <span>mth(s)</span>
+              </div>
+              <span class="fw-fee-value" id="fwPrepaidHazIns">$0.00</span>
+            </div>
+            <div class="fw-fee-row fw-fee-row--multi">
+              <label>Prepaid Interest</label>
+              <div class="fw-fee-multi">
+                <span>$</span>
+                <input type="number" id="fwPrepaidIntPerDiem" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--sm">
+                <span>x</span>
+                <input type="number" id="fwPrepaidIntDays" value="0" min="0" max="31" step="1" class="fw-fee-input fw-fee-input--xs">
+                <span>day(s)</span>
+              </div>
+              <span class="fw-fee-value" id="fwPrepaidInterest">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Initial Escrow Payment at Closing -->
+        <div class="fw-fee-section">
+          <div class="fw-fee-header">
+            <span>Initial Escrow Payment at Closing:</span>
+            <span class="fw-fee-total" id="fwEscrowTotal">$0</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row fw-fee-row--multi">
+              <label>County Property Tax</label>
+              <div class="fw-fee-multi">
+                <span>$</span>
+                <input type="number" id="fwEscTaxAmt" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--sm">
+                <span>x</span>
+                <input type="number" id="fwEscTaxMonths" value="3" min="0" max="12" step="1" class="fw-fee-input fw-fee-input--xs">
+                <span>mth(s)</span>
+              </div>
+              <span class="fw-fee-value" id="fwEscrowTax">$0.00</span>
+            </div>
+            <div class="fw-fee-row fw-fee-row--multi">
+              <label>Hazard Insurance</label>
+              <div class="fw-fee-multi">
+                <span>$</span>
+                <input type="number" id="fwEscInsAmt" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--sm">
+                <span>x</span>
+                <input type="number" id="fwEscInsMonths" value="3" min="0" max="12" step="1" class="fw-fee-input fw-fee-input--xs">
+                <span>mth(s)</span>
+              </div>
+              <span class="fw-fee-value" id="fwEscrowIns">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other -->
+        <div class="fw-fee-section">
+          <div class="fw-fee-header">
+            <span>Other:</span>
+            <span class="fw-fee-total" id="fwOtherTotal">$0</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row">
+              <label>Other Fee 1</label>
+              <input type="number" id="fwOther1" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>Other Fee 2</label>
+              <input type="number" id="fwOther2" value="0" min="0" step="1" class="fw-fee-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Estimated Monthly Housing Payment -->
+        <div class="fw-fee-section fw-summary-section">
+          <div class="fw-fee-header fw-fee-header--bold">
+            <span>Total Estimated Monthly Housing Payment</span>
+          </div>
+          <div class="fw-fee-items">
+            <div class="fw-fee-row">
+              <label>First Mortgage (P&I)</label>
+              <span class="fw-fee-value" id="fwMonthlyPI">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>Hazard Insurance</label>
+              <span class="fw-fee-value" id="fwMonthlyIns">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>Property Tax</label>
+              <span class="fw-fee-value" id="fwMonthlyTax">$0.00</span>
+            </div>
+            <div class="fw-fee-row">
+              <label>MI</label>
+              <input type="number" id="fwMonthlyMI" value="0" min="0" step="0.01" class="fw-fee-input">
+            </div>
+            <div class="fw-fee-row">
+              <label>HOA</label>
+              <input type="number" id="fwMonthlyHOA" value="0" min="0" step="0.01" class="fw-fee-input">
+            </div>
+          </div>
+          <div class="fw-fee-grand-total">
+            <span>Total Monthly Payment:</span>
+            <span id="fwTotalMonthly">$0.00</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button type="button" class="btn btn-secondary" id="fwPrintBtn">Print Worksheet</button>
+      <button type="button" class="btn btn-ghost" id="fwClearBtn">Clear All</button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="fw-disclaimer">
+      <p><em>Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.</em></p>
+    </div>
+
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Disclaimers</div>
+    <p>Information provided above reflects estimates of the charges that are likely to be incurred at the closing of this loan. Actual charges may be more or less. Before closing, your interest rate, points, and lender credits can change unless you lock the interest rate.</p>
+  </div>
+</div>
