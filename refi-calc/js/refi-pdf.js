@@ -229,7 +229,7 @@ const RefiPDF = (() => {
 
         const data = [
             ['Metric', 'Value'],
-            ['P&I Savings', fmt(a.piSavingsNow)],
+            ['Payment Savings', fmt(a.piSavingsNow)],
         ];
 
         // If cash-out is active, add debt savings row

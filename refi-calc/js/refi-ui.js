@@ -391,7 +391,7 @@ function updateLiveCalculations() {
     } else {
         // Computed: P&I + T&I + MI
         const currentTotalPmt = RefiEngine.round2(currentPmtBase + escrow + currentMIDollar);
-        const currentParts = ['P&I ' + formatMoney(currentPmtBase)];
+        const currentParts = ['Pmt ' + formatMoney(currentPmtBase)];
         if (currentMIDollar > 0) currentParts.push('MI ' + formatMoney(currentMIDollar));
         if (escrow > 0) currentParts.push('T&I ' + formatMoney(escrow));
 
@@ -399,7 +399,7 @@ function updateLiveCalculations() {
         if (dom.currentPaymentDetail) {
             dom.currentPaymentDetail.textContent = currentParts.length > 1 ? currentParts.join(' + ') : '';
         }
-        dom.currentPaymentDisplay.title = dom.manualPaymentToggle.checked ? 'Manual P&I entry' : 'Computed from balance, rate & term';
+        dom.currentPaymentDisplay.title = dom.manualPaymentToggle.checked ? 'Manual payment entry' : 'Computed from balance, rate & term';
     }
 
     // Current MI — update LTV and hint, but user controls the value
@@ -426,7 +426,7 @@ function updateLiveCalculations() {
     const refiMIDollarForDisplay = dom.refiMIMonthlyInput && dom.refiMIMonthlyModeBtn
         ? resolveMIDollar(dom.refiMIMonthlyInput, dom.refiMIMonthlyModeBtn, refiLoanAmount, false) : 0;
     const refiTotalPmt = RefiEngine.round2(refiPmt + escrow + refiMIDollarForDisplay);
-    const refiDisplayParts = ['P&I ' + formatMoney(refiPmt)];
+    const refiDisplayParts = ['Pmt ' + formatMoney(refiPmt)];
     if (refiMIDollarForDisplay > 0) refiDisplayParts.push('MI ' + formatMoney(refiMIDollarForDisplay));
     if (escrow > 0) refiDisplayParts.push('T&I ' + formatMoney(escrow));
 
@@ -473,7 +473,7 @@ function updateLiveCalculations() {
             ? resolveMIDollar(dom.futureMIInput, dom.futureMIModeBtn, refiLoanAmount, false) : 0;
         const futureTotalPmt = RefiEngine.round2(futurePmt + futureMIDollar + escrow);
         const futureParts = [];
-        futureParts.push('P&I ' + formatMoney(futurePmt));
+        futureParts.push('Pmt ' + formatMoney(futurePmt));
         if (futureMIDollar > 0) futureParts.push('MI ' + formatMoney(futureMIDollar));
         if (escrow > 0) futureParts.push('T&I ' + formatMoney(escrow));
         dom.futurePaymentDisplay.textContent = futureParts.length > 1 ? formatMoney(futureTotalPmt) : formatMoney(futurePmt);
@@ -880,7 +880,7 @@ function updateMIDisplay(prefix, miData) {
             savingsCard.querySelector('h3').textContent = 'Adjusted Monthly Savings';
             setText('resultMonthlySavings',
                 formatMoney(analysis.monthlySavingsNow) +
-                ' (P&I: ' + formatMoney(analysis.piSavingsNow) + ' + Debt: ' + formatMoney(analysis.cashOutDebtPayments) + ')'
+                ' (Pmt: ' + formatMoney(analysis.piSavingsNow) + ' + Debt: ' + formatMoney(analysis.cashOutDebtPayments) + ')'
             );
         } else {
             savingsCard.querySelector('h3').textContent = 'Monthly Savings';
@@ -918,7 +918,7 @@ function updateMIDisplay(prefix, miData) {
             setText('compareCurrentDetail', 'Manual full payment override');
         } else {
             const currentTotal = r.currentPayment + r.currentMonthlyMI + escrow;
-            const currentParts = ['P&I ' + formatMoney(r.currentPayment)];
+            const currentParts = ['Pmt ' + formatMoney(r.currentPayment)];
             if (r.currentMonthlyMI > 0) currentParts.push('MI ' + formatMoney(r.currentMonthlyMI));
             if (escrow > 0) currentParts.push('T&I ' + formatMoney(escrow));
 
@@ -927,7 +927,7 @@ function updateMIDisplay(prefix, miData) {
         }
 
         // Build breakdown parts for new payment
-        const refiParts = ['P&I ' + formatMoney(r.refiPayment)];
+        const refiParts = ['Pmt ' + formatMoney(r.refiPayment)];
         if (r.refiMonthlyMI > 0) refiParts.push('MI ' + formatMoney(r.refiMonthlyMI));
         if (escrow > 0) refiParts.push('T&I ' + formatMoney(escrow));
 
@@ -936,7 +936,7 @@ function updateMIDisplay(prefix, miData) {
 
         // Cost of waiting metrics (populate even if hidden so PDF can use them)
         setText('resultExtraInterest', formatMoney(analysis.extraInterest));
-        const futureParts = ['P&I ' + formatMoney(analysis.futurePIPayment)];
+        const futureParts = ['Pmt ' + formatMoney(analysis.futurePIPayment)];
         if (analysis.futureMI > 0) futureParts.push('MI ' + formatMoney(analysis.futureMI));
         if (escrow > 0) futureParts.push('T&I ' + formatMoney(escrow));
         const futureTotal = r.futurePayment + escrow;
@@ -1114,7 +1114,7 @@ function updateMIDisplay(prefix, miData) {
                 <div class="step-formula">
                     P = ${formatMoney(r.inputs.currentBalance)} | r = ${r.inputs.currentRate}% / 12 = ${(r.inputs.currentRate / 1200).toFixed(8)} | n = ${r.inputs.currentTermRemaining}
                 </div>
-                <div class="step-result">= ${formatMoney(r.currentPaymentComputed)}${r.inputs.useManualFullPayment ? ' (full payment override: ' + formatMoney(r.inputs.currentFullPaymentManual) + ')' : (r.inputs.useManualPayment ? ' (P&I overridden to ' + formatMoney(r.inputs.currentPaymentManual) + ')' : '')}</div>
+                <div class="step-result">= ${formatMoney(r.currentPaymentComputed)}${r.inputs.useManualFullPayment ? ' (full payment override: ' + formatMoney(r.inputs.currentFullPaymentManual) + ')' : (r.inputs.useManualPayment ? ' (payment overridden to ' + formatMoney(r.inputs.currentPaymentManual) + ')' : '')}</div>
             </div>
         </div>`;
 
@@ -1136,7 +1136,7 @@ function updateMIDisplay(prefix, miData) {
             <div class="math-group">
                 <h4>Monthly Savings (with Cash Out Debt Consolidation)</h4>
                 <div class="math-step">
-                    <div class="step-label">P&I Savings</div>
+                    <div class="step-label">Payment Savings</div>
                     <div class="step-formula">${formatMoney(r.currentPayment)} - ${formatMoney(r.refiPayment)}</div>
                     <div class="step-result">= ${formatMoney(analysis.piSavingsNow)} per month</div>
                 </div>

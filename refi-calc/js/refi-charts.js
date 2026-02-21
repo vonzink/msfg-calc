@@ -350,7 +350,7 @@ const RefiCharts = (() => {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Monthly P&I Payment',
+                    label: 'Monthly Payment',
                     data: data,
                     backgroundColor: bgColors,
                     borderColor: borderColors,
@@ -366,7 +366,7 @@ const RefiCharts = (() => {
                         beginAtZero: false,
                         title: {
                             display: true,
-                            text: 'Monthly P&I ($)',
+                            text: 'Monthly Payment ($)',
                             font: { size: 14, weight: 'bold' }
                         },
                         ticks: {
