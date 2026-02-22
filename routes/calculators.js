@@ -13,22 +13,14 @@ const generalCalcs = [
   { slug: 'apr',             view: 'calculators/apr',             title: 'APR Calculator',                css: 'apr' },
   { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator' },
   { slug: 'va-prequal',      view: 'calculators/va-prequal',      title: 'VA Pre-Qualification Worksheet', css: 'va-prequal' },
-  { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator' },
-  { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator' },
-  { slug: 'buy-vs-rent',     view: 'calculators/buy-vs-rent',     title: 'Buy vs Rent Calculator' },
-  { slug: 'cash-vs-mortgage', view: 'calculators/cash-vs-mortgage', title: 'Cash vs Mortgage Comparison' },
-  {
-    slug: 'refi',
-    view: 'calculators/refi',
-    title: 'Refinance Analysis Tool',
-    cdnScripts: [
-      '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>',
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>'
-    ]
-  },
-  { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI' },
-  { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator' },
-  { slug: 'fha-refi',        view: 'calculators/fha-refi',        title: 'FHA Refinance Calculator' },
+  { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator',  noScript: true },
+  { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator',       noScript: true },
+  { slug: 'buy-vs-rent',     view: 'calculators/buy-vs-rent',     title: 'Buy vs Rent Calculator',   noScript: true },
+  { slug: 'cash-vs-mortgage', view: 'calculators/cash-vs-mortgage', title: 'Cash vs Mortgage Comparison', noScript: true },
+  { slug: 'refi',            view: 'calculators/refi',            title: 'Refinance Analysis Tool',   noScript: true },
+  { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI',        noScript: true },
+  { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator', noScript: true },
+  { slug: 'fha-refi',        view: 'calculators/fha-refi',        title: 'FHA Refinance Calculator',  noScript: true },
   {
     slug: 'amortization',
     view: 'calculators/amortization',
@@ -54,7 +46,7 @@ generalCalcs.forEach(gc => {
       title: gc.title,
       calc: findCalc(gc.slug),
       extraHead: extraHeadParts.length ? extraHeadParts.join('') : undefined,
-      extraScripts: `<script src="/js/calculators/${gc.slug}.js?v=${ver}"></script>`
+      extraScripts: gc.noScript ? undefined : `<script src="/js/calculators/${gc.slug}.js?v=${ver}"></script>`
     });
   });
 });
@@ -62,11 +54,9 @@ generalCalcs.forEach(gc => {
 /* ---- Income Calculators ---- */
 
 router.get('/income-questionnaire', (req, res) => {
-  const ver = res.locals.v;
   res.render('calculators/income/questionnaire', {
     title: 'Income Questionnaire',
-    calc: findCalc('income-questionnaire'),
-    extraScripts: `<script src="/js/calculators/income/questionnaire.js?v=${ver}"></script>`
+    calc: findCalc('income-questionnaire')
   });
 });
 
