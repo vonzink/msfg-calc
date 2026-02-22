@@ -64,7 +64,7 @@ describe('Hub', () => {
 describe('General calculators', () => {
   const slugs = [
     'apr', 'fha', 'va-prequal', 'blended-rate', 'buydown',
-    'buy-vs-rent', 'cash-vs-mortgage', 'refi', 'reo', 'escrow', 'fha-refi'
+    'buy-vs-rent', 'cash-vs-mortgage', 'refi', 'reo', 'escrow'
   ];
 
   for (const slug of slugs) {

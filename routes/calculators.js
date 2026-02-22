@@ -11,7 +11,7 @@ function findCalc(slug) {
 
 const generalCalcs = [
   { slug: 'apr',             view: 'calculators/apr',             title: 'APR Calculator',                css: 'apr' },
-  { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator' },
+  { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator', css: 'fha', preScripts: ['/js/shared/mismo-parser.js'] },
   { slug: 'va-prequal',      view: 'calculators/va-prequal',      title: 'VA Pre-Qualification Worksheet', css: 'va-prequal' },
   { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator',  noScript: true },
   { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator',       noScript: true },
@@ -20,7 +20,6 @@ const generalCalcs = [
   { slug: 'refi',            view: 'calculators/refi',            title: 'Refinance Analysis Tool',   noScript: true },
   { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI',        noScript: true },
   { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator', noScript: true },
-  { slug: 'fha-refi',        view: 'calculators/fha-refi',        title: 'FHA Refinance Calculator',  noScript: true },
   {
     slug: 'amortization',
     view: 'calculators/amortization',
@@ -47,7 +46,9 @@ generalCalcs.forEach(gc => {
       title: gc.title,
       calc: findCalc(gc.slug),
       extraHead: extraHeadParts.length ? extraHeadParts.join('') : undefined,
-      extraScripts: gc.noScript ? undefined : `<script src="/js/calculators/${gc.slug}.js?v=${ver}"></script>`
+      extraScripts: gc.noScript ? undefined :
+        (gc.preScripts ? gc.preScripts.map(s => `<script src="${s}?v=${ver}"></script>`).join('') : '') +
+        `<script src="/js/calculators/${gc.slug}.js?v=${ver}"></script>`
     });
   });
 });

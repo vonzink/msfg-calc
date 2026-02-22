@@ -1,0 +1,359 @@
+/* FHA Loan Calculator — page-specific styles */
+
+/* ---- MISMO drop zone ---- */
+.fha-mismo-drop {
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--border-radius);
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-lg);
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+.fha-mismo-drop:hover,
+.fha-mismo-drop.dragover {
+  border-color: var(--brand-accent);
+  background: rgba(45, 106, 79, 0.04);
+}
+
+.fha-mismo-drop.loaded {
+  border-color: var(--brand-accent);
+  background: #e8f5e9;
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+/* ---- Seasoning status cards ---- */
+.fha-seasoning-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.fha-status-card {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius);
+  border: 2px solid var(--color-gray-200);
+  background: var(--color-gray-50);
+}
+
+.fha-status-card.pass {
+  background: #e8f5e9;
+  border-color: #2e7d32;
+}
+
+.fha-status-card.fail {
+  background: #ffebee;
+  border-color: #c62828;
+}
+
+.fha-status-card__label {
+  font-size: 0.82rem;
+  color: var(--color-gray-500);
+  margin-bottom: 2px;
+}
+
+.fha-status-card__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.fha-status-card__detail {
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+/* ---- UFMIP refund table ---- */
+.fha-refund-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--space-sm);
+  font-size: 0.82rem;
+}
+
+.fha-refund-table th,
+.fha-refund-table td {
+  border: 1px solid var(--color-gray-200);
+  padding: 4px 6px;
+  text-align: center;
+}
+
+.fha-refund-table th {
+  background: var(--color-gray-50);
+  font-weight: 600;
+  color: var(--brand-primary);
+  font-size: 0.78rem;
+}
+
+.fha-refund-table input {
+  width: 50px;
+  text-align: center;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 0.82rem;
+  font-family: var(--font-body);
+}
+
+.fha-refund-table input:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+}
+
+/* ---- Collapsible sections ---- */
+.fha-collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.fha-collapsible-header h2 {
+  margin: 0;
+}
+
+.fha-collapse-icon {
+  font-size: 0.75rem;
+  color: var(--color-gray-400);
+  transition: transform 0.2s;
+}
+
+.fha-collapse-icon.collapsed {
+  transform: rotate(-90deg);
+}
+
+.fha-collapsible-body {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.fha-collapsible-body.collapsed {
+  display: none;
+}
+
+/* ---- Closing cost sub-groups ---- */
+.fha-cost-group {
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.fha-cost-group__title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--brand-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.fha-cost-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-sm);
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.fha-cost-row label {
+  font-size: 0.85rem;
+  color: var(--color-gray-700);
+}
+
+.fha-cost-row input {
+  width: 100%;
+}
+
+.fha-costs-total {
+  background: #e8f5e9;
+  border: 2px solid var(--brand-accent);
+  border-radius: var(--border-radius);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fha-costs-total__label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.fha-costs-total__value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+.fha-costs-warning {
+  font-size: 0.82rem;
+  color: #e65100;
+  font-weight: 600;
+  margin-top: var(--space-sm);
+}
+
+/* ---- Comparison results table ---- */
+.fha-results-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: var(--space-md);
+}
+
+.fha-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+
+.fha-results-table thead th {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  background: var(--color-gray-50);
+  border-bottom: 2px solid var(--color-gray-200);
+  white-space: nowrap;
+}
+
+.fha-results-table thead th:first-child {
+  text-align: left;
+  background: transparent;
+  font-weight: 700;
+  width: 170px;
+  min-width: 150px;
+}
+
+.fha-results-table tbody td {
+  padding: 6px var(--space-md);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--color-gray-100);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.fha-results-table tbody td:first-child {
+  text-align: left;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  white-space: nowrap;
+}
+
+.fha-results-table .fha-section-row td {
+  background: var(--brand-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 6px var(--space-md);
+  border-bottom: none;
+}
+
+.fha-results-table .fha-total-row td {
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: var(--brand-primary);
+  color: #fff;
+  border-bottom: none;
+  padding: 8px var(--space-md);
+}
+
+.fha-results-table .fha-total-row td:first-child {
+  color: #fff;
+}
+
+.fha-results-table .fha-subtotal-row td {
+  font-weight: 700;
+  background: var(--color-gray-50);
+  border-top: 2px solid var(--color-gray-300);
+}
+
+/* ---- NTB pills in results ---- */
+.fha-ntb-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.fha-ntb-pill.pass {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.fha-ntb-pill.fail {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.fha-ntb-pill.warn {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.fha-ntb-pill.na {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+}
+
+/* ---- Best-value highlight ---- */
+.fha-best-cell {
+  background: #e8f5e9;
+}
+
+/* ---- Refi type dropdown in header ---- */
+.fha-refi-type-select {
+  font-size: 0.78rem;
+  padding: 2px 4px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 3px;
+  font-family: var(--font-body);
+  margin-top: 4px;
+}
+
+/* ---- Column hidden ---- */
+.fha-col-hidden {
+  display: none;
+}
+
+/* ---- Notes list ---- */
+.fha-notes-list {
+  font-size: 0.85rem;
+  color: var(--color-gray-600);
+  padding-left: var(--space-lg);
+  margin: 0;
+}
+
+.fha-notes-list li {
+  margin-bottom: 4px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .fha-seasoning-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fha-cost-row {
+    grid-template-columns: 1.5fr 1fr;
+  }
+}
+
+/* ---- Print ---- */
+@media print {
+  .fha-mismo-drop,
+  .fha-costs-warning,
+  .action-bar,
+  .fha-collapsible-header .fha-collapse-icon { display: none !important; }
+
+  .fha-collapsible-body.collapsed { display: block !important; }
+
+  .fha-results-wrap { overflow: visible; }
+  .fha-results-table { min-width: 0; }
+}

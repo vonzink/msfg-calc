@@ -1,183 +1,441 @@
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>FHA Loan Calculator</h1>
-    <p>Estimate FHA eligibility, UFMIP, NTB, and cash to close based on current guidelines.</p>
+    <p>Unified FHA purchase, refinance, and streamline analysis with UFMIP, NTB, and MISMO auto-fill.</p>
   </div>
 
   <div class="calc-page__body">
 
-    <!-- Loan Scenario -->
+    <!-- MISMO Drop Zone -->
+    <div class="fha-mismo-drop" id="fhaMismoDrop">
+      Drop a MISMO XML file here to auto-populate fields, or <strong>click to browse</strong>
+      <input type="file" id="fhaMismoFile" accept=".xml,.mismo" style="display:none">
+    </div>
+
+    <!-- Section 1: Borrower & Property -->
     <div class="calc-section">
-      <h2>Loan Scenario</h2>
+      <h2>Borrower &amp; Property</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>Loan Purpose
-            <span class="help-icon" data-help="Select the primary purpose of the new FHA loan: purchase, rate/term refi, FHA streamline, or cash-out.">?</span>
+          <label>Borrower Name</label>
+          <input type="text" id="fhaBorrowerName" placeholder="Auto-filled from MISMO">
+        </div>
+        <div class="form-group">
+          <label>FHA Case ID</label>
+          <input type="text" id="fhaCaseId" placeholder="Optional">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label>Appraised Value
+            <span class="help-icon" data-help="Current appraised value used to calculate LTV and max FHA loan amount.">?</span>
           </label>
-          <select id="loanPurpose">
-            <option value="purchase">Purchase</option>
-            <option value="rateTerm">Rate/Term Refinance</option>
-            <option value="streamline">FHA Streamline</option>
-            <option value="cashOut">Cash-Out Refinance</option>
-          </select>
+          <input type="number" id="fhaAppraisedValue" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Purchase Price
+            <span class="help-icon" data-help="For purchases, FHA uses the lesser of purchase price or appraised value.">?</span>
+          </label>
+          <input type="number" id="fhaPurchasePrice" step="0.01" placeholder="0.00">
+          <small>Leave blank if not a purchase</small>
         </div>
         <div class="form-group">
           <label>Property Type
             <span class="help-icon" data-help="Used for FHA guideline and investor overlay differences.">?</span>
           </label>
-          <select id="propertyType">
+          <select id="fhaPropertyType">
             <option value="sfr">SFR / PUD</option>
             <option value="2to4">2-4 Unit</option>
             <option value="manufactured">Manufactured Home</option>
           </select>
         </div>
       </div>
+    </div>
 
+    <!-- Section 2: Current Loan -->
+    <div class="calc-section">
+      <h2>Current Loan</h2>
+      <div style="margin-bottom: var(--space-md);">
+        <label class="form-check">
+          <input type="checkbox" id="fhaIsExistingFha">
+          Current loan is FHA (required for streamline)
+        </label>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Current UPB
+            <span class="help-icon" data-help="Outstanding principal balance on the existing mortgage.">?</span>
+          </label>
+          <input type="number" id="fhaCurrentUpb" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Current Interest Rate (%)
+            <span class="help-icon" data-help="Interest rate on the existing loan. Used for NTB comparison.">?</span>
+          </label>
+          <input type="number" id="fhaCurrentRate" step="0.001" placeholder="e.g. 6.500">
+        </div>
+        <div class="form-group">
+          <label>Current P&amp;I + MIP Payment
+            <span class="help-icon" data-help="Current monthly principal, interest, and FHA MIP combined.">?</span>
+          </label>
+          <input type="number" id="fhaCurrentPayment" step="0.01" placeholder="0.00">
+        </div>
+      </div>
       <div class="form-grid" style="margin-top: var(--space-md);">
         <div class="form-group">
-          <label>Date Acquired / Last Closing
-            <span class="help-icon" data-help="Enter the date the borrower acquired or last financed the property.">?</span>
+          <label>Current Loan Type</label>
+          <select id="fhaCurrentLoanType">
+            <option value="fixed">Fixed Rate</option>
+            <option value="arm">ARM</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Original FHA Loan Amount
+            <span class="help-icon" data-help="Base loan amount from the original FHA loan (before UFMIP). Used to calculate UFMIP refund for streamline.">?</span>
           </label>
-          <input type="date" id="origDate">
-          <small id="monthsOwnedDisplay">Months owned (calculated): —</small>
+          <input type="number" id="fhaOriginalLoanAmount" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Remaining Term (months)
+            <span class="help-icon" data-help="Months remaining on the existing loan.">?</span>
+          </label>
+          <input type="number" id="fhaRemainingTerm" step="1" placeholder="e.g. 336">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Dates & Seasoning -->
+    <div class="calc-section">
+      <h2>Loan Dates &amp; Seasoning</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>FHA Endorsement Date
+            <span class="help-icon" data-help="Original FHA loan endorsement date. Used for UFMIP refund calculation.">?</span>
+          </label>
+          <input type="date" id="fhaEndorsementDate">
+        </div>
+        <div class="form-group">
+          <label>First Payment Due Date
+            <span class="help-icon" data-help="Date of first payment on existing loan. Used for seasoning validation.">?</span>
+          </label>
+          <input type="date" id="fhaFirstPaymentDate">
+        </div>
+        <div class="form-group">
+          <label>Current / Payoff Date</label>
+          <input type="date" id="fhaCurrentDate">
+          <small>Auto-populated with today's date</small>
         </div>
       </div>
 
-      <div style="display: flex; gap: var(--space-xl); margin-top: var(--space-md);">
+      <!-- Seasoning Status Cards -->
+      <div class="fha-seasoning-grid">
+        <div class="fha-status-card" id="fhaPaymentsCard">
+          <div class="fha-status-card__label">Payments Made</div>
+          <div class="fha-status-card__value" id="fhaSeasoningPayments">&mdash;</div>
+          <div class="fha-status-card__detail" id="fhaPaymentsDetail"></div>
+        </div>
+        <div class="fha-status-card" id="fhaDaysCard">
+          <div class="fha-status-card__label">Days Since First Payment</div>
+          <div class="fha-status-card__value" id="fhaSeasoningDays">&mdash;</div>
+          <div class="fha-status-card__detail" id="fhaDaysDetail"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: UFMIP Refund Table (collapsible) -->
+    <div class="calc-section">
+      <div class="fha-collapsible-header" data-target="fhaRefundBody">
+        <h2>UFMIP Refund Table</h2>
+        <span class="fha-collapse-icon collapsed">&#9660;</span>
+      </div>
+      <div class="fha-collapsible-body collapsed" id="fhaRefundBody">
+        <p style="font-size: 0.85rem; color: var(--color-gray-500); margin: var(--space-sm) 0;">
+          Refund applies only if existing FHA loan endorsed on/after <strong>Sept 1, 1983</strong>.
+          Percentage based on months since endorsement. Values are editable.
+        </p>
+        <div style="overflow-x: auto;">
+          <table class="fha-refund-table" id="fhaRefundTable">
+            <thead>
+              <tr>
+                <th>Month</th><th>Refund</th>
+                <th>Month</th><th>Refund</th>
+                <th>Month</th><th>Refund</th>
+              </tr>
+            </thead>
+            <tbody id="fhaRefundTableBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top: var(--space-sm);">
+          <button type="button" class="btn btn-sm" id="fhaResetRefundBtn">Reset to Default</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Closing Costs (collapsible sub-groups) -->
+    <div class="calc-section">
+      <div class="fha-collapsible-header" data-target="fhaCostsBody">
+        <h2>Closing Costs (Itemized)</h2>
+        <span class="fha-collapse-icon collapsed">&#9660;</span>
+      </div>
+      <div class="fha-collapsible-body collapsed" id="fhaCostsBody">
+        <p style="font-size: 0.85rem; color: var(--color-gray-500); margin-bottom: var(--space-sm);">
+          Itemize closing costs for streamline financing. For standard FHA refi, enter total in one field.
+        </p>
+
+        <!-- Lender Fees -->
+        <div class="fha-cost-group">
+          <div class="fha-cost-group__title">Lender Fees</div>
+          <div class="fha-cost-row">
+            <label>Origination Fee</label>
+            <input type="number" id="fhaCostOrigination" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Processing Fee</label>
+            <input type="number" id="fhaCostProcessing" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Underwriting Fee</label>
+            <input type="number" id="fhaCostUnderwriting" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Discount Points</label>
+            <input type="number" id="fhaCostPoints" step="0.01" value="0" class="fha-cost-input">
+          </div>
+        </div>
+
+        <!-- Third Party Fees -->
+        <div class="fha-cost-group">
+          <div class="fha-cost-group__title">Third Party Fees</div>
+          <div class="fha-cost-row">
+            <label>Credit Report</label>
+            <input type="number" id="fhaCostCredit" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Flood Certification</label>
+            <input type="number" id="fhaCostFlood" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Inspection Fee</label>
+            <input type="number" id="fhaCostInspection" step="0.01" value="0" class="fha-cost-input">
+          </div>
+        </div>
+
+        <!-- Title & Recording -->
+        <div class="fha-cost-group">
+          <div class="fha-cost-group__title">Title &amp; Recording</div>
+          <div class="fha-cost-row">
+            <label>Title Search / Exam</label>
+            <input type="number" id="fhaCostTitleSearch" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Title Insurance</label>
+            <input type="number" id="fhaCostTitleInsurance" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Recording Fees</label>
+            <input type="number" id="fhaCostRecording" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Attorney / Settlement</label>
+            <input type="number" id="fhaCostAttorney" step="0.01" value="0" class="fha-cost-input">
+          </div>
+        </div>
+
+        <!-- Other -->
+        <div class="fha-cost-group">
+          <div class="fha-cost-group__title">Other Allowed Costs</div>
+          <div class="fha-cost-row">
+            <label>Survey</label>
+            <input type="number" id="fhaCostSurvey" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Pest Inspection</label>
+            <input type="number" id="fhaCostPest" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Other</label>
+            <input type="number" id="fhaCostOther" step="0.01" value="0" class="fha-cost-input">
+          </div>
+        </div>
+
+        <div class="fha-costs-total">
+          <span class="fha-costs-total__label">Total Closing Costs</span>
+          <span class="fha-costs-total__value" id="fhaTotalClosingCosts">$0.00</span>
+        </div>
+
+        <div class="fha-cost-row" style="margin-top: var(--space-md);">
+          <label>Accrued Interest
+            <span class="help-icon" data-help="Only if payoff is on/after payment due date. Do NOT include per diem beyond payoff.">?</span>
+          </label>
+          <input type="number" id="fhaAccruedInterest" step="0.01" value="0">
+        </div>
+
+        <p class="fha-costs-warning">
+          Streamline: CANNOT finance late fees, escrows, prepaids, or payoffs other than existing FHA loan.
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 6: New Loan Parameters -->
+    <div class="calc-section">
+      <h2>New Loan Parameters</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>New Interest Rate (%)
+            <span class="help-icon" data-help="Proposed interest rate for the new FHA loan.">?</span>
+          </label>
+          <input type="number" id="fhaNewRate" step="0.001" placeholder="e.g. 5.750">
+        </div>
+        <div class="form-group">
+          <label>New Loan Term (years)
+            <span class="help-icon" data-help="Term in years for the new FHA loan.">?</span>
+          </label>
+          <select id="fhaNewTerm">
+            <option value="30" selected>30 Years</option>
+            <option value="25">25 Years</option>
+            <option value="20">20 Years</option>
+            <option value="15">15 Years</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>New Loan Type</label>
+          <select id="fhaNewLoanType">
+            <option value="fixed">Fixed Rate</option>
+            <option value="arm">ARM</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top: var(--space-md);">
         <label class="form-check">
-          <input type="checkbox" id="isExistingFha">
-          Current loan is FHA
-        </label>
-        <label class="form-check">
-          <input type="checkbox" id="financeUfmip" checked>
+          <input type="checkbox" id="fhaFinanceUfmip" checked>
           Finance UFMIP into loan amount
         </label>
       </div>
     </div>
 
-    <!-- Value & Balances -->
+    <!-- Section 7: Cash to Close Inputs -->
     <div class="calc-section">
-      <h2>Value & Balances</h2>
+      <h2>Cash to Close Inputs</h2>
       <div class="form-grid">
-        <div class="form-group">
-          <label>Purchase Price
-            <span class="help-icon" data-help="For purchases, FHA uses the lesser of purchase price or appraised value.">?</span>
-          </label>
-          <input type="number" id="purchasePrice" step="0.01" placeholder="0.00">
-          <small>Used as part of the "lesser of" test for purchases</small>
-        </div>
-        <div class="form-group">
-          <label>Appraised Value
-            <span class="help-icon" data-help="Current appraised value used to calculate LTV and max FHA loan amount.">?</span>
-          </label>
-          <input type="number" id="appraisedValue" step="0.01" placeholder="0.00">
-        </div>
-      </div>
-      <div class="form-grid" style="margin-top: var(--space-md);">
-        <div class="form-group">
-          <label>Current UPB
-            <span class="help-icon" data-help="Outstanding principal on the existing mortgage.">?</span>
-          </label>
-          <input type="number" id="currentUpb" step="0.01" placeholder="0.00">
-        </div>
-        <div class="form-group">
-          <label>Closing Costs (Financed)
-            <span class="help-icon" data-help="Costs and prepaids rolled into the new loan.">?</span>
-          </label>
-          <input type="number" id="closingCosts" step="0.01" placeholder="0.00">
-          <small>For refis where costs are rolled in</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Net Tangible Benefit -->
-    <div class="calc-section">
-      <h2>Net Tangible Benefit (NTB)</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Current P&amp;I + MIP Payment
-            <span class="help-icon" data-help="Current full P&I plus FHA MIP. Used to test required payment reduction.">?</span>
-          </label>
-          <input type="number" id="currentPayment" step="0.01" placeholder="0.00">
-        </div>
-        <div class="form-group">
-          <label>Proposed New P&amp;I + MIP
-            <span class="help-icon" data-help="Estimated new P&I and MIP payment.">?</span>
-          </label>
-          <input type="number" id="newPayment" step="0.01" placeholder="0.00">
-          <small>For FHA Streamline, NTB typically requires at least a 5% payment reduction</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Cash to Close -->
-    <div class="calc-section">
-      <h2>Estimated Cash to Close</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Closing Costs (Cash)
-            <span class="help-icon" data-help="Portion paid out of pocket, not financed.">?</span>
-          </label>
-          <input type="number" id="closingCostsCash" step="0.01" placeholder="0.00">
-        </div>
         <div class="form-group">
           <label>Prepaids / Escrows (Cash)
-            <span class="help-icon" data-help="Initial escrow deposits, prepaid interest, etc.">?</span>
+            <span class="help-icon" data-help="Initial escrow deposits, prepaid interest, etc. paid out of pocket.">?</span>
           </label>
-          <input type="number" id="prepaidsCash" step="0.01" placeholder="0.00">
+          <input type="number" id="fhaPrepaidsCash" step="0.01" placeholder="0.00">
         </div>
-      </div>
-      <div class="form-grid" style="margin-top: var(--space-md);">
         <div class="form-group">
           <label>Total Credits
-            <span class="help-icon" data-help="Seller + lender + other credits.">?</span>
+            <span class="help-icon" data-help="Seller + lender + other credits applied toward closing.">?</span>
           </label>
-          <input type="number" id="totalCredits" step="0.01" placeholder="0.00">
+          <input type="number" id="fhaTotalCredits" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group">
           <label>Escrow Refund (Refi)
-            <span class="help-icon" data-help="Expected escrow refund from existing loan.">?</span>
+            <span class="help-icon" data-help="Expected escrow refund from existing loan after payoff.">?</span>
           </label>
-          <input type="number" id="escrowRefund" step="0.01" placeholder="0.00">
+          <input type="number" id="fhaEscrowRefund" step="0.01" placeholder="0.00">
         </div>
       </div>
 
       <div class="action-bar" style="border-top: none; margin-top: var(--space-lg);">
-        <button class="btn btn-primary" id="calculateBtn">Calculate</button>
+        <button class="btn btn-primary" id="fhaCalculateBtn">Calculate All Scenarios</button>
       </div>
     </div>
 
-    <!-- Results -->
-    <div class="calc-section">
-      <h2>Results</h2>
-      <div class="results-grid">
-        <div class="result-card">
-          <div class="result-card__label">Max Base FHA Loan</div>
-          <div class="result-card__value" id="resultBaseLoan">—</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Est. Total Loan (w/ UFMIP)</div>
-          <div class="result-card__value" id="resultTotalLoan">—</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Implied LTV</div>
-          <div class="result-card__value" id="resultLtv">—</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Net Tangible Benefit</div>
-          <div class="result-card__value">
-            <span class="result-pill" id="resultNtb">—</span>
-          </div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Est. Cash to Close</div>
-          <div class="result-card__value" id="resultCashToClose">—</div>
-        </div>
+    <!-- Section 8: Comparison Results -->
+    <div class="calc-section" id="fhaResultsSection" style="display: none;">
+      <h2>Scenario Comparison</h2>
+
+      <div class="fha-results-wrap">
+        <table class="fha-results-table" id="fhaResultsTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th id="fhaPurchColHeader" class="fha-purch-col fha-col-hidden">Purchase</th>
+              <th id="fhaRefiColHeader">
+                FHA Refi
+                <br>
+                <select class="fha-refi-type-select" id="fhaRefiTypeSelect">
+                  <option value="rateTerm">Rate/Term (97.75%)</option>
+                  <option value="cashOut">Cash-Out (80%)</option>
+                </select>
+              </th>
+              <th id="fhaSlColHeader" class="fha-sl-col">Streamline</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fha-section-row"><td colspan="4">Loan Amount</td></tr>
+            <tr>
+              <td>Max Base Loan</td>
+              <td id="fhaPurchBaseLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiBaseLoan">&mdash;</td>
+              <td id="fhaSlBaseLoan" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr>
+              <td>UFMIP Refund</td>
+              <td id="fhaPurchUfmipRefund" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiUfmipRefund">&mdash;</td>
+              <td id="fhaSlUfmipRefund" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr>
+              <td>New UFMIP (1.75%)</td>
+              <td id="fhaPurchUfmip" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiUfmip">&mdash;</td>
+              <td id="fhaSlNewUfmip" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr class="fha-subtotal-row">
+              <td>Total Loan Amount</td>
+              <td id="fhaPurchTotalLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiTotalLoan">&mdash;</td>
+              <td id="fhaSlTotalLoan" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr>
+              <td>LTV</td>
+              <td id="fhaPurchLtv" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiLtv">&mdash;</td>
+              <td id="fhaSlLtv" class="fha-sl-col">&mdash;</td>
+            </tr>
+
+            <tr class="fha-section-row"><td colspan="4">Payment &amp; Benefit</td></tr>
+            <tr>
+              <td>New P&amp;I Payment</td>
+              <td id="fhaPurchPayment" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiPayment">&mdash;</td>
+              <td id="fhaSlPayment" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr>
+              <td>Net Tangible Benefit</td>
+              <td id="fhaPurchNtb" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiNtb">&mdash;</td>
+              <td id="fhaSlNtb" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr>
+              <td>NTB Detail</td>
+              <td id="fhaPurchNtbDetail" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiNtbDetail">&mdash;</td>
+              <td id="fhaSlNtbDetail" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr>
+              <td>Seasoning</td>
+              <td id="fhaPurchSeasoning" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiSeasoning">&mdash;</td>
+              <td id="fhaSlSeasoning" class="fha-sl-col">&mdash;</td>
+            </tr>
+
+            <tr class="fha-total-row">
+              <td>Est. Cash to Close</td>
+              <td id="fhaPurchCashToClose" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiCashToClose">&mdash;</td>
+              <td id="fhaSlCashToClose" class="fha-sl-col">&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
+      <!-- Notes -->
       <div style="margin-top: var(--space-lg);">
         <h3 style="font-size: 0.95rem; color: var(--color-gray-700);">Notes &amp; Flags</h3>
-        <ul id="resultNotes" style="font-size: 0.85rem; color: var(--color-gray-500); padding-left: var(--space-lg);"></ul>
+        <ul class="fha-notes-list" id="fhaResultNotes"></ul>
       </div>
     </div>
 
@@ -187,5 +445,8 @@
   <div class="calc-page__footer">
     <div class="calc-page__footer-title">Important Disclaimers</div>
     <p>For internal guidance only. Actual eligibility subject to FHA Handbook, investor overlays, and AUS findings.</p>
+    <p><strong>Seasoning:</strong> Streamline requires 6 payments AND 210 days since first payment.</p>
+    <p><strong>UFMIP Refund:</strong> Only for loans endorsed after Sept 1, 1983.</p>
+    <p><strong>NTB:</strong> Net Tangible Benefit must be demonstrated per FHA/investor guidelines.</p>
   </div>
 </div>

@@ -660,23 +660,75 @@
     return m;
   };
 
-  /* ---- FHA Calculator ---- */
+  /* ---- FHA (Unified: purchase, refi, streamline) ---- */
   CALC_MAPS['fha'] = function (data) {
     var m = {};
-    if (data.property.value) {
-      m['purchasePrice'] = data.property.value;
-      m['appraisedValue'] = data.property.value;
-    }
-    return m;
-  };
+    var fees = data.fees || {};
 
-  /* ---- FHA Refi ---- */
-  CALC_MAPS['fha-refi'] = function (data) {
-    var m = {};
-    if (data.existingMortgage.balance) m['sl_upb'] = data.existingMortgage.balance;
-    if (data.loan.amount) m['sl_originalLoanAmount'] = data.loan.amount;
-    if (data.loan.rate) m['ntb_newRate'] = data.loan.rate;
-    if (data.borrowerName) m['borrowerName'] = data.borrowerName;
+    // Borrower
+    if (data.borrowerName) m['fhaBorrowerName'] = data.borrowerName;
+
+    // Property
+    if (data.property.value) {
+      m['fhaAppraisedValue'] = data.property.value;
+      m['fhaPurchasePrice'] = data.property.value;
+    }
+
+    // Current loan
+    if (data.existingMortgage.balance) m['fhaCurrentUpb'] = data.existingMortgage.balance;
+    if (data.existingMortgage.payment) m['fhaCurrentPayment'] = data.existingMortgage.payment;
+    if (data.existingMortgage.remainingMonths) m['fhaRemainingTerm'] = data.existingMortgage.remainingMonths;
+    if (data.loan.amount) m['fhaOriginalLoanAmount'] = data.loan.amount;
+
+    // New loan
+    if (data.loan.rate) m['fhaNewRate'] = data.loan.rate;
+    if (data.loan.termMonths) {
+      var termYears = Math.round(data.loan.termMonths / 12);
+      if ([15, 20, 25, 30].indexOf(termYears) !== -1) m['fhaNewTerm'] = termYears;
+    }
+
+    // Is existing FHA
+    if (data.loan.mortgageType) {
+      var isFha = data.loan.mortgageType === 'FHA' || data.loan.mortgageType === 'FederalHousingAdministration';
+      if (isFha) m['fhaIsExistingFha'] = true;
+    }
+
+    // Loan type (Fixed/ARM)
+    if (data.loan.amortType) {
+      var typeMap = { 'Fixed': 'fixed', 'AdjustableRate': 'arm' };
+      if (typeMap[data.loan.amortType]) {
+        m['fhaCurrentLoanType'] = typeMap[data.loan.amortType];
+        m['fhaNewLoanType'] = typeMap[data.loan.amortType];
+      }
+    }
+
+    // Itemized fees
+    var origAmt = feeAmt(fees, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
+    if (origAmt) m['fhaCostOrigination'] = origAmt;
+    var procAmt = feeAmt(fees, 'Processing Fee', 'ProcessingFee');
+    if (procAmt) m['fhaCostProcessing'] = procAmt;
+    var uwAmt = feeAmt(fees, 'Underwriting Fee', 'UnderwritingFee');
+    if (uwAmt) m['fhaCostUnderwriting'] = uwAmt;
+    var discAmt = feeAmt(fees, 'LoanDiscountPoints', 'Loan Discount Points', 'DiscountPoints');
+    if (discAmt) m['fhaCostPoints'] = discAmt;
+    var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
+    if (creditAmt) m['fhaCostCredit'] = creditAmt;
+    var floodAmt = feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
+    if (floodAmt) m['fhaCostFlood'] = floodAmt;
+    var titleAmt = feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium', 'TitleSearchFee');
+    if (titleAmt) m['fhaCostTitleSearch'] = titleAmt;
+    var settlementAmt = feeAmt(fees, 'SettlementFee', 'Settlement Fee', 'TitleInsurance');
+    if (settlementAmt) m['fhaCostTitleInsurance'] = settlementAmt;
+    var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed', 'RecordingFee');
+    if (recordingAmt) m['fhaCostRecording'] = recordingAmt;
+    var cplAmt = feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee', 'AttorneyFee');
+    if (cplAmt) m['fhaCostAttorney'] = cplAmt;
+
+    // Escrow / prepaids
+    if (data.prepaids.hazardMonths && data.prepaids.hazardAmount) {
+      m['fhaPrepaidsCash'] = data.prepaids.hazardAmount * data.prepaids.hazardMonths;
+    }
+
     return m;
   };
 
