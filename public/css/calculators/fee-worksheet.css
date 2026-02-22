@@ -122,12 +122,88 @@
 .fw-fee-input--sm { width: 80px; }
 .fw-fee-input--xs { width: 44px; text-align: center; }
 
-/* Computed values */
-.fw-fee-value {
+/* Computed input fields (auto-calculate, user can override) */
+.fw-fee-input--computed {
+  background: var(--color-gray-50);
+  color: var(--color-gray-700);
   font-weight: 600;
+}
+
+.fw-fee-input--overridden {
+  background: #fff8e1;
+  border-color: #f9a825;
+}
+
+/* Custom line item rows */
+.fw-fee-row--custom {
+  position: relative;
+}
+
+.fw-fee-row--custom label {
+  font-style: italic;
+}
+
+/* Remove button for custom items */
+.fw-fee-remove {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-400);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.fw-fee-remove:hover {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+}
+
+/* Add Line Item form */
+.fw-add-item {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-gray-50);
+  border: 1px dashed var(--color-gray-300);
+  border-radius: var(--border-radius);
+}
+
+.fw-add-item h3 {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.95rem;
+  color: var(--color-gray-700);
+}
+
+.fw-add-item__form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.fw-add-item__form .form-group {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 120px;
+}
+
+.fw-add-item__form .form-group label {
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.fw-add-item__form .btn {
   white-space: nowrap;
-  min-width: 90px;
-  text-align: right;
+  flex-shrink: 0;
 }
 
 /* Grand total row */
@@ -166,6 +242,8 @@
   .calc-page__header,
   .action-bar,
   .fw-disclaimer,
+  .fw-add-item,
+  .fw-fee-remove,
   .calc-page__footer { display: none !important; }
 
   .fw-columns {

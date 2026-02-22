@@ -1918,6 +1918,23 @@
 
   /* ---- Fee Worksheet ---- */
   extractors['fee-worksheet'] = function (doc) {
+    // Capture custom line items from dynamically added rows
+    var customItems = [];
+    var customRows = doc.querySelectorAll('.fw-fee-row--custom');
+    customRows.forEach(function (row) {
+      var section = '';
+      var parentSection = row.closest('[data-section]');
+      if (parentSection) section = parentSection.getAttribute('data-section');
+      var labelEl = row.querySelector('label');
+      var inputEl = row.querySelector('input');
+      if (labelEl && inputEl) {
+        var amount = parseFloat(inputEl.value) || 0;
+        if (amount) {
+          customItems.push({ section: section, name: labelEl.textContent.trim(), amount: amount });
+        }
+      }
+    });
+
     return {
       // Loan info header
       borrower: txt(doc,'fwBorrowerName'),
@@ -1970,19 +1987,19 @@
       // Prepaids
       hazInsAmt: val(doc,'fwHazInsAmt'),
       hazInsMonths: val(doc,'fwHazInsMonths'),
-      prepaidHazIns: txt(doc,'fwPrepaidHazIns'),
+      prepaidHazIns: val(doc,'fwPrepaidHazIns'),
       prepaidIntPerDiem: val(doc,'fwPrepaidIntPerDiem'),
       prepaidIntDays: val(doc,'fwPrepaidIntDays'),
-      prepaidInterest: txt(doc,'fwPrepaidInterest'),
+      prepaidInterest: val(doc,'fwPrepaidInterest'),
       prepaidsTotal: txt(doc,'fwPrepaidsTotal'),
 
       // Escrow
       escTaxAmt: val(doc,'fwEscTaxAmt'),
       escTaxMonths: val(doc,'fwEscTaxMonths'),
-      escrowTax: txt(doc,'fwEscrowTax'),
+      escrowTax: val(doc,'fwEscrowTax'),
       escInsAmt: val(doc,'fwEscInsAmt'),
       escInsMonths: val(doc,'fwEscInsMonths'),
-      escrowIns: txt(doc,'fwEscrowIns'),
+      escrowIns: val(doc,'fwEscrowIns'),
       escrowTotal: txt(doc,'fwEscrowTotal'),
 
       // Other
@@ -1990,29 +2007,33 @@
       other2: val(doc,'fwOther2'),
       otherTotal: txt(doc,'fwOtherTotal'),
 
-      // Funds summary
-      purchasePrice: txt(doc,'fwPurchasePrice'),
-      estPrepaids: txt(doc,'fwEstPrepaids'),
-      estClosing: txt(doc,'fwEstClosing'),
-      totalDue: txt(doc,'fwTotalDue'),
-      summaryLoanAmt: txt(doc,'fwSummaryLoanAmt'),
-      totalPaid: txt(doc,'fwTotalPaid'),
+      // Funds summary (all numeric now — inputs not spans)
+      purchasePrice: val(doc,'fwPurchasePrice'),
+      estPrepaids: val(doc,'fwEstPrepaids'),
+      estClosing: val(doc,'fwEstClosing'),
+      totalDue: val(doc,'fwTotalDue'),
+      summaryLoanAmt: val(doc,'fwSummaryLoanAmt'),
+      totalPaid: val(doc,'fwTotalPaid'),
       sellerCredits: val(doc,'fwSellerCredits'),
       lenderCredits: val(doc,'fwLenderCredits'),
       fundsFromYou: txt(doc,'fwFundsFromYou'),
 
-      // Monthly housing
-      monthlyPI: txt(doc,'fwMonthlyPI'),
-      monthlyIns: txt(doc,'fwMonthlyIns'),
-      monthlyTax: txt(doc,'fwMonthlyTax'),
+      // Monthly housing (all numeric now — inputs not spans)
+      monthlyPI: val(doc,'fwMonthlyPI'),
+      monthlyIns: val(doc,'fwMonthlyIns'),
+      monthlyTax: val(doc,'fwMonthlyTax'),
       monthlyMI: val(doc,'fwMonthlyMI'),
       monthlyHOA: val(doc,'fwMonthlyHOA'),
-      totalMonthly: txt(doc,'fwTotalMonthly')
+      totalMonthly: txt(doc,'fwTotalMonthly'),
+
+      // Custom line items
+      customItems: customItems
     };
   };
 
   renderers['fee-worksheet'] = function (data) {
     var html = '';
+    var items = data.customItems || [];
 
     /* helper: fee line – only show if non-zero */
     function feeLine(label, amount) {
@@ -2022,7 +2043,18 @@
     function feeMultiLine(label, amt, qty, unit, total) {
       if (!amt && !total) return '';
       var detail = amt ? fmt(amt) + ' x ' + qty + ' ' + unit : '';
-      return '<tr><td>' + label + (detail ? ' <span style="color:#888;font-size:0.85em">(' + detail + ')</span>' : '') + '</td><td class="rpt-num">' + (total || '') + '</td></tr>';
+      var totalStr = (typeof total === 'number') ? fmt(total) : (total || '');
+      return '<tr><td>' + label + (detail ? ' <span style="color:#888;font-size:0.85em">(' + detail + ')</span>' : '') + '</td><td class="rpt-num">' + totalStr + '</td></tr>';
+    }
+    /* Render custom items for a given section */
+    function customLines(section) {
+      var out = '';
+      items.forEach(function (ci) {
+        if (ci.section === section && ci.amount) {
+          out += '<tr><td><em>' + ci.name + '</em></td><td class="rpt-num">' + fmt(ci.amount) + '</td></tr>';
+        }
+      });
+      return out;
     }
 
     /* ---- Loan Information ---- */
@@ -2056,6 +2088,7 @@
     html += feeLine('Discount Points', data.discountPts);
     html += feeLine('Processing Fee', data.processingFee);
     html += feeLine('Underwriting Fee', data.underwritingFee);
+    html += customLines('origination');
     html += '</tbody></table>';
 
     /* Cannot Shop */
@@ -2067,6 +2100,7 @@
     html += feeLine('Flood Cert Fee', data.floodFee);
     html += feeLine('Tax Service Fee', data.taxServiceFee);
     html += feeLine('MERS Registration Fee', data.mersFee);
+    html += customLines('cannotShop');
     html += '</tbody></table>';
 
     /* Can Shop */
@@ -2078,16 +2112,17 @@
     html += feeLine('Title - Tax Cert Fee', data.titleTaxCert);
     html += feeLine('Title - Owners Coverage Premium', data.titleOwners);
     html += feeLine('Wire Transfer Fee', data.wireFee);
+    html += customLines('canShop');
     html += '</tbody></table>';
 
     /* Funds Needed To Close */
     html += '<table class="rpt-table rpt-table--compact"><thead><tr><th colspan="2" style="font-weight:700">Total Estimated Funds Needed To Close</th></tr></thead><tbody>';
-    html += '<tr><td>' + (data.purpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount') + '</td><td class="rpt-num">' + (data.purchasePrice || '$0.00') + '</td></tr>';
-    html += '<tr><td>Estimated Prepaid Items</td><td class="rpt-num">' + (data.estPrepaids || '$0.00') + '</td></tr>';
-    html += '<tr><td>Estimated Closing Cost</td><td class="rpt-num">' + (data.estClosing || '$0.00') + '</td></tr>';
-    html += '<tr style="font-weight:600;border-top:1px solid #ccc"><td>Total Due from Borrower (K)</td><td class="rpt-num">' + (data.totalDue || '$0.00') + '</td></tr>';
-    html += '<tr><td>Loan Amount</td><td class="rpt-num">' + (data.summaryLoanAmt || '$0.00') + '</td></tr>';
-    html += '<tr><td>Total Paid by/on Behalf of Borrower (L)</td><td class="rpt-num">' + (data.totalPaid || '$0.00') + '</td></tr>';
+    html += '<tr><td>' + (data.purpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount') + '</td><td class="rpt-num">' + fmt(data.purchasePrice || 0) + '</td></tr>';
+    html += '<tr><td>Estimated Prepaid Items</td><td class="rpt-num">' + fmt(data.estPrepaids || 0) + '</td></tr>';
+    html += '<tr><td>Estimated Closing Cost</td><td class="rpt-num">' + fmt(data.estClosing || 0) + '</td></tr>';
+    html += '<tr style="font-weight:600;border-top:1px solid #ccc"><td>Total Due from Borrower (K)</td><td class="rpt-num">' + fmt(data.totalDue || 0) + '</td></tr>';
+    html += '<tr><td>Loan Amount</td><td class="rpt-num">' + fmt(data.summaryLoanAmt || 0) + '</td></tr>';
+    html += '<tr><td>Total Paid by/on Behalf of Borrower (L)</td><td class="rpt-num">' + fmt(data.totalPaid || 0) + '</td></tr>';
     if (data.sellerCredits) html += '<tr><td>Seller Credits</td><td class="rpt-num">' + fmt(data.sellerCredits) + '</td></tr>';
     if (data.lenderCredits) html += '<tr><td>Lender Credits</td><td class="rpt-num">' + fmt(data.lenderCredits) + '</td></tr>';
     html += '</tbody></table>';
@@ -2102,31 +2137,35 @@
     html += '<table class="rpt-table rpt-table--compact"><thead><tr><th>Taxes & Government Fees</th><th class="rpt-num">' + data.govTotal + '</th></tr></thead><tbody>';
     html += feeLine('Recording Fee For Deed', data.recordingFee);
     html += feeLine('Transfer Taxes', data.transferTax);
+    html += customLines('government');
     html += '</tbody></table>';
 
     /* Prepaids */
     html += '<table class="rpt-table rpt-table--compact"><thead><tr><th>Prepaids</th><th class="rpt-num">' + data.prepaidsTotal + '</th></tr></thead><tbody>';
     html += feeMultiLine('Hazard Insurance', data.hazInsAmt, data.hazInsMonths, 'mth(s)', data.prepaidHazIns);
     html += feeMultiLine('Prepaid Interest', data.prepaidIntPerDiem, data.prepaidIntDays, 'day(s)', data.prepaidInterest);
+    html += customLines('prepaids');
     html += '</tbody></table>';
 
     /* Escrow */
     html += '<table class="rpt-table rpt-table--compact"><thead><tr><th>Initial Escrow Payment at Closing</th><th class="rpt-num">' + data.escrowTotal + '</th></tr></thead><tbody>';
     html += feeMultiLine('County Property Tax', data.escTaxAmt, data.escTaxMonths, 'mth(s)', data.escrowTax);
     html += feeMultiLine('Hazard Insurance', data.escInsAmt, data.escInsMonths, 'mth(s)', data.escrowIns);
+    html += customLines('escrow');
     html += '</tbody></table>';
 
     /* Other */
     html += '<table class="rpt-table rpt-table--compact"><thead><tr><th>Other</th><th class="rpt-num">' + data.otherTotal + '</th></tr></thead><tbody>';
     html += feeLine('Other Fee 1', data.other1);
     html += feeLine('Other Fee 2', data.other2);
+    html += customLines('other');
     html += '</tbody></table>';
 
     /* Monthly Housing Payment */
     html += '<table class="rpt-table rpt-table--compact"><thead><tr><th colspan="2" style="font-weight:700">Total Estimated Monthly Housing Payment</th></tr></thead><tbody>';
-    html += '<tr><td>First Mortgage (P&I)</td><td class="rpt-num">' + data.monthlyPI + '</td></tr>';
-    html += '<tr><td>Hazard Insurance</td><td class="rpt-num">' + data.monthlyIns + '</td></tr>';
-    html += '<tr><td>Property Tax</td><td class="rpt-num">' + data.monthlyTax + '</td></tr>';
+    html += '<tr><td>First Mortgage (P&I)</td><td class="rpt-num">' + fmt(data.monthlyPI) + '</td></tr>';
+    html += '<tr><td>Hazard Insurance</td><td class="rpt-num">' + fmt(data.monthlyIns) + '</td></tr>';
+    html += '<tr><td>Property Tax</td><td class="rpt-num">' + fmt(data.monthlyTax) + '</td></tr>';
     if (data.monthlyMI) html += '<tr><td>MI</td><td class="rpt-num">' + fmt(data.monthlyMI) + '</td></tr>';
     if (data.monthlyHOA) html += '<tr><td>HOA</td><td class="rpt-num">' + fmt(data.monthlyHOA) + '</td></tr>';
     html += '</tbody></table>';
@@ -2143,6 +2182,7 @@
 
   pdfGenerators['fee-worksheet'] = function (data) {
     var content = [];
+    var items = data.customItems || [];
 
     /* helper: fee line for pdfmake table rows (skip zero values) */
     function fl(label, amount) {
@@ -2152,7 +2192,18 @@
     function fml(label, amt, qty, unit, total) {
       if (!amt && !total) return null;
       var detail = amt ? fmt(amt) + ' x ' + qty + ' ' + unit : '';
-      return [label + (detail ? ' (' + detail + ')' : ''), { text: total || '', alignment: 'right' }];
+      var totalStr = (typeof total === 'number') ? fmt(total) : (total || '');
+      return [label + (detail ? ' (' + detail + ')' : ''), { text: totalStr, alignment: 'right' }];
+    }
+    /* custom items for a section */
+    function cfl(section) {
+      var out = [];
+      items.forEach(function (ci) {
+        if (ci.section === section && ci.amount) {
+          out.push([{ text: ci.name, italics: true }, { text: fmt(ci.amount), alignment: 'right' }]);
+        }
+      });
+      return out;
     }
     function sectionTable(title, totalStr, rows) {
       var body = [[{ text: title, style: 'tableHeader' }, { text: totalStr, style: 'tableHeader', alignment: 'right' }]];
@@ -2181,23 +2232,23 @@
     infoRows.forEach(function (r) { infoBody.push([r[0], { text: r[1], alignment: 'right' }]); });
     content.push({ table: { headerRows: 1, widths: ['*', 140], body: infoBody }, layout: 'lightHorizontalLines' });
 
-    /* Fee sections (two conceptual columns serialized for PDF) */
-    content.push(sectionTable('Origination Charges', data.origTotal, [fl('Origination Fee', data.origFee), fl('Discount Points', data.discountPts), fl('Processing Fee', data.processingFee), fl('Underwriting Fee', data.underwritingFee)]));
-    content.push(sectionTable('Services Borrower Cannot Shop', data.cannotShopTotal, [fl('Appraisal Fee', data.appraisalFee), fl('Credit Report Fee', data.creditReportFee), fl('Technology Fee', data.techFee), fl('VOE Fee', data.voeFee), fl('Flood Cert Fee', data.floodFee), fl('Tax Service Fee', data.taxServiceFee), fl('MERS Registration Fee', data.mersFee)]));
-    content.push(sectionTable('Services Borrower Can Shop For', data.canShopTotal, [fl('E-Recording Fee', data.eRecordingFee), fl('Title - CPL', data.titleCPL), fl('Title - Lenders Coverage', data.titleLenders), fl('Title - Settlement Fee', data.titleSettlement), fl('Title - Tax Cert Fee', data.titleTaxCert), fl('Title - Owners Coverage', data.titleOwners), fl('Wire Transfer Fee', data.wireFee)]));
-    content.push(sectionTable('Taxes & Government Fees', data.govTotal, [fl('Recording Fee For Deed', data.recordingFee), fl('Transfer Taxes', data.transferTax)]));
-    content.push(sectionTable('Prepaids', data.prepaidsTotal, [fml('Hazard Insurance', data.hazInsAmt, data.hazInsMonths, 'mth(s)', data.prepaidHazIns), fml('Prepaid Interest', data.prepaidIntPerDiem, data.prepaidIntDays, 'day(s)', data.prepaidInterest)]));
-    content.push(sectionTable('Initial Escrow Payment at Closing', data.escrowTotal, [fml('County Property Tax', data.escTaxAmt, data.escTaxMonths, 'mth(s)', data.escrowTax), fml('Hazard Insurance', data.escInsAmt, data.escInsMonths, 'mth(s)', data.escrowIns)]));
-    content.push(sectionTable('Other', data.otherTotal, [fl('Other Fee 1', data.other1), fl('Other Fee 2', data.other2)]));
+    /* Fee sections with custom items */
+    content.push(sectionTable('Origination Charges', data.origTotal, [fl('Origination Fee', data.origFee), fl('Discount Points', data.discountPts), fl('Processing Fee', data.processingFee), fl('Underwriting Fee', data.underwritingFee)].concat(cfl('origination'))));
+    content.push(sectionTable('Services Borrower Cannot Shop', data.cannotShopTotal, [fl('Appraisal Fee', data.appraisalFee), fl('Credit Report Fee', data.creditReportFee), fl('Technology Fee', data.techFee), fl('VOE Fee', data.voeFee), fl('Flood Cert Fee', data.floodFee), fl('Tax Service Fee', data.taxServiceFee), fl('MERS Registration Fee', data.mersFee)].concat(cfl('cannotShop'))));
+    content.push(sectionTable('Services Borrower Can Shop For', data.canShopTotal, [fl('E-Recording Fee', data.eRecordingFee), fl('Title - CPL', data.titleCPL), fl('Title - Lenders Coverage', data.titleLenders), fl('Title - Settlement Fee', data.titleSettlement), fl('Title - Tax Cert Fee', data.titleTaxCert), fl('Title - Owners Coverage', data.titleOwners), fl('Wire Transfer Fee', data.wireFee)].concat(cfl('canShop'))));
+    content.push(sectionTable('Taxes & Government Fees', data.govTotal, [fl('Recording Fee For Deed', data.recordingFee), fl('Transfer Taxes', data.transferTax)].concat(cfl('government'))));
+    content.push(sectionTable('Prepaids', data.prepaidsTotal, [fml('Hazard Insurance', data.hazInsAmt, data.hazInsMonths, 'mth(s)', data.prepaidHazIns), fml('Prepaid Interest', data.prepaidIntPerDiem, data.prepaidIntDays, 'day(s)', data.prepaidInterest)].concat(cfl('prepaids'))));
+    content.push(sectionTable('Initial Escrow Payment at Closing', data.escrowTotal, [fml('County Property Tax', data.escTaxAmt, data.escTaxMonths, 'mth(s)', data.escrowTax), fml('Hazard Insurance', data.escInsAmt, data.escInsMonths, 'mth(s)', data.escrowIns)].concat(cfl('escrow'))));
+    content.push(sectionTable('Other', data.otherTotal, [fl('Other Fee 1', data.other1), fl('Other Fee 2', data.other2)].concat(cfl('other'))));
 
     /* Funds summary */
     var fundsBody = [[{ text: 'Funds Needed To Close', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
-    fundsBody.push([(data.purpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount'), { text: data.purchasePrice || '$0.00', alignment: 'right' }]);
-    fundsBody.push(['Estimated Prepaid Items', { text: data.estPrepaids || '$0.00', alignment: 'right' }]);
-    fundsBody.push(['Estimated Closing Cost', { text: data.estClosing || '$0.00', alignment: 'right' }]);
-    fundsBody.push([{ text: 'Total Due from Borrower (K)', bold: true }, { text: data.totalDue || '$0.00', alignment: 'right', bold: true }]);
-    fundsBody.push(['Loan Amount', { text: data.summaryLoanAmt || '$0.00', alignment: 'right' }]);
-    fundsBody.push(['Total Paid by/on Behalf of Borrower (L)', { text: data.totalPaid || '$0.00', alignment: 'right' }]);
+    fundsBody.push([(data.purpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount'), { text: fmt(data.purchasePrice || 0), alignment: 'right' }]);
+    fundsBody.push(['Estimated Prepaid Items', { text: fmt(data.estPrepaids || 0), alignment: 'right' }]);
+    fundsBody.push(['Estimated Closing Cost', { text: fmt(data.estClosing || 0), alignment: 'right' }]);
+    fundsBody.push([{ text: 'Total Due from Borrower (K)', bold: true }, { text: fmt(data.totalDue || 0), alignment: 'right', bold: true }]);
+    fundsBody.push(['Loan Amount', { text: fmt(data.summaryLoanAmt || 0), alignment: 'right' }]);
+    fundsBody.push(['Total Paid by/on Behalf of Borrower (L)', { text: fmt(data.totalPaid || 0), alignment: 'right' }]);
     if (data.sellerCredits) fundsBody.push(['Seller Credits', { text: fmt(data.sellerCredits), alignment: 'right' }]);
     if (data.lenderCredits) fundsBody.push(['Lender Credits', { text: fmt(data.lenderCredits), alignment: 'right' }]);
     content.push({ table: { headerRows: 1, widths: ['*', 110], body: fundsBody }, layout: 'lightHorizontalLines' });
@@ -2205,9 +2256,9 @@
 
     /* Monthly housing */
     var monthlyBody = [[{ text: 'Monthly Housing Payment', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
-    monthlyBody.push(['First Mortgage (P&I)', { text: data.monthlyPI, alignment: 'right' }]);
-    monthlyBody.push(['Hazard Insurance', { text: data.monthlyIns, alignment: 'right' }]);
-    monthlyBody.push(['Property Tax', { text: data.monthlyTax, alignment: 'right' }]);
+    monthlyBody.push(['First Mortgage (P&I)', { text: fmt(data.monthlyPI), alignment: 'right' }]);
+    monthlyBody.push(['Hazard Insurance', { text: fmt(data.monthlyIns), alignment: 'right' }]);
+    monthlyBody.push(['Property Tax', { text: fmt(data.monthlyTax), alignment: 'right' }]);
     if (data.monthlyMI) monthlyBody.push(['MI', { text: fmt(data.monthlyMI), alignment: 'right' }]);
     if (data.monthlyHOA) monthlyBody.push(['HOA', { text: fmt(data.monthlyHOA), alignment: 'right' }]);
     content.push({ table: { headerRows: 1, widths: ['*', 110], body: monthlyBody }, layout: 'lightHorizontalLines' });

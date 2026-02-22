@@ -102,12 +102,12 @@
       <div class="fw-col">
 
         <!-- Origination Charges -->
-        <div class="fw-fee-section">
+        <div class="fw-fee-section" data-section="origination">
           <div class="fw-fee-header">
             <span>Origination Charges:</span>
             <span class="fw-fee-total" id="fwOrigTotal">$0</span>
           </div>
-          <div class="fw-fee-items">
+          <div class="fw-fee-items" id="fwOrigItems">
             <div class="fw-fee-row">
               <label>Origination Fee</label>
               <input type="number" id="fwOrigFee" value="0" min="0" step="1" class="fw-fee-input">
@@ -128,12 +128,12 @@
         </div>
 
         <!-- Services Borrower Cannot Shop -->
-        <div class="fw-fee-section">
+        <div class="fw-fee-section" data-section="cannotShop">
           <div class="fw-fee-header">
             <span>Services Borrower Cannot Shop:</span>
             <span class="fw-fee-total" id="fwCannotShopTotal">$0</span>
           </div>
-          <div class="fw-fee-items">
+          <div class="fw-fee-items" id="fwCannotShopItems">
             <div class="fw-fee-row">
               <label>Appraisal Fee</label>
               <input type="number" id="fwAppraisalFee" value="0" min="0" step="1" class="fw-fee-input">
@@ -166,12 +166,12 @@
         </div>
 
         <!-- Services Borrower Can Shop For -->
-        <div class="fw-fee-section">
+        <div class="fw-fee-section" data-section="canShop">
           <div class="fw-fee-header">
             <span>Services Borrower Can Shop For:</span>
             <span class="fw-fee-total" id="fwCanShopTotal">$0</span>
           </div>
-          <div class="fw-fee-items">
+          <div class="fw-fee-items" id="fwCanShopItems">
             <div class="fw-fee-row">
               <label>E-Recording Fee</label>
               <input type="number" id="fwERecordingFee" value="0" min="0" step="1" class="fw-fee-input">
@@ -211,27 +211,27 @@
           <div class="fw-fee-items">
             <div class="fw-fee-row">
               <label id="fwPurchasePriceLabel">Purchase Price</label>
-              <span class="fw-fee-value" id="fwPurchasePrice">$0.00</span>
+              <input type="number" id="fwPurchasePrice" value="0" min="0" step="1" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>Estimated Prepaid Items</label>
-              <span class="fw-fee-value" id="fwEstPrepaids">$0.00</span>
+              <input type="number" id="fwEstPrepaids" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>Estimated Closing Cost</label>
-              <span class="fw-fee-value" id="fwEstClosing">$0.00</span>
+              <input type="number" id="fwEstClosing" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row fw-fee-row--subtotal">
               <label>Total Due from Borrower at Closing (K)</label>
-              <span class="fw-fee-value" id="fwTotalDue">$0.00</span>
+              <input type="number" id="fwTotalDue" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>Loan Amount</label>
-              <span class="fw-fee-value" id="fwSummaryLoanAmt">$0.00</span>
+              <input type="number" id="fwSummaryLoanAmt" value="0" min="0" step="1" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>Total Paid Already by or on Behalf of Borrower at Closing (L)</label>
-              <span class="fw-fee-value" id="fwTotalPaid">$0.00</span>
+              <input type="number" id="fwTotalPaid" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>Seller Credits</label>
@@ -254,12 +254,12 @@
       <div class="fw-col">
 
         <!-- Taxes and Other Government Fees -->
-        <div class="fw-fee-section">
+        <div class="fw-fee-section" data-section="government">
           <div class="fw-fee-header">
             <span>Taxes and Other Government Fees:</span>
             <span class="fw-fee-total" id="fwGovTotal">$0</span>
           </div>
-          <div class="fw-fee-items">
+          <div class="fw-fee-items" id="fwGovItems">
             <div class="fw-fee-row">
               <label>Recording Fee For Deed</label>
               <input type="number" id="fwRecordingFee" value="0" min="0" step="1" class="fw-fee-input">
@@ -272,12 +272,12 @@
         </div>
 
         <!-- Prepaids -->
-        <div class="fw-fee-section">
+        <div class="fw-fee-section" data-section="prepaids">
           <div class="fw-fee-header">
             <span>Prepaids:</span>
             <span class="fw-fee-total" id="fwPrepaidsTotal">$0</span>
           </div>
-          <div class="fw-fee-items">
+          <div class="fw-fee-items" id="fwPrepaidsItems">
             <div class="fw-fee-row fw-fee-row--multi">
               <label>Hazard Insurance</label>
               <div class="fw-fee-multi">
@@ -287,7 +287,7 @@
                 <input type="number" id="fwHazInsMonths" value="12" min="0" max="24" step="1" class="fw-fee-input fw-fee-input--xs">
                 <span>mth(s)</span>
               </div>
-              <span class="fw-fee-value" id="fwPrepaidHazIns">$0.00</span>
+              <input type="number" id="fwPrepaidHazIns" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row fw-fee-row--multi">
               <label>Prepaid Interest</label>
@@ -298,18 +298,18 @@
                 <input type="number" id="fwPrepaidIntDays" value="0" min="0" max="31" step="1" class="fw-fee-input fw-fee-input--xs">
                 <span>day(s)</span>
               </div>
-              <span class="fw-fee-value" id="fwPrepaidInterest">$0.00</span>
+              <input type="number" id="fwPrepaidInterest" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
           </div>
         </div>
 
         <!-- Initial Escrow Payment at Closing -->
-        <div class="fw-fee-section">
+        <div class="fw-fee-section" data-section="escrow">
           <div class="fw-fee-header">
             <span>Initial Escrow Payment at Closing:</span>
             <span class="fw-fee-total" id="fwEscrowTotal">$0</span>
           </div>
-          <div class="fw-fee-items">
+          <div class="fw-fee-items" id="fwEscrowItems">
             <div class="fw-fee-row fw-fee-row--multi">
               <label>County Property Tax</label>
               <div class="fw-fee-multi">
@@ -319,7 +319,7 @@
                 <input type="number" id="fwEscTaxMonths" value="3" min="0" max="12" step="1" class="fw-fee-input fw-fee-input--xs">
                 <span>mth(s)</span>
               </div>
-              <span class="fw-fee-value" id="fwEscrowTax">$0.00</span>
+              <input type="number" id="fwEscrowTax" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row fw-fee-row--multi">
               <label>Hazard Insurance</label>
@@ -330,18 +330,18 @@
                 <input type="number" id="fwEscInsMonths" value="3" min="0" max="12" step="1" class="fw-fee-input fw-fee-input--xs">
                 <span>mth(s)</span>
               </div>
-              <span class="fw-fee-value" id="fwEscrowIns">$0.00</span>
+              <input type="number" id="fwEscrowIns" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
           </div>
         </div>
 
         <!-- Other -->
-        <div class="fw-fee-section">
+        <div class="fw-fee-section" data-section="other">
           <div class="fw-fee-header">
             <span>Other:</span>
             <span class="fw-fee-total" id="fwOtherTotal">$0</span>
           </div>
-          <div class="fw-fee-items">
+          <div class="fw-fee-items" id="fwOtherItems">
             <div class="fw-fee-row">
               <label>Other Fee 1</label>
               <input type="number" id="fwOther1" value="0" min="0" step="1" class="fw-fee-input">
@@ -361,15 +361,15 @@
           <div class="fw-fee-items">
             <div class="fw-fee-row">
               <label>First Mortgage (P&I)</label>
-              <span class="fw-fee-value" id="fwMonthlyPI">$0.00</span>
+              <input type="number" id="fwMonthlyPI" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>Hazard Insurance</label>
-              <span class="fw-fee-value" id="fwMonthlyIns">$0.00</span>
+              <input type="number" id="fwMonthlyIns" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>Property Tax</label>
-              <span class="fw-fee-value" id="fwMonthlyTax">$0.00</span>
+              <input type="number" id="fwMonthlyTax" value="0" min="0" step="0.01" class="fw-fee-input fw-fee-input--computed">
             </div>
             <div class="fw-fee-row">
               <label>MI</label>
@@ -386,6 +386,34 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ============ Add Line Item ============ -->
+    <div class="fw-add-item">
+      <h3>Add Line Item</h3>
+      <div class="fw-add-item__form">
+        <div class="form-group">
+          <label for="fwNewItemSection">Section</label>
+          <select id="fwNewItemSection">
+            <option value="origination">Origination Charges</option>
+            <option value="cannotShop">Services Borrower Cannot Shop</option>
+            <option value="canShop">Services Borrower Can Shop For</option>
+            <option value="government">Taxes & Government Fees</option>
+            <option value="prepaids">Prepaids</option>
+            <option value="escrow">Initial Escrow</option>
+            <option value="other" selected>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fwNewItemName">Fee Name</label>
+          <input type="text" id="fwNewItemName" placeholder="e.g. Survey Fee">
+        </div>
+        <div class="form-group">
+          <label for="fwNewItemAmount">Amount ($)</label>
+          <input type="number" id="fwNewItemAmount" value="0" min="0" step="0.01">
+        </div>
+        <button type="button" class="btn btn-primary" id="fwAddItemBtn">Add</button>
       </div>
     </div>
 

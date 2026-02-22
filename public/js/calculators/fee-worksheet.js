@@ -32,10 +32,37 @@
     'fwTotalLoanAmt', 'fwDownPayment', 'fwAPR'
   ];
 
-  var allInputIds = feeInputIds.concat([
+  /* Computed fields that auto-calculate but can be overridden by user */
+  var computedIds = [
+    'fwPrepaidHazIns', 'fwPrepaidInterest',
+    'fwEscrowTax', 'fwEscrowIns',
+    'fwPurchasePrice', 'fwEstPrepaids', 'fwEstClosing',
+    'fwTotalDue', 'fwSummaryLoanAmt', 'fwTotalPaid',
+    'fwMonthlyPI', 'fwMonthlyIns', 'fwMonthlyTax'
+  ];
+
+  var allInputIds = feeInputIds.concat(computedIds).concat([
     'fwBorrowerName', 'fwFileNumber', 'fwPrepDate',
     'fwLoanPurpose', 'fwProduct', 'fwOccupancy', 'fwPropertyType'
   ]);
+
+  /* Track which computed fields the user has manually overridden */
+  var overrides = {};
+
+  /* Track dynamically added line items */
+  var customItems = [];
+  var customItemCounter = 0;
+
+  /* Section container mapping */
+  var sectionContainers = {
+    origination: 'fwOrigItems',
+    cannotShop: 'fwCannotShopItems',
+    canShop: 'fwCanShopItems',
+    government: 'fwGovItems',
+    prepaids: 'fwPrepaidsItems',
+    escrow: 'fwEscrowItems',
+    other: 'fwOtherItems'
+  };
 
   function cacheDom() {
     allInputIds.forEach(function (id) {
@@ -49,10 +76,34 @@
     return P(el.value) || 0;
   }
 
+  /** Set a computed field value — respects user overrides */
+  function setComputed(id, calculatedValue) {
+    var el = dom[id] || document.getElementById(id);
+    if (!el) return calculatedValue;
+    if (overrides[id]) {
+      // User overrode this field, use their value
+      return P(el.value) || 0;
+    }
+    el.value = Math.round(calculatedValue * 100) / 100;
+    return calculatedValue;
+  }
+
   /* ---- Section subtotal helpers ---- */
   function sumIds(ids) {
     var total = 0;
     ids.forEach(function (id) { total += v(id); });
+    return total;
+  }
+
+  /** Sum all custom items belonging to a section */
+  function sumCustomItems(section) {
+    var total = 0;
+    customItems.forEach(function (item) {
+      if (item.section === section) {
+        var el = document.getElementById(item.inputId);
+        if (el) total += P(el.value) || 0;
+      }
+    });
     return total;
   }
 
@@ -62,47 +113,37 @@
     var rate = v('fwRate');
     var termMonths = v('fwTermMonths');
     var propertyValue = v('fwPropertyValue');
-    var downPayment = v('fwDownPayment');
-    var totalLoanAmt = v('fwTotalLoanAmt') || loanAmount;
 
     // Origination section
-    var origTotal = sumIds(['fwOrigFee', 'fwDiscountPts', 'fwProcessingFee', 'fwUnderwritingFee']);
+    var origTotal = sumIds(['fwOrigFee', 'fwDiscountPts', 'fwProcessingFee', 'fwUnderwritingFee']) + sumCustomItems('origination');
     document.getElementById('fwOrigTotal').textContent = fmt(origTotal);
 
     // Services borrower cannot shop
-    var cannotShopTotal = sumIds(['fwAppraisalFee', 'fwCreditReportFee', 'fwTechFee', 'fwVOEFee', 'fwFloodFee', 'fwTaxServiceFee', 'fwMERSFee']);
+    var cannotShopTotal = sumIds(['fwAppraisalFee', 'fwCreditReportFee', 'fwTechFee', 'fwVOEFee', 'fwFloodFee', 'fwTaxServiceFee', 'fwMERSFee']) + sumCustomItems('cannotShop');
     document.getElementById('fwCannotShopTotal').textContent = fmt(cannotShopTotal);
 
     // Services borrower can shop
-    var canShopTotal = sumIds(['fwERecordingFee', 'fwTitleCPL', 'fwTitleLenders', 'fwTitleSettlement', 'fwTitleTaxCert', 'fwTitleOwners', 'fwWireFee']);
+    var canShopTotal = sumIds(['fwERecordingFee', 'fwTitleCPL', 'fwTitleLenders', 'fwTitleSettlement', 'fwTitleTaxCert', 'fwTitleOwners', 'fwWireFee']) + sumCustomItems('canShop');
     document.getElementById('fwCanShopTotal').textContent = fmt(canShopTotal);
 
     // Government fees
-    var govTotal = sumIds(['fwRecordingFee', 'fwTransferTax']);
+    var govTotal = sumIds(['fwRecordingFee', 'fwTransferTax']) + sumCustomItems('government');
     document.getElementById('fwGovTotal').textContent = fmt(govTotal);
 
     // Prepaids
-    var prepaidHazIns = v('fwHazInsAmt') * v('fwHazInsMonths');
-    document.getElementById('fwPrepaidHazIns').textContent = fmt(prepaidHazIns);
-
-    var prepaidInterest = v('fwPrepaidIntPerDiem') * v('fwPrepaidIntDays');
-    document.getElementById('fwPrepaidInterest').textContent = fmt(prepaidInterest);
-
-    var prepaidsTotal = prepaidHazIns + prepaidInterest;
+    var prepaidHazIns = setComputed('fwPrepaidHazIns', v('fwHazInsAmt') * v('fwHazInsMonths'));
+    var prepaidInterest = setComputed('fwPrepaidInterest', v('fwPrepaidIntPerDiem') * v('fwPrepaidIntDays'));
+    var prepaidsTotal = prepaidHazIns + prepaidInterest + sumCustomItems('prepaids');
     document.getElementById('fwPrepaidsTotal').textContent = fmt(prepaidsTotal);
 
     // Escrow
-    var escrowTax = v('fwEscTaxAmt') * v('fwEscTaxMonths');
-    document.getElementById('fwEscrowTax').textContent = fmt(escrowTax);
-
-    var escrowIns = v('fwEscInsAmt') * v('fwEscInsMonths');
-    document.getElementById('fwEscrowIns').textContent = fmt(escrowIns);
-
-    var escrowTotal = escrowTax + escrowIns;
+    var escrowTax = setComputed('fwEscrowTax', v('fwEscTaxAmt') * v('fwEscTaxMonths'));
+    var escrowIns = setComputed('fwEscrowIns', v('fwEscInsAmt') * v('fwEscInsMonths'));
+    var escrowTotal = escrowTax + escrowIns + sumCustomItems('escrow');
     document.getElementById('fwEscrowTotal').textContent = fmt(escrowTotal);
 
     // Other
-    var otherTotal = sumIds(['fwOther1', 'fwOther2']);
+    var otherTotal = sumIds(['fwOther1', 'fwOther2']) + sumCustomItems('other');
     document.getElementById('fwOtherTotal').textContent = fmt(otherTotal);
 
     // Total closing costs (all fee sections)
@@ -111,7 +152,7 @@
 
     // Funds needed to close
     var loanPurpose = (dom['fwLoanPurpose'] || document.getElementById('fwLoanPurpose')).value;
-    var purchasePrice = loanPurpose === 'Purchase' ? propertyValue : 0;
+    var purchasePrice = setComputed('fwPurchasePrice', loanPurpose === 'Purchase' ? propertyValue : 0);
 
     // Update label based on purpose
     var priceLabel = document.getElementById('fwPurchasePriceLabel');
@@ -119,19 +160,16 @@
       priceLabel.textContent = loanPurpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount';
     }
 
-    document.getElementById('fwPurchasePrice').textContent = fmt(purchasePrice);
-    document.getElementById('fwEstPrepaids').textContent = fmt(totalPrepaids);
-    document.getElementById('fwEstClosing').textContent = fmt(totalClosingCost);
+    var estPrepaids = setComputed('fwEstPrepaids', totalPrepaids);
+    var estClosing = setComputed('fwEstClosing', totalClosingCost);
 
-    var totalDue = purchasePrice + totalPrepaids + totalClosingCost;
-    document.getElementById('fwTotalDue').textContent = fmt(totalDue);
+    var totalDue = setComputed('fwTotalDue', purchasePrice + estPrepaids + estClosing);
 
-    document.getElementById('fwSummaryLoanAmt').textContent = fmt(loanAmount);
+    var summaryLoanAmt = setComputed('fwSummaryLoanAmt', loanAmount);
 
     var sellerCredits = v('fwSellerCredits');
     var lenderCredits = v('fwLenderCredits');
-    var totalPaid = loanAmount;
-    document.getElementById('fwTotalPaid').textContent = fmt(totalPaid);
+    var totalPaid = setComputed('fwTotalPaid', summaryLoanAmt);
 
     var fundsFromYou = totalDue - totalPaid - sellerCredits - lenderCredits;
     document.getElementById('fwFundsFromYou').textContent = fmt(fundsFromYou);
@@ -139,15 +177,12 @@
     // Monthly payment
     var monthlyPI = 0;
     if (loanAmount > 0 && rate > 0 && termMonths > 0) {
-      monthlyPI = MSFG.calcMonthlyPayment(loanAmount, rate, termMonths / 12);
+      monthlyPI = MSFG.calcMonthlyPayment(loanAmount, rate / 100, termMonths / 12);
     }
-    document.getElementById('fwMonthlyPI').textContent = fmt(monthlyPI);
+    monthlyPI = setComputed('fwMonthlyPI', monthlyPI);
 
-    var monthlyIns = v('fwHazInsAmt');
-    document.getElementById('fwMonthlyIns').textContent = fmt(monthlyIns);
-
-    var monthlyTax = v('fwEscTaxAmt');
-    document.getElementById('fwMonthlyTax').textContent = fmt(monthlyTax);
+    var monthlyIns = setComputed('fwMonthlyIns', v('fwHazInsAmt'));
+    var monthlyTax = setComputed('fwMonthlyTax', v('fwEscTaxAmt'));
 
     var mi = v('fwMonthlyMI');
     var hoa = v('fwMonthlyHOA');
@@ -164,6 +199,7 @@
     }
 
     // Auto-compute total loan amount if not set
+    var totalLoanAmt = v('fwTotalLoanAmt') || loanAmount;
     if (totalLoanAmt === 0 && loanAmount > 0) {
       if (dom['fwTotalLoanAmt']) dom['fwTotalLoanAmt'].value = loanAmount;
     }
@@ -180,6 +216,86 @@
     }
   }
 
+  /* ---- Add custom line item ---- */
+  function addLineItem() {
+    var sectionKey = document.getElementById('fwNewItemSection').value;
+    var nameInput = document.getElementById('fwNewItemName');
+    var amountInput = document.getElementById('fwNewItemAmount');
+    var name = (nameInput.value || '').trim();
+    var amount = P(amountInput.value) || 0;
+
+    if (!name) {
+      nameInput.focus();
+      return;
+    }
+
+    customItemCounter++;
+    var inputId = 'fwCustom_' + customItemCounter;
+
+    var item = {
+      id: customItemCounter,
+      section: sectionKey,
+      name: name,
+      inputId: inputId
+    };
+    customItems.push(item);
+
+    // Build the row
+    var row = document.createElement('div');
+    row.className = 'fw-fee-row fw-fee-row--custom';
+    row.dataset.customId = String(customItemCounter);
+
+    var label = document.createElement('label');
+    label.textContent = name;
+
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.id = inputId;
+    input.value = amount;
+    input.min = '0';
+    input.step = '0.01';
+    input.className = 'fw-fee-input';
+    input.addEventListener('input', calculate);
+    input.addEventListener('change', calculate);
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'fw-fee-remove';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', function () {
+      removeLineItem(item.id);
+    });
+
+    row.appendChild(label);
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+
+    // Append to correct section
+    var containerId = sectionContainers[sectionKey];
+    var container = document.getElementById(containerId);
+    if (container) {
+      container.appendChild(row);
+    }
+
+    // Reset add form
+    nameInput.value = '';
+    amountInput.value = '0';
+
+    calculate();
+  }
+
+  function removeLineItem(id) {
+    // Remove from array
+    customItems = customItems.filter(function (item) { return item.id !== id; });
+
+    // Remove from DOM
+    var row = document.querySelector('[data-custom-id="' + id + '"]');
+    if (row) row.remove();
+
+    calculate();
+  }
+
   /* ---- Print ---- */
   function printWorksheet() {
     window.print();
@@ -187,6 +303,21 @@
 
   /* ---- Clear ---- */
   function clearAll() {
+    // Reset overrides
+    overrides = {};
+    computedIds.forEach(function (id) {
+      var el = dom[id] || document.getElementById(id);
+      if (el) el.classList.remove('fw-fee-input--overridden');
+    });
+
+    // Remove custom items
+    customItems.forEach(function (item) {
+      var row = document.querySelector('[data-custom-id="' + item.id + '"]');
+      if (row) row.remove();
+    });
+    customItems = [];
+    customItemCounter = 0;
+
     allInputIds.forEach(function (id) {
       var el = dom[id] || document.getElementById(id);
       if (!el) return;
@@ -228,12 +359,46 @@
       });
     }
 
+    // Mark computed fields as overridden when user edits them
+    computedIds.forEach(function (id) {
+      var el = dom[id] || document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', function () {
+        overrides[id] = true;
+        el.classList.add('fw-fee-input--overridden');
+      });
+      // Double-click to reset override
+      el.addEventListener('dblclick', function () {
+        delete overrides[id];
+        el.classList.remove('fw-fee-input--overridden');
+        calculate();
+      });
+    });
+
     // Bind all inputs
     allInputIds.forEach(function (id) {
       var el = dom[id] || document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', calculate);
       el.addEventListener('change', calculate);
+    });
+
+    // Add line item button
+    var addBtn = document.getElementById('fwAddItemBtn');
+    if (addBtn) addBtn.addEventListener('click', addLineItem);
+
+    // Allow Enter key to add item
+    var nameInput = document.getElementById('fwNewItemName');
+    var amountInput = document.getElementById('fwNewItemAmount');
+    [nameInput, amountInput].forEach(function (el) {
+      if (el) {
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addLineItem();
+          }
+        });
+      }
     });
 
     // Action buttons
