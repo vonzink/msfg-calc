@@ -417,6 +417,24 @@
   padding: 0.25rem 0.5rem;
 }
 
+/* ---- Loan Comparison table ---- */
+.rpt-cmp-table {
+  border-collapse: collapse;
+}
+
+.rpt-cmp-table thead th {
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.rpt-cmp-table thead th:first-child {
+  min-width: 160px;
+}
+
+.rpt-cmp-best {
+  background: #e8f5e9 !important;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .rpt-comparison { grid-template-columns: 1fr; }

@@ -1,0 +1,269 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Loan Comparison</h1>
+    <p>Compare up to 4 loan scenarios side by side. Auto-fills from MISMO.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- ============ Shared Info ============ -->
+    <div class="calc-section">
+      <h2>Loan Information</h2>
+      <div class="cmp-info-bar">
+        <div class="form-group">
+          <label for="cmpBorrower">Borrower(s)</label>
+          <input type="text" id="cmpBorrower" placeholder="e.g. John Smith">
+        </div>
+        <div class="form-group">
+          <label for="cmpProperty">Property Address</label>
+          <input type="text" id="cmpProperty" placeholder="e.g. 123 Main St">
+        </div>
+        <div class="form-group">
+          <label for="cmpFileNumber">File Number</label>
+          <input type="text" id="cmpFileNumber" placeholder="e.g. R008580">
+        </div>
+        <div class="form-group">
+          <label for="cmpPrepDate">Preparation Date</label>
+          <input type="date" id="cmpPrepDate">
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Comparison Table ============ -->
+    <div class="calc-section">
+      <h2>Comparison</h2>
+      <div class="cmp-table-wrap">
+        <table class="cmp-table" id="cmpTable">
+          <thead>
+            <tr id="cmpHeaderRow">
+              <th></th>
+              <!-- Loan 1 column header -->
+              <th class="cmp-col-th" data-col="1">
+                <div class="cmp-col-header">
+                  <input type="text" class="cmp-col-label" id="cmpLabel_1" value="Loan 1">
+                </div>
+              </th>
+              <!-- Add Loan button column -->
+              <th class="cmp-add-col" id="cmpAddCol">
+                <button type="button" class="btn btn-primary btn-sm cmp-add-btn" id="cmpAddBtn">+ Add Loan</button>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="cmpBody">
+
+            <!-- ======== COMPACT: Key Metrics (always visible) ======== -->
+            <tr data-row="loanAmount">
+              <td>Loan Amount</td>
+              <td><input type="number" class="cmp-input" id="cmpLoanAmount_1" value="0" min="0" step="1000"></td>
+            </tr>
+            <tr data-row="propertyValue">
+              <td>Property Value</td>
+              <td><input type="number" class="cmp-input" id="cmpPropertyValue_1" value="0" min="0" step="1000"></td>
+            </tr>
+            <tr data-row="rate">
+              <td>Interest Rate (%)</td>
+              <td><input type="number" class="cmp-input cmp-input--sm" id="cmpRate_1" value="0" min="0" max="20" step="0.125"></td>
+            </tr>
+            <tr data-row="term">
+              <td>Term (Months)</td>
+              <td><input type="number" class="cmp-input cmp-input--sm" id="cmpTerm_1" value="360" min="0" max="600" step="1"></td>
+            </tr>
+            <tr data-row="product">
+              <td>Product</td>
+              <td><input type="text" class="cmp-input" id="cmpProduct_1" placeholder="e.g. Conv 30yr" style="text-align:left"></td>
+            </tr>
+            <tr data-row="purpose">
+              <td>Loan Purpose</td>
+              <td>
+                <select class="cmp-input" id="cmpPurpose_1" style="text-align:left">
+                  <option value="Purchase">Purchase</option>
+                  <option value="Refinance">Refinance</option>
+                </select>
+              </td>
+            </tr>
+            <tr class="cmp-subtotal-row" data-row="monthlyPI">
+              <td>Monthly P&I</td>
+              <td><input type="number" class="cmp-input cmp-computed" id="cmpMonthlyPI_1" value="0" min="0" step="0.01"></td>
+            </tr>
+
+            <!-- ======== DETAIL: Origination Fees ======== -->
+            <tr class="cmp-section-row" data-section="origination">
+              <td colspan="99">Origination Charges <span class="cmp-section-toggle">&#9660;</span></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="origFee">
+              <td>Origination Fee</td>
+              <td><input type="number" class="cmp-input" id="cmpOrigFee_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="discountPts">
+              <td>Discount Points</td>
+              <td><input type="number" class="cmp-input" id="cmpDiscountPts_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="processingFee">
+              <td>Processing Fee</td>
+              <td><input type="number" class="cmp-input" id="cmpProcessingFee_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="underwritingFee">
+              <td>Underwriting Fee</td>
+              <td><input type="number" class="cmp-input" id="cmpUnderwritingFee_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="origination" data-row="origTotal">
+              <td>Origination Total</td>
+              <td><span class="cmp-computed" id="cmpOrigTotal_1">$0</span></td>
+            </tr>
+
+            <!-- ======== DETAIL: Third-Party Fees ======== -->
+            <tr class="cmp-section-row" data-section="thirdParty">
+              <td colspan="99">Third-Party Fees <span class="cmp-section-toggle">&#9660;</span></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="appraisalFee">
+              <td>Appraisal Fee</td>
+              <td><input type="number" class="cmp-input" id="cmpAppraisalFee_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="creditReportFee">
+              <td>Credit Report Fee</td>
+              <td><input type="number" class="cmp-input" id="cmpCreditReportFee_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="titleFees">
+              <td>Title / Settlement</td>
+              <td><input type="number" class="cmp-input" id="cmpTitleFees_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="otherThirdParty">
+              <td>Other Third-Party</td>
+              <td><input type="number" class="cmp-input" id="cmpOtherThirdParty_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="thirdParty" data-row="thirdPartyTotal">
+              <td>Third-Party Total</td>
+              <td><span class="cmp-computed" id="cmpThirdPartyTotal_1">$0</span></td>
+            </tr>
+
+            <!-- ======== DETAIL: Government Fees ======== -->
+            <tr class="cmp-section-row" data-section="government">
+              <td colspan="99">Government Fees <span class="cmp-section-toggle">&#9660;</span></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="government" data-row="recordingFee">
+              <td>Recording Fee</td>
+              <td><input type="number" class="cmp-input" id="cmpRecordingFee_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="government" data-row="transferTax">
+              <td>Transfer Tax</td>
+              <td><input type="number" class="cmp-input" id="cmpTransferTax_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="government" data-row="govTotal">
+              <td>Government Total</td>
+              <td><span class="cmp-computed" id="cmpGovTotal_1">$0</span></td>
+            </tr>
+
+            <!-- ======== DETAIL: Prepaids ======== -->
+            <tr class="cmp-section-row" data-section="prepaids">
+              <td colspan="99">Prepaids <span class="cmp-section-toggle">&#9660;</span></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="prepaids" data-row="prepaidInsurance">
+              <td>Prepaid Insurance</td>
+              <td><input type="number" class="cmp-input" id="cmpPrepaidInsurance_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="prepaids" data-row="prepaidInterest">
+              <td>Prepaid Interest</td>
+              <td><input type="number" class="cmp-input" id="cmpPrepaidInterest_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="prepaids" data-row="prepaidsTotal">
+              <td>Prepaids Total</td>
+              <td><span class="cmp-computed" id="cmpPrepaidsTotal_1">$0</span></td>
+            </tr>
+
+            <!-- ======== DETAIL: Escrow ======== -->
+            <tr class="cmp-section-row" data-section="escrow">
+              <td colspan="99">Escrow Deposits <span class="cmp-section-toggle">&#9660;</span></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="escrow" data-row="escrowTax">
+              <td>Escrow Tax Deposit</td>
+              <td><input type="number" class="cmp-input" id="cmpEscrowTax_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="escrow" data-row="escrowInsurance">
+              <td>Escrow Insurance Deposit</td>
+              <td><input type="number" class="cmp-input" id="cmpEscrowInsurance_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="escrow" data-row="escrowTotal">
+              <td>Escrow Total</td>
+              <td><span class="cmp-computed" id="cmpEscrowTotal_1">$0</span></td>
+            </tr>
+
+            <!-- ======== COMPACT: Closing Cost Summary ======== -->
+            <tr class="cmp-subtotal-row" data-row="totalClosing">
+              <td>Total Closing Costs</td>
+              <td><span class="cmp-computed" id="cmpTotalClosing_1">$0</span></td>
+            </tr>
+            <tr data-row="downPayment">
+              <td>Down Payment</td>
+              <td><input type="number" class="cmp-input" id="cmpDownPayment_1" value="0" min="0" step="1000"></td>
+            </tr>
+            <tr data-row="sellerCredits">
+              <td>Seller Credits</td>
+              <td><input type="number" class="cmp-input" id="cmpSellerCredits_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr data-row="lenderCredits">
+              <td>Lender Credits</td>
+              <td><input type="number" class="cmp-input" id="cmpLenderCredits_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-total-row" data-row="cashToClose">
+              <td>Cash to Close</td>
+              <td><span id="cmpCashToClose_1">$0</span></td>
+            </tr>
+
+            <!-- ======== DETAIL: Monthly Breakdown ======== -->
+            <tr class="cmp-section-row" data-section="monthly">
+              <td colspan="99">Monthly Payment Breakdown <span class="cmp-section-toggle">&#9660;</span></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyTax">
+              <td>Property Tax</td>
+              <td><input type="number" class="cmp-input" id="cmpMonthlyTax_1" value="0" min="0" step="0.01"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyInsurance">
+              <td>Hazard Insurance</td>
+              <td><input type="number" class="cmp-input" id="cmpMonthlyInsurance_1" value="0" min="0" step="0.01"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyMI">
+              <td>Mortgage Insurance</td>
+              <td><input type="number" class="cmp-input" id="cmpMonthlyMI_1" value="0" min="0" step="0.01"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyHOA">
+              <td>HOA</td>
+              <td><input type="number" class="cmp-input" id="cmpMonthlyHOA_1" value="0" min="0" step="0.01"></td>
+            </tr>
+            <tr class="cmp-total-row" data-row="totalMonthly">
+              <td>Total Monthly Payment</td>
+              <td><span id="cmpTotalMonthly_1">$0</span></td>
+            </tr>
+
+            <!-- ======== COMPACT: Totals ======== -->
+            <tr data-row="totalInterest">
+              <td>Total Interest</td>
+              <td><span class="cmp-computed" id="cmpTotalInterest_1">$0</span></td>
+            </tr>
+            <tr data-row="apr">
+              <td>APR (%)</td>
+              <td><input type="number" class="cmp-input cmp-input--sm" id="cmpAPR_1" value="0" min="0" max="30" step="0.001"></td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button type="button" class="btn btn-secondary" id="cmpPrintBtn">Print</button>
+      <button type="button" class="btn btn-ghost" id="cmpClearBtn">Clear All</button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="cmp-disclaimer">
+      <p><em>Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.</em></p>
+    </div>
+
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Disclaimers</div>
+    <p>Information provided above reflects estimates only. Actual charges may vary. This is not a commitment to lend. Before closing, your interest rate, points, and lender credits can change unless you lock the interest rate.</p>
+  </div>
+</div>

@@ -53,6 +53,7 @@
     { "slug": "batch-llpm", "name": "Batch LLPM Tool", "category": "tools", "icon": "📊", "hasCalculations": false, "description": "Bulk LLPA pricing from CSV/Excel borrower data" },
     { "slug": "mismo", "name": "MISMO Document Analyzer", "category": "tools", "icon": "📄", "hasCalculations": false, "description": "Parse and analyze MISMO XML documents" },
     { "slug": "fee-worksheet", "name": "Fee Worksheet", "category": "tools", "icon": "🧾", "hasCalculations": false, "description": "Itemized fee worksheet with closing costs, prepaids, escrow, and monthly payment breakdown" },
+    { "slug": "compare", "name": "Loan Comparison", "category": "tools", "icon": "⚖️", "hasCalculations": false, "description": "Side-by-side comparison of up to 4 loan scenarios" },
     { "slug": "loan-analysis", "name": "Cover Letter", "category": "tools", "icon": "📑", "hasCalculations": false, "description": "Branded cover letter for loan presentations with MISMO auto-fill" }
   ]
 }

@@ -1,0 +1,261 @@
+/* Loan Comparison — page-specific styles */
+
+/* ---- Shared info bar ---- */
+.cmp-info-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .cmp-info-bar { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .cmp-info-bar { grid-template-columns: 1fr; }
+}
+
+/* ---- Table wrapper ---- */
+.cmp-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-md);
+}
+
+.cmp-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+/* ---- Column header ---- */
+.cmp-table thead th {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  background: var(--color-gray-50);
+  border-bottom: 2px solid var(--color-gray-200);
+  white-space: nowrap;
+}
+
+.cmp-table thead th:first-child {
+  text-align: left;
+  background: transparent;
+  font-weight: 700;
+  width: 180px;
+  min-width: 160px;
+}
+
+.cmp-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.cmp-col-label {
+  width: 100px;
+  padding: 3px 6px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  text-align: center;
+  font-weight: 600;
+}
+
+.cmp-col-label:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+}
+
+.cmp-remove-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-400);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.cmp-remove-btn:hover {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+}
+
+/* ---- Add column button in header ---- */
+.cmp-add-col {
+  min-width: 140px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.cmp-add-btn {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* ---- Table rows ---- */
+.cmp-table tbody td {
+  padding: 5px var(--space-md);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--color-gray-100);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.cmp-table tbody td:first-child {
+  text-align: left;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  white-space: nowrap;
+}
+
+/* ---- Section header rows ---- */
+.cmp-section-row td {
+  background: var(--brand-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 6px var(--space-md) !important;
+  border-bottom: none !important;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cmp-section-row td:first-child {
+  color: #fff;
+}
+
+.cmp-section-toggle {
+  float: right;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* ---- Detail rows (collapsible) ---- */
+.cmp-detail-row {
+  transition: opacity 0.2s;
+}
+
+.cmp-detail-row--hidden {
+  display: none;
+}
+
+/* ---- Subtotal rows ---- */
+.cmp-subtotal-row td {
+  font-weight: 700;
+  background: var(--color-gray-50);
+  border-top: 2px solid var(--color-gray-300);
+  border-bottom: 2px solid var(--color-gray-200);
+}
+
+/* ---- Grand total row ---- */
+.cmp-total-row td {
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: var(--brand-primary);
+  color: #fff;
+  border-bottom: none;
+  padding: 8px var(--space-md) !important;
+}
+
+.cmp-total-row td:first-child {
+  color: #fff;
+}
+
+/* ---- Inputs ---- */
+.cmp-input {
+  width: 110px;
+  padding: 3px 6px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  text-align: right;
+}
+
+.cmp-input:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+}
+
+.cmp-input--sm { width: 80px; }
+
+/* Computed (auto-calculated) fields */
+.cmp-computed {
+  background: var(--color-gray-50);
+  color: var(--color-gray-700);
+  font-weight: 600;
+  border-color: var(--color-gray-200);
+}
+
+/* ---- Best-value highlight ---- */
+.cmp-best {
+  background: #e8f5e9 !important;
+  border-color: #4caf50 !important;
+}
+
+.cmp-best-cell {
+  background: #e8f5e9;
+}
+
+/* ---- Disclaimer ---- */
+.cmp-disclaimer {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: var(--border-radius);
+  font-size: 0.85rem;
+  color: #856404;
+  text-align: center;
+}
+
+.cmp-disclaimer p { margin: 0; }
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .cmp-input { width: 90px; }
+  .cmp-col-label { width: 80px; }
+}
+
+/* ---- Print styles ---- */
+@media print {
+  .cmp-add-col,
+  .cmp-remove-btn,
+  .cmp-disclaimer,
+  .action-bar,
+  .calc-page__header,
+  .calc-page__footer { display: none !important; }
+
+  .cmp-table-wrap { overflow: visible; }
+  .cmp-table { min-width: 0; }
+
+  .cmp-input {
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    padding: 0;
+  }
+
+  .cmp-col-label {
+    border: none;
+    font-weight: 700;
+  }
+
+  .cmp-detail-row--hidden { display: table-row; }
+}

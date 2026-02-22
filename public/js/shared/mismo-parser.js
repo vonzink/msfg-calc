@@ -880,6 +880,110 @@
     return m;
   };
 
+  /* ---- Loan Comparison ---- */
+  CALC_MAPS['compare'] = function (data, colIdx) {
+    var idx = colIdx || 1;
+    var m = {};
+    var fees = data.fees || {};
+    var prepaids = data.prepaids || {};
+
+    // Core loan fields
+    if (data.loan.amount) m['cmpLoanAmount_' + idx] = data.loan.amount;
+    if (data.property.value) m['cmpPropertyValue_' + idx] = data.property.value;
+    if (data.loan.rate) m['cmpRate_' + idx] = data.loan.rate;
+    if (data.loan.termMonths) m['cmpTerm_' + idx] = data.loan.termMonths;
+    if (data.loan.apr) m['cmpAPR_' + idx] = data.loan.apr;
+    if (data.loan.downPayment) m['cmpDownPayment_' + idx] = data.loan.downPayment;
+
+    // Purpose
+    if (data.loan.purpose) {
+      var purposeMap = { 'Refinance': 'Refinance', 'Purchase': 'Purchase' };
+      if (purposeMap[data.loan.purpose]) m['cmpPurpose_' + idx] = purposeMap[data.loan.purpose];
+    }
+
+    // Product
+    if (data.loan.productName) {
+      m['cmpProduct_' + idx] = data.loan.productName;
+    } else {
+      var prodParts = [];
+      if (data.loan.mortgageType) {
+        var mtMap = { 'Conventional': 'Conv', 'FHA': 'FHA', 'VA': 'VA', 'USDA': 'USDA',
+                      'FederalHousingAdministration': 'FHA', 'VeteransAffairs': 'VA' };
+        prodParts.push(mtMap[data.loan.mortgageType] || data.loan.mortgageType);
+      }
+      if (data.loan.termMonths) prodParts.push(Math.round(data.loan.termMonths / 12) + 'yr');
+      if (data.loan.amortType) {
+        var atMap = { 'Fixed': 'Fixed', 'AdjustableRate': 'ARM' };
+        prodParts.push(atMap[data.loan.amortType] || data.loan.amortType);
+      }
+      if (prodParts.length) m['cmpProduct_' + idx] = prodParts.join(' ');
+    }
+
+    // Origination charges
+    var origAmt = feeAmt(fees, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
+    if (origAmt) m['cmpOrigFee_' + idx] = origAmt;
+    var discAmt = feeAmt(fees, 'LoanDiscountPoints', 'Loan Discount Points', 'DiscountPoints');
+    if (discAmt) m['cmpDiscountPts_' + idx] = discAmt;
+    var procAmt = feeAmt(fees, 'Processing Fee', 'ProcessingFee');
+    if (procAmt) m['cmpProcessingFee_' + idx] = procAmt;
+    var uwAmt = feeAmt(fees, 'Underwriting Fee', 'UnderwritingFee');
+    if (uwAmt) m['cmpUnderwritingFee_' + idx] = uwAmt;
+
+    // Third-party fees
+    var appraisalAmt = feeAmt(fees, 'AppraisalFee', 'Appraisal Fee');
+    if (appraisalAmt) m['cmpAppraisalFee_' + idx] = appraisalAmt;
+    var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
+    if (creditAmt) m['cmpCreditReportFee_' + idx] = creditAmt;
+
+    // Title & settlement combined
+    var titleTotal = 0;
+    titleTotal += feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
+    titleTotal += feeAmt(fees, 'SettlementFee', 'Settlement Fee', 'Title - Settlement Fee');
+    titleTotal += feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
+    titleTotal += feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
+    titleTotal += feeAmt(fees, 'TitleOwnersCoveragePremium', 'Title - Owners Coverage Premium');
+    if (titleTotal) m['cmpTitleFees_' + idx] = titleTotal;
+
+    // Other third-party (tech, VOE, flood, tax service, MERS, wire, e-recording)
+    var otherTP = 0;
+    otherTP += feeAmt(fees, 'Technology Fee', 'TechnologyFee');
+    otherTP += feeAmt(fees, 'VerificationOfEmploymentFee', 'Verification Of Employment Fee');
+    otherTP += feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
+    otherTP += feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
+    otherTP += feeAmt(fees, 'MERSRegistrationFee', 'MERS Registration Fee');
+    otherTP += feeAmt(fees, 'WireTransferFee', 'Wire Transfer Fee');
+    otherTP += feeAmt(fees, 'E-Recording Fee', 'ERecordingFee');
+    if (otherTP) m['cmpOtherThirdParty_' + idx] = otherTP;
+
+    // Government fees
+    var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
+    if (recordingAmt) m['cmpRecordingFee_' + idx] = recordingAmt;
+
+    // Prepaids
+    if (prepaids.hazardInsurance) m['cmpPrepaidInsurance_' + idx] = prepaids.hazardInsurance;
+    if (prepaids.interestTotal || prepaids.interestPerDiem) {
+      m['cmpPrepaidInterest_' + idx] = prepaids.interestTotal || prepaids.interestPerDiem;
+    }
+
+    // Escrow
+    if (data.escrow.taxDeposit) m['cmpEscrowTax_' + idx] = data.escrow.taxDeposit;
+    else if (data.escrow.taxMonthly && data.escrow.taxMonths) {
+      m['cmpEscrowTax_' + idx] = data.escrow.taxMonthly * data.escrow.taxMonths;
+    }
+    if (data.escrow.insDeposit) m['cmpEscrowInsurance_' + idx] = data.escrow.insDeposit;
+    else if (data.escrow.insMonthly && data.escrow.insMonths) {
+      m['cmpEscrowInsurance_' + idx] = data.escrow.insMonthly * data.escrow.insMonths;
+    }
+
+    // Monthly housing
+    if (data.housing.taxMo || data.escrow.taxMonthly) m['cmpMonthlyTax_' + idx] = data.housing.taxMo || data.escrow.taxMonthly;
+    if (data.housing.insuranceMo || data.escrow.insMonthly) m['cmpMonthlyInsurance_' + idx] = data.housing.insuranceMo || data.escrow.insMonthly;
+    if (data.housing.mi || data.loan.miPayment) m['cmpMonthlyMI_' + idx] = data.housing.mi || data.loan.miPayment;
+    if (data.housing.hoa) m['cmpMonthlyHOA_' + idx] = data.housing.hoa;
+
+    return m;
+  };
+
   /* ---- Cover Letter / Loan Analysis ---- */
   CALC_MAPS['loan-analysis'] = function (data) {
     var m = {};
