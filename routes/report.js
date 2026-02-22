@@ -9,7 +9,6 @@ router.get('/', (req, res) => {
     extraScripts:
       '<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>\n' +
       '<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.min.js"></script>\n' +
-      `<script src="/js/shared/report-templates.js?v=${ver}"></script>\n` +
       `<script src="/js/report-page.js?v=${ver}"></script>`
   });
 });
