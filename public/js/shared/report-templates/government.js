@@ -17,19 +17,22 @@
           totalClosingCosts: txt(doc,'fhaTotalClosingCosts')
         },
         refi: {
-          baseLoan: txt(doc,'fhaRefiBaseLoan'), ufmip: txt(doc,'fhaRefiUfmip'),
+          maxLoan: txt(doc,'fhaRefiMaxLoan'), actualLoan: txt(doc,'fhaRefiActualLoan'),
+          ufmip: txt(doc,'fhaRefiUfmip'),
           totalLoan: txt(doc,'fhaRefiTotalLoan'), ltv: txt(doc,'fhaRefiLtv'),
           payment: txt(doc,'fhaRefiPayment'), ntb: txt(doc,'fhaRefiNtb'),
           cashToClose: txt(doc,'fhaRefiCashToClose')
         },
         streamline: {
-          baseLoan: txt(doc,'fhaSlBaseLoan'), ufmipRefund: txt(doc,'fhaSlUfmipRefund'),
+          maxLoan: txt(doc,'fhaSlMaxLoan'), actualLoan: txt(doc,'fhaSlActualLoan'),
+          ufmipRefund: txt(doc,'fhaSlUfmipRefund'),
           newUfmip: txt(doc,'fhaSlNewUfmip'), totalLoan: txt(doc,'fhaSlTotalLoan'),
           payment: txt(doc,'fhaSlPayment'), ntb: txt(doc,'fhaSlNtb'),
           cashToClose: txt(doc,'fhaSlCashToClose')
         },
         purchase: {
-          baseLoan: txt(doc,'fhaPurchBaseLoan'), ufmip: txt(doc,'fhaPurchUfmip'),
+          maxLoan: txt(doc,'fhaPurchMaxLoan'), actualLoan: txt(doc,'fhaPurchActualLoan'),
+          ufmip: txt(doc,'fhaPurchUfmip'),
           totalLoan: txt(doc,'fhaPurchTotalLoan'), ltv: txt(doc,'fhaPurchLtv'),
           payment: txt(doc,'fhaPurchPayment'), cashToClose: txt(doc,'fhaPurchCashToClose')
         }
@@ -65,7 +68,8 @@
       html += '</tr></thead><tbody>';
 
       var rows = [
-        ['Max Base Loan', 'baseLoan'],
+        ['Max Base Loan', 'maxLoan'],
+        ['Actual Base Loan', 'actualLoan'],
         ['UFMIP Refund', 'ufmipRefund'],
         ['New UFMIP', 'ufmip', 'newUfmip'],
         ['Total Loan', 'totalLoan'],

@@ -680,6 +680,9 @@
     if (data.existingMortgage.remainingMonths) m['fhaRemainingTerm'] = data.existingMortgage.remainingMonths;
     if (data.loan.amount) m['fhaOriginalLoanAmount'] = data.loan.amount;
 
+    // Requested / actual loan amount
+    if (data.loan.amount) m['fhaRequestedLoanAmount'] = data.loan.amount;
+
     // New loan
     if (data.loan.rate) m['fhaNewRate'] = data.loan.rate;
     if (data.loan.termMonths) {
@@ -724,10 +727,20 @@
     var cplAmt = feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee', 'AttorneyFee');
     if (cplAmt) m['fhaCostAttorney'] = cplAmt;
 
-    // Escrow / prepaids
-    if (data.prepaids.hazardMonths && data.prepaids.hazardAmount) {
-      m['fhaPrepaidsCash'] = data.prepaids.hazardAmount * data.prepaids.hazardMonths;
-    }
+    // Prepaids & escrow deposits — sum all available components
+    var prepaids = data.prepaids || {};
+    var escrow = data.escrow || {};
+    var prepaidTotal = 0;
+    if (prepaids.hazardInsurance) prepaidTotal += prepaids.hazardInsurance;
+    if (prepaids.interestTotal) prepaidTotal += prepaids.interestTotal;
+    if (escrow.taxDeposit) prepaidTotal += escrow.taxDeposit;
+    else if (escrow.taxMonthly && escrow.taxMonths) prepaidTotal += escrow.taxMonthly * escrow.taxMonths;
+    if (escrow.insDeposit) prepaidTotal += escrow.insDeposit;
+    else if (escrow.insMonthly && escrow.insMonths) prepaidTotal += escrow.insMonthly * escrow.insMonths;
+    if (prepaidTotal > 0) m['fhaPrepaidsCash'] = prepaidTotal;
+
+    // Escrow refund from current loan (refi scenarios)
+    if (escrow.initialBalance) m['fhaEscrowRefund'] = escrow.initialBalance;
 
     return m;
   };

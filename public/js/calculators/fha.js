@@ -68,6 +68,7 @@ const FhaCalc = (() => {
       newRate:           val('fhaNewRate'),
       newTerm:           val('fhaNewTerm'),
       newLoanType:       txt('fhaNewLoanType'),
+      requestedLoanAmount: val('fhaRequestedLoanAmount'),
       financeUfmip:      el('fhaFinanceUfmip').checked,
       prepaidsCash:      val('fhaPrepaidsCash'),
       totalCredits:      val('fhaTotalCredits'),
@@ -196,18 +197,23 @@ const FhaCalc = (() => {
     }
 
     const maxLtv = 0.965;
-    const baseLoan = priceOrValue * maxLtv;
-    const ufmipAmt = state.financeUfmip ? baseLoan * UFMIP_RATE : 0;
-    const totalLoan = baseLoan + ufmipAmt;
-    const ltv = baseLoan / priceOrValue;
+    const maxBaseLoan = priceOrValue * maxLtv;
+    const actualLoan = (state.requestedLoanAmount > 0)
+      ? Math.min(state.requestedLoanAmount, maxBaseLoan) : maxBaseLoan;
+    const ufmipAmt = state.financeUfmip ? actualLoan * UFMIP_RATE : 0;
+    const totalLoan = actualLoan + ufmipAmt;
+    const ltv = actualLoan / priceOrValue;
     const payment = calcPayment(totalLoan, state.newRate, state.newTerm);
-    const downPayment = Math.max(0, state.purchasePrice - baseLoan);
-    const ufmipOop = state.financeUfmip ? 0 : baseLoan * UFMIP_RATE;
+    const downPayment = Math.max(0, state.purchasePrice - actualLoan);
+    const ufmipOop = state.financeUfmip ? 0 : actualLoan * UFMIP_RATE;
     const cashToClose = downPayment + state.prepaidsCash + ufmipOop - state.totalCredits;
 
+    if (state.requestedLoanAmount > maxBaseLoan) {
+      notes.push('Purchase: requested amount exceeds max — capped at ' + fmt(maxBaseLoan) + '.');
+    }
     notes.push('Purchase: max base loan at 96.5% of lesser of price or value.');
     return {
-      baseLoan, ufmipRefund: 0, ufmipAmt, totalLoan, ltv, payment,
+      maxBaseLoan, actualLoan, ufmipRefund: 0, ufmipAmt, totalLoan, ltv, payment,
       cashToClose, ntb: null, ntbDetail: '', seasoning: null
     };
   }
@@ -221,10 +227,12 @@ const FhaCalc = (() => {
     const isCashOut = state.refiType === 'cashOut';
     const maxLtv = isCashOut ? 0.80 : 0.9775;
     const label = isCashOut ? 'Cash-Out (80%)' : 'Rate/Term (97.75%)';
-    const baseLoan = state.appraisedValue * maxLtv;
-    const ufmipAmt = state.financeUfmip ? baseLoan * UFMIP_RATE : 0;
-    const totalLoan = baseLoan + ufmipAmt;
-    const ltv = baseLoan / state.appraisedValue;
+    const maxBaseLoan = state.appraisedValue * maxLtv;
+    const actualLoan = (state.requestedLoanAmount > 0)
+      ? Math.min(state.requestedLoanAmount, maxBaseLoan) : maxBaseLoan;
+    const ufmipAmt = state.financeUfmip ? actualLoan * UFMIP_RATE : 0;
+    const totalLoan = actualLoan + ufmipAmt;
+    const ltv = actualLoan / state.appraisedValue;
     const payment = calcPayment(totalLoan, state.newRate, state.newTerm);
 
     // Cash to close: (payoff + cash costs - credits - escrow refund) - totalLoan
@@ -236,14 +244,17 @@ const FhaCalc = (() => {
     const ntb = evaluateNtb(state.currentPayment, payment, state.currentRate, state.newRate,
       state.currentLoanType, state.newLoanType, 'refi');
 
-    notes.push(`FHA Refi (${label}): max base loan at ${(maxLtv * 100).toFixed(2)}% of appraised value.`);
+    if (state.requestedLoanAmount > maxBaseLoan) {
+      notes.push('FHA Refi: requested amount exceeds max — capped at ' + fmt(maxBaseLoan) + '.');
+    }
+    notes.push('FHA Refi (' + label + '): max base loan at ' + (maxLtv * 100).toFixed(2) + '% of appraised value.');
     if (isCashOut && state.endorsementDate) {
       const months = monthsBetweenDates(state.endorsementDate, state.currentDate);
       if (months < 12) notes.push('FHA Cash-Out: owned < 12 months \u2014 may not be eligible.');
     }
 
     return {
-      baseLoan, ufmipRefund: 0, ufmipAmt, totalLoan, ltv, payment,
+      maxBaseLoan, actualLoan, ufmipRefund: 0, ufmipAmt, totalLoan, ltv, payment,
       cashToClose, ntb, ntbDetail: ntb.detail, seasoning: null
     };
   }
@@ -258,10 +269,11 @@ const FhaCalc = (() => {
       return null;
     }
 
-    const baseLoan = state.currentUpb - ufmipRefund.refundAmount
+    const maxBaseLoan = state.currentUpb - ufmipRefund.refundAmount
       + state.accruedInterest + state.totalClosingCosts;
-    const newUfmip = baseLoan * UFMIP_RATE;
-    const totalLoan = baseLoan + newUfmip;
+    const actualLoan = maxBaseLoan; // Streamline is formula-driven, no user override
+    const newUfmip = actualLoan * UFMIP_RATE;
+    const totalLoan = actualLoan + newUfmip;
     const payment = calcPayment(totalLoan, state.newRate, state.newTerm);
 
     // Cash to close: prepaids - credits - escrow refund (costs already financed)
@@ -277,11 +289,11 @@ const FhaCalc = (() => {
 
     notes.push('Streamline: base loan = UPB \u2212 UFMIP refund + accrued interest + closing costs.');
     if (ufmipRefund.refundAmount > 0) {
-      notes.push(`UFMIP Refund: ${fmt(ufmipRefund.refundAmount)} (${ufmipRefund.refundPercent}% at month ${ufmipRefund.monthsSince}).`);
+      notes.push('UFMIP Refund: ' + fmt(ufmipRefund.refundAmount) + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ').');
     }
 
     return {
-      baseLoan, ufmipRefund: ufmipRefund.refundAmount, ufmipAmt: newUfmip,
+      maxBaseLoan, actualLoan, ufmipRefund: ufmipRefund.refundAmount, ufmipAmt: newUfmip,
       totalLoan, ltv: null, payment, cashToClose,
       ntb, ntbDetail: ntb.detail, seasoning: seasoningStatus
     };
@@ -386,7 +398,8 @@ const FhaCalc = (() => {
 
     // Purchase column
     if (purchase) {
-      fillCell('fhaPurchBaseLoan', fmt(purchase.baseLoan));
+      fillCell('fhaPurchMaxLoan', fmt(purchase.maxBaseLoan));
+      fillCell('fhaPurchActualLoan', fmt(purchase.actualLoan));
       fillCell('fhaPurchUfmipRefund', '\u2014');
       fillCell('fhaPurchUfmip', fmt(purchase.ufmipAmt));
       fillCell('fhaPurchTotalLoan', fmt(purchase.totalLoan));
@@ -400,7 +413,8 @@ const FhaCalc = (() => {
 
     // Refi column
     if (refi) {
-      fillCell('fhaRefiBaseLoan', fmt(refi.baseLoan));
+      fillCell('fhaRefiMaxLoan', fmt(refi.maxBaseLoan));
+      fillCell('fhaRefiActualLoan', fmt(refi.actualLoan));
       fillCell('fhaRefiUfmipRefund', '\u2014');
       fillCell('fhaRefiUfmip', fmt(refi.ufmipAmt));
       fillCell('fhaRefiTotalLoan', fmt(refi.totalLoan));
@@ -416,7 +430,8 @@ const FhaCalc = (() => {
 
     // Streamline column
     if (streamline) {
-      fillCell('fhaSlBaseLoan', fmt(streamline.baseLoan));
+      fillCell('fhaSlMaxLoan', fmt(streamline.maxBaseLoan));
+      fillCell('fhaSlActualLoan', fmt(streamline.actualLoan));
       fillCell('fhaSlUfmipRefund', streamline.ufmipRefund > 0 ? '-' + fmt(streamline.ufmipRefund) : '\u2014');
       fillCell('fhaSlNewUfmip', fmt(streamline.ufmipAmt));
       fillCell('fhaSlTotalLoan', fmt(streamline.totalLoan));
@@ -480,16 +495,16 @@ const FhaCalc = (() => {
   }
 
   function clearRefiColumn() {
-    ['fhaRefiBaseLoan', 'fhaRefiUfmipRefund', 'fhaRefiUfmip', 'fhaRefiTotalLoan',
-      'fhaRefiLtv', 'fhaRefiPayment', 'fhaRefiNtb', 'fhaRefiNtbDetail',
-      'fhaRefiSeasoning', 'fhaRefiCashToClose'
+    ['fhaRefiMaxLoan', 'fhaRefiActualLoan', 'fhaRefiUfmipRefund', 'fhaRefiUfmip',
+      'fhaRefiTotalLoan', 'fhaRefiLtv', 'fhaRefiPayment', 'fhaRefiNtb',
+      'fhaRefiNtbDetail', 'fhaRefiSeasoning', 'fhaRefiCashToClose'
     ].forEach(id => fillCell(id, '\u2014'));
   }
 
   function clearSlColumn() {
-    ['fhaSlBaseLoan', 'fhaSlUfmipRefund', 'fhaSlNewUfmip', 'fhaSlTotalLoan',
-      'fhaSlLtv', 'fhaSlPayment', 'fhaSlNtb', 'fhaSlNtbDetail',
-      'fhaSlSeasoning', 'fhaSlCashToClose'
+    ['fhaSlMaxLoan', 'fhaSlActualLoan', 'fhaSlUfmipRefund', 'fhaSlNewUfmip',
+      'fhaSlTotalLoan', 'fhaSlLtv', 'fhaSlPayment', 'fhaSlNtb',
+      'fhaSlNtbDetail', 'fhaSlSeasoning', 'fhaSlCashToClose'
     ].forEach(id => fillCell(id, '\u2014'));
   }
 
@@ -539,41 +554,53 @@ const FhaCalc = (() => {
     let html = '';
 
     if (purchase) {
-      html += stepSection('Purchase Scenario', [
-        step('Value Used', `Lesser of ${fmt(state.purchasePrice)} and ${fmt(state.appraisedValue)}`,
+      var purchSteps = [
+        step('Value Used', 'Lesser of ' + fmt(state.purchasePrice) + ' and ' + fmt(state.appraisedValue),
           fmt(minPositive(state.purchasePrice, state.appraisedValue))),
-        step('Base Loan', 'Value Used \u00D7 96.5%', fmt(purchase.baseLoan)),
-        step('UFMIP', `Base Loan \u00D7 1.75%${state.financeUfmip ? ' (financed)' : ' (cash)'}`, fmt(purchase.ufmipAmt)),
-        step('Total Loan', 'Base Loan + UFMIP', fmt(purchase.totalLoan)),
-        step('LTV', 'Base Loan \u00F7 Value', (purchase.ltv * 100).toFixed(2) + '%'),
+        step('Max Base Loan', 'Value Used \u00D7 96.5%', fmt(purchase.maxBaseLoan))
+      ];
+      if (purchase.actualLoan !== purchase.maxBaseLoan) {
+        purchSteps.push(step('Actual Base Loan', 'Requested (capped at max)', fmt(purchase.actualLoan)));
+      }
+      purchSteps.push(
+        step('UFMIP', 'Actual Loan \u00D7 1.75%' + (state.financeUfmip ? ' (financed)' : ' (cash)'), fmt(purchase.ufmipAmt)),
+        step('Total Loan', 'Actual Loan + UFMIP', fmt(purchase.totalLoan)),
+        step('LTV', 'Actual Loan \u00F7 Value', (purchase.ltv * 100).toFixed(2) + '%'),
         step('Cash to Close', 'Down payment + prepaids \u2212 credits', formatCashToClose(purchase.cashToClose))
-      ]);
+      );
+      html += stepSection('Purchase Scenario', purchSteps);
     }
 
     if (refi) {
       const isCashOut = state.refiType === 'cashOut';
       const maxPct = isCashOut ? '80%' : '97.75%';
-      html += stepSection('FHA Refi Scenario (' + (isCashOut ? 'Cash-Out' : 'Rate/Term') + ')', [
-        step('Base Loan', `${fmt(state.appraisedValue)} \u00D7 ${maxPct}`, fmt(refi.baseLoan)),
-        step('UFMIP', `Base Loan \u00D7 1.75%${state.financeUfmip ? ' (financed)' : ' (cash)'}`, fmt(refi.ufmipAmt)),
-        step('Total Loan', 'Base Loan + UFMIP', fmt(refi.totalLoan)),
-        step('LTV', 'Base Loan \u00F7 Appraised Value', (refi.ltv * 100).toFixed(2) + '%'),
-        step('New P&I', `${fmt(refi.totalLoan)} @ ${state.newRate}% / ${state.newTerm}yr`, fmt(refi.payment)),
+      var refiSteps = [
+        step('Max Base Loan', fmt(state.appraisedValue) + ' \u00D7 ' + maxPct, fmt(refi.maxBaseLoan))
+      ];
+      if (refi.actualLoan !== refi.maxBaseLoan) {
+        refiSteps.push(step('Actual Base Loan', 'Requested (capped at max)', fmt(refi.actualLoan)));
+      }
+      refiSteps.push(
+        step('UFMIP', 'Actual Loan \u00D7 1.75%' + (state.financeUfmip ? ' (financed)' : ' (cash)'), fmt(refi.ufmipAmt)),
+        step('Total Loan', 'Actual Loan + UFMIP', fmt(refi.totalLoan)),
+        step('LTV', 'Actual Loan \u00F7 Appraised Value', (refi.ltv * 100).toFixed(2) + '%'),
+        step('New P&I', fmt(refi.totalLoan) + ' @ ' + state.newRate + '% / ' + state.newTerm + 'yr', fmt(refi.payment)),
         step('NTB', refi.ntbDetail, refi.ntb.met === true ? 'PASS' : refi.ntb.met === false ? 'FAIL' : 'N/A'),
         step('Cash to Close', '(Payoff + costs \u2212 credits \u2212 escrow refund) \u2212 loan', formatCashToClose(refi.cashToClose))
-      ]);
+      );
+      html += stepSection('FHA Refi Scenario (' + (isCashOut ? 'Cash-Out' : 'Rate/Term') + ')', refiSteps);
     }
 
     if (streamline) {
       html += stepSection('Streamline Scenario', [
         step('UPB', 'Current payoff balance', fmt(state.currentUpb)),
-        step('UFMIP Refund', `${fmt(streamline.ufmipRefund > 0 ? streamline.ufmipRefund : 0)}`, streamline.ufmipRefund > 0 ? '-' + fmt(streamline.ufmipRefund) : '\u2014'),
+        step('UFMIP Refund', fmt(streamline.ufmipRefund > 0 ? streamline.ufmipRefund : 0), streamline.ufmipRefund > 0 ? '-' + fmt(streamline.ufmipRefund) : '\u2014'),
         step('Accrued Interest', '', fmt(state.accruedInterest)),
         step('Closing Costs', '', fmt(state.totalClosingCosts)),
-        step('Base Loan', 'UPB \u2212 refund + interest + costs', fmt(streamline.baseLoan)),
+        step('Base Loan', 'UPB \u2212 refund + interest + costs', fmt(streamline.maxBaseLoan)),
         step('New UFMIP', 'Base Loan \u00D7 1.75%', fmt(streamline.ufmipAmt)),
         step('Total Loan', 'Base + New UFMIP', fmt(streamline.totalLoan)),
-        step('New P&I', `${fmt(streamline.totalLoan)} @ ${state.newRate}% / ${state.newTerm}yr`, fmt(streamline.payment)),
+        step('New P&I', fmt(streamline.totalLoan) + ' @ ' + state.newRate + '% / ' + state.newTerm + 'yr', fmt(streamline.payment)),
         step('NTB', streamline.ntbDetail, streamline.ntb.met === true ? 'PASS' : streamline.ntb.met === false ? 'FAIL' : 'N/A'),
         step('Cash to Close', 'Prepaids \u2212 credits \u2212 escrow refund', formatCashToClose(streamline.cashToClose))
       ]);

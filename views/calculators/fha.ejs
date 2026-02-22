@@ -305,6 +305,14 @@
           </select>
         </div>
       </div>
+      <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-group">
+          <label>Requested Loan Amount
+            <span class="help-icon" data-help="Enter the actual loan amount. Leave blank to use the maximum FHA-allowed amount.">?</span>
+          </label>
+          <input type="number" id="fhaRequestedLoanAmount" step="0.01" placeholder="Leave blank for max">
+        </div>
+      </div>
       <div style="margin-top: var(--space-md);">
         <label class="form-check">
           <input type="checkbox" id="fhaFinanceUfmip" checked>
@@ -318,20 +326,20 @@
       <h2>Cash to Close Inputs</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>Prepaids / Escrows (Cash)
-            <span class="help-icon" data-help="Initial escrow deposits, prepaid interest, etc. paid out of pocket.">?</span>
+          <label>Prepaids &amp; Escrow Deposits
+            <span class="help-icon" data-help="Prepaid interest + initial escrow deposits (tax & insurance cushion) paid at closing.">?</span>
           </label>
           <input type="number" id="fhaPrepaidsCash" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group">
-          <label>Total Credits
-            <span class="help-icon" data-help="Seller + lender + other credits applied toward closing.">?</span>
+          <label>Seller / Lender Credits
+            <span class="help-icon" data-help="Seller concessions, lender credits, and other credits applied toward closing costs.">?</span>
           </label>
           <input type="number" id="fhaTotalCredits" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group">
-          <label>Escrow Refund (Refi)
-            <span class="help-icon" data-help="Expected escrow refund from existing loan after payoff.">?</span>
+          <label>Escrow Refund from Current Loan
+            <span class="help-icon" data-help="Escrow balance refunded by your current servicer after payoff (refi only).">?</span>
           </label>
           <input type="number" id="fhaEscrowRefund" step="0.01" placeholder="0.00">
         </div>
@@ -367,9 +375,15 @@
             <tr class="fha-section-row"><td colspan="4">Loan Amount</td></tr>
             <tr>
               <td>Max Base Loan</td>
-              <td id="fhaPurchBaseLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiBaseLoan">&mdash;</td>
-              <td id="fhaSlBaseLoan" class="fha-sl-col">&mdash;</td>
+              <td id="fhaPurchMaxLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiMaxLoan">&mdash;</td>
+              <td id="fhaSlMaxLoan" class="fha-sl-col">&mdash;</td>
+            </tr>
+            <tr>
+              <td>Actual Base Loan</td>
+              <td id="fhaPurchActualLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
+              <td id="fhaRefiActualLoan">&mdash;</td>
+              <td id="fhaSlActualLoan" class="fha-sl-col">&mdash;</td>
             </tr>
             <tr>
               <td>UFMIP Refund</td>
