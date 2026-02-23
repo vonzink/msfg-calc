@@ -43,105 +43,139 @@ const upload = multer({
 });
 
 /**
+ * Convert a PDF buffer to an array of PNG image buffers (one per page).
+ * Uses pdf-to-img (ESM) with dynamic import. Scale 2.0 ≈ 144 DPI.
+ */
+async function pdfToImages(pdfBuffer, maxPages) {
+  const { pdf } = await import('pdf-to-img');
+  const images = [];
+  for await (const page of await pdf(pdfBuffer, { scale: 2.0 })) {
+    images.push(page);
+    if (images.length >= maxPages) break;
+  }
+  return images;
+}
+
+/**
  * POST /api/ai/extract
  * Body: multipart form with `file` (image/PDF) and `slug` (string)
  * Returns: { success, data } or { success: false, message }
  */
-router.post('/ai/extract', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No file uploaded or unsupported file type.' });
-  }
-
-  const slug = (req.body.slug || '').trim();
-  if (!slug) {
-    return res.status(400).json({ success: false, message: 'Missing calculator slug.' });
-  }
-
-  // Read AI config
-  const siteConfig = readSiteConfig();
-  if (!siteConfig || !siteConfig.ai || !siteConfig.ai.apiKey) {
-    return res.status(400).json({ success: false, message: 'No AI API key configured. Go to Settings to add one.' });
-  }
-
-  const provider = siteConfig.ai.provider;
-  if (provider !== 'openai') {
-    return res.status(400).json({ success: false, message: 'AI extraction currently requires OpenAI. Set provider to "openai" in Settings.' });
-  }
-
-  // Read prompt config
-  const prompts = readPrompts();
-  if (!prompts || !prompts[slug]) {
-    return res.status(400).json({ success: false, message: `No AI prompt configured for calculator "${slug}".` });
-  }
-
-  const promptConfig = prompts[slug];
-  const model = promptConfig.model || 'gpt-4o';
-  const systemPrompt = promptConfig.prompt;
-
-  const mimeType = req.file.mimetype;
-  const base64 = req.file.buffer.toString('base64');
-  const isPdf = mimeType === 'application/pdf';
-
-  // Build user content block — PDFs use input_file, images use image_url
-  const fileBlock = isPdf
-    ? { type: 'input_file', filename: req.file.originalname || 'document.pdf', file_data: `data:${mimeType};base64,${base64}` }
-    : { type: 'input_image', image_url: `data:${mimeType};base64,${base64}` };
-
-  // Use OpenAI Responses API (supports PDF input natively)
-  const requestBody = JSON.stringify({
-    model: model,
-    instructions: systemPrompt,
-    input: [
-      { role: 'user', content: [fileBlock, { type: 'input_text', text: 'Extract the data from this document. Return only valid JSON.' }] }
-    ],
-    text: { format: { type: 'json_object' } }
-  });
-
-  const options = {
-    hostname: 'api.openai.com',
-    path: '/v1/responses',
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + siteConfig.ai.apiKey,
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(requestBody)
+router.post('/ai/extract', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded or unsupported file type.' });
     }
-  };
 
-  const apiReq = https.request(options, (apiRes) => {
-    let data = '';
-    apiRes.on('data', (chunk) => { data += chunk; });
-    apiRes.on('end', () => {
-      try {
-        const parsed = JSON.parse(data);
+    const slug = (req.body.slug || '').trim();
+    if (!slug) {
+      return res.status(400).json({ success: false, message: 'Missing calculator slug.' });
+    }
 
-        if (apiRes.statusCode !== 200) {
-          const errMsg = parsed.error?.message || ('OpenAI API error: HTTP ' + apiRes.statusCode);
-          return res.status(502).json({ success: false, message: errMsg });
-        }
+    // Read AI config
+    const siteConfig = readSiteConfig();
+    if (!siteConfig || !siteConfig.ai || !siteConfig.ai.apiKey) {
+      return res.status(400).json({ success: false, message: 'No AI API key configured. Go to Settings to add one.' });
+    }
 
-        // Responses API returns output[].content[].text
-        const textBlock = parsed.output?.find(o => o.type === 'message')
-          ?.content?.find(c => c.type === 'output_text');
-        const content = textBlock?.text;
-        if (!content) {
-          return res.status(502).json({ success: false, message: 'No content in AI response.' });
-        }
+    const provider = siteConfig.ai.provider;
+    if (provider !== 'openai') {
+      return res.status(400).json({ success: false, message: 'AI extraction currently requires OpenAI. Set provider to "openai" in Settings.' });
+    }
 
-        const extracted = JSON.parse(content);
-        res.json({ success: true, data: extracted });
-      } catch (err) {
-        res.status(502).json({ success: false, message: 'Failed to parse AI response: ' + err.message });
-      }
+    // Read prompt config
+    const prompts = readPrompts();
+    if (!prompts || !prompts[slug]) {
+      return res.status(400).json({ success: false, message: `No AI prompt configured for calculator "${slug}".` });
+    }
+
+    const promptConfig = prompts[slug];
+    const model = promptConfig.model || 'gpt-4o';
+    const systemPrompt = promptConfig.prompt;
+
+    const mimeType = req.file.mimetype;
+    const isPdf = mimeType === 'application/pdf';
+
+    // Build image content blocks — PDFs are rendered to PNG first for accuracy
+    let imageBlocks;
+    if (isPdf) {
+      const pageImages = await pdfToImages(req.file.buffer, 5);
+      imageBlocks = pageImages.map(imgBuf => ({
+        type: 'input_image',
+        image_url: `data:image/png;base64,${imgBuf.toString('base64')}`
+      }));
+    } else {
+      const base64 = req.file.buffer.toString('base64');
+      imageBlocks = [{
+        type: 'input_image',
+        image_url: `data:${mimeType};base64,${base64}`
+      }];
+    }
+
+    // Add text instruction after images
+    const contentBlocks = [
+      ...imageBlocks,
+      { type: 'input_text', text: 'Extract the data from this document. Return only valid JSON.' }
+    ];
+
+    // Use OpenAI Responses API — all inputs sent as images for consistent accuracy
+    const requestBody = JSON.stringify({
+      model: model,
+      instructions: systemPrompt,
+      input: [
+        { role: 'user', content: contentBlocks }
+      ],
+      text: { format: { type: 'json_object' } }
     });
-  });
 
-  apiReq.on('error', (err) => {
-    res.status(502).json({ success: false, message: 'Connection error: ' + err.message });
-  });
+    const options = {
+      hostname: 'api.openai.com',
+      path: '/v1/responses',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + siteConfig.ai.apiKey,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(requestBody)
+      }
+    };
 
-  apiReq.write(requestBody);
-  apiReq.end();
+    const apiReq = https.request(options, (apiRes) => {
+      let data = '';
+      apiRes.on('data', (chunk) => { data += chunk; });
+      apiRes.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+
+          if (apiRes.statusCode !== 200) {
+            const errMsg = parsed.error?.message || ('OpenAI API error: HTTP ' + apiRes.statusCode);
+            return res.status(502).json({ success: false, message: errMsg });
+          }
+
+          // Responses API returns output[].content[].text
+          const textBlock = parsed.output?.find(o => o.type === 'message')
+            ?.content?.find(c => c.type === 'output_text');
+          const content = textBlock?.text;
+          if (!content) {
+            return res.status(502).json({ success: false, message: 'No content in AI response.' });
+          }
+
+          const extracted = JSON.parse(content);
+          res.json({ success: true, data: extracted });
+        } catch (err) {
+          res.status(502).json({ success: false, message: 'Failed to parse AI response: ' + err.message });
+        }
+      });
+    });
+
+    apiReq.on('error', (err) => {
+      res.status(502).json({ success: false, message: 'Connection error: ' + err.message });
+    });
+
+    apiReq.write(requestBody);
+    apiReq.end();
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error: ' + err.message });
+  }
 });
 
 module.exports = router;
