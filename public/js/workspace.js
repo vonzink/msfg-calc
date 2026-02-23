@@ -642,6 +642,7 @@
 
         sessionStorage.setItem('msfg-mismo-data', JSON.stringify(parsed));
         sessionStorage.setItem('msfg-mismo-filename', file.name);
+        sessionStorage.setItem('msfg-mismo-xml', e.target.result);
 
         updateMISMOUI(parsed, file.name);
         populateAllPanels();
@@ -691,6 +692,7 @@
     mismoData = null;
     sessionStorage.removeItem('msfg-mismo-data');
     sessionStorage.removeItem('msfg-mismo-filename');
+    sessionStorage.removeItem('msfg-mismo-xml');
 
     var dropZone = document.getElementById('mismoDropZone');
     var inner = dropZone.querySelector('.mismo-drop__inner');

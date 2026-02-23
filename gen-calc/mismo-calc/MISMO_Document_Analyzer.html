@@ -371,6 +371,9 @@
         </div>
     </main>
 
+    <!-- Calc identity for report system -->
+    <script>window.__calcSlug = 'mismo'; window.__calcIcon = '📄';</script>
+
     <!-- Load JavaScript modules -->
     <script src="mismo-parser.js"></script>
     <script src="income-logic.js"></script>
@@ -678,6 +681,29 @@
             return { general, assets, credit };
         }
     </script>
-  <script src="/js/shared/report.js"></script>
+
+    <!-- Auto-populate from workspace MISMO data -->
+    <script>
+    (function () {
+      'use strict';
+      document.addEventListener('DOMContentLoaded', function () {
+        var storedXml = sessionStorage.getItem('msfg-mismo-xml');
+        if (!storedXml) return;
+        try {
+          var parser = new DOMParser();
+          var xmlDoc = parser.parseFromString(storedXml, 'text/xml');
+          if (xmlDoc.querySelector('parsererror')) return;
+          processXML(xmlDoc);
+        } catch (e) {
+          console.warn('MISMO auto-populate failed:', e);
+        }
+      });
+    })();
+    </script>
+
+    <!-- Report system -->
+    <script src="/js/shared/report-templates.js"></script>
+    <script src="/js/shared/report-templates/mismo.js"></script>
+    <script src="/js/shared/report.js"></script>
 </body>
 </html>
