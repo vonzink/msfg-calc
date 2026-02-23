@@ -709,6 +709,16 @@
         // Update math steps
         updateMathSteps(state, results);
         
+        // Refresh chart if visible
+        if (currentChart && document.getElementById('chartContainer').style.display === 'block') {
+          const chartTitle = currentChart.options.plugins.title.text;
+          if (chartTitle === 'Buydown Credit Remaining') {
+            showRemainingChart();
+          } else {
+            showPaymentChart();
+          }
+        }
+
         // Update URL
         updateURL(state);
       }
@@ -736,7 +746,8 @@
           const card = document.createElement('div');
           card.className = 'year-card' + (isFullRate ? ' full-rate' : '');
           
-          const yearLabel = isFullRate ? 'Full Rate (Year 4+)' : `Year ${year.year}`;
+          const fullRateStart = results.rates.years + 1;
+          const yearLabel = isFullRate ? `Full Rate (Year ${fullRateStart}+)` : `Year ${year.year}`;
           
           let gridHTML = `
             <div class="year-item">
@@ -989,7 +1000,7 @@
         const labels = [];
         const remaining = [];
         const totalMonths = state.buydownType === '3-2-1' ? 36 :
-                           state.buydownType === '2-1' ? 24 : 12;
+                           (state.buydownType === '2-1' || state.buydownType === '1-1') ? 24 : 12;
         
         for (let month = 0; month <= totalMonths; month++) {
           labels.push(month === 0 ? 'Start' : `Mo ${month}`);

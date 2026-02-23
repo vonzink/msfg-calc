@@ -145,20 +145,20 @@
 
 /* ---- Section header rows ---- */
 .cmp-section-row td {
-  background: var(--brand-primary);
-  color: #fff;
+  background: #e8f5e9;
+  color: #2e7d32;
   font-weight: 700;
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 6px var(--space-md) !important;
-  border-bottom: none !important;
+  border-bottom: 1px solid #a5d6a7 !important;
   cursor: pointer;
   user-select: none;
 }
 
 .cmp-section-row td:first-child {
-  color: #fff;
+  color: #2e7d32;
 }
 
 .cmp-section-toggle {
