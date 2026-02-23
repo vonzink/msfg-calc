@@ -92,9 +92,12 @@ app.use(express.urlencoded({ extended: true }));
 // Legacy standalone apps (served via iframe from EJS wrappers)
 
 // Helper: serve a static HTML file with cache-busting ?v= injected on local JS/CSS tags
+// In development, re-reads the file on each request so changes take effect without restart.
 function serveLegacyHtml(filePath) {
-  const template = fs.readFileSync(filePath, 'utf-8');
+  const isDev = process.env.NODE_ENV !== 'production';
+  const cached = isDev ? null : fs.readFileSync(filePath, 'utf-8');
   return (req, res) => {
+    const template = isDev ? fs.readFileSync(filePath, 'utf-8') : cached;
     const html = template
       .replace(/(src|href)="((?:js|css)\/[^"]+\.(?:js|css))"/g, `$1="$2?v=${ASSET_VERSION}"`)
       .replace(/(src|href)="(\/js\/[^"]+\.(?:js|css))"/g, `$1="$2?v=${ASSET_VERSION}"`);
