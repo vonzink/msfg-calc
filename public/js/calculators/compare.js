@@ -17,9 +17,22 @@
     'PrepaidInsurance', 'PrepaidInterest',
     'EscrowTax', 'EscrowInsurance',
     'DownPayment', 'SellerCredits', 'LenderCredits',
-    'MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA',
-    'APR'
+    'MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA'
   ];
+
+  /* Custom line items */
+  let customItems = [];
+  let customItemCounter = 0;
+
+  /* Section insertion targets for custom items */
+  const SECTION_INSERT = {
+    origination: '.cmp-subtotal-row[data-section="origination"]',
+    thirdParty: '.cmp-subtotal-row[data-section="thirdParty"]',
+    government: '.cmp-subtotal-row[data-section="government"]',
+    prepaids: '.cmp-subtotal-row[data-section="prepaids"]',
+    escrow: '.cmp-subtotal-row[data-section="escrow"]',
+    monthly: '[data-row="totalMonthly"]'
+  };
 
   /* ---- Helpers ---- */
   function el(id) { return document.getElementById(id); }
@@ -36,6 +49,116 @@
       if (e.tagName === 'INPUT') e.value = text;
       else e.textContent = text;
     }
+  }
+
+  /* ---- APR Calculation (Reg Z binary search) ---- */
+  function calcPV(payment, annualRate, n) {
+    if (payment <= 0 || n <= 0) return 0;
+    if (annualRate === 0) return payment * n;
+    const r = annualRate / 12;
+    return payment * (1 - Math.pow(1 + r, -n)) / r;
+  }
+
+  function calcAPR(monthlyPmt, amtFinanced, n) {
+    if (amtFinanced <= 0 || monthlyPmt <= 0 || n <= 0) return 0;
+    if (monthlyPmt * n < amtFinanced) return 0;
+    let lo = 0.0001, hi = 1, apr = 0;
+    for (let i = 0; i < 100; i++) {
+      apr = (lo + hi) / 2;
+      const pv = calcPV(monthlyPmt, apr, n);
+      if (Math.abs(pv - amtFinanced) < 1e-8) break;
+      if (pv > amtFinanced) lo = apr; else hi = apr;
+    }
+    return apr;
+  }
+
+  /* ---- Custom line items ---- */
+  function sumCustomForSection(section, idx) {
+    let total = 0;
+    customItems.forEach(item => {
+      if (item.section === section) {
+        total += v('cmpCustom_' + item.id + '_' + idx);
+      }
+    });
+    return total;
+  }
+
+  function addCustomItem() {
+    const sectionKey = el('cmpNewItemSection').value;
+    const nameInput = el('cmpNewItemName');
+    const name = (nameInput.value || '').trim();
+    if (!name) { nameInput.focus(); return; }
+
+    customItemCounter++;
+    const itemId = customItemCounter;
+    const dataRow = 'custom_' + itemId;
+
+    customItems.push({ id: itemId, section: sectionKey, name: name, dataRow: dataRow });
+
+    // Build the <tr>
+    const tr = document.createElement('tr');
+    tr.className = 'cmp-detail-row cmp-detail-row--custom';
+    tr.dataset.section = sectionKey;
+    tr.dataset.row = dataRow;
+    tr.dataset.customId = String(itemId);
+
+    // Label cell with remove button
+    const labelTd = document.createElement('td');
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'cmp-custom-name';
+    nameSpan.textContent = name;
+    labelTd.appendChild(nameSpan);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'cmp-custom-remove';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', function () { removeCustomItem(itemId); });
+    labelTd.appendChild(removeBtn);
+    tr.appendChild(labelTd);
+
+    // One input cell per active loan column
+    for (let c = 1; c <= loanCount; c++) {
+      const td = document.createElement('td');
+      td.classList.add('cmp-loan-cell');
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.className = 'cmp-input';
+      inp.id = 'cmpCustom_' + itemId + '_' + c;
+      inp.value = '0';
+      inp.min = '0';
+      inp.step = '1';
+      inp.addEventListener('input', calculate);
+      inp.addEventListener('change', calculate);
+      td.appendChild(inp);
+      tr.appendChild(td);
+    }
+
+    // Insert before section's subtotal row
+    const selector = SECTION_INSERT[sectionKey];
+    const anchor = selector ? el('cmpBody').querySelector(selector) : null;
+    if (anchor) {
+      anchor.parentNode.insertBefore(tr, anchor);
+    }
+
+    // Auto-expand the section if collapsed
+    const sectionRows = document.querySelectorAll('.cmp-detail-row[data-section="' + sectionKey + '"]');
+    const headerRow = document.querySelector('.cmp-section-row[data-section="' + sectionKey + '"]');
+    const toggle = headerRow ? headerRow.querySelector('.cmp-section-toggle') : null;
+    sectionRows.forEach(r => r.classList.remove('cmp-detail-row--hidden'));
+    if (toggle) toggle.textContent = '\u25B2';
+
+    // Reset the add form
+    nameInput.value = '';
+    calculate();
+  }
+
+  function removeCustomItem(itemId) {
+    customItems = customItems.filter(item => item.id !== itemId);
+    const row = el('cmpBody').querySelector('[data-custom-id="' + itemId + '"]');
+    if (row) row.remove();
+    calculate();
   }
 
   /* ---- Column management ---- */
@@ -76,9 +199,18 @@
 
       const input1 = firstCell.querySelector('input');
       const select1 = firstCell.querySelector('select');
+      const textarea1 = firstCell.querySelector('textarea');
       const span1 = firstCell.querySelector('span');
 
-      if (input1) {
+      if (textarea1) {
+        const ta = document.createElement('textarea');
+        ta.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
+        ta.className = textarea1.className;
+        ta.rows = textarea1.rows;
+        ta.placeholder = textarea1.placeholder;
+        ta.value = '';
+        td.appendChild(ta);
+      } else if (input1) {
         const inp = input1.cloneNode(true);
         inp.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
         // Reset value
@@ -98,7 +230,7 @@
         const sp = document.createElement('span');
         sp.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
         sp.className = span1.className;
-        sp.textContent = '$0';
+        sp.textContent = rowKey === 'apr' ? '0.000%' : '$0';
         td.appendChild(sp);
       }
 
@@ -133,11 +265,7 @@
     const rows = el('cmpBody').querySelectorAll('tr');
     rows.forEach(row => {
       if (row.classList.contains('cmp-section-row')) return;
-      // Find the cell for this column (column index is 1-based; td[0] is label)
       const cells = row.querySelectorAll('td');
-      // We need to find which cell belongs to this colIdx
-      // Columns are in order: label, col1, col2, ..., colN
-      // After removal we reindex, but for now find by input/span ID
       cells.forEach(td => {
         const child = td.querySelector('[id$="_' + colIdx + '"]');
         if (child) td.remove();
@@ -214,22 +342,27 @@
     }
     setText('cmpMonthlyPI_' + idx, monthlyPI.toFixed(2));
 
-    // Section subtotals
+    // Section subtotals (including custom items)
     const origTotal = v('cmpOrigFee_' + idx) + v('cmpDiscountPts_' + idx) +
-                      v('cmpProcessingFee_' + idx) + v('cmpUnderwritingFee_' + idx);
+                      v('cmpProcessingFee_' + idx) + v('cmpUnderwritingFee_' + idx) +
+                      sumCustomForSection('origination', idx);
     setText('cmpOrigTotal_' + idx, fmt(origTotal));
 
     const thirdPartyTotal = v('cmpAppraisalFee_' + idx) + v('cmpCreditReportFee_' + idx) +
-                            v('cmpTitleFees_' + idx) + v('cmpOtherThirdParty_' + idx);
+                            v('cmpTitleFees_' + idx) + v('cmpOtherThirdParty_' + idx) +
+                            sumCustomForSection('thirdParty', idx);
     setText('cmpThirdPartyTotal_' + idx, fmt(thirdPartyTotal));
 
-    const govTotal = v('cmpRecordingFee_' + idx) + v('cmpTransferTax_' + idx);
+    const govTotal = v('cmpRecordingFee_' + idx) + v('cmpTransferTax_' + idx) +
+                     sumCustomForSection('government', idx);
     setText('cmpGovTotal_' + idx, fmt(govTotal));
 
-    const prepaidsTotal = v('cmpPrepaidInsurance_' + idx) + v('cmpPrepaidInterest_' + idx);
+    const prepaidsTotal = v('cmpPrepaidInsurance_' + idx) + v('cmpPrepaidInterest_' + idx) +
+                          sumCustomForSection('prepaids', idx);
     setText('cmpPrepaidsTotal_' + idx, fmt(prepaidsTotal));
 
-    const escrowTotal = v('cmpEscrowTax_' + idx) + v('cmpEscrowInsurance_' + idx);
+    const escrowTotal = v('cmpEscrowTax_' + idx) + v('cmpEscrowInsurance_' + idx) +
+                        sumCustomForSection('escrow', idx);
     setText('cmpEscrowTotal_' + idx, fmt(escrowTotal));
 
     const totalClosing = origTotal + thirdPartyTotal + govTotal + prepaidsTotal + escrowTotal;
@@ -247,12 +380,22 @@
     const monthlyIns = v('cmpMonthlyInsurance_' + idx);
     const monthlyMI = v('cmpMonthlyMI_' + idx);
     const monthlyHOA = v('cmpMonthlyHOA_' + idx);
-    const totalMonthly = monthlyPI + monthlyTax + monthlyIns + monthlyMI + monthlyHOA;
+    const totalMonthly = monthlyPI + monthlyTax + monthlyIns + monthlyMI + monthlyHOA +
+                         sumCustomForSection('monthly', idx);
     setText('cmpTotalMonthly_' + idx, fmt(totalMonthly));
 
     // Total interest over life of loan
     const totalInterest = term > 0 ? (monthlyPI * term) - loanAmount : 0;
     setText('cmpTotalInterest_' + idx, fmt(Math.max(0, totalInterest)));
+
+    // APR (Reg Z: amount financed = loan - discount points - prepaids)
+    const discountPts = v('cmpDiscountPts_' + idx);
+    const amtFinanced = loanAmount - discountPts - prepaidsTotal;
+    let apr = 0;
+    if (amtFinanced > 0 && monthlyPI > 0 && term > 0) {
+      apr = calcAPR(monthlyPI, amtFinanced, term);
+    }
+    setText('cmpAPR_' + idx, apr > 0 ? (apr * 100).toFixed(3) + '%' : '0.000%');
   }
 
   /* ---- Best-value highlighting ---- */
@@ -334,7 +477,6 @@
         const e = el(id);
         if (!e) return;
         if (e.tagName === 'SELECT') {
-          // Set select by value
           for (let o = 0; o < e.options.length; o++) {
             if (e.options[o].value === String(fields[id])) {
               e.selectedIndex = o;
@@ -391,6 +533,14 @@
       removeLoan(loanCount);
     }
 
+    // Remove all custom item rows
+    customItems.forEach(item => {
+      const row = el('cmpBody').querySelector('[data-custom-id="' + item.id + '"]');
+      if (row) row.remove();
+    });
+    customItems = [];
+    customItemCounter = 0;
+
     // Reset loan 1 inputs
     INPUT_KEYS.forEach(key => {
       const e = el('cmp' + key + '_1');
@@ -399,6 +549,10 @@
       else if (e.type === 'number') e.value = key === 'Term' ? '360' : '0';
       else e.value = '';
     });
+
+    // Reset notes
+    const notes1 = el('cmpNotes_1');
+    if (notes1) notes1.value = '';
 
     // Reset shared fields
     ['cmpBorrower', 'cmpProperty', 'cmpFileNumber'].forEach(id => {
@@ -465,6 +619,18 @@
 
     // Add loan button
     el('cmpAddBtn').addEventListener('click', addLoan);
+
+    // Add custom item button
+    const addItemBtn = el('cmpAddItemBtn');
+    if (addItemBtn) addItemBtn.addEventListener('click', addCustomItem);
+
+    // Enter key on name input adds item
+    const newItemName = el('cmpNewItemName');
+    if (newItemName) {
+      newItemName.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); addCustomItem(); }
+      });
+    }
 
     // Action buttons
     const printBtn = el('cmpPrintBtn');

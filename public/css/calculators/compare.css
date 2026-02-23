@@ -234,6 +234,113 @@
   background: #e8f5e9;
 }
 
+/* ---- Add Custom Item bar ---- */
+.cmp-add-item {
+  margin-bottom: var(--space-md);
+}
+
+.cmp-add-item__form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.cmp-add-item__form label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.cmp-add-item__form select,
+.cmp-add-item__form input[type="text"] {
+  padding: 5px 10px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+}
+
+.cmp-add-item__form select {
+  min-width: 140px;
+}
+
+.cmp-add-item__form input[type="text"] {
+  min-width: 180px;
+}
+
+.cmp-add-item__form select:focus,
+.cmp-add-item__form input[type="text"]:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+}
+
+/* ---- Custom row label with remove button ---- */
+.cmp-custom-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.cmp-custom-name span {
+  font-style: italic;
+  color: var(--color-gray-600);
+}
+
+.cmp-custom-remove {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-400);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.cmp-custom-remove:hover {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+}
+
+/* ---- Notes textarea ---- */
+.cmp-notes {
+  width: 100%;
+  min-width: 110px;
+  padding: 5px 8px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: var(--font-body);
+  resize: vertical;
+  line-height: 1.4;
+  color: var(--color-gray-700);
+}
+
+.cmp-notes:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+}
+
+.cmp-notes::placeholder {
+  color: var(--color-gray-400);
+  font-style: italic;
+}
+
+/* Notes row label */
+tr[data-row="notes"] td:first-child {
+  vertical-align: top;
+  padding-top: 10px;
+}
+
 /* ---- Disclaimer ---- */
 .cmp-disclaimer {
   margin-top: var(--space-lg);
@@ -258,6 +365,8 @@
 @media print {
   .cmp-add-col,
   .cmp-remove-btn,
+  .cmp-custom-remove,
+  .cmp-add-item,
   .cmp-disclaimer,
   .action-bar,
   .calc-page__header,
@@ -289,4 +398,12 @@
   .cmp-table tbody tr:last-child td.cmp-loan-cell { border-bottom: 1px solid #999; }
 
   .cmp-detail-row--hidden { display: table-row; }
+
+  .cmp-notes {
+    border: none;
+    background: transparent;
+    resize: none;
+    padding: 0;
+    font-size: 0.8rem;
+  }
 }

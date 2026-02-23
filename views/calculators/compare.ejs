@@ -241,11 +241,38 @@
             </tr>
             <tr data-row="apr">
               <td>APR (%)</td>
-              <td><input type="number" class="cmp-input cmp-input--sm" id="cmpAPR_1" value="0" min="0" max="30" step="0.001"></td>
+              <td><span class="cmp-computed" id="cmpAPR_1">0.000%</span></td>
+            </tr>
+            <tr data-row="notes">
+              <td>Notes</td>
+              <td class="cmp-loan-cell"><textarea class="cmp-notes" id="cmpNotes_1" rows="3" placeholder="Loan notes..."></textarea></td>
             </tr>
 
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Add Custom Line Item -->
+    <div class="cmp-add-item" id="cmpAddItemBar">
+      <h3>Add Custom Line Item</h3>
+      <div class="cmp-add-item__form">
+        <div class="form-group">
+          <label for="cmpNewItemSection">Section</label>
+          <select id="cmpNewItemSection">
+            <option value="origination">Origination Charges</option>
+            <option value="thirdParty">Third-Party Fees</option>
+            <option value="government">Government Fees</option>
+            <option value="prepaids">Prepaids</option>
+            <option value="escrow">Escrow Deposits</option>
+            <option value="monthly">Monthly Payment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cmpNewItemName">Item Name</label>
+          <input type="text" id="cmpNewItemName" placeholder="e.g. Survey Fee">
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="cmpAddItemBtn">+ Add Item</button>
       </div>
     </div>
 
