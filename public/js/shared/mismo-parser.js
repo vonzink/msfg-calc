@@ -1118,6 +1118,9 @@
     return m;
   };
 
+  /* ---- MISMO Document Analyzer (special: XML injection) ---- */
+  CALC_MAPS['mismo'] = function () { return { '__mismo_xml_inject': true }; };
+
   /* ================================================
      PUBLIC API
      ================================================ */

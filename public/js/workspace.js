@@ -772,6 +772,22 @@
     } catch (e) { return 0; }
     if (!outerDoc) return 0;
 
+    // Special handling: MISMO Document Analyzer — inject raw XML
+    if (fieldMap.__mismo_xml_inject) {
+      var storedXml = sessionStorage.getItem('msfg-mismo-xml');
+      if (storedXml) {
+        try {
+          var iframeWin = iframe.contentWindow;
+          if (iframeWin && typeof iframeWin.__mismoProcessXmlString === 'function') {
+            iframeWin.__mismoProcessXmlString(storedXml);
+            highlightPanel(slug, 1);
+            return 1;
+          }
+        } catch (e) { /* cross-origin or not ready */ }
+      }
+      return 0;
+    }
+
     var reactKeys = {};
     var domKeys = {};
     var amortKeys = {};

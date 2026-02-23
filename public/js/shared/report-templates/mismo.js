@@ -24,13 +24,13 @@
       var chipIds = ['chipEmp', 'chipRes', 'chipREO', 'chipDec'];
       var chips = [];
       chipIds.forEach(function (id) {
-        var el = doc.getElementById(id);
-        if (!el) return;
+        var chip = doc.getElementById(id);
+        if (!chip) return;
         var status = 'pending';
-        if (el.classList.contains('ok')) status = 'ok';
-        else if (el.classList.contains('warn')) status = 'warn';
-        else if (el.classList.contains('need')) status = 'need';
-        chips.push({ label: el.textContent.trim(), status: status });
+        if (chip.classList.contains('mismo-chip--ok')) status = 'ok';
+        else if (chip.classList.contains('mismo-chip--warn')) status = 'warn';
+        else if (chip.classList.contains('mismo-chip--need')) status = 'need';
+        chips.push({ label: chip.textContent.trim(), status: status });
       });
 
       // Checklist sections
@@ -46,22 +46,16 @@
         var container = doc.getElementById(sec.id);
         if (!container) return;
         var items = [];
-        container.querySelectorAll('.doc-item').forEach(function (item) {
-          var status = 'required';
-          if (item.classList.contains('ok')) status = 'ok';
-          else if (item.classList.contains('conditional')) status = 'conditional';
+        container.querySelectorAll('.mismo-doc-item').forEach(function (item) {
+          var statusEl = item.querySelector('.mismo-doc-item__status');
+          var nameEl = item.querySelector('.mismo-doc-item__name');
+          var reasonEl = item.querySelector('.mismo-doc-item__reason');
 
-          var nameEl = item.querySelector('.doc-name');
-          var reasonEl = item.querySelector('.doc-reason');
+          var status = statusEl ? statusEl.value : 'required';
+          var name = nameEl ? nameEl.value.trim() : '';
+          var reason = reasonEl ? reasonEl.value.trim() : '';
 
-          var name = '';
-          if (nameEl) {
-            var statusSpan = nameEl.querySelector('.doc-status');
-            var statusText = statusSpan ? statusSpan.textContent : '';
-            name = nameEl.textContent.replace(statusText, '').trim();
-          }
-          var reason = reasonEl ? reasonEl.textContent.trim() : '';
-          items.push({ name: name, status: status, reason: reason });
+          if (name) items.push({ name: name, status: status, reason: reason });
         });
         sections.push({ title: sec.title, items: items });
       });

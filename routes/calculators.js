@@ -32,7 +32,8 @@ const generalCalcs = [
   { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer', css: 'var-income' },
   { slug: 'fee-worksheet',  view: 'calculators/fee-worksheet',  title: 'Fee Worksheet',              css: 'fee-worksheet' },
   { slug: 'compare',        view: 'calculators/compare',        title: 'Loan Comparison',            css: 'compare' },
-  { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' }
+  { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' },
+  { slug: 'mismo',          view: 'calculators/mismo',          title: 'MISMO Document Analyzer',    css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js'] }
 ];
 
 generalCalcs.forEach(gc => {

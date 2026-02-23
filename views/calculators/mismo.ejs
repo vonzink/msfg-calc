@@ -1,0 +1,107 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>MISMO Document Analyzer</h1>
+    <p>Upload a MISMO 3.4 XML file to generate an editable document checklist for income, assets, credit, and general requirements.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- ============ Upload + Loan Summary ============ -->
+    <div class="calc-section mismo-top-grid">
+
+      <!-- Upload Card -->
+      <div>
+        <h2>Upload MISMO XML</h2>
+        <div class="mismo-dropzone" id="mismoDropzone">
+          <input type="file" id="mismoFileInput" accept=".xml">
+          <div class="mismo-dz-icon">&#128193;</div>
+          <div class="mismo-dz-title">Drop MISMO XML file here</div>
+          <div class="mismo-dz-or">or</div>
+          <button type="button" class="btn btn--primary btn--sm" id="mismoChooseFile">Choose File</button>
+        </div>
+      </div>
+
+      <!-- Loan Summary Card -->
+      <div>
+        <h2>Loan Summary</h2>
+        <div class="mismo-summary-grid">
+          <div class="mismo-kv">
+            <div class="mismo-kv-label">Borrower(s)</div>
+            <div class="mismo-kv-value" id="kvBorrower">&mdash;</div>
+          </div>
+          <div class="mismo-kv">
+            <div class="mismo-kv-label">Loan Purpose</div>
+            <div class="mismo-kv-value" id="kvPurpose">&mdash;</div>
+          </div>
+          <div class="mismo-kv">
+            <div class="mismo-kv-label">Loan Type</div>
+            <div class="mismo-kv-value" id="kvType">&mdash;</div>
+          </div>
+          <div class="mismo-kv">
+            <div class="mismo-kv-label">Loan Amount</div>
+            <div class="mismo-kv-value" id="kvAmount">&mdash;</div>
+          </div>
+        </div>
+        <div class="mismo-chips" id="mismoChips">
+          <span class="mismo-chip" id="chipEmp">Employment: Pending</span>
+          <span class="mismo-chip" id="chipRes">Residence: Pending</span>
+          <span class="mismo-chip" id="chipREO">REO: Pending</span>
+          <span class="mismo-chip" id="chipDec">Declarations: Pending</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Empty State ============ -->
+    <div id="mismoEmpty" class="mismo-empty-state">
+      <p>Upload a MISMO 3.4 XML file to begin analysis</p>
+    </div>
+
+    <!-- ============ Results (hidden until populated) ============ -->
+    <div id="mismoResults" style="display:none;">
+
+      <!-- Income Documentation -->
+      <div class="calc-section mismo-checklist-section" data-section="income">
+        <div class="mismo-section-header">
+          <h2>Income Documentation</h2>
+          <button type="button" class="btn btn--ghost btn--sm mismo-add-btn" data-section="income">+ Add Item</button>
+        </div>
+        <div class="mismo-checklist" id="incomeChecklist"></div>
+      </div>
+
+      <!-- General Documentation -->
+      <div class="calc-section mismo-checklist-section" data-section="general">
+        <div class="mismo-section-header">
+          <h2>General Documentation</h2>
+          <button type="button" class="btn btn--ghost btn--sm mismo-add-btn" data-section="general">+ Add Item</button>
+        </div>
+        <div class="mismo-checklist" id="generalChecklist"></div>
+      </div>
+
+      <!-- Asset Documentation -->
+      <div class="calc-section mismo-checklist-section" data-section="assets">
+        <div class="mismo-section-header">
+          <h2>Asset Documentation</h2>
+          <button type="button" class="btn btn--ghost btn--sm mismo-add-btn" data-section="assets">+ Add Item</button>
+        </div>
+        <div class="mismo-checklist" id="assetChecklist"></div>
+      </div>
+
+      <!-- Credit Documentation -->
+      <div class="calc-section mismo-checklist-section" data-section="credit">
+        <div class="mismo-section-header">
+          <h2>Credit Documentation</h2>
+          <button type="button" class="btn btn--ghost btn--sm mismo-add-btn" data-section="credit">+ Add Item</button>
+        </div>
+        <div class="mismo-checklist" id="creditChecklist"></div>
+      </div>
+
+    </div>
+
+    <!-- ============ Action Bar ============ -->
+    <div class="mismo-action-bar" id="mismoActionBar" style="display:none;">
+      <button type="button" class="btn btn--secondary btn--sm" id="mismoPrintBtn">Print Checklist</button>
+      <button type="button" class="btn btn--ghost btn--sm" id="mismoClearBtn">Clear All</button>
+    </div>
+
+  </div>
+</div>

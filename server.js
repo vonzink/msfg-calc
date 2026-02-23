@@ -114,9 +114,6 @@ app.use('/calculators/llpm', express.static(path.join(__dirname, 'llpm-calc')));
 app.get('/calculators/batch-llpm', serveLegacyHtml(path.join(__dirname, 'batch-llpm', 'index.html')));
 app.use('/calculators/batch-llpm', express.static(path.join(__dirname, 'batch-llpm')));
 
-app.get('/calculators/mismo', serveLegacyHtml(path.join(__dirname, 'gen-calc', 'mismo-calc', 'MISMO_Document_Analyzer.html')));
-app.use('/calculators/mismo', express.static(path.join(__dirname, 'gen-calc', 'mismo-calc')));
-
 // Routes
 app.use('/', require('./routes/index'));
 app.use('/calculators', require('./routes/calculators'));
