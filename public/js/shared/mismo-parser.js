@@ -76,7 +76,8 @@
       prepaids: {},
       housing: {},
       qualification: {},
-      liabilities: []
+      liabilities: [],
+      closingCostFunds: { sellerCredits: 0, lenderCredits: 0 }
     };
 
     /* ---- Borrowers ---- */
@@ -270,6 +271,27 @@
               data.escrow.insMonthly = monthly;
               data.escrow.insMonths = months;
               data.escrow.insDeposit = estimated;
+            }
+          });
+        }
+      }
+
+      /* ---- Closing Cost Funds (Seller/Lender Credits) ---- */
+      data.closingCostFunds = { sellerCredits: 0, lenderCredits: 0 };
+      var closingInfoNode = qn(loan, 'CLOSING_INFORMATION');
+      if (closingInfoNode) {
+        var fundsNode = qn(closingInfoNode, 'CLOSING_COST_FUNDS');
+        if (fundsNode) {
+          var fundList = qnAll(fundsNode, 'CLOSING_COST_FUND');
+          fundList.forEach(function (fund) {
+            var fd = qn(fund, 'CLOSING_COST_FUND_DETAIL');
+            if (!fd) return;
+            var fundType = txt(fd, 'FundsType');
+            var amt = num(fd, 'ClosingCostFundAmount');
+            if (fundType === 'SellerCredit' || fundType === 'SellerPaidClosingCosts') {
+              data.closingCostFunds.sellerCredits += amt;
+            } else if (fundType === 'LenderCredit' || fundType === 'LenderPaidClosingCosts') {
+              data.closingCostFunds.lenderCredits += amt;
             }
           });
         }
@@ -938,6 +960,12 @@
     if (data.escrow.insMonthly) m['fwEscInsAmt'] = data.escrow.insMonthly;
     if (data.escrow.insMonths) m['fwEscInsMonths'] = data.escrow.insMonths;
 
+    // Seller / Lender credits
+    if (data.closingCostFunds) {
+      if (data.closingCostFunds.sellerCredits) m['fwSellerCredits'] = data.closingCostFunds.sellerCredits;
+      if (data.closingCostFunds.lenderCredits) m['fwLenderCredits'] = data.closingCostFunds.lenderCredits;
+    }
+
     // Monthly housing
     if (data.housing.mi) m['fwMonthlyMI'] = data.housing.mi;
     if (data.housing.hoa) m['fwMonthlyHOA'] = data.housing.hoa;
@@ -1023,6 +1051,14 @@
     // Government fees
     var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
     if (recordingAmt) m['cmpRecordingFee_' + idx] = recordingAmt;
+    var transferTaxAmt = feeAmt(fees, 'TransferTax', 'Transfer Tax', 'StateRecordingTax', 'State Recording Tax');
+    if (transferTaxAmt) m['cmpTransferTax_' + idx] = transferTaxAmt;
+
+    // Seller / Lender credits
+    if (data.closingCostFunds) {
+      if (data.closingCostFunds.sellerCredits) m['cmpSellerCredits_' + idx] = data.closingCostFunds.sellerCredits;
+      if (data.closingCostFunds.lenderCredits) m['cmpLenderCredits_' + idx] = data.closingCostFunds.lenderCredits;
+    }
 
     // Prepaids
     if (prepaids.hazardInsurance) m['cmpPrepaidInsurance_' + idx] = prepaids.hazardInsurance;

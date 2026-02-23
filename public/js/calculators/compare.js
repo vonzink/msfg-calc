@@ -102,6 +102,7 @@
         td.appendChild(sp);
       }
 
+      td.classList.add('cmp-loan-cell');
       row.appendChild(td);
     });
 
@@ -354,6 +355,29 @@
           el('cmpProperty').value = data.propertyAddress;
         }
       }
+      // Auto-expand fee sections that have populated values
+      const feeFields = {
+        origination: ['OrigFee', 'DiscountPts', 'ProcessingFee', 'UnderwritingFee'],
+        thirdParty: ['AppraisalFee', 'CreditReportFee', 'TitleFees', 'OtherThirdParty'],
+        government: ['RecordingFee', 'TransferTax'],
+        prepaids: ['PrepaidInsurance', 'PrepaidInterest'],
+        escrow: ['EscrowTax', 'EscrowInsurance'],
+        monthly: ['MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA']
+      };
+      Object.keys(feeFields).forEach(section => {
+        const hasData = feeFields[section].some(key => {
+          const e = el('cmp' + key + '_' + colIdx);
+          return e && P(e.value) > 0;
+        });
+        if (hasData) {
+          const rows = document.querySelectorAll('.cmp-detail-row[data-section="' + section + '"]');
+          const headerRow = document.querySelector('.cmp-section-row[data-section="' + section + '"]');
+          const toggle = headerRow ? headerRow.querySelector('.cmp-section-toggle') : null;
+          rows.forEach(r => r.classList.remove('cmp-detail-row--hidden'));
+          if (toggle) toggle.textContent = '\u25B2';
+        }
+      });
+
     } catch (e) {
       // Silently ignore parse errors
     }
@@ -416,6 +440,15 @@
         String(today.getMonth() + 1).padStart(2, '0') + '-' +
         String(today.getDate()).padStart(2, '0');
     }
+
+    // Add loan-cell class to all Loan 1 data cells (second td in each row)
+    el('cmpBody').querySelectorAll('tr').forEach(row => {
+      if (row.classList.contains('cmp-section-row')) return;
+      const cells = row.querySelectorAll('td');
+      for (let c = 1; c < cells.length; c++) {
+        cells[c].classList.add('cmp-loan-cell');
+      }
+    });
 
     // Bind all loan-1 inputs
     document.querySelectorAll('#cmpBody input, #cmpBody select').forEach(inp => {

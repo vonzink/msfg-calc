@@ -24,7 +24,8 @@
 
 .cmp-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   min-width: 500px;
 }
 
@@ -47,6 +48,24 @@
   min-width: 160px;
 }
 
+/* ---- Loan column borders ---- */
+.cmp-col-th {
+  border-left: 2px solid var(--color-gray-300);
+  border-right: 2px solid var(--color-gray-300);
+  border-top: 2px solid var(--color-gray-300);
+}
+
+/* Apply left/right borders to body cells under each loan column */
+.cmp-table tbody td.cmp-loan-cell {
+  border-left: 2px solid var(--color-gray-300);
+  border-right: 2px solid var(--color-gray-300);
+}
+
+/* Bottom border on the last data row's loan cells */
+.cmp-table tbody tr:last-child td.cmp-loan-cell {
+  border-bottom: 2px solid var(--color-gray-300);
+}
+
 .cmp-col-header {
   display: flex;
   align-items: center;
@@ -55,14 +74,16 @@
 }
 
 .cmp-col-label {
-  width: 100px;
-  padding: 3px 6px;
-  border: 1px solid var(--color-gray-300);
+  width: 110px;
+  padding: 4px 8px;
+  border: 1px solid var(--brand-primary);
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-family: var(--font-body);
   text-align: center;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--brand-primary);
+  background: #fff;
 }
 
 .cmp-col-label:focus {
@@ -255,7 +276,17 @@
   .cmp-col-label {
     border: none;
     font-weight: 700;
+    color: #000;
+    background: transparent;
   }
+
+  .cmp-col-th,
+  .cmp-table tbody td.cmp-loan-cell {
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+  }
+  .cmp-col-th { border-top: 1px solid #999; }
+  .cmp-table tbody tr:last-child td.cmp-loan-cell { border-bottom: 1px solid #999; }
 
   .cmp-detail-row--hidden { display: table-row; }
 }
