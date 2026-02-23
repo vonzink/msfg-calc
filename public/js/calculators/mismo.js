@@ -260,6 +260,63 @@
         reason: 'Verify coverage.' });
     });
 
+    // Homeowner's insurance (always required)
+    general.push({ name: 'Homeowner\'s insurance declaration page', status: 'required',
+      reason: 'Required for all mortgage transactions.' });
+
+    // HOA documentation
+    if (data.hasHOA) {
+      general.push({ name: 'HOA contact information / management company', status: 'required',
+        reason: 'Condo or PUD \u2013 HOA identified.' });
+      general.push({ name: 'HOA budget and financial statements', status: 'conditional',
+        reason: 'May be required for condo review / project approval.' });
+    }
+
+    // Payoff letters for liabilities paid at closing
+    data.liabilities.forEach(function (liability) {
+      if (liability.toBePaidAtClosing) {
+        var label = liability.type || 'Account';
+        if (liability.accountIdentifier) label += ' (' + liability.accountIdentifier + ')';
+        credit.push({ name: 'Payoff letter \u2013 ' + label, status: 'required',
+          reason: 'Liability to be paid off at closing.' });
+      }
+    });
+
+    // Credit inquiry letter of explanation
+    credit.push({ name: 'Credit inquiry letter of explanation (LOE)', status: 'conditional',
+      reason: 'Required if recent inquiries appear on credit report.' });
+
+    // Gift funds documentation
+    var hasGiftAssets = data.assets.some(function (a) {
+      return (a.type || '').match(/gift/i);
+    });
+    if (hasGiftAssets) {
+      data.assets.forEach(function (asset) {
+        if ((asset.type || '').match(/gift/i)) {
+          var giftLabel = asset.type.replace(/([A-Z])/g, ' $1').trim();
+          assets.push({ name: 'Gift letter \u2013 ' + giftLabel, status: 'required',
+            reason: 'Gift funds require donor letter confirming no repayment.' });
+          assets.push({ name: 'Gift source documentation (donor bank statement)', status: 'required',
+            reason: 'Verify donor ability to provide ' + giftLabel.toLowerCase() + '.' });
+        }
+      });
+    }
+
+    // Large deposit LOE
+    assets.push({ name: 'Large deposit letter of explanation (LOE)', status: 'conditional',
+      reason: 'Required if bank statements show deposits exceeding 50% of qualifying income.' });
+
+    // Rental verification for current renters
+    var hasRenter = data.borrowers.some(function (b) {
+      return b.residences.some(function (r) {
+        return (r.residencyType || '').match(/rent/i);
+      });
+    });
+    if (hasRenter) {
+      general.push({ name: 'Rental verification (VOR or 12 months cancelled checks)', status: 'conditional',
+        reason: 'Borrower currently rents \u2013 may be required to verify housing payment history.' });
+    }
+
     return { general: general, assets: assets, credit: credit };
   }
 

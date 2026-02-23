@@ -21,7 +21,7 @@
 
     if (isSelfEmployed) processSelfEmployed(borrower, docs, tag);
     if (hasAlimony) processAlimony(borrower, docs, tag);
-    if (hasBaseIncome && !isSelfEmployed) processBaseIncome(borrower, docs, tag);
+    if (hasBaseIncome) processBaseIncome(borrower, docs, tag);
     if (isRetired) processRetired(borrower, docs, tag);
     if (otherIncomeTypes.length > 0) processOtherIncome(borrower, otherIncomeTypes, docs, tag);
 
@@ -44,7 +44,11 @@
 
   function checkBaseIncome(borrower) {
     return borrower.incomes.some(function (inc) {
-      return ['Base', 'Hourly', 'Salary'].indexOf(inc.type) !== -1;
+      var type = inc.type || '';
+      // Exact MISMO income type matches
+      if (['Base', 'Hourly', 'Salary'].indexOf(type) !== -1) return true;
+      // Broader pattern matches for military, contract, and similar W-2 income
+      return !!type.match(/military|contract\s*basis|wages/i);
     });
   }
 
@@ -62,7 +66,8 @@
     var otherTypes = [];
     borrower.incomes.forEach(function (inc) {
       var type = inc.type || '';
-      if (type.match(/capital\s*gain|dividend|interest/i)) otherTypes.push({ category: 'capitalGains', type: type, amount: inc.monthlyAmount });
+      if (type.match(/capital\s*gain/i)) otherTypes.push({ category: 'capitalGains', type: type, amount: inc.monthlyAmount });
+      if (type.match(/dividend|interest/i) && !type.match(/capital/i)) otherTypes.push({ category: 'dividendInterest', type: type, amount: inc.monthlyAmount });
       if (type.match(/foster\s*care/i)) otherTypes.push({ category: 'fosterCare', type: type, amount: inc.monthlyAmount });
       if (type.match(/foreign/i)) otherTypes.push({ category: 'foreign', type: type, amount: inc.monthlyAmount });
       if (type.match(/unemployment/i)) otherTypes.push({ category: 'unemployment', type: type, amount: inc.monthlyAmount });
@@ -113,9 +118,7 @@
       }
     } else {
       docs.push({ name: tag + ' Business bank statements - 3 months', status: 'required',
-        reason: 'Self-employed without separate business entity.' });
-      docs.push({ name: tag + ' K-1 tax form', status: 'conditional',
-        reason: 'May be required if receiving K-1 income.' });
+        reason: 'Sole proprietor without separate business entity.' });
       docs.push({ name: tag + ' Paycheck stubs (if generated)', status: 'conditional',
         reason: 'Provide if self-employed business generates paychecks.' });
     }
@@ -204,9 +207,15 @@
 
     if (seen.capitalGains) {
       docs.push({ name: tag + ' Personal tax returns (1040s) with Schedule D - 2 years (signed)', status: 'required',
-        reason: 'Capital gains, dividend, or interest income requires Schedule D.' });
+        reason: 'Capital gains income requires Schedule D.' });
       docs.push({ name: tag + ' Current asset statement showing investment holdings', status: 'required',
-        reason: 'Verify source and continuance of investment income.' });
+        reason: 'Verify source and continuance of capital gains income.' });
+    }
+    if (seen.dividendInterest) {
+      docs.push({ name: tag + ' Personal tax returns (1040s) with Schedule B - 2 years (signed)', status: 'required',
+        reason: 'Dividend or interest income requires Schedule B.' });
+      docs.push({ name: tag + ' Current asset statement showing investment holdings', status: 'required',
+        reason: 'Verify source and continuance of dividend/interest income.' });
     }
     if (seen.fosterCare) {
       docs.push({ name: tag + ' Verification letter from foster care organization', status: 'required',
