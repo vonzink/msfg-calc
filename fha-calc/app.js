@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     newPayment: document.getElementById("newPayment"),
 
     // New cash-to-close inputs
+    ufmipRefund: document.getElementById("ufmipRefund"),
     closingCostsCash: document.getElementById("closingCostsCash"),
     prepaidsCash: document.getElementById("prepaidsCash"),
     totalCredits: document.getElementById("totalCredits"),
@@ -64,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
       appraisedValue: toNumber(els.appraisedValue),
       currentUpb: toNumber(els.currentUpb),
       closingCostsFinanced: toNumber(els.closingCosts),
+      ufmipRefund: toNumber(els.ufmipRefund),
       currentPayment: toNumber(els.currentPayment),
       newPayment: toNumber(els.newPayment),
 
@@ -167,13 +169,12 @@ document.addEventListener("DOMContentLoaded", () => {
           notes.push("Streamline selected but current loan is not marked as FHA.");
         }
 
-        // Simplified: UPB + financed costs (you can refine with exact FHA caps)
-        const upbPlusCosts = currentUpb + closingCostsFinanced;
-        baseLoan = upbPlusCosts;
-        valueUsed = appraisedValue || 0;
-        ltv = valueUsed ? baseLoan / valueUsed : 0;
+        const refund = inputs.ufmipRefund || 0;
 
-        notes.push("FHA Streamline: using current UPB + allowable closing costs. No standard LTV cap, but investor overlays may apply.");
+        baseLoan = Math.max(0, currentUpb - refund);
+        ltv = 0; // No LTV limit for streamline (no appraisal)
+
+        notes.push("FHA Streamline: Base loan set to current UPB minus UFMIP refund. No closing costs or interest added to base loan.");
         break;
       }
 
