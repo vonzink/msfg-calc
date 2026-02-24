@@ -269,8 +269,7 @@ const FhaCalc = (() => {
       return null;
     }
 
-    const maxBaseLoan = state.currentUpb - ufmipRefund.refundAmount
-      + state.accruedInterest + state.totalClosingCosts;
+    const maxBaseLoan = Math.max(0, state.currentUpb - ufmipRefund.refundAmount);
     const actualLoan = maxBaseLoan; // Streamline is formula-driven, no user override
     const newUfmip = actualLoan * UFMIP_RATE;
     const totalLoan = actualLoan + newUfmip;
@@ -287,7 +286,7 @@ const FhaCalc = (() => {
     const seasoningPass = seasoning.paymentsPass && seasoning.daysPass;
     const seasoningStatus = (seasoning.paymentsMade === null) ? null : seasoningPass;
 
-    notes.push('Streamline: base loan = UPB \u2212 UFMIP refund + accrued interest + closing costs.');
+    notes.push('Streamline: base loan = UPB \u2212 UFMIP refund.');
     if (ufmipRefund.refundAmount > 0) {
       notes.push('UFMIP Refund: ' + fmt(ufmipRefund.refundAmount) + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ').');
     }
@@ -595,9 +594,7 @@ const FhaCalc = (() => {
       html += stepSection('Streamline Scenario', [
         step('UPB', 'Current payoff balance', fmt(state.currentUpb)),
         step('UFMIP Refund', fmt(streamline.ufmipRefund > 0 ? streamline.ufmipRefund : 0), streamline.ufmipRefund > 0 ? '-' + fmt(streamline.ufmipRefund) : '\u2014'),
-        step('Accrued Interest', '', fmt(state.accruedInterest)),
-        step('Closing Costs', '', fmt(state.totalClosingCosts)),
-        step('Base Loan', 'UPB \u2212 refund + interest + costs', fmt(streamline.maxBaseLoan)),
+        step('Base Loan', 'UPB \u2212 UFMIP refund', fmt(streamline.maxBaseLoan)),
         step('New UFMIP', 'Base Loan \u00D7 1.75%', fmt(streamline.ufmipAmt)),
         step('Total Loan', 'Base + New UFMIP', fmt(streamline.totalLoan)),
         step('New P&I', fmt(streamline.totalLoan) + ' @ ' + state.newRate + '% / ' + state.newTerm + 'yr', fmt(streamline.payment)),
