@@ -96,41 +96,42 @@ router.post('/ai/extract', upload.single('file'), async (req, res) => {
     const mimeType = req.file.mimetype;
     const isPdf = mimeType === 'application/pdf';
 
-    // Build image content blocks — PDFs are rendered to PNG first for accuracy
+    // Build image content blocks for Chat Completions vision format
     let imageBlocks;
     if (isPdf) {
       const pageImages = await pdfToImages(req.file.buffer, 5);
       imageBlocks = pageImages.map(imgBuf => ({
-        type: 'input_image',
-        image_url: `data:image/png;base64,${imgBuf.toString('base64')}`
+        type: 'image_url',
+        image_url: { url: `data:image/png;base64,${imgBuf.toString('base64')}` }
       }));
     } else {
       const base64 = req.file.buffer.toString('base64');
       imageBlocks = [{
-        type: 'input_image',
-        image_url: `data:${mimeType};base64,${base64}`
+        type: 'image_url',
+        image_url: { url: `data:${mimeType};base64,${base64}` }
       }];
     }
 
     // Add text instruction after images
-    const contentBlocks = [
+    const userContent = [
       ...imageBlocks,
-      { type: 'input_text', text: 'Extract the data from this document. Return only valid JSON.' }
+      { type: 'text', text: 'Extract the data from this document. Return only valid JSON.' }
     ];
 
-    // Use OpenAI Responses API — all inputs sent as images for consistent accuracy
+    // Use Chat Completions API with vision — stable and well-supported
     const requestBody = JSON.stringify({
       model: model,
-      instructions: systemPrompt,
-      input: [
-        { role: 'user', content: contentBlocks }
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent }
       ],
-      text: { format: { type: 'json_object' } }
+      response_format: { type: 'json_object' },
+      max_tokens: 2000
     });
 
     const options = {
       hostname: 'api.openai.com',
-      path: '/v1/responses',
+      path: '/v1/chat/completions',
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + siteConfig.ai.apiKey,
@@ -148,26 +149,33 @@ router.post('/ai/extract', upload.single('file'), async (req, res) => {
 
           if (apiRes.statusCode !== 200) {
             const errMsg = parsed.error?.message || ('OpenAI API error: HTTP ' + apiRes.statusCode);
+            console.error('[AI Extract] API error:', apiRes.statusCode, errMsg);
             return res.status(502).json({ success: false, message: errMsg });
           }
 
-          // Responses API returns output[].content[].text
-          const textBlock = parsed.output?.find(o => o.type === 'message')
-            ?.content?.find(c => c.type === 'output_text');
-          const content = textBlock?.text;
+          // Chat Completions API returns choices[].message.content
+          const content = parsed.choices?.[0]?.message?.content;
           if (!content) {
-            return res.status(502).json({ success: false, message: 'No content in AI response.' });
+            const finishReason = parsed.choices?.[0]?.finish_reason || 'unknown';
+            console.error('[AI Extract] No content. Finish reason:', finishReason,
+              '| Raw response:', JSON.stringify(parsed).slice(0, 500));
+            return res.status(502).json({
+              success: false,
+              message: `No content in AI response (finish_reason: ${finishReason}).`
+            });
           }
 
           const extracted = JSON.parse(content);
           res.json({ success: true, data: extracted });
         } catch (err) {
+          console.error('[AI Extract] Parse error:', err.message);
           res.status(502).json({ success: false, message: 'Failed to parse AI response: ' + err.message });
         }
       });
     });
 
     apiReq.on('error', (err) => {
+      console.error('[AI Extract] Connection error:', err.message);
       res.status(502).json({ success: false, message: 'Connection error: ' + err.message });
     });
 
