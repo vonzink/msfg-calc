@@ -154,7 +154,18 @@ router.post('/ai/extract', upload.single('file'), async (req, res) => {
           }
 
           // Chat Completions API returns choices[].message.content
-          const content = parsed.choices?.[0]?.message?.content;
+          const message = parsed.choices?.[0]?.message;
+          const content = message?.content;
+
+          // Handle model refusal (content policy)
+          if (!content && message?.refusal) {
+            console.error('[AI Extract] Model refused:', message.refusal);
+            return res.status(422).json({
+              success: false,
+              message: 'The AI model declined to process this document. Please try re-uploading or use a clearer image.'
+            });
+          }
+
           if (!content) {
             const finishReason = parsed.choices?.[0]?.finish_reason || 'unknown';
             console.error('[AI Extract] No content. Finish reason:', finishReason,
