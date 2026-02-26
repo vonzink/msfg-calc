@@ -115,9 +115,10 @@ const RefiAdvice = (() => {
         const rateDrop = results.inputs.currentRate - results.inputs.refiRate;
         const futureRateDrop = results.inputs.currentRate - results.inputs.futureRate;
 
-        // Double refi analysis
+        // Double refi analysis — only consider if toggle is on
         const dr = results.doubleRefi;
-        const doubleRefiAvailable = dr !== null && dr !== undefined;
+        const drToggle = document.getElementById('doubleRefiToggle');
+        const doubleRefiAvailable = dr !== null && dr !== undefined && drToggle && drToggle.checked;
         const doubleRefiIsBest = doubleRefiAvailable &&
             dr.netSavings > a.refiNowNetSavings && dr.netSavings > a.waitNetSavings;
 

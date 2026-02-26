@@ -97,6 +97,9 @@ const RefiUI = (() => {
         dom.costOfWaitingFields = document.getElementById('costOfWaitingFields');
         dom.costOfWaitingResults = document.getElementById('costOfWaitingResults');
 
+        // Double Refi toggle
+        dom.doubleRefiToggle = document.getElementById('doubleRefiToggle');
+
         // Cash Out
         dom.cashOutToggle = document.getElementById('cashOutToggle');
         dom.cashOutFields = document.getElementById('cashOutFields');
@@ -571,6 +574,7 @@ function updateMIDisplay(prefix, miData) {
             cashOutDebts: readDebtRows(),
 
             costOfWaitingEnabled: dom.costOfWaitingToggle.checked,
+            doubleRefiEnabled: dom.doubleRefiToggle.checked,
             futureRate: num(dom.futureRate),
             monthsToWait: num(dom.monthsToWait),
             futureMIValue: num(dom.futureMIInput),
@@ -681,6 +685,11 @@ function updateMIDisplay(prefix, miData) {
         if (data.costOfWaitingEnabled !== undefined) {
             dom.costOfWaitingToggle.checked = data.costOfWaitingEnabled;
             dom.costOfWaitingFields.style.display = data.costOfWaitingEnabled ? 'block' : 'none';
+        }
+
+        // Double Refi toggle
+        if (data.doubleRefiEnabled !== undefined) {
+            dom.doubleRefiToggle.checked = data.doubleRefiEnabled;
         }
 
         // Future rate
@@ -1006,8 +1015,8 @@ function updateMIDisplay(prefix, miData) {
 
         const dr = r.doubleRefi;
 
-        // Only show when Cost of Waiting is enabled and double refi was calculated
-        if (!dr || !r.inputs.costOfWaitingEnabled) {
+        // Only show when Cost of Waiting is enabled, toggle is on, and double refi was calculated
+        if (!dr || !r.inputs.costOfWaitingEnabled || !dom.doubleRefiToggle.checked) {
             section.style.display = 'none';
             return;
         }
@@ -1208,8 +1217,8 @@ function updateMIDisplay(prefix, miData) {
             </div>`;
         }
 
-        // Double Refi Details (only if calculated)
-        if (r.doubleRefi) {
+        // Double Refi Details (only if calculated and toggle is on)
+        if (r.doubleRefi && dom.doubleRefiToggle.checked) {
             const dr = r.doubleRefi;
             html += `
             <div class="math-group">
@@ -1255,7 +1264,7 @@ function updateMIDisplay(prefix, miData) {
                 <div class="step-result">= ${formatMoney(analysis.refiNowNetSavings)}</div>
             </div>`;
 
-        if (r.doubleRefi) {
+        if (r.doubleRefi && dom.doubleRefiToggle.checked) {
             html += `
             <div class="math-step">
                 <div class="step-label">Refi Now + Refi Again Net Savings</div>
@@ -1405,6 +1414,9 @@ function updateMIDisplay(prefix, miData) {
         // Cost of Waiting
         dom.costOfWaitingToggle.checked = true;
         dom.costOfWaitingFields.style.display = 'block';
+
+        // Double Refi
+        dom.doubleRefiToggle.checked = false;
 
         // Future
         dom.futureRate.value = 5.250;
