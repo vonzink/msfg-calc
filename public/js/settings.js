@@ -99,6 +99,15 @@ document.addEventListener('DOMContentLoaded', function() {
       var form = document.createElement('form');
       form.method = 'POST';
       form.action = '/settings/ai/clear';
+      // Include CSRF token from cookie
+      var csrfMatch = document.cookie.match(/(?:^|;\s*)_csrf=([^;]+)/);
+      if (csrfMatch) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_csrf';
+        input.value = csrfMatch[1];
+        form.appendChild(input);
+      }
       document.body.appendChild(form);
       form.submit();
     });

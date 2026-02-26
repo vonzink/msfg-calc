@@ -6,6 +6,15 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const https = require('https');
+const rateLimit = require('express-rate-limit');
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests. Please wait a minute.' }
+});
 
 const siteConfigPath = path.join(__dirname, '..', 'config', 'site.json');
 const promptsDir = path.join(__dirname, '..', 'config', 'ai-prompts');
@@ -61,7 +70,7 @@ async function pdfToImages(pdfBuffer, maxPages) {
  * Body: multipart form with `file` (image/PDF) and `slug` (string)
  * Returns: { success, data } or { success: false, message }
  */
-router.post('/ai/extract', upload.single('file'), async (req, res) => {
+router.post('/ai/extract', aiLimiter, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded or unsupported file type.' });
@@ -70,6 +79,12 @@ router.post('/ai/extract', upload.single('file'), async (req, res) => {
     const slug = (req.body.slug || '').trim();
     if (!slug) {
       return res.status(400).json({ success: false, message: 'Missing calculator slug.' });
+    }
+
+    // Validate slug against known prompt configs (early rejection)
+    const prompts = readPrompts();
+    if (!prompts || !prompts[slug]) {
+      return res.status(400).json({ success: false, message: 'Invalid or unknown calculator slug.' });
     }
 
     // Read AI config
@@ -81,12 +96,6 @@ router.post('/ai/extract', upload.single('file'), async (req, res) => {
     const provider = siteConfig.ai.provider;
     if (provider !== 'openai') {
       return res.status(400).json({ success: false, message: 'AI extraction currently requires OpenAI. Set provider to "openai" in Settings.' });
-    }
-
-    // Read prompt config
-    const prompts = readPrompts();
-    if (!prompts || !prompts[slug]) {
-      return res.status(400).json({ success: false, message: `No AI prompt configured for calculator "${slug}".` });
     }
 
     const promptConfig = prompts[slug];
@@ -180,20 +189,21 @@ router.post('/ai/extract', upload.single('file'), async (req, res) => {
           res.json({ success: true, data: extracted });
         } catch (err) {
           console.error('[AI Extract] Parse error:', err.message);
-          res.status(502).json({ success: false, message: 'Failed to parse AI response: ' + err.message });
+          res.status(502).json({ success: false, message: 'Failed to parse AI response.' });
         }
       });
     });
 
     apiReq.on('error', (err) => {
       console.error('[AI Extract] Connection error:', err.message);
-      res.status(502).json({ success: false, message: 'Connection error: ' + err.message });
+      res.status(502).json({ success: false, message: 'Connection error. Please try again.' });
     });
 
     apiReq.write(requestBody);
     apiReq.end();
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error: ' + err.message });
+    console.error('[AI Extract] Server error:', err);
+    res.status(500).json({ success: false, message: 'An internal server error occurred.' });
   }
 });
 

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const helmet = require('helmet');
+const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const expressLayouts = require('express-ejs-layouts');
 
@@ -41,10 +42,10 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        "'unsafe-inline'",
         "https://cdnjs.cloudflare.com",
         "https://cdn.jsdelivr.net"
       ],
+      // TODO: Remove after migrating remaining inline handlers (income calcs, amortization)
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: [
         "'self'",
@@ -81,10 +82,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Gzip/Brotli compression
+app.use(compression());
+
 // Static files — new assets first, then legacy CSS/JS fallback
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
+const staticOpts = process.env.NODE_ENV === 'production' ? { maxAge: '30d' } : {};
+app.use(express.static(path.join(__dirname, 'public'), staticOpts));
+app.use('/css', express.static(path.join(__dirname, 'css'), staticOpts));
+app.use('/js', express.static(path.join(__dirname, 'js'), staticOpts));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

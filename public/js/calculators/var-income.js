@@ -170,11 +170,7 @@
   function valStr(el) { return el ? el.value.trim() : ''; }
   function valNum(el) { return el ? parseFloat(el.value) || 0 : 0; }
 
-  function escHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-  }
+  var escHtml = MSFG.escHtml;
 
   function genId() {
     return 'stub_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -269,63 +265,24 @@
   // ---- Upload Zone Logic (Paystubs + W-2) ----
 
   function initUploadZone(panel) {
+    var validateFile = MSFG.FileUpload.validateFile;
     $$('.upload-zone', panel).forEach(function (zone) {
       var fileInput = $('.upload-zone__input', zone);
       var statusEl = $('.upload-zone__status', zone);
       var uploadType = zone.getAttribute('data-upload-type') || 'paystub';
 
-      // Click to upload
-      zone.addEventListener('click', function (e) {
-        if (e.target === fileInput || zone.classList.contains('processing')) return;
-        fileInput.click();
-      });
-
-      fileInput.addEventListener('change', function () {
-        if (fileInput.files.length > 0) {
-          if (uploadType === 'w2') {
-            processW2File(fileInput.files[0], panel, zone, statusEl);
-          } else {
-            processStubFile(fileInput.files[0], panel, zone, statusEl);
-          }
-        }
-      });
-
-      // Drag and drop
-      zone.addEventListener('dragover', function (e) {
-        e.preventDefault();
-        zone.classList.add('drag-over');
-      });
-
-      zone.addEventListener('dragleave', function () {
-        zone.classList.remove('drag-over');
-      });
-
-      zone.addEventListener('drop', function (e) {
-        e.preventDefault();
-        zone.classList.remove('drag-over');
-        if (e.dataTransfer.files.length > 0) {
-          if (uploadType === 'w2') {
-            processW2File(e.dataTransfer.files[0], panel, zone, statusEl);
-          } else {
-            processStubFile(e.dataTransfer.files[0], panel, zone, statusEl);
-          }
+      MSFG.FileUpload.initDropZone(zone, fileInput, function(file) {
+        if (uploadType === 'w2') {
+          processW2File(file, panel, zone, statusEl);
+        } else {
+          processStubFile(file, panel, zone, statusEl);
         }
       });
     });
   }
 
-  function setZoneStatus(zone, statusEl, type, html) {
-    statusEl.className = 'upload-zone__status';
-    if (type === 'loading') statusEl.className += ' status--loading';
-    else if (type === 'success') statusEl.className += ' status--success';
-    else if (type === 'error') statusEl.className += ' status--error';
-    statusEl.innerHTML = html;
-  }
-
-  function validateFile(file) {
-    var allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
-    return allowed.indexOf(file.type) !== -1;
-  }
+  var setZoneStatus = MSFG.FileUpload.setZoneStatus;
+  var validateFile = MSFG.FileUpload.validateFile;
 
   // ---- Paystub Upload ----
 

@@ -17,27 +17,13 @@
 
   <%- include('../partials/header') %>
 
-  <main class="site-main">
+  <main class="site-main" data-ver="<%= v %>"<% if (typeof calc !== 'undefined' && calc) { %> data-calc-icon="<%= calc.icon || '' %>" data-calc-slug="<%= calc.slug || '' %>"<% } %>>
     <%- body %>
   </main>
 
   <%- include('../partials/footer') %>
-
-  <% if (typeof calc !== 'undefined' && calc) { %>
-  <script>
-    <% if (calc.icon) { %>window.__calcIcon = '<%= calc.icon %>';<% } %>
-    <% if (calc.slug) { %>window.__calcSlug = '<%= calc.slug %>';<% } %>
-  </script>
-  <% } %>
   <script src="/js/shared/utils.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates/income-standard.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates/income-special.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates/general-analysis.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates/general-simple.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates/government.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates/tools.js?v=<%= v %>"></script>
-  <script src="/js/shared/report-templates/mismo.js?v=<%= v %>"></script>
+  <script src="/js/shared/file-upload-utils.js?v=<%= v %>"></script>
   <script src="/js/shared/report.js?v=<%= v %>"></script>
   <%- typeof extraScripts !== 'undefined' ? extraScripts : '' %>
 </body>

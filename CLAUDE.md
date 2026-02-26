@@ -15,28 +15,32 @@ Server runs on `http://localhost:3000` (configurable via `PORT` in `.env`).
 ## Architecture
 
 ### Server Side
-- **`server.js`** — Express entry point. Mounts middleware (helmet, cookie-parser), static files, routes, and error handler.
+- **`server.js`** — Express entry point. Mounts middleware (helmet, compression, cookie-parser), static files, routes, and error handler.
 - **`routes/`** — Route handlers:
   - `index.js` — Hub page (`/`)
   - `calculators.js` — All calculator routes (`/calculators/*`). General calcs use a data-driven `generalCalcs[]` array; income calcs use a similar `incomeCalcs[]` array. To add a new calculator, add one entry to the array.
   - `workspace.js` — Multi-calculator workspace (`/workspace`)
   - `report.js` — Session report viewer (`/report`)
   - `settings.js` — Admin settings (`/settings`, requires `SETTINGS_PASSWORD`)
+  - `api.js` — AI extraction API (`/api/ai/extract`, rate-limited)
 - **`config/`**:
   - `calculators.json` — Master list of all 28+ calculators (slug, name, category, icon, description). Used by hub, workspace, and route registration.
   - `site.json` — Mutable branding config (site name, logo). Read fresh each request so settings changes take effect immediately.
+  - `ai-prompts/` — Per-calculator AI extraction prompts (YAML).
 - **`views/`** — EJS templates with `express-ejs-layouts`. Layout is `views/layouts/main.ejs`.
 
 ### Client Side
-- **`public/js/shared/utils.js`** — Shared utilities on `window.MSFG` namespace: `parseNum`, `formatCurrency`, `formatPercent`, `formatNumber`, `calcMonthlyPayment`, `toggleCalcSteps`.
-- **`public/js/shared/report.js`** — Report manager. Captures calculator screenshots via html2canvas → base64 JPEG, stores in IndexedDB. Handles both EJS pages (header button) and standalone pages (floating button).
+- **`public/js/shared/utils.js`** — Shared utilities on `window.MSFG` namespace: `parseNum`, `formatCurrency`, `formatPercent`, `formatNumber`, `calcMonthlyPayment`, `toggleCalcSteps`, `escHtml`.
+- **`public/js/shared/file-upload-utils.js`** — Shared file upload utilities on `MSFG.FileUpload`: `validateFile`, `setZoneStatus`, `initDropZone`.
+- **`public/js/shared/report.js`** — Report manager. Captures structured calculator data, stores in IndexedDB. Lazy-loads report templates on first capture.
+- **`public/js/shared/report-templates.js`** — Report template registry (loaded eagerly only on `/report` page, lazy-loaded elsewhere).
 - **`public/js/calculators/<slug>.js`** — Per-calculator logic. Each uses the `MSFG.*` utilities.
 - **`public/js/hub.js`** — Hub page search/filter.
 - **`public/js/workspace.js`** — Workspace panel management with postMessage tallying between iframes.
 
 ### Legacy Calculators
 Some calculators are standalone HTML apps served via iframe stubs during migration:
-- `llpm-calc/`, `batch-llpm/`, `gen-calc/mismo-calc/` — Served directly at `/calculators/llpm`, etc.
+- `llpm-calc/`, `batch-llpm/` — Served directly at `/calculators/llpm`, etc.
 - `income/`, `refi-calc/`, `fha-calc/`, `gen-calc/`, `calc-reo/`, `buydown-calc/` — Served at `/legacy/*` for iframe embedding.
 - `amort-calc/` — Static SPA at `/calculators/amortization`.
 
@@ -49,16 +53,17 @@ Some calculators are standalone HTML apps served via iframe stubs during migrati
 ### JavaScript Style
 - **ES6+** — Use `const`/`let` (prefer `const`), arrow functions, and template literals in both client-side and server-side code. No `var`.
 - **`'use strict'`** at the top of every JS file.
-- **IIFE or revealing module pattern** for calculator scripts that don't need global functions:
+- **IIFE pattern** for all calculator scripts — no bare globals:
   ```js
-  const MyModule = (() => {
+  (function() {
     'use strict';
     // ...
-    return { publicFn };
   })();
   ```
-- Files that expose functions via inline `onclick` handlers (e.g. `va-prequal.js`) use file-level strict mode without IIFE.
+- **`addEventListener` only** — Never use inline `onclick`/`onchange` attributes in new templates. Bind all events via `addEventListener` in the JS file's `DOMContentLoaded` handler. Use `data-action` attributes for action buttons.
 - **`MSFG` namespace** — All shared utilities live on `window.MSFG`. Never add bare globals.
+- **`MSFG.escHtml(str)`** — Use for HTML escaping. Do not define local `escHtml` functions in calculator files.
+- **`MSFG.FileUpload`** — Use for upload zone initialization. Do not duplicate `validateFile`/`setZoneStatus`/drag-drop handlers.
 
 ### Adding a New Calculator
 1. Add entry to `config/calculators.json` (slug, name, category, icon, description).
@@ -71,13 +76,23 @@ Some calculators are standalone HTML apps served via iframe stubs during migrati
 - All calculator pages use `views/layouts/main.ejs` layout.
 - Calculator templates receive: `title`, `calc` (from calculators.json), `extraHead` (optional CSS/scripts), `extraScripts`.
 - Use `<%- include('../partials/show-calculations', { calcId: 'slug' }) %>` for the collapsible math steps section.
+- Report templates are lazy-loaded on calculator pages (loaded on demand when "Add to Report" is clicked).
 
 ## Security
-- **Helmet** with CSP — scripts only from `'self'`, cdnjs.cloudflare.com, cdn.jsdelivr.net.
+- **Helmet** with CSP — scripts only from `'self'`, cdnjs.cloudflare.com, cdn.jsdelivr.net. No `unsafe-inline` in `script-src`.
 - **SRI hashes** on all CDN scripts (html2canvas, Chart.js, jsPDF).
-- **Settings auth** — Cookie-based, controlled by `SETTINGS_PASSWORD` env var. Empty = open (dev mode).
+- **Settings auth** — POST-based login with timing-safe password comparison, token-based sessions via httpOnly cookie. Controlled by `SETTINGS_PASSWORD` env var. Empty = open (dev mode).
+- **CSRF protection** — Double-submit cookie pattern on all settings POST routes. Include `<input type="hidden" name="_csrf" value="<%= csrfToken %>">` in every form.
+- **Rate limiting** — `express-rate-limit` on AI extraction (10 req/min) and AI test (5 req/min) endpoints.
+- **Error sanitization** — Client-facing error responses use generic messages; raw errors logged server-side only.
+- **Logo upload** — PNG/JPG/WebP only (no SVG), MIME + extension validation, forced output filename.
 - **postMessage validation** — Workspace validates `e.origin` before processing iframe messages.
 - **Scoped legacy mounts** — Only specific legacy directories are exposed, not the project root.
+
+## Performance
+- **Compression** — `compression` middleware (gzip/brotli) on all responses.
+- **Cache headers** — Static files served with `maxAge: 30d` in production. Cache-busted via `?v=<git-hash>`.
+- **Lazy report templates** — ~150KB of report template JS loaded on demand (not on every page load).
 
 ## Environment Variables
 ```
@@ -90,7 +105,7 @@ SETTINGS_PASSWORD=     # Admin password for /settings (empty = no auth)
 ```bash
 npm start              # Start production server
 npm run dev            # Start with nodemon (auto-restart)
-npm test               # Run smoke tests
+npm test               # Run smoke + math + integration tests (42 tests)
 npm run lint           # Run ESLint
 npm run lint:fix       # Run ESLint with auto-fix
 ```

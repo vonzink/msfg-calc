@@ -4,9 +4,9 @@
 (function() {
   'use strict';
 
-  var P = MSFG.parseNum;
-  var fmt = MSFG.formatCurrency;
-  var pct = MSFG.formatPercent;
+  const P = MSFG.parseNum;
+  const fmt = MSFG.formatCurrency;
+  const pct = MSFG.formatPercent;
 
   function getState() {
     return {
@@ -22,7 +22,7 @@
   function calcPV(payment, annualRate, n) {
     if (payment <= 0 || n <= 0) return 0;
     if (annualRate === 0) return payment * n;
-    var r = annualRate / 12;
+    const r = annualRate / 12;
     return payment * (1 - Math.pow(1 + r, -n)) / r;
   }
 
@@ -30,10 +30,10 @@
     if (amtFinanced <= 0 || monthlyPmt <= 0 || n <= 0) return 0;
     if (monthlyPmt * n < amtFinanced) return 0;
 
-    var lo = 0.0001, hi = 1, apr = 0;
-    for (var i = 0; i < 100; i++) {
+    let lo = 0.0001, hi = 1, apr = 0;
+    for (let i = 0; i < 100; i++) {
       apr = (lo + hi) / 2;
-      var pv = calcPV(monthlyPmt, apr, n);
+      const pv = calcPV(monthlyPmt, apr, n);
       if (Math.abs(pv - amtFinanced) < 1e-8) break;
       if (pv > amtFinanced) lo = apr; else hi = apr;
     }
@@ -41,20 +41,20 @@
   }
 
   function calculate() {
-    var s = getState();
+    const s = getState();
     if (s.loanAmount <= 0) return;
 
-    var principal = s.loanAmount + s.financedFees;
-    var monthlyPmt = MSFG.calcMonthlyPayment(principal, s.interestRate, s.loanTerm);
-    var pointsAmt = s.loanAmount * s.discountPoints;
-    var amtFinanced = s.loanAmount - pointsAmt - s.prepaidFees;
-    var n = s.loanTerm * 12;
-    var totalPmts = monthlyPmt * n;
-    var finChg = totalPmts - amtFinanced;
-    var apr = amtFinanced > 0 ? calcAPR(monthlyPmt, amtFinanced, n) : 0;
-    var aprSpread = (apr - s.interestRate) * 100;
-    var totalUpfront = pointsAmt + s.prepaidFees + s.financedFees;
-    var monthlyFee = totalUpfront / n;
+    const principal = s.loanAmount + s.financedFees;
+    const monthlyPmt = MSFG.calcMonthlyPayment(principal, s.interestRate, s.loanTerm);
+    const pointsAmt = s.loanAmount * s.discountPoints;
+    const amtFinanced = s.loanAmount - pointsAmt - s.prepaidFees;
+    const n = s.loanTerm * 12;
+    const totalPmts = monthlyPmt * n;
+    const finChg = totalPmts - amtFinanced;
+    const apr = amtFinanced > 0 ? calcAPR(monthlyPmt, amtFinanced, n) : 0;
+    const aprSpread = (apr - s.interestRate) * 100;
+    const totalUpfront = pointsAmt + s.prepaidFees + s.financedFees;
+    const monthlyFee = totalUpfront / n;
 
     document.getElementById('monthlyPayment').textContent = fmt(monthlyPmt);
     document.getElementById('amountFinanced').textContent = fmt(Math.max(0, amtFinanced));
@@ -73,11 +73,11 @@
   }
 
   function updateMathSteps(s, principal, monthlyPmt, pointsAmt, amtFinanced, n, totalPmts, finChg, apr) {
-    var container = document.getElementById('calcSteps-apr');
+    const container = document.getElementById('calcSteps-apr');
     if (!container) return;
 
-    var r = s.interestRate / 12;
-    var html = '';
+    const r = s.interestRate / 12;
+    let html = '';
 
     html += '<div class="calc-step"><h4>Step 1: Principal for Payment</h4><div class="calc-step__formula">Principal = Loan Amount + Financed Fees<br><span class="calc-step__values">= ' + fmt(s.loanAmount) + ' + ' + fmt(s.financedFees) + ' = <strong>' + fmt(principal) + '</strong></span></div></div>';
 
@@ -95,7 +95,7 @@
   }
 
   function updateURL(s) {
-    var url = new URL(window.location);
+    const url = new URL(window.location);
     url.search = new URLSearchParams({
       la: s.loanAmount, ir: (s.interestRate * 100).toString(),
       lt: s.loanTerm, dp: (s.discountPoints * 100).toString(),
@@ -113,61 +113,60 @@
     document.getElementById('prepaidFees').value = s.prepaidFees;
   }
 
-  // Expose globals for inline onclick handlers
-  window.toggleFeeBreakdown = function(type) {
-    var el = document.getElementById(type + 'FeeBreakdown');
-    var txt = document.getElementById(type + 'ToggleText');
+  function toggleFeeBreakdown(type) {
+    const el = document.getElementById(type + 'FeeBreakdown');
+    const txt = document.getElementById(type + 'ToggleText');
     if (el.style.display === 'none') { el.style.display = 'block'; txt.textContent = 'Hide Fee Breakdown'; }
     else { el.style.display = 'none'; txt.textContent = 'Show Fee Breakdown'; }
-  };
+  }
 
-  window.updateFinancedFees = function() {
-    var ids = ['originationFee','processingFee','underwritingFee','applicationFee','otherFinancedFees'];
-    var total = 0;
+  function updateFinancedFees() {
+    const ids = ['originationFee','processingFee','underwritingFee','applicationFee','otherFinancedFees'];
+    let total = 0;
     ids.forEach(function(id) { total += P(document.getElementById(id).value); });
     document.getElementById('financedFees').value = total;
     calculate();
-  };
+  }
 
-  window.updatePrepaidFees = function() {
-    var ids = ['prepaidInterest','mortgageInsurance','monthlyMI','otherPrepaidFees'];
-    var total = 0;
+  function updatePrepaidFees() {
+    const ids = ['prepaidInterest','mortgageInsurance','monthlyMI','otherPrepaidFees'];
+    let total = 0;
     ids.forEach(function(id) { total += P(document.getElementById(id).value); });
     document.getElementById('prepaidFees').value = total;
     calculate();
-  };
+  }
 
-  window.exportCSV = function() {
-    var s = getState();
-    var principal = s.loanAmount + s.financedFees;
-    var pmt = MSFG.calcMonthlyPayment(principal, s.interestRate, s.loanTerm);
-    var rows = [
+  function exportCSV() {
+    const s = getState();
+    const principal = s.loanAmount + s.financedFees;
+    const pmt = MSFG.calcMonthlyPayment(principal, s.interestRate, s.loanTerm);
+    const rows = [
       ['APR Calculator Results',''],['',''],
       ['Loan Amount', fmt(s.loanAmount)], ['Interest Rate', pct(s.interestRate*100)],
       ['Loan Term', s.loanTerm+' years'], ['Monthly Payment', fmt(pmt)],
       ['',''], ['Generated', new Date().toLocaleString()]
     ];
-    var csv = rows.map(function(r){return r.join(',');}).join('\n');
-    var blob = new Blob([csv], {type:'text/csv'});
-    var a = document.createElement('a');
+    const csv = rows.map(function(r){return r.join(',');}).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = 'apr_calculation.csv'; a.click();
-  };
+  }
 
-  window.shareLink = function() {
+  function shareLink() {
     navigator.clipboard.writeText(window.location.href).then(function() { alert('Link copied!'); });
-  };
+  }
 
-  window.clearAll = function() {
+  function clearAll() {
     applyState({ loanAmount:300000, interestRate:0.065, loanTerm:30, discountPoints:0, financedFees:0, prepaidFees:0 });
     ['originationFee','processingFee','underwritingFee','applicationFee','otherFinancedFees','creditReportFee','floodCertFee','taxServiceFee','prepaidInterest','mortgageInsurance','monthlyMI','otherPrepaidFees','escrowReserves','titleInsurance','recordingFees'].forEach(function(id) {
-      var el = document.getElementById(id); if(el) el.value = 0;
+      const el = document.getElementById(id); if(el) el.value = 0;
     });
     calculate();
-  };
+  }
 
   // Init
   document.addEventListener('DOMContentLoaded', function() {
-    var params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
     if (params.has('la')) {
       applyState({
         loanAmount: P(params.get('la')) || 300000,
@@ -179,10 +178,38 @@
       });
     }
 
+    // Bind main input listeners
     ['loanAmount','interestRate','loanTerm','discountPoints','financedFees','prepaidFees'].forEach(function(id) {
-      var el = document.getElementById(id);
+      const el = document.getElementById(id);
       el.addEventListener('input', calculate);
       el.addEventListener('change', calculate);
+    });
+
+    // Bind fee breakdown toggle buttons
+    document.querySelectorAll('[data-action="toggle-fees"]').forEach(function(btn) {
+      btn.addEventListener('click', function() { toggleFeeBreakdown(btn.dataset.target); });
+    });
+
+    // Bind financed fee inputs
+    document.querySelectorAll('[data-fee-group="financed"]').forEach(function(input) {
+      input.addEventListener('change', updateFinancedFees);
+    });
+
+    // Bind prepaid fee inputs
+    document.querySelectorAll('[data-fee-group="prepaid"]').forEach(function(input) {
+      input.addEventListener('change', updatePrepaidFees);
+    });
+
+    // Bind action bar buttons
+    const actions = {
+      'export-csv': exportCSV,
+      'print': function() { window.print(); },
+      'share-link': shareLink,
+      'clear-all': clearAll
+    };
+    document.querySelectorAll('[data-action]').forEach(function(el) {
+      const fn = actions[el.dataset.action];
+      if (fn) el.addEventListener('click', fn);
     });
 
     calculate();

@@ -1,8 +1,12 @@
+'use strict';
+
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const rateLimit = require('express-rate-limit');
 
 const configPath = path.join(__dirname, '..', 'config', 'site.json');
 
@@ -27,29 +31,92 @@ function writeConfig(config) {
   }
 }
 
-// --- Auth middleware ---
-// Set SETTINGS_PASSWORD in .env to protect this route.
-// Access via /settings?key=YOUR_PASSWORD or session cookie after first auth.
+function maskKey(key) {
+  if (!key || key.length < 8) return key ? '••••••••' : '';
+  return key.slice(0, 4) + '••••••••' + key.slice(-4);
+}
 
-function requireAuth(req, res, next) {
+// --- Auth: token-based session (POST login, no URL passwords) ---
+
+const validTokens = new Set();
+
+function generateToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Login form — must be registered BEFORE requireAuth middleware
+router.get('/login', (req, res) => {
   const password = process.env.SETTINGS_PASSWORD;
+  if (!password) return res.redirect('/settings');
+  res.render('settings-login', { title: 'Settings Login', error: false });
+});
 
-  // If no password is configured, allow access (dev mode)
-  if (!password) return next();
+router.post('/login', (req, res) => {
+  const password = process.env.SETTINGS_PASSWORD;
+  if (!password) return res.redirect('/settings');
 
-  // Check query param (first visit) or cookie (subsequent visits)
-  if (req.query.key === password || req.cookies?.settingsAuth === password) {
-    // Set a session cookie so the key doesn't need to stay in the URL
-    res.cookie('settingsAuth', password, {
+  const input = String(req.body.password || '');
+  const inputBuf = Buffer.from(input);
+  const passBuf = Buffer.from(password);
+
+  // Timing-safe comparison (must be same length for timingSafeEqual)
+  const match = inputBuf.length === passBuf.length &&
+    crypto.timingSafeEqual(inputBuf, passBuf);
+
+  if (match) {
+    const token = generateToken();
+    validTokens.add(token);
+    res.cookie('settingsAuth', token, {
       httpOnly: true,
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000
     });
-    return next();
+    return res.redirect('/settings');
   }
 
+  res.render('settings-login', { title: 'Settings Login', error: true });
+});
+
+// Auth middleware — everything below requires auth
+function requireAuth(req, res, next) {
+  const password = process.env.SETTINGS_PASSWORD;
+  if (!password) return next();
+
+  const token = req.cookies?.settingsAuth;
+  if (token && validTokens.has(token)) return next();
+
+  // Redirect GET requests to login page, deny others
+  if (req.method === 'GET') return res.redirect('/settings/login');
   res.status(403).render('404', { title: 'Access Denied' });
 }
+
+router.use(requireAuth);
+
+// --- CSRF protection (double-submit cookie) ---
+
+router.use((req, res, next) => {
+  if (req.method === 'GET') {
+    const token = crypto.randomBytes(32).toString('hex');
+    res.cookie('_csrf', token, { httpOnly: true, sameSite: 'strict' });
+    res.locals.csrfToken = token;
+  }
+  next();
+});
+
+router.use((req, res, next) => {
+  if (req.method !== 'POST') return next();
+  // Exempt JSON-body endpoints (no form, no CSRF cookie flow)
+  if (req.path === '/ai/test') return next();
+
+  const cookieToken = req.cookies?._csrf;
+  const bodyToken = req.body?._csrf;
+
+  if (!cookieToken || !bodyToken || cookieToken !== bodyToken) {
+    return res.status(403).render('404', { title: 'Invalid Request' });
+  }
+  next();
+});
 
 // --- File upload config ---
 
@@ -57,25 +124,18 @@ const upload = multer({
   dest: path.join(__dirname, '..', 'public', 'images'),
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'];
+    // No SVG — it can contain embedded JavaScript (XSS vector)
+    const allowed = ['image/png', 'image/jpeg', 'image/webp'];
     cb(null, allowed.includes(file.mimetype));
   }
 });
 
-// --- Routes (all protected) ---
-
-router.use(requireAuth);
-
-function maskKey(key) {
-  if (!key || key.length < 8) return key ? '••••••••' : '';
-  return key.slice(0, 4) + '••••••••' + key.slice(-4);
-}
+// --- Routes ---
 
 router.get('/', (req, res) => {
   const config = readConfig();
   if (!config) return res.status(500).render('404', { title: 'Configuration Error' });
 
-  // Never send the full API key to the browser
   const ai = config.ai || { provider: '', apiKey: '' };
   const maskedAi = {
     provider: ai.provider || '',
@@ -95,8 +155,16 @@ router.get('/', (req, res) => {
 router.post('/logo', upload.single('logo'), (req, res) => {
   if (!req.file) return res.redirect('/settings?saved=0');
 
-  const ext = path.extname(req.file.originalname);
-  const newName = 'msfg-logo' + ext;
+  // Validate extension (defense in depth — MIME already checked by multer)
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  const allowedExts = ['.png', '.jpg', '.jpeg', '.webp'];
+  if (!allowedExts.includes(ext)) {
+    try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore */ }
+    return res.redirect('/settings?saved=0');
+  }
+
+  // Force consistent filename regardless of upload extension
+  const newName = 'msfg-logo.png';
   const newPath = path.join(__dirname, '..', 'public', 'images', newName);
 
   try {
@@ -119,7 +187,6 @@ router.post('/update', (req, res) => {
   const config = readConfig();
   if (!config) return res.redirect('/settings?saved=0');
 
-  // Validate and sanitize inputs
   if (req.body.siteName && typeof req.body.siteName === 'string') {
     config.siteName = req.body.siteName.trim().slice(0, 100);
   }
@@ -164,12 +231,10 @@ router.post('/ai', (req, res) => {
 
   if (!config.ai) config.ai = { provider: '', apiKey: '' };
 
-  // Provider
   const allowedProviders = ['openai', 'anthropic', ''];
   const provider = (req.body.aiProvider || '').trim().toLowerCase();
   config.ai.provider = allowedProviders.includes(provider) ? provider : '';
 
-  // API key — only update if a new key is submitted (not the masked placeholder)
   const newKey = (req.body.aiApiKey || '').trim();
   if (newKey && !newKey.includes('••')) {
     config.ai.apiKey = newKey;
@@ -188,7 +253,15 @@ router.post('/ai/clear', (req, res) => {
   res.redirect('/settings?saved=1');
 });
 
-router.post('/ai/test', express.json(), (req, res) => {
+const testLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many test requests. Wait a minute.' }
+});
+
+router.post('/ai/test', testLimiter, express.json(), (req, res) => {
   const config = readConfig();
   if (!config || !config.ai || !config.ai.apiKey) {
     return res.json({ success: false, message: 'No API key configured.' });
@@ -212,13 +285,18 @@ router.post('/ai/test', express.json(), (req, res) => {
         if (resp.statusCode === 200) {
           res.json({ success: true, message: 'OpenAI API key is valid.' });
         } else {
-          const body = JSON.parse(data || '{}');
-          res.json({ success: false, message: body.error?.message || ('HTTP ' + resp.statusCode) });
+          // Sanitize: don't expose raw API error details to client
+          const status = resp.statusCode;
+          const msg = status === 401 ? 'Invalid API key.' :
+                      status === 429 ? 'Rate limited. Try again later.' :
+                      'API returned HTTP ' + status;
+          res.json({ success: false, message: msg });
         }
       });
     });
     req2.on('error', (err) => {
-      res.json({ success: false, message: 'Connection error: ' + err.message });
+      console.error('[Settings] OpenAI test connection error:', err);
+      res.json({ success: false, message: 'Connection error. Please try again.' });
     });
     req2.end();
 
@@ -247,13 +325,17 @@ router.post('/ai/test', express.json(), (req, res) => {
         if (resp.statusCode === 200) {
           res.json({ success: true, message: 'Anthropic API key is valid.' });
         } else {
-          const parsed = JSON.parse(data || '{}');
-          res.json({ success: false, message: parsed.error?.message || ('HTTP ' + resp.statusCode) });
+          const status = resp.statusCode;
+          const msg = status === 401 ? 'Invalid API key.' :
+                      status === 429 ? 'Rate limited. Try again later.' :
+                      'API returned HTTP ' + status;
+          res.json({ success: false, message: msg });
         }
       });
     });
     req2.on('error', (err) => {
-      res.json({ success: false, message: 'Connection error: ' + err.message });
+      console.error('[Settings] Anthropic test connection error:', err);
+      res.json({ success: false, message: 'Connection error. Please try again.' });
     });
     req2.write(body);
     req2.end();

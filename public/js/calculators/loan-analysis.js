@@ -14,13 +14,7 @@
   /* ---- Helpers ---- */
   function el(id) { return document.getElementById(id); }
 
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
+  var escHtml = MSFG.escHtml;
 
   /* ---- Get signature (MISMO override > settings) ---- */
   function getSignature() {

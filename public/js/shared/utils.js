@@ -65,7 +65,7 @@ MSFG.toggleCalcSteps = function(calcId) {
   }
 };
 
-/* Mobile menu toggle */
+/* Mobile menu toggle + calc metadata from data attributes */
 document.addEventListener('DOMContentLoaded', function() {
   var toggle = document.getElementById('mobileMenuToggle');
   if (toggle) {
@@ -74,6 +74,21 @@ document.addEventListener('DOMContentLoaded', function() {
       if (nav) nav.classList.toggle('open');
     });
   }
+
+  // Read calculator metadata from data attributes (replaces inline script)
+  var main = document.querySelector('.site-main');
+  if (main) {
+    if (main.dataset.calcIcon) window.__calcIcon = main.dataset.calcIcon;
+    if (main.dataset.calcSlug) window.__calcSlug = main.dataset.calcSlug;
+  }
 });
+
+MSFG.escHtml = function(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+};
 
 window.MSFG = MSFG;

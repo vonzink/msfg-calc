@@ -33,6 +33,29 @@ function get(path) {
   });
 }
 
+function post(path, data, contentType) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(baseURL + path);
+    const options = {
+      hostname: url.hostname,
+      port: url.port,
+      path: url.pathname,
+      method: 'POST',
+      headers: { 'Content-Type': contentType || 'application/json' }
+    };
+    const req = http.request(options, res => {
+      let body = '';
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        resolve({ statusCode: res.statusCode, headers: res.headers, body });
+      });
+    });
+    req.on('error', reject);
+    req.write(data || '');
+    req.end();
+  });
+}
+
 before(() => {
   return new Promise((resolve, reject) => {
     server = http.createServer(app);
@@ -151,6 +174,15 @@ describe('Security headers', () => {
     assert.ok(res.headers['content-security-policy'], 'CSP header should be present');
   });
 
+  it('CSP script-src does not contain unsafe-inline', async () => {
+    const res = await get('/');
+    const csp = res.headers['content-security-policy'];
+    const scriptSrc = csp.match(/script-src ([^;]+)/);
+    if (scriptSrc) {
+      assert.ok(!scriptSrc[1].includes("'unsafe-inline'"), 'script-src should not contain unsafe-inline');
+    }
+  });
+
   it('includes X-Content-Type-Options', async () => {
     const res = await get('/');
     assert.strictEqual(res.headers['x-content-type-options'], 'nosniff');
@@ -159,5 +191,58 @@ describe('Security headers', () => {
   it('includes X-Frame-Options', async () => {
     const res = await get('/');
     assert.ok(res.headers['x-frame-options'], 'X-Frame-Options should be present');
+  });
+});
+
+// ---- Integration tests ----
+
+describe('Settings auth', () => {
+  it('settings login page renders', async () => {
+    // When SETTINGS_PASSWORD is not set in test env, /settings is accessible directly
+    // and /settings/login redirects to /settings
+    const res = await get('/settings/login');
+    // Should redirect (302) when no password set
+    assert.ok(res.statusCode === 200 || res.statusCode === 302,
+      'Login page should return 200 or redirect');
+  });
+});
+
+describe('API validation', () => {
+  it('POST /api/ai/extract without file returns error', async () => {
+    const res = await post('/api/ai/extract', '');
+    assert.ok(res.statusCode === 400 || res.statusCode === 500,
+      'Missing file should return error status');
+  });
+});
+
+describe('Error sanitization', () => {
+  it('404 page does not contain stack traces', async () => {
+    const res = await get('/this-route-does-not-exist');
+    assert.strictEqual(res.statusCode, 404);
+    assert.ok(!res.body.includes('Error:'), 'Should not contain raw error messages');
+    assert.ok(!res.body.includes('at '), 'Should not contain stack traces');
+  });
+});
+
+describe('Compression', () => {
+  it('gzip response when Accept-Encoding includes gzip', async () => {
+    const res = await new Promise((resolve, reject) => {
+      const req = http.get(baseURL + '/js/shared/utils.js', {
+        headers: { 'Accept-Encoding': 'gzip' }
+      }, resp => {
+        let body = '';
+        resp.on('data', chunk => { body += chunk; });
+        resp.on('end', () => {
+          resolve({ statusCode: resp.statusCode, headers: resp.headers, body });
+        });
+      });
+      req.on('error', reject);
+    });
+    assert.strictEqual(res.statusCode, 200);
+    // Compression middleware should set content-encoding or vary header
+    const encoding = res.headers['content-encoding'] || '';
+    const vary = res.headers['vary'] || '';
+    assert.ok(encoding.includes('gzip') || vary.includes('Accept-Encoding'),
+      'Response should indicate compression support');
   });
 });

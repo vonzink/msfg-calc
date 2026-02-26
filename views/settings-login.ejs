@@ -1,0 +1,22 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Settings Login</h1>
+    <p>Enter the admin password to access site settings.</p>
+  </div>
+  <div class="calc-page__body">
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error" style="margin-bottom: var(--space-lg);">
+        Invalid password. Please try again.
+      </div>
+    <% } %>
+    <div class="calc-section">
+      <form method="POST" action="/settings/login">
+        <div class="form-group" style="max-width: 400px;">
+          <label for="password">Admin Password</label>
+          <input type="password" id="password" name="password" required autofocus>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: var(--space-md);">Login</button>
+      </form>
+    </div>
+  </div>
+</div>

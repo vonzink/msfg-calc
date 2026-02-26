@@ -30,6 +30,9 @@ var IncomeUpload = (function () {
   }
 
   // ---- upload zone ----
+  var validateFile = MSFG.FileUpload.validateFile;
+  var setZoneStatus = MSFG.FileUpload.setZoneStatus;
+
   function initUploadZone() {
     var zone = document.querySelector('.upload-zone');
     if (!zone) return;
@@ -37,49 +40,12 @@ var IncomeUpload = (function () {
     var fileInput = zone.querySelector('.upload-zone__input');
     var statusEl  = zone.querySelector('.upload-zone__status');
 
-    zone.addEventListener('click', function (e) {
-      if (e.target === fileInput || zone.classList.contains('processing')) return;
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', function () {
-      if (fileInput.files.length > 0) {
-        processFile(fileInput.files[0], zone, statusEl);
-      }
-    });
-
-    zone.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      zone.classList.add('drag-over');
-    });
-
-    zone.addEventListener('dragleave', function () {
-      zone.classList.remove('drag-over');
-    });
-
-    zone.addEventListener('drop', function (e) {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      if (e.dataTransfer.files.length > 0) {
-        processFile(e.dataTransfer.files[0], zone, statusEl);
-      }
+    MSFG.FileUpload.initDropZone(zone, fileInput, function(file) {
+      processFile(file, zone, statusEl);
     });
   }
 
   // ---- file processing ----
-  function validateFile(file) {
-    var allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
-    return allowed.indexOf(file.type) !== -1;
-  }
-
-  function setZoneStatus(zone, statusEl, type, html) {
-    statusEl.className = 'upload-zone__status';
-    if (type === 'loading')  statusEl.className += ' status--loading';
-    if (type === 'success')  statusEl.className += ' status--success';
-    if (type === 'error')    statusEl.className += ' status--error';
-    statusEl.innerHTML = html;
-  }
-
   function processFile(file, zone, statusEl) {
     if (!validateFile(file)) {
       setZoneStatus(zone, statusEl, 'error', 'Unsupported file type. Use PNG, JPG, WebP, or PDF.');
@@ -213,11 +179,7 @@ var IncomeUpload = (function () {
   }
 
   // ---- utilities ----
-  function escHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-  }
+  var escHtml = MSFG.escHtml;
 
   /** Helper: build the year-badge HTML for multi-doc cards */
   function yearBadge(i) {

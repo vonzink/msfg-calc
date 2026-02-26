@@ -969,5 +969,4 @@
     header.insertBefore(badge, header.querySelector('.ws-panel__zoom'));
   }
 
-  setInterval(pollIncomePanels, 1500);
 })();
