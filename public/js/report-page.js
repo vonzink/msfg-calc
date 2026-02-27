@@ -11,11 +11,14 @@
   var actionsBar = document.getElementById('reportActions');
   var countEl = document.getElementById('reportCount');
 
-  var cfg = window.__siteConfig || {};
+  var reportPageEl = document.getElementById('reportPage');
+  var cfg = {};
+  try { cfg = JSON.parse(reportPageEl.dataset.siteConfig || '{}'); } catch (e) { /* ignore */ }
   var COMPANY_NAME = cfg.companyName || 'Mountain State Financial Group LLC';
   var COMPANY = COMPANY_NAME + (cfg.nmls ? ', NMLS# ' + cfg.nmls : '');
   var LOGO_URL = cfg.logo || '/images/msfg-logo.png';
   var DOMAIN = cfg.domain || 'msfginfo.com';
+  var EHL_URL = cfg.equalHousingLogo || '';
 
   var DRAG_HANDLE_SVG =
     '<svg class="report-item__drag-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">' +
@@ -43,11 +46,15 @@
     '</div>';
   }
   function brandedFooter(timestamp) {
-    return '<div class="rpt-brand-footer">' +
-      '<span>' + COMPANY + '</span>' +
-      '<span>' + formatDate(timestamp) + '</span>' +
-      '<span>' + DOMAIN + '</span>' +
-    '</div>';
+    var ehlHtml = EHL_URL
+      ? '<div class="rpt-brand-ehl"><img src="' + EHL_URL + '" alt="Equal Housing Lender" class="rpt-brand-ehl-img" onerror="this.parentElement.innerHTML=\'Equal Housing Lender\'"></div>'
+      : '';
+    return ehlHtml +
+      '<div class="rpt-brand-footer">' +
+        '<span>' + COMPANY + '</span>' +
+        '<span>' + formatDate(timestamp) + '</span>' +
+        '<span>' + DOMAIN + '</span>' +
+      '</div>';
   }
 
   /* ---- Build a report card element ---- */
@@ -290,9 +297,10 @@
   /* ---- Print ---- */
   document.getElementById('btnPrintReport').addEventListener('click', function() { window.print(); });
 
-  /* ---- Load logo as base64 for PDF ---- */
-  function loadLogoBase64() {
+  /* ---- Load images as base64 for PDF ---- */
+  function loadImageBase64(url) {
     return new Promise(function(resolve) {
+      if (!url) { resolve(null); return; }
       var img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = function() {
@@ -303,15 +311,19 @@
         resolve(canvas.toDataURL('image/png'));
       };
       img.onerror = function() { resolve(null); };
-      img.src = LOGO_URL;
+      img.src = url;
     });
   }
 
+  function loadLogoBase64() { return loadImageBase64(LOGO_URL); }
+  function loadEHLBase64() { return loadImageBase64(EHL_URL); }
+
   /* ---- PDF Export ---- */
   document.getElementById('btnPdfReport').addEventListener('click', function() {
-    Promise.all([MSFG.Report.getItems(), loadLogoBase64()]).then(function(results) {
+    Promise.all([MSFG.Report.getItems(), loadLogoBase64(), loadEHLBase64()]).then(function(results) {
       var items = results[0];
       var logoData = results[1];
+      var ehlData = results[2];
       if (items.length === 0) return;
 
       var incomeItems = [];
@@ -363,7 +375,12 @@
         } else {
           content.push({ text: 'Legacy item — view in browser.', italics: true, color: '#888' });
         }
-        content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 8, color: '#aaaaaa', margin: [0, 20, 0, 0] });
+        if (ehlData) {
+          content.push({ image: ehlData, width: 50, alignment: 'center', margin: [0, 16, 0, 2] });
+        } else if (EHL_URL) {
+          content.push({ text: 'Equal Housing Lender', alignment: 'center', fontSize: 7, color: '#aaaaaa', margin: [0, 16, 0, 2] });
+        }
+        content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 8, color: '#aaaaaa', margin: [0, 2, 0, 0] });
       });
 
       /* -- Income consolidated page(s) -- */
@@ -397,7 +414,12 @@
             { text: fmt(combinedMonthly), alignment: 'right', bold: true, fontSize: 13, color: '#2d6a4f' }
           ] });
         }
-        content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 8, color: '#aaaaaa', margin: [0, 16, 0, 0] });
+        if (ehlData) {
+          content.push({ image: ehlData, width: 50, alignment: 'center', margin: [0, 12, 0, 2] });
+        } else if (EHL_URL) {
+          content.push({ text: 'Equal Housing Lender', alignment: 'center', fontSize: 7, color: '#aaaaaa', margin: [0, 12, 0, 2] });
+        }
+        content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 8, color: '#aaaaaa', margin: [0, 2, 0, 0] });
       }
 
       var docDef = {
@@ -418,10 +440,14 @@
         },
         defaultStyle: { fontSize: 10, color: '#333333' },
         footer: function(pg, total) {
-          return { columns: [
-            { text: COMPANY, fontSize: 7, color: '#bbbbbb', margin: [40, 0, 0, 0] },
-            { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 7, color: '#bbbbbb', margin: [0, 0, 40, 0] }
-          ], margin: [0, 20, 0, 0] };
+          var footerContent = [
+            { columns: [
+              { text: 'Equal Housing Lender', fontSize: 7, color: '#bbbbbb', margin: [40, 0, 0, 0] },
+              { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 7, color: '#bbbbbb', margin: [0, 0, 40, 0] }
+            ] },
+            { text: COMPANY, fontSize: 7, color: '#bbbbbb', margin: [40, 2, 0, 0] }
+          ];
+          return { stack: footerContent, margin: [0, 10, 0, 0] };
         }
       };
 

@@ -143,15 +143,36 @@
   color: var(--color-gray-800, #333);
 }
 
+.rpt-brand-ehl {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-gray-200, #e0e0e0);
+  font-size: 0.7rem;
+  color: var(--color-gray-400, #aaa);
+}
+
+.rpt-brand-ehl-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.7;
+}
+
 .rpt-brand-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--color-gray-400, #aaa);
+}
+
+/* When no EHL above, add the top border to footer itself */
+.rpt-brand-footer:first-child {
   margin-top: 1.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--color-gray-200, #e0e0e0);
-  font-size: 0.75rem;
-  color: var(--color-gray-400, #aaa);
 }
 
 

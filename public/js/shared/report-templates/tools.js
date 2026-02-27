@@ -114,20 +114,18 @@
       var items = data.customItems || [];
 
       function feeLine(label, amount) {
-        if (!amount) return '';
-        return '<tr><td>' + label + '</td><td class="rpt-num">' + fmt(amount) + '</td></tr>';
+        return '<tr><td>' + label + '</td><td class="rpt-num">' + fmt(amount || 0) + '</td></tr>';
       }
       function feeMultiLine(label, amt, qty, unit, total) {
-        if (!amt && !total) return '';
         var detail = amt ? fmt(amt) + ' x ' + qty + ' ' + unit : '';
-        var totalStr = (typeof total === 'number') ? fmt(total) : (total || '');
+        var totalStr = (typeof total === 'number') ? fmt(total) : fmt(0);
         return '<tr><td>' + label + (detail ? ' <span style="color:#888;font-size:0.85em">(' + detail + ')</span>' : '') + '</td><td class="rpt-num">' + totalStr + '</td></tr>';
       }
       function customLines(section) {
         var out = '';
         items.forEach(function (ci) {
-          if (ci.section === section && ci.amount) {
-            out += '<tr><td><em>' + ci.name + '</em></td><td class="rpt-num">' + fmt(ci.amount) + '</td></tr>';
+          if (ci.section === section) {
+            out += '<tr><td><em>' + ci.name + '</em></td><td class="rpt-num">' + fmt(ci.amount || 0) + '</td></tr>';
           }
         });
         return out;
@@ -136,19 +134,19 @@
       /* Loan Information */
       html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Information</h4>';
       html += '<div class="rpt-params">';
-      if (data.borrower) html += '<div class="rpt-param"><span>Borrower(s)</span><span>' + data.borrower + '</span></div>';
-      if (data.fileNumber) html += '<div class="rpt-param"><span>File #</span><span>' + data.fileNumber + '</span></div>';
-      if (data.prepDate) html += '<div class="rpt-param"><span>Preparation Date</span><span>' + data.prepDate + '</span></div>';
+      html += '<div class="rpt-param"><span>Borrower(s)</span><span>' + (data.borrower || '') + '</span></div>';
+      html += '<div class="rpt-param"><span>File #</span><span>' + (data.fileNumber || '') + '</span></div>';
+      html += '<div class="rpt-param"><span>Preparation Date</span><span>' + (data.prepDate || '') + '</span></div>';
       html += '<div class="rpt-param"><span>Property Value</span><span>' + fmt(data.propertyValue) + '</span></div>';
-      if (data.purpose) html += '<div class="rpt-param"><span>Loan Purpose</span><span>' + data.purpose + '</span></div>';
-      if (data.product) html += '<div class="rpt-param"><span>Product</span><span>' + data.product + '</span></div>';
-      if (data.downPayment) html += '<div class="rpt-param"><span>Down Payment</span><span>' + fmt(data.downPayment) + '</span></div>';
+      html += '<div class="rpt-param"><span>Loan Purpose</span><span>' + (data.purpose || '') + '</span></div>';
+      html += '<div class="rpt-param"><span>Product</span><span>' + (data.product || '') + '</span></div>';
+      html += '<div class="rpt-param"><span>Down Payment</span><span>' + fmt(data.downPayment || 0) + '</span></div>';
       html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt(data.loanAmount) + '</span></div>';
-      if (data.occupancy) html += '<div class="rpt-param"><span>Occupancy</span><span>' + data.occupancy + '</span></div>';
+      html += '<div class="rpt-param"><span>Occupancy</span><span>' + (data.occupancy || '') + '</span></div>';
       html += '<div class="rpt-param"><span>Interest Rate</span><span>' + ratePct(data.rate) + '</span></div>';
-      if (data.totalLoanAmt) html += '<div class="rpt-param"><span>Total Loan Amount</span><span>' + fmt(data.totalLoanAmt) + '</span></div>';
-      if (data.propertyType) html += '<div class="rpt-param"><span>Property Type</span><span>' + data.propertyType + '</span></div>';
-      if (data.apr) html += '<div class="rpt-param"><span>APR</span><span>' + ratePct(data.apr) + '</span></div>';
+      html += '<div class="rpt-param"><span>Total Loan Amount</span><span>' + fmt(data.totalLoanAmt || 0) + '</span></div>';
+      html += '<div class="rpt-param"><span>Property Type</span><span>' + (data.propertyType || '') + '</span></div>';
+      html += '<div class="rpt-param"><span>APR</span><span>' + ratePct(data.apr || 0) + '</span></div>';
       html += '<div class="rpt-param"><span>Term</span><span>' + data.termMonths + ' months</span></div>';
       html += '</div></div>';
 
@@ -194,8 +192,8 @@
       html += '<tr style="font-weight:600;border-top:1px solid #ccc"><td>Total Due from Borrower (K)</td><td class="rpt-num">' + fmt(data.totalDue || 0) + '</td></tr>';
       html += '<tr><td>Loan Amount</td><td class="rpt-num">' + fmt(data.summaryLoanAmt || 0) + '</td></tr>';
       html += '<tr><td>Total Paid by/on Behalf of Borrower (L)</td><td class="rpt-num">' + fmt(data.totalPaid || 0) + '</td></tr>';
-      if (data.sellerCredits) html += '<tr><td>Seller Credits</td><td class="rpt-num">' + fmt(data.sellerCredits) + '</td></tr>';
-      if (data.lenderCredits) html += '<tr><td>Lender Credits</td><td class="rpt-num">' + fmt(data.lenderCredits) + '</td></tr>';
+      html += '<tr><td>Seller Credits</td><td class="rpt-num">' + fmt(data.sellerCredits || 0) + '</td></tr>';
+      html += '<tr><td>Lender Credits</td><td class="rpt-num">' + fmt(data.lenderCredits || 0) + '</td></tr>';
       html += '</tbody></table>';
       html += '<div class="rpt-grand-total"><span>Total Estimated Funds From You</span><span>' + data.fundsFromYou + '</span></div>';
       html += '</div>';
@@ -230,8 +228,8 @@
       html += '<tr><td>First Mortgage (P&I)</td><td class="rpt-num">' + fmt(data.monthlyPI) + '</td></tr>';
       html += '<tr><td>Hazard Insurance</td><td class="rpt-num">' + fmt(data.monthlyIns) + '</td></tr>';
       html += '<tr><td>Property Tax</td><td class="rpt-num">' + fmt(data.monthlyTax) + '</td></tr>';
-      if (data.monthlyMI) html += '<tr><td>MI</td><td class="rpt-num">' + fmt(data.monthlyMI) + '</td></tr>';
-      if (data.monthlyHOA) html += '<tr><td>HOA</td><td class="rpt-num">' + fmt(data.monthlyHOA) + '</td></tr>';
+      html += '<tr><td>MI</td><td class="rpt-num">' + fmt(data.monthlyMI || 0) + '</td></tr>';
+      html += '<tr><td>HOA</td><td class="rpt-num">' + fmt(data.monthlyHOA || 0) + '</td></tr>';
       html += '</tbody></table>';
       html += '<div class="rpt-grand-total"><span>Total Monthly Payment</span><span>' + data.totalMonthly + '</span></div>';
       html += '</div>';
@@ -245,46 +243,43 @@
       var items = data.customItems || [];
 
       function fl(label, amount) {
-        if (!amount) return null;
-        return [label, { text: fmt(amount), alignment: 'right' }];
+        return [label, { text: fmt(amount || 0), alignment: 'right' }];
       }
       function fml(label, amt, qty, unit, total) {
-        if (!amt && !total) return null;
         var detail = amt ? fmt(amt) + ' x ' + qty + ' ' + unit : '';
-        var totalStr = (typeof total === 'number') ? fmt(total) : (total || '');
+        var totalStr = (typeof total === 'number') ? fmt(total) : fmt(0);
         return [label + (detail ? ' (' + detail + ')' : ''), { text: totalStr, alignment: 'right' }];
       }
       function cfl(section) {
         var out = [];
         items.forEach(function (ci) {
-          if (ci.section === section && ci.amount) {
-            out.push([{ text: ci.name, italics: true }, { text: fmt(ci.amount), alignment: 'right' }]);
+          if (ci.section === section) {
+            out.push([{ text: ci.name, italics: true }, { text: fmt(ci.amount || 0), alignment: 'right' }]);
           }
         });
         return out;
       }
       function sectionTable(title, totalStr, rows) {
         var body = [[{ text: title, style: 'tableHeader' }, { text: totalStr, style: 'tableHeader', alignment: 'right' }]];
-        rows.forEach(function (r) { if (r) body.push(r); });
-        if (body.length < 2) body.push(['\u2014', { text: '$0.00', alignment: 'right' }]);
+        rows.forEach(function (r) { body.push(r); });
         return { table: { headerRows: 1, widths: ['*', 90], body: body }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] };
       }
 
       /* Loan info */
       var infoRows = [];
-      if (data.borrower) infoRows.push(['Borrower(s)', data.borrower]);
-      if (data.fileNumber) infoRows.push(['File #', data.fileNumber]);
-      if (data.prepDate) infoRows.push(['Preparation Date', data.prepDate]);
+      infoRows.push(['Borrower(s)', data.borrower || '']);
+      infoRows.push(['File #', data.fileNumber || '']);
+      infoRows.push(['Preparation Date', data.prepDate || '']);
       infoRows.push(['Property Value', fmt(data.propertyValue)]);
-      if (data.purpose) infoRows.push(['Loan Purpose', data.purpose]);
-      if (data.product) infoRows.push(['Product', data.product]);
-      if (data.downPayment) infoRows.push(['Down Payment', fmt(data.downPayment)]);
+      infoRows.push(['Loan Purpose', data.purpose || '']);
+      infoRows.push(['Product', data.product || '']);
+      infoRows.push(['Down Payment', fmt(data.downPayment || 0)]);
       infoRows.push(['Loan Amount', fmt(data.loanAmount)]);
-      if (data.occupancy) infoRows.push(['Occupancy', data.occupancy]);
+      infoRows.push(['Occupancy', data.occupancy || '']);
       infoRows.push(['Interest Rate', ratePct(data.rate)]);
-      if (data.totalLoanAmt) infoRows.push(['Total Loan Amount', fmt(data.totalLoanAmt)]);
-      if (data.propertyType) infoRows.push(['Property Type', data.propertyType]);
-      if (data.apr) infoRows.push(['APR', ratePct(data.apr)]);
+      infoRows.push(['Total Loan Amount', fmt(data.totalLoanAmt || 0)]);
+      infoRows.push(['Property Type', data.propertyType || '']);
+      infoRows.push(['APR', ratePct(data.apr || 0)]);
       infoRows.push(['Term', data.termMonths + ' months']);
       var infoBody = [[{ text: 'Loan Information', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
       infoRows.forEach(function (r) { infoBody.push([r[0], { text: r[1], alignment: 'right' }]); });
@@ -305,8 +300,8 @@
       fundsBody.push([{ text: 'Total Due from Borrower (K)', bold: true }, { text: fmt(data.totalDue || 0), alignment: 'right', bold: true }]);
       fundsBody.push(['Loan Amount', { text: fmt(data.summaryLoanAmt || 0), alignment: 'right' }]);
       fundsBody.push(['Total Paid by/on Behalf of Borrower (L)', { text: fmt(data.totalPaid || 0), alignment: 'right' }]);
-      if (data.sellerCredits) fundsBody.push(['Seller Credits', { text: fmt(data.sellerCredits), alignment: 'right' }]);
-      if (data.lenderCredits) fundsBody.push(['Lender Credits', { text: fmt(data.lenderCredits), alignment: 'right' }]);
+      fundsBody.push(['Seller Credits', { text: fmt(data.sellerCredits || 0), alignment: 'right' }]);
+      fundsBody.push(['Lender Credits', { text: fmt(data.lenderCredits || 0), alignment: 'right' }]);
       content.push({ table: { headerRows: 1, widths: ['*', 110], body: fundsBody }, layout: 'lightHorizontalLines' });
       content.push({ columns: [{ text: 'Total Estimated Funds From You', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 4, 0, 8] });
 
@@ -314,8 +309,8 @@
       monthlyBody.push(['First Mortgage (P&I)', { text: fmt(data.monthlyPI), alignment: 'right' }]);
       monthlyBody.push(['Hazard Insurance', { text: fmt(data.monthlyIns), alignment: 'right' }]);
       monthlyBody.push(['Property Tax', { text: fmt(data.monthlyTax), alignment: 'right' }]);
-      if (data.monthlyMI) monthlyBody.push(['MI', { text: fmt(data.monthlyMI), alignment: 'right' }]);
-      if (data.monthlyHOA) monthlyBody.push(['HOA', { text: fmt(data.monthlyHOA), alignment: 'right' }]);
+      monthlyBody.push(['MI', { text: fmt(data.monthlyMI || 0), alignment: 'right' }]);
+      monthlyBody.push(['HOA', { text: fmt(data.monthlyHOA || 0), alignment: 'right' }]);
       content.push({ table: { headerRows: 1, widths: ['*', 110], body: monthlyBody }, layout: 'lightHorizontalLines' });
       content.push({ columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 4, 0, 4] });
 

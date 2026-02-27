@@ -7,6 +7,10 @@
   /* ---- State ---- */
   let loanCount = 1;
   const MAX_LOANS = 4;
+  const STATE_KEY = 'msfg-compare-state';
+
+  /* APR manual override per loan column */
+  const aprManual = {};
 
   /* All input field keys that exist per loan column */
   const INPUT_KEYS = [
@@ -18,6 +22,11 @@
     'EscrowTax', 'EscrowInsurance',
     'DownPayment', 'SellerCredits', 'LenderCredits',
     'MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA'
+  ];
+
+  /* Fields that affect APR — changing these resets the manual APR override */
+  const APR_AFFECTING_KEYS = [
+    'LoanAmount', 'Rate', 'Term', 'DiscountPts', 'PrepaidInsurance', 'PrepaidInterest'
   ];
 
   /* Custom line items */
@@ -51,6 +60,13 @@
     }
   }
 
+  /* ---- Debounced state save ---- */
+  let saveTimer = null;
+  function debouncedSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveState, 300);
+  }
+
   /* ---- APR Calculation (Reg Z binary search) ---- */
   function calcPV(payment, annualRate, n) {
     if (payment <= 0 || n <= 0) return 0;
@@ -70,6 +86,33 @@
       if (pv > amtFinanced) lo = apr; else hi = apr;
     }
     return apr;
+  }
+
+  /* ---- APR input binding ---- */
+  function bindAprInput(idx) {
+    const aprEl = el('cmpAPR_' + idx);
+    if (!aprEl) return;
+    aprEl.addEventListener('input', function () {
+      aprManual[idx] = true;
+      aprEl.classList.remove('cmp-computed');
+    });
+    aprEl.addEventListener('change', function () {
+      debouncedSave();
+    });
+  }
+
+  function bindAprResetters(idx) {
+    APR_AFFECTING_KEYS.forEach(key => {
+      const e = el('cmp' + key + '_' + idx);
+      if (!e) return;
+      e.addEventListener('input', function () {
+        if (aprManual[idx]) {
+          aprManual[idx] = false;
+          const aprEl = el('cmpAPR_' + idx);
+          if (aprEl) aprEl.classList.add('cmp-computed');
+        }
+      });
+    });
   }
 
   /* ---- Custom line items ---- */
@@ -219,8 +262,13 @@
         // Copy classes
         inp.className = input1.className;
         td.appendChild(inp);
-        inp.addEventListener('input', calculate);
-        inp.addEventListener('change', calculate);
+        // APR input gets special binding (no auto-recalculate on type)
+        if (rowKey === 'APR') {
+          bindAprInput(idx);
+        } else {
+          inp.addEventListener('input', calculate);
+          inp.addEventListener('change', calculate);
+        }
       } else if (select1) {
         const sel = select1.cloneNode(true);
         sel.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
@@ -230,7 +278,7 @@
         const sp = document.createElement('span');
         sp.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
         sp.className = span1.className;
-        sp.textContent = rowKey === 'apr' ? '0.000%' : '$0';
+        sp.textContent = '$0';
         td.appendChild(sp);
       }
 
@@ -242,6 +290,9 @@
     th.querySelector('.cmp-remove-btn').addEventListener('click', function () {
       removeLoan(parseInt(this.dataset.col, 10));
     });
+
+    // Bind APR resetters for the new column
+    bindAprResetters(idx);
 
     // Disable add button if at max
     if (loanCount >= MAX_LOANS) {
@@ -271,6 +322,9 @@
         if (child) td.remove();
       });
     });
+
+    // Clear APR manual flags (will rebuild after reindex)
+    Object.keys(aprManual).forEach(k => delete aprManual[k]);
 
     // Reindex remaining columns
     reindexColumns();
@@ -328,6 +382,7 @@
     }
     highlightBest();
     sendTally();
+    debouncedSave();
   }
 
   function calculateLoan(idx) {
@@ -388,14 +443,16 @@
     const totalInterest = term > 0 ? (monthlyPI * term) - loanAmount : 0;
     setText('cmpTotalInterest_' + idx, fmt(Math.max(0, totalInterest)));
 
-    // APR (Reg Z: amount financed = loan - discount points - prepaids)
-    const discountPts = v('cmpDiscountPts_' + idx);
-    const amtFinanced = loanAmount - discountPts - prepaidsTotal;
-    let apr = 0;
-    if (amtFinanced > 0 && monthlyPI > 0 && term > 0) {
-      apr = calcAPR(monthlyPI, amtFinanced, term);
+    // APR — skip if user manually overrode this loan's APR
+    if (!aprManual[idx]) {
+      const discountPts = v('cmpDiscountPts_' + idx);
+      const amtFinanced = loanAmount - discountPts - prepaidsTotal;
+      let apr = 0;
+      if (amtFinanced > 0 && monthlyPI > 0 && term > 0) {
+        apr = calcAPR(monthlyPI, amtFinanced, term);
+      }
+      setText('cmpAPR_' + idx, apr > 0 ? (apr * 100).toFixed(3) : '0');
     }
-    setText('cmpAPR_' + idx, apr > 0 ? (apr * 100).toFixed(3) + '%' : '0.000%');
   }
 
   /* ---- Best-value highlighting ---- */
@@ -462,6 +519,130 @@
     });
 
     if (toggle) toggle.textContent = isHidden ? '\u25B2' : '\u25BC';
+  }
+
+  /* ---- State persistence (sessionStorage) ---- */
+  function saveState() {
+    const state = {
+      loanCount: loanCount,
+      customItemCounter: customItemCounter,
+      customItems: customItems.map(ci => ({ id: ci.id, section: ci.section, name: ci.name, dataRow: ci.dataRow })),
+      aprManual: {},
+      values: {},
+      labels: {}
+    };
+
+    // Save APR manual flags
+    for (let i = 1; i <= loanCount; i++) {
+      if (aprManual[i]) state.aprManual[i] = true;
+    }
+
+    // Shared fields
+    ['cmpBorrower', 'cmpProperty', 'cmpFileNumber', 'cmpPrepDate'].forEach(id => {
+      const e = el(id);
+      if (e) state.values[id] = e.value;
+    });
+
+    for (let i = 1; i <= loanCount; i++) {
+      // Label
+      const label = el('cmpLabel_' + i);
+      if (label) state.labels[i] = label.value;
+
+      // Standard inputs
+      INPUT_KEYS.forEach(key => {
+        const e = el('cmp' + key + '_' + i);
+        if (e) state.values['cmp' + key + '_' + i] = e.value;
+      });
+
+      // APR, MonthlyPI, Notes
+      const apr = el('cmpAPR_' + i);
+      if (apr) state.values['cmpAPR_' + i] = apr.value;
+
+      const pi = el('cmpMonthlyPI_' + i);
+      if (pi) state.values['cmpMonthlyPI_' + i] = pi.value;
+
+      const notes = el('cmpNotes_' + i);
+      if (notes) state.values['cmpNotes_' + i] = notes.value;
+
+      // Custom item values
+      customItems.forEach(item => {
+        const e = el('cmpCustom_' + item.id + '_' + i);
+        if (e) state.values['cmpCustom_' + item.id + '_' + i] = e.value;
+      });
+    }
+
+    try {
+      sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
+    } catch (e) { /* quota or private mode */ }
+  }
+
+  function restoreState() {
+    const raw = sessionStorage.getItem(STATE_KEY);
+    if (!raw) return false;
+
+    try {
+      const state = JSON.parse(raw);
+      if (!state || !state.loanCount) return false;
+
+      // Add extra loan columns (addLoan triggers calculate internally, but values will be overwritten)
+      for (let i = 2; i <= state.loanCount; i++) {
+        addLoan();
+      }
+
+      // Restore custom items
+      if (state.customItems && state.customItems.length > 0) {
+        state.customItems.forEach(ci => {
+          el('cmpNewItemSection').value = ci.section;
+          el('cmpNewItemName').value = ci.name;
+          addCustomItem();
+        });
+      }
+
+      // Restore custom item counter to maintain stable IDs
+      if (state.customItemCounter) {
+        customItemCounter = state.customItemCounter;
+      }
+
+      // Restore all values
+      if (state.values) {
+        Object.keys(state.values).forEach(id => {
+          const e = el(id);
+          if (!e) return;
+          if (e.tagName === 'SELECT') {
+            for (let o = 0; o < e.options.length; o++) {
+              if (e.options[o].value === state.values[id]) {
+                e.selectedIndex = o;
+                break;
+              }
+            }
+          } else {
+            e.value = state.values[id];
+          }
+        });
+      }
+
+      // Restore labels
+      if (state.labels) {
+        Object.keys(state.labels).forEach(idx => {
+          const label = el('cmpLabel_' + idx);
+          if (label) label.value = state.labels[idx];
+        });
+      }
+
+      // Restore APR manual flags
+      if (state.aprManual) {
+        Object.keys(state.aprManual).forEach(idx => {
+          aprManual[idx] = true;
+          const aprEl = el('cmpAPR_' + idx);
+          if (aprEl) aprEl.classList.remove('cmp-computed');
+        });
+      }
+
+      calculate();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   /* ---- MISMO prefill ---- */
@@ -541,6 +722,9 @@
     customItems = [];
     customItemCounter = 0;
 
+    // Clear APR manual flags
+    Object.keys(aprManual).forEach(k => delete aprManual[k]);
+
     // Reset loan 1 inputs
     INPUT_KEYS.forEach(key => {
       const e = el('cmp' + key + '_1');
@@ -549,6 +733,10 @@
       else if (e.type === 'number') e.value = key === 'Term' ? '360' : '0';
       else e.value = '';
     });
+
+    // Reset APR
+    const apr1 = el('cmpAPR_1');
+    if (apr1) { apr1.value = '0'; apr1.classList.add('cmp-computed'); }
 
     // Reset notes
     const notes1 = el('cmpNotes_1');
@@ -567,6 +755,10 @@
     if (label1) label1.value = 'Loan 1';
 
     el('cmpAddBtn').disabled = false;
+
+    // Clear saved state
+    sessionStorage.removeItem(STATE_KEY);
+
     calculate();
   }
 
@@ -604,11 +796,16 @@
       }
     });
 
-    // Bind all loan-1 inputs
+    // Bind all loan-1 inputs (except APR which gets special binding)
     document.querySelectorAll('#cmpBody input, #cmpBody select').forEach(inp => {
+      if (inp.id === 'cmpAPR_1') return; // APR has special binding
       inp.addEventListener('input', calculate);
       inp.addEventListener('change', calculate);
     });
+
+    // Bind APR input and resetters for loan 1
+    bindAprInput(1);
+    bindAprResetters(1);
 
     // Section toggle clicks
     document.querySelectorAll('.cmp-section-row').forEach(row => {
@@ -639,8 +836,16 @@
     const clearBtn = el('cmpClearBtn');
     if (clearBtn) clearBtn.addEventListener('click', clearAll);
 
-    // Try MISMO prefill for loan 1
-    prefillFromMISMO(1);
+    // Try to restore saved state first
+    const restored = restoreState();
+
+    if (!restored) {
+      // Only MISMO prefill if no saved state
+      prefillFromMISMO(1);
+    }
+
+    // Save state before navigating away
+    window.addEventListener('beforeunload', saveState);
 
     calculate();
   }

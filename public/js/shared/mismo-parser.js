@@ -937,12 +937,16 @@
     if (settlementAmt) m['fwTitleSettlement'] = settlementAmt;
     var taxCertAmt = feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
     if (taxCertAmt) m['fwTitleTaxCert'] = taxCertAmt;
+    var titleOwnersAmt = feeAmt(fees, 'TitleOwnersCoveragePremium', 'Title - Owners Coverage Premium', "Title - Owner's Coverage Premium");
+    if (titleOwnersAmt) m['fwTitleOwners'] = titleOwnersAmt;
     var wireAmt = feeAmt(fees, 'WireTransferFee', 'Wire Transfer Fee');
     if (wireAmt) m['fwWireFee'] = wireAmt;
 
     // Government fees
     var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
     if (recordingAmt) m['fwRecordingFee'] = recordingAmt;
+    var transferTaxAmt = feeAmt(fees, 'TransferTax', 'Transfer Tax', 'StateRecordingTax', 'State Recording Tax');
+    if (transferTaxAmt) m['fwTransferTax'] = transferTaxAmt;
 
     // Prepaids — hazard insurance
     if (data.escrow.insMonthly) m['fwHazInsAmt'] = data.escrow.insMonthly;
