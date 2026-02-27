@@ -1,4 +1,4 @@
-/* Report template: MISMO Document Analyzer */
+/* Report template: MISMO Document Analyzer — Enhanced */
 (function () {
   'use strict';
   var RT = MSFG.ReportTemplates;
@@ -6,22 +6,19 @@
   RT.register('mismo',
     /* ---- EXTRACTOR ---- */
     function (doc) {
-      // Loan summary
-      var borrowerEl = doc.getElementById('kvBorrower');
-      var purposeEl = doc.getElementById('kvPurpose');
-      var typeEl = doc.getElementById('kvType');
-      var amountEl = doc.getElementById('kvAmount');
-
-      var borrower = borrowerEl ? borrowerEl.textContent.trim() : '';
-      var purpose = purposeEl ? purposeEl.textContent.trim() : '';
-      var loanType = typeEl ? typeEl.textContent.trim() : '';
-      var amount = amountEl ? amountEl.textContent.trim() : '';
+      // Loan summary — original + enhanced fields
+      var kvFields = ['kvBorrower', 'kvPurpose', 'kvType', 'kvAmount', 'kvPropertyType', 'kvOccupancy', 'kvLTV', 'kvProperty'];
+      var summary = {};
+      kvFields.forEach(function (id) {
+        var el = doc.getElementById(id);
+        summary[id] = el ? el.textContent.trim() : '';
+      });
 
       // Bail if no data loaded
-      if (borrower === '\u2014' && purpose === '\u2014') return null;
+      if (summary.kvBorrower === '\u2014' && summary.kvPurpose === '\u2014') return null;
 
-      // Status chips
-      var chipIds = ['chipEmp', 'chipRes', 'chipREO', 'chipDec'];
+      // Status chips — expanded set
+      var chipIds = ['chipProgram', 'chipEmp', 'chipRes', 'chipGaps', 'chipREO', 'chipDec'];
       var chips = [];
       chipIds.forEach(function (id) {
         var chip = doc.getElementById(id);
@@ -32,6 +29,15 @@
         else if (chip.classList.contains('mismo-chip--need')) status = 'need';
         chips.push({ label: chip.textContent.trim(), status: status });
       });
+
+      // Complexity flags
+      var complexityEl = doc.getElementById('mismoComplexity');
+      var complexityFlags = [];
+      if (complexityEl) {
+        complexityEl.querySelectorAll('.mismo-complexity-flag').forEach(function (f) {
+          complexityFlags.push(f.textContent.trim());
+        });
+      }
 
       // Checklist sections
       var sectionDefs = [
@@ -61,26 +67,43 @@
       });
 
       return {
-        borrower: borrower,
-        purpose: purpose,
-        loanType: loanType,
-        amount: amount,
+        borrower: summary.kvBorrower,
+        purpose: summary.kvPurpose,
+        loanType: summary.kvType,
+        amount: summary.kvAmount,
+        propertyType: summary.kvPropertyType,
+        occupancy: summary.kvOccupancy,
+        ltv: summary.kvLTV,
+        property: summary.kvProperty,
         chips: chips,
+        complexityFlags: complexityFlags,
         sections: sections
       };
     },
 
     /* ---- RENDERER ---- */
     function (data) {
+      var esc = MSFG.escHtml;
       var html = '';
 
       // Loan Summary
       html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Summary</h4>';
       html += '<div class="rpt-params">';
-      if (data.borrower) html += '<div class="rpt-param"><span>Borrower(s)</span><span>' + data.borrower + '</span></div>';
-      if (data.purpose && data.purpose !== '\u2014') html += '<div class="rpt-param"><span>Loan Purpose</span><span>' + data.purpose + '</span></div>';
-      if (data.loanType && data.loanType !== '\u2014') html += '<div class="rpt-param"><span>Loan Type</span><span>' + data.loanType + '</span></div>';
-      if (data.amount && data.amount !== '\u2014') html += '<div class="rpt-param"><span>Loan Amount</span><span>' + data.amount + '</span></div>';
+      var summaryFields = [
+        { label: 'Borrower(s)', value: data.borrower },
+        { label: 'Loan Purpose', value: data.purpose },
+        { label: 'Loan Type', value: data.loanType },
+        { label: 'Loan Amount', value: data.amount },
+        { label: 'Property Type', value: data.propertyType },
+        { label: 'Occupancy', value: data.occupancy },
+        { label: 'LTV', value: data.ltv },
+        { label: 'Subject Property', value: data.property }
+      ];
+      summaryFields.forEach(function (f) {
+        if (f.value && f.value !== '\u2014') {
+          html += '<div class="rpt-param"><span>' + esc(f.label) + '</span><span>' + esc(f.value) + '</span></div>';
+        }
+      });
       html += '</div></div>';
 
       // Status Chips
@@ -92,15 +115,24 @@
           if (chip.status === 'ok') { bg = '#e8f5e9'; color = '#2e7d32'; }
           else if (chip.status === 'warn') { bg = '#fff3e0'; color = '#e65100'; }
           else if (chip.status === 'need') { bg = '#ffebee'; color = '#c62828'; }
-          html += '<span style="display:inline-block;padding:4px 12px;border-radius:12px;font-size:0.82rem;font-weight:600;background:' + bg + ';color:' + color + '">' + chip.label + '</span>';
+          html += '<span style="display:inline-block;padding:4px 12px;border-radius:12px;font-size:0.82rem;font-weight:600;background:' + bg + ';color:' + color + '">' + esc(chip.label) + '</span>';
         });
-        html += '</div></div>';
+        html += '</div>';
+        // Complexity flags
+        if (data.complexityFlags && data.complexityFlags.length) {
+          html += '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">';
+          data.complexityFlags.forEach(function (flag) {
+            html += '<span style="display:inline-block;padding:3px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9">' + esc(flag) + '</span>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
       }
 
       // Checklist Sections
       data.sections.forEach(function (sec) {
         if (!sec.items || !sec.items.length) return;
-        html += '<div class="rpt-section"><h4 class="rpt-section-title">' + sec.title + '</h4>';
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">' + esc(sec.title) + '</h4>';
         html += '<table class="rpt-table"><thead><tr><th style="width:50px">Status</th><th>Document</th><th>Reason</th></tr></thead><tbody>';
         sec.items.forEach(function (item) {
           var icon = '\u25CF'; var color = '#c62828';
@@ -108,8 +140,8 @@
           else if (item.status === 'conditional') { icon = '\u25B2'; color = '#e65100'; }
           html += '<tr>';
           html += '<td style="text-align:center;color:' + color + ';font-weight:700">' + icon + '</td>';
-          html += '<td>' + item.name + '</td>';
-          html += '<td style="font-size:0.85em;color:#666">' + item.reason + '</td>';
+          html += '<td>' + esc(item.name) + '</td>';
+          html += '<td style="font-size:0.85em;color:#666">' + esc(item.reason) + '</td>';
           html += '</tr>';
         });
         html += '</tbody></table></div>';
@@ -122,14 +154,25 @@
     function (data) {
       var content = [];
 
-      // Loan Summary
+      // Loan Summary — all fields
       var summaryBody = [
         [{ text: 'Loan Summary', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]
       ];
-      if (data.borrower) summaryBody.push(['Borrower(s)', { text: data.borrower, alignment: 'right' }]);
-      if (data.purpose && data.purpose !== '\u2014') summaryBody.push(['Loan Purpose', { text: data.purpose, alignment: 'right' }]);
-      if (data.loanType && data.loanType !== '\u2014') summaryBody.push(['Loan Type', { text: data.loanType, alignment: 'right' }]);
-      if (data.amount && data.amount !== '\u2014') summaryBody.push(['Loan Amount', { text: data.amount, alignment: 'right' }]);
+      var summaryFields = [
+        { label: 'Borrower(s)', value: data.borrower },
+        { label: 'Loan Purpose', value: data.purpose },
+        { label: 'Loan Type', value: data.loanType },
+        { label: 'Loan Amount', value: data.amount },
+        { label: 'Property Type', value: data.propertyType },
+        { label: 'Occupancy', value: data.occupancy },
+        { label: 'LTV', value: data.ltv },
+        { label: 'Subject Property', value: data.property }
+      ];
+      summaryFields.forEach(function (f) {
+        if (f.value && f.value !== '\u2014') {
+          summaryBody.push([f.label, { text: f.value, alignment: 'right' }]);
+        }
+      });
       content.push({ table: { headerRows: 1, widths: ['*', 'auto'], body: summaryBody }, layout: 'lightHorizontalLines' });
 
       // Status Chips
@@ -142,6 +185,11 @@
           else if (chip.status === 'need') color = '#c62828';
           content.push({ text: chip.label, color: color, fontSize: 9, bold: true, margin: [0, 2, 0, 2] });
         });
+      }
+
+      // Complexity flags
+      if (data.complexityFlags && data.complexityFlags.length) {
+        content.push({ text: 'Complexity: ' + data.complexityFlags.join(' | '), fontSize: 8, color: '#1565c0', margin: [0, 4, 0, 4] });
       }
 
       // Checklist Sections

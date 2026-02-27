@@ -3,7 +3,7 @@
 /* --- Top grid: upload + summary side-by-side --- */
 .mismo-top-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 0.8fr 1.2fr;
   gap: var(--space-lg, 1.5rem);
 }
 @media (max-width: 1000px) {
@@ -51,47 +51,69 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
 }
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .mismo-summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .mismo-summary-grid { grid-template-columns: 1fr; }
 }
 .mismo-kv {
   background: var(--color-gray-50, #fafafa);
   border: 1px solid var(--color-gray-200, #e0e0e0);
-  padding: 0.75rem;
+  padding: 0.6rem 0.75rem;
   border-radius: 6px;
 }
 .mismo-kv-label {
   color: var(--text-muted, #999);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 .mismo-kv-value {
   font-weight: 600;
   color: var(--text-primary, #333);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  word-break: break-word;
 }
 
 /* --- Status chips --- */
 .mismo-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
 }
 .mismo-chip {
-  padding: 0.4rem 0.8rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 20px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   border: 2px solid transparent;
   background: #e0e0e0;
   color: #333;
+  white-space: nowrap;
 }
 .mismo-chip--ok    { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
 .mismo-chip--warn  { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
 .mismo-chip--need  { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+
+/* --- Complexity flags --- */
+.mismo-complexity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.mismo-complexity-flag {
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
 
 /* --- Section headers --- */
 .mismo-section-header {
@@ -101,6 +123,13 @@
   margin-bottom: 0.75rem;
 }
 .mismo-section-header h2 { margin-bottom: 0; }
+
+.mismo-section-count {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted, #999);
+  margin-left: 0.5rem;
+}
 
 /* --- Editable doc-item rows --- */
 .mismo-checklist { min-height: 20px; }
@@ -134,7 +163,7 @@
   padding: 0.3rem 0.5rem;
   border: 1px solid transparent;
   border-radius: 4px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   background: transparent;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -143,7 +172,7 @@
   color: var(--text-primary, #333);
 }
 .mismo-doc-item__reason {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-muted, #666);
 }
 .mismo-doc-item__name:hover,
@@ -214,7 +243,12 @@
   .mismo-dropzone,
   .mismo-add-btn,
   .mismo-doc-item__remove,
-  .mismo-action-bar { display: none !important; }
+  .mismo-action-bar,
+  .mismo-empty-state { display: none !important; }
+
+  .mismo-top-grid {
+    grid-template-columns: 1fr;
+  }
 
   .mismo-doc-item__status {
     border: none;
@@ -230,6 +264,9 @@
     padding: 0;
   }
   .mismo-doc-item {
+    break-inside: avoid;
+  }
+  .mismo-checklist-section {
     break-inside: avoid;
   }
 }
