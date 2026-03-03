@@ -791,12 +791,15 @@
     var reactKeys = {};
     var domKeys = {};
     var amortKeys = {};
+    var radioKeys = {};
 
     Object.keys(fieldMap).forEach(function(key) {
       if (key.indexOf('__react_') === 0) {
         reactKeys[key.replace('__react_', '')] = fieldMap[key];
       } else if (key.indexOf('__amort_') === 0) {
         amortKeys[key.replace('__amort_', '')] = fieldMap[key];
+      } else if (key.indexOf('__radio_') === 0) {
+        radioKeys[key.replace('__radio_', '')] = fieldMap[key];
       } else if (key === '__custom_items' || key === '__mismo_xml_inject') {
         // Handled separately
       } else {
@@ -850,6 +853,19 @@
             triggerEvent(termBtn, 'click');
             populated++;
           }
+        }
+      });
+    }
+
+    // Handle radio button inputs (e.g. LLPM purpose/productType/occupancy)
+    if (Object.keys(radioKeys).length > 0) {
+      Object.keys(radioKeys).forEach(function(name) {
+        var val = radioKeys[name];
+        var radio = targetDoc.querySelector('input[type="radio"][name="' + name + '"][value="' + val + '"]');
+        if (radio) {
+          radio.checked = true;
+          triggerEvent(radio, 'change');
+          populated++;
         }
       });
     }

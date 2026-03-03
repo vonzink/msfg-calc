@@ -98,8 +98,34 @@
             middleName: nameNode ? txt(nameNode, 'MiddleName') : '',
             lastName: nameNode ? txt(nameNode, 'LastName') : '',
             income: detail ? num(detail, 'BorrowerQualifyingIncomeAmount') : 0,
-            classification: detail ? txt(detail, 'BorrowerClassificationType') : ''
+            classification: detail ? txt(detail, 'BorrowerClassificationType') : '',
+            creditScore: 0
           };
+
+          /* Credit score — check multiple MISMO paths */
+          var creditScores = qn(borrower, 'CREDIT_SCORES');
+          if (creditScores) {
+            var csList = qnAll(creditScores, 'CREDIT_SCORE');
+            csList.forEach(function (cs) {
+              var csDetail = qn(cs, 'CREDIT_SCORE_DETAIL');
+              if (csDetail) {
+                var val = num(csDetail, 'CreditScoreValue');
+                if (val > 0 && !b.creditScore) b.creditScore = val;
+              }
+            });
+          }
+          /* Fallback: CREDIT_PROFILE path (alternate MISMO layout) */
+          if (!b.creditScore) {
+            var creditProfile = qn(borrower, 'CREDIT_PROFILE');
+            if (creditProfile) {
+              var cpScore = qn(creditProfile, 'CREDIT_SCORE');
+              if (cpScore) {
+                var cpVal = num(cpScore, 'CreditScoreValue');
+                if (cpVal > 0) b.creditScore = cpVal;
+              }
+            }
+          }
+
           if (b.firstName || b.lastName) data.borrowers.push(b);
         });
       });
@@ -1217,6 +1243,68 @@
     if (lo.email) m['laLoEmail'] = lo.email;
     if (data.loanOriginationCompany && data.loanOriginationCompany.name) {
       m['laLoCompany'] = data.loanOriginationCompany.name;
+    }
+
+    return m;
+  };
+
+  /* ---- LLPM Tool ---- */
+  CALC_MAPS['llpm'] = function (data) {
+    var m = {};
+
+    if (data.loan.amount) m['loanAmount'] = data.loan.amount;
+    if (data.property.value) m['propertyValue'] = data.property.value;
+    if (data.loan.rate) m['baseRate'] = data.loan.rate;
+
+    // Credit score — use first borrower's score
+    if (data.borrowers.length > 0 && data.borrowers[0].creditScore) {
+      m['creditScore'] = data.borrowers[0].creditScore;
+    }
+
+    // Term (select: 30/25/20/15/10)
+    if (data.loan.termMonths) {
+      var termYears = Math.round(data.loan.termMonths / 12);
+      var validTerms = [10, 15, 20, 25, 30];
+      if (validTerms.indexOf(termYears) !== -1) m['termYears'] = String(termYears);
+    }
+
+    // Units (select: 1/2/3/4)
+    if (data.property.units) m['units'] = String(data.property.units);
+
+    // Purpose → radio (Purchase / LimitedCashOut / CashOut)
+    var purposeMap = {
+      'Purchase': 'Purchase',
+      'Refinance': 'LimitedCashOut',
+      'NoCash-OutRefinance': 'LimitedCashOut',
+      'NoCashOutRefinance': 'LimitedCashOut',
+      'CashOutRefinance': 'CashOut',
+      'Cash-OutRefinance': 'CashOut'
+    };
+    if (data.loan.purpose && purposeMap[data.loan.purpose]) {
+      m['__radio_purpose'] = purposeMap[data.loan.purpose];
+    }
+
+    // Product type → radio (Fixed / ARM)
+    if (data.loan.amortType) {
+      var prodMap = { 'Fixed': 'Fixed', 'AdjustableRate': 'ARM' };
+      if (prodMap[data.loan.amortType]) m['__radio_productType'] = prodMap[data.loan.amortType];
+    }
+
+    // Occupancy → radio (Primary / SecondHome / Investment)
+    if (data.property.usage) {
+      var occMap = {
+        'PrimaryResidence': 'Primary',
+        'SecondHome': 'SecondHome',
+        'Investment': 'Investment',
+        'Investor': 'Investment'
+      };
+      if (occMap[data.property.usage]) m['__radio_occupancy'] = occMap[data.property.usage];
+    }
+
+    // Property type checkboxes
+    if (data.property.type === 'Condominium') m['isCondo'] = true;
+    if (data.property.type === 'ManufacturedHousing' || data.property.type === 'Manufactured') {
+      m['isManufacturedHome'] = true;
     }
 
     return m;
