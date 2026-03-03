@@ -797,6 +797,8 @@
         reactKeys[key.replace('__react_', '')] = fieldMap[key];
       } else if (key.indexOf('__amort_') === 0) {
         amortKeys[key.replace('__amort_', '')] = fieldMap[key];
+      } else if (key === '__custom_items' || key === '__mismo_xml_inject') {
+        // Handled separately
       } else {
         domKeys[key] = fieldMap[key];
       }
@@ -850,6 +852,25 @@
           }
         }
       });
+    }
+
+    // Handle custom line items (fee-worksheet MISMO unmapped fees)
+    if (fieldMap.__custom_items && Array.isArray(fieldMap.__custom_items)) {
+      var targetWin = null;
+      try {
+        if (nestedIframe) {
+          targetWin = nestedIframe.contentWindow;
+        } else {
+          targetWin = iframe.contentWindow;
+        }
+      } catch (e) { /* cross-origin */ }
+
+      if (targetWin && typeof targetWin.MSFG_FW_addCustomItem === 'function') {
+        fieldMap.__custom_items.forEach(function (item) {
+          targetWin.MSFG_FW_addCustomItem(item.section, item.name, item.amount);
+          populated++;
+        });
+      }
     }
 
     if (populated > 0) {

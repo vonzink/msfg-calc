@@ -37,7 +37,7 @@
     'fwPrepaidHazIns', 'fwPrepaidInterest',
     'fwEscrowTax', 'fwEscrowIns',
     'fwPurchasePrice', 'fwEstPrepaids', 'fwEstClosing',
-    'fwTotalDue', 'fwSummaryLoanAmt', 'fwTotalPaid',
+    'fwDiscount', 'fwTotalDue', 'fwSummaryLoanAmt', 'fwTotalPaid',
     'fwMonthlyPI', 'fwMonthlyIns', 'fwMonthlyTax'
   ];
 
@@ -146,24 +146,27 @@
     var otherTotal = sumIds(['fwOther1', 'fwOther2']) + sumCustomItems('other');
     document.getElementById('fwOtherTotal').textContent = fmt(otherTotal);
 
-    // Total closing costs (all fee sections)
-    var totalClosingCost = origTotal + cannotShopTotal + canShopTotal + govTotal + otherTotal;
+    // Closing costs: estClosing EXCLUDES origination; discount = origination total
+    var estClosingRaw = cannotShopTotal + canShopTotal + govTotal + otherTotal;
+    var discountRaw = origTotal;
     var totalPrepaids = prepaidsTotal + escrowTotal;
 
     // Funds needed to close
     var loanPurpose = (dom['fwLoanPurpose'] || document.getElementById('fwLoanPurpose')).value;
-    var purchasePrice = setComputed('fwPurchasePrice', loanPurpose === 'Purchase' ? propertyValue : 0);
+    var isRefi = loanPurpose.indexOf('Refinance') !== -1;
+    var purchasePrice = setComputed('fwPurchasePrice', isRefi ? 0 : propertyValue);
 
     // Update label based on purpose
     var priceLabel = document.getElementById('fwPurchasePriceLabel');
     if (priceLabel) {
-      priceLabel.textContent = loanPurpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount';
+      priceLabel.textContent = isRefi ? 'Refinance' : 'Purchase Price';
     }
 
     var estPrepaids = setComputed('fwEstPrepaids', totalPrepaids);
-    var estClosing = setComputed('fwEstClosing', totalClosingCost);
+    var estClosing = setComputed('fwEstClosing', estClosingRaw);
+    var discount = setComputed('fwDiscount', discountRaw);
 
-    var totalDue = setComputed('fwTotalDue', purchasePrice + estPrepaids + estClosing);
+    var totalDue = setComputed('fwTotalDue', purchasePrice + estPrepaids + estClosing + discount);
 
     var summaryLoanAmt = setComputed('fwSummaryLoanAmt', loanAmount);
 
@@ -295,6 +298,61 @@
 
     calculate();
   }
+
+  /* ---- Programmatic line item creation (for MISMO workspace integration) ---- */
+  function addCustomItemProgrammatic(section, name, amount) {
+    customItemCounter++;
+    var inputId = 'fwCustom_' + customItemCounter;
+
+    var item = {
+      id: customItemCounter,
+      section: section,
+      name: name,
+      inputId: inputId
+    };
+    customItems.push(item);
+
+    var row = document.createElement('div');
+    row.className = 'fw-fee-row fw-fee-row--custom';
+    row.dataset.customId = String(customItemCounter);
+
+    var label = document.createElement('label');
+    label.textContent = name;
+
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.id = inputId;
+    input.value = amount || 0;
+    input.min = '0';
+    input.step = '0.01';
+    input.className = 'fw-fee-input';
+    input.addEventListener('input', calculate);
+    input.addEventListener('change', calculate);
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'fw-fee-remove';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', function () {
+      removeLineItem(item.id);
+    });
+
+    row.appendChild(label);
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+
+    var containerId = sectionContainers[section];
+    var container = document.getElementById(containerId);
+    if (container) {
+      container.appendChild(row);
+    }
+
+    calculate();
+  }
+
+  // Expose for workspace iframe integration
+  window.MSFG_FW_addCustomItem = addCustomItemProgrammatic;
 
   /* ---- Print ---- */
   function printWorksheet() {

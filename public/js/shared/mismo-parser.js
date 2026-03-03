@@ -159,6 +159,21 @@
         data.loan.ltv = num(ltv, 'LTVRatioPercent');
       }
 
+      /* ---- Loan Identifiers (File Number) ---- */
+      var loanIds = qn(loan, 'LOAN_IDENTIFIERS');
+      if (loanIds) {
+        var idList = qnAll(loanIds, 'LOAN_IDENTIFIER');
+        idList.forEach(function (lid) {
+          var idType = txt(lid, 'LoanIdentifierType');
+          var idVal = txt(lid, 'LoanIdentifier');
+          if (!data.loan.loanIdentifier && idVal) {
+            if (idType === 'LenderLoan' || idType === 'AgencyCase' || idType === 'LenderCase') {
+              data.loan.loanIdentifier = idVal;
+            }
+          }
+        });
+      }
+
       /* ---- Fee Summary ---- */
       var feeSummary = qn(loan, 'FEE_INFORMATION/FEES_SUMMARY/FEE_SUMMARY_DETAIL');
       if (feeSummary) {
@@ -865,10 +880,29 @@
     if (data.loan.apr) m['fwAPR'] = data.loan.apr;
     if (data.loan.downPayment) m['fwDownPayment'] = data.loan.downPayment;
 
+    // File number from MISMO loan identifier
+    if (data.loan.loanIdentifier) m['fwFileNumber'] = data.loan.loanIdentifier;
+
     // Loan purpose
     if (data.loan.purpose) {
-      var purposeMap = { 'Refinance': 'Refinance', 'Purchase': 'Purchase' };
+      var purposeMap = {
+        'Refinance': 'Refinance',
+        'Purchase': 'Purchase',
+        'NoCash-OutRefinance': 'NoCashOutRefinance',
+        'NoCashOutRefinance': 'NoCashOutRefinance',
+        'CashOutRefinance': 'CashOutRefinance',
+        'Cash-OutRefinance': 'CashOutRefinance',
+        'Construction': 'Construction',
+        'ConstructionToPermanent': 'ConstructionPerm',
+        'ConstructionPerm': 'ConstructionPerm'
+      };
       if (purposeMap[data.loan.purpose]) m['fwLoanPurpose'] = purposeMap[data.loan.purpose];
+    }
+
+    // Refinance: populate purchase price with existing mortgage balance (payoff amount)
+    var isRefiPurpose = data.loan.purpose && data.loan.purpose.indexOf('Refinance') !== -1;
+    if (isRefiPurpose && data.existingMortgage && data.existingMortgage.balance) {
+      m['fwPurchasePrice'] = data.existingMortgage.balance;
     }
 
     // Occupancy
@@ -973,6 +1007,55 @@
     // Monthly housing
     if (data.housing.mi) m['fwMonthlyMI'] = data.housing.mi;
     if (data.housing.hoa) m['fwMonthlyHOA'] = data.housing.hoa;
+
+    // Collect unmapped fees into __custom_items
+    var mappedFeeKeys = {};
+    [
+      'LoanOriginationFee', 'OriginationFee', 'Origination Fee',
+      'LoanDiscountPoints', 'Loan Discount Points', 'DiscountPoints',
+      'Processing Fee', 'ProcessingFee',
+      'Underwriting Fee', 'UnderwritingFee',
+      'AppraisalFee', 'Appraisal Fee',
+      'CreditReportFee', 'Credit Report Fee',
+      'Technology Fee', 'TechnologyFee',
+      'VerificationOfEmploymentFee', 'Verification Of Employment Fee',
+      'FloodCertification', 'FloodCertificationFee', 'Flood Certification',
+      'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee',
+      'MERSRegistrationFee', 'MERS Registration Fee',
+      'E-Recording Fee', 'ERecordingFee',
+      'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee',
+      'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium',
+      'SettlementFee', 'Settlement Fee', 'Title - Settlement Fee',
+      'Title - Tax Cert Fee', 'TitleTaxCertFee',
+      'TitleOwnersCoveragePremium', 'Title - Owners Coverage Premium', "Title - Owner's Coverage Premium",
+      'WireTransferFee', 'Wire Transfer Fee',
+      'RecordingFeeForDeed', 'Recording Fee For Deed',
+      'TransferTax', 'Transfer Tax', 'StateRecordingTax', 'State Recording Tax'
+    ].forEach(function (k) { mappedFeeKeys[k] = true; });
+
+    var unmappedItems = [];
+    var feeKeys = Object.keys(fees);
+    feeKeys.forEach(function (key) {
+      if (mappedFeeKeys[key]) return;
+      var fee = fees[key];
+      if (!fee || !fee.amount) return;
+
+      // Map MISMO IntegratedDisclosureSectionType to fee-worksheet section
+      var section = 'other';
+      var sType = fee.section || '';
+      if (sType === 'OriginationCharges') section = 'origination';
+      else if (sType === 'ServicesYouCannotShopFor' || sType === 'ServicesBorrowerDidNotShop') section = 'cannotShop';
+      else if (sType === 'ServicesYouCanShopFor' || sType === 'ServicesBorrowerDidShop') section = 'canShop';
+      else if (sType === 'TaxesAndOtherGovernmentFees') section = 'government';
+      else if (sType === 'Prepaids') section = 'prepaids';
+      else if (sType === 'InitialEscrowPaymentAtClosing') section = 'escrow';
+
+      unmappedItems.push({ section: section, name: key, amount: fee.amount });
+    });
+
+    if (unmappedItems.length > 0) {
+      m['__custom_items'] = unmappedItems;
+    }
 
     return m;
   };

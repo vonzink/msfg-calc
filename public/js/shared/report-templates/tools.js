@@ -92,6 +92,7 @@
         purchasePrice: val(doc,'fwPurchasePrice'),
         estPrepaids: val(doc,'fwEstPrepaids'),
         estClosing: val(doc,'fwEstClosing'),
+        discount: val(doc,'fwDiscount'),
         totalDue: val(doc,'fwTotalDue'),
         summaryLoanAmt: val(doc,'fwSummaryLoanAmt'),
         totalPaid: val(doc,'fwTotalPaid'),
@@ -114,9 +115,11 @@
       var items = data.customItems || [];
 
       function feeLine(label, amount) {
-        return '<tr><td>' + label + '</td><td class="rpt-num">' + fmt(amount || 0) + '</td></tr>';
+        if (!amount) return '';
+        return '<tr><td>' + label + '</td><td class="rpt-num">' + fmt(amount) + '</td></tr>';
       }
       function feeMultiLine(label, amt, qty, unit, total) {
+        if (typeof total === 'number' && !total) return '';
         var detail = amt ? fmt(amt) + ' x ' + qty + ' ' + unit : '';
         var totalStr = (typeof total === 'number') ? fmt(total) : fmt(0);
         return '<tr><td>' + label + (detail ? ' <span style="color:#888;font-size:0.85em">(' + detail + ')</span>' : '') + '</td><td class="rpt-num">' + totalStr + '</td></tr>';
@@ -185,11 +188,15 @@
       html += customLines('canShop');
       html += '</tbody></table>';
 
+      var isRefi = data.purpose && data.purpose.indexOf('Refinance') !== -1;
       html += '<table class="rpt-table rpt-table--compact"><thead><tr><th colspan="2" style="font-weight:700">Total Estimated Funds Needed To Close</th></tr></thead><tbody>';
-      html += '<tr><td>' + (data.purpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount') + '</td><td class="rpt-num">' + fmt(data.purchasePrice || 0) + '</td></tr>';
+      html += '<tr><td>' + (isRefi ? 'Refinance' : 'Purchase Price') + '</td><td class="rpt-num">' + fmt(data.purchasePrice || 0) + '</td></tr>';
       html += '<tr><td>Estimated Prepaid Items</td><td class="rpt-num">' + fmt(data.estPrepaids || 0) + '</td></tr>';
-      html += '<tr><td>Estimated Closing Cost</td><td class="rpt-num">' + fmt(data.estClosing || 0) + '</td></tr>';
-      html += '<tr style="font-weight:600;border-top:1px solid #ccc"><td>Total Due from Borrower (K)</td><td class="rpt-num">' + fmt(data.totalDue || 0) + '</td></tr>';
+      html += '<tr><td>Estimate Closing Cost</td><td class="rpt-num">' + fmt(data.estClosing || 0) + '</td></tr>';
+      if (data.discount) {
+        html += '<tr><td>Discount</td><td class="rpt-num">' + fmt(data.discount) + '</td></tr>';
+      }
+      html += '<tr style="font-weight:600;border-top:1px solid #ccc"><td>Total Due from Borrower at Closing (K)</td><td class="rpt-num">' + fmt(data.totalDue || 0) + '</td></tr>';
       html += '<tr><td>Loan Amount</td><td class="rpt-num">' + fmt(data.summaryLoanAmt || 0) + '</td></tr>';
       html += '<tr><td>Total Paid by/on Behalf of Borrower (L)</td><td class="rpt-num">' + fmt(data.totalPaid || 0) + '</td></tr>';
       html += '<tr><td>Seller Credits</td><td class="rpt-num">' + fmt(data.sellerCredits || 0) + '</td></tr>';
@@ -225,10 +232,10 @@
       html += '</tbody></table>';
 
       html += '<table class="rpt-table rpt-table--compact"><thead><tr><th colspan="2" style="font-weight:700">Total Estimated Monthly Housing Payment</th></tr></thead><tbody>';
-      html += '<tr><td>First Mortgage (P&I)</td><td class="rpt-num">' + fmt(data.monthlyPI) + '</td></tr>';
+      html += '<tr><td>First Mortgage</td><td class="rpt-num">' + fmt(data.monthlyPI) + '</td></tr>';
       html += '<tr><td>Hazard Insurance</td><td class="rpt-num">' + fmt(data.monthlyIns) + '</td></tr>';
       html += '<tr><td>Property Tax</td><td class="rpt-num">' + fmt(data.monthlyTax) + '</td></tr>';
-      html += '<tr><td>MI</td><td class="rpt-num">' + fmt(data.monthlyMI || 0) + '</td></tr>';
+      html += '<tr><td>Mortgage Insurance</td><td class="rpt-num">' + fmt(data.monthlyMI || 0) + '</td></tr>';
       html += '<tr><td>HOA</td><td class="rpt-num">' + fmt(data.monthlyHOA || 0) + '</td></tr>';
       html += '</tbody></table>';
       html += '<div class="rpt-grand-total"><span>Total Monthly Payment</span><span>' + data.totalMonthly + '</span></div>';
@@ -243,9 +250,11 @@
       var items = data.customItems || [];
 
       function fl(label, amount) {
-        return [label, { text: fmt(amount || 0), alignment: 'right' }];
+        if (!amount) return null;
+        return [label, { text: fmt(amount), alignment: 'right' }];
       }
       function fml(label, amt, qty, unit, total) {
+        if (!total) return null;
         var detail = amt ? fmt(amt) + ' x ' + qty + ' ' + unit : '';
         var totalStr = (typeof total === 'number') ? fmt(total) : fmt(0);
         return [label + (detail ? ' (' + detail + ')' : ''), { text: totalStr, alignment: 'right' }];
@@ -261,7 +270,7 @@
       }
       function sectionTable(title, totalStr, rows) {
         var body = [[{ text: title, style: 'tableHeader' }, { text: totalStr, style: 'tableHeader', alignment: 'right' }]];
-        rows.forEach(function (r) { body.push(r); });
+        rows.forEach(function (r) { if (r) body.push(r); });
         return { table: { headerRows: 1, widths: ['*', 90], body: body }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] };
       }
 
@@ -293,11 +302,13 @@
       content.push(sectionTable('Initial Escrow Payment at Closing', data.escrowTotal, [fml('County Property Tax', data.escTaxAmt, data.escTaxMonths, 'mth(s)', data.escrowTax), fml('Hazard Insurance', data.escInsAmt, data.escInsMonths, 'mth(s)', data.escrowIns)].concat(cfl('escrow'))));
       content.push(sectionTable('Other', data.otherTotal, [fl('Other Fee 1', data.other1), fl('Other Fee 2', data.other2)].concat(cfl('other'))));
 
+      var isRefi = data.purpose && data.purpose.indexOf('Refinance') !== -1;
       var fundsBody = [[{ text: 'Funds Needed To Close', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
-      fundsBody.push([(data.purpose === 'Purchase' ? 'Purchase Price' : 'Payoff Amount'), { text: fmt(data.purchasePrice || 0), alignment: 'right' }]);
+      fundsBody.push([(isRefi ? 'Refinance' : 'Purchase Price'), { text: fmt(data.purchasePrice || 0), alignment: 'right' }]);
       fundsBody.push(['Estimated Prepaid Items', { text: fmt(data.estPrepaids || 0), alignment: 'right' }]);
       fundsBody.push(['Estimated Closing Cost', { text: fmt(data.estClosing || 0), alignment: 'right' }]);
-      fundsBody.push([{ text: 'Total Due from Borrower (K)', bold: true }, { text: fmt(data.totalDue || 0), alignment: 'right', bold: true }]);
+      if (data.discount) fundsBody.push(['Discount', { text: fmt(data.discount), alignment: 'right' }]);
+      fundsBody.push([{ text: 'Total Due from Borrower at Closing (K)', bold: true }, { text: fmt(data.totalDue || 0), alignment: 'right', bold: true }]);
       fundsBody.push(['Loan Amount', { text: fmt(data.summaryLoanAmt || 0), alignment: 'right' }]);
       fundsBody.push(['Total Paid by/on Behalf of Borrower (L)', { text: fmt(data.totalPaid || 0), alignment: 'right' }]);
       fundsBody.push(['Seller Credits', { text: fmt(data.sellerCredits || 0), alignment: 'right' }]);
@@ -306,10 +317,10 @@
       content.push({ columns: [{ text: 'Total Estimated Funds From You', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 4, 0, 8] });
 
       var monthlyBody = [[{ text: 'Monthly Housing Payment', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
-      monthlyBody.push(['First Mortgage (P&I)', { text: fmt(data.monthlyPI), alignment: 'right' }]);
+      monthlyBody.push(['First Mortgage', { text: fmt(data.monthlyPI), alignment: 'right' }]);
       monthlyBody.push(['Hazard Insurance', { text: fmt(data.monthlyIns), alignment: 'right' }]);
       monthlyBody.push(['Property Tax', { text: fmt(data.monthlyTax), alignment: 'right' }]);
-      monthlyBody.push(['MI', { text: fmt(data.monthlyMI || 0), alignment: 'right' }]);
+      monthlyBody.push(['Mortgage Insurance', { text: fmt(data.monthlyMI || 0), alignment: 'right' }]);
       monthlyBody.push(['HOA', { text: fmt(data.monthlyHOA || 0), alignment: 'right' }]);
       content.push({ table: { headerRows: 1, widths: ['*', 110], body: monthlyBody }, layout: 'lightHorizontalLines' });
       content.push({ columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 4, 0, 4] });
