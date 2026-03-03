@@ -1075,9 +1075,26 @@
     if (data.loan.apr) m['cmpAPR_' + idx] = data.loan.apr;
     if (data.loan.downPayment) m['cmpDownPayment_' + idx] = data.loan.downPayment;
 
+    // Shared fields (only for first loan column)
+    if (idx === 1) {
+      if (data.borrowerName) m['cmpBorrower'] = data.borrowerName;
+      if (data.propertyAddress) m['cmpProperty'] = data.propertyAddress;
+      if (data.loan.loanIdentifier) m['cmpFileNumber'] = data.loan.loanIdentifier;
+    }
+
     // Purpose
     if (data.loan.purpose) {
-      var purposeMap = { 'Refinance': 'Refinance', 'Purchase': 'Purchase' };
+      var purposeMap = {
+        'Refinance': 'Refinance',
+        'Purchase': 'Purchase',
+        'NoCash-OutRefinance': 'NoCashOutRefinance',
+        'NoCashOutRefinance': 'NoCashOutRefinance',
+        'CashOutRefinance': 'CashOutRefinance',
+        'Cash-OutRefinance': 'CashOutRefinance',
+        'Construction': 'Construction',
+        'ConstructionToPermanent': 'ConstructionPerm',
+        'ConstructionPerm': 'ConstructionPerm'
+      };
       if (purposeMap[data.loan.purpose]) m['cmpPurpose_' + idx] = purposeMap[data.loan.purpose];
     }
 

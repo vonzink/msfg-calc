@@ -299,10 +299,44 @@
       el('cmpAddBtn').disabled = true;
     }
 
-    // Try MISMO prefill
-    prefillFromMISMO(idx);
+    // Copy Loan 1 data to the new column
+    copyLoanToColumn(1, idx);
 
     calculate();
+  }
+
+  function copyLoanToColumn(fromIdx, toIdx) {
+    INPUT_KEYS.forEach(key => {
+      const src = el('cmp' + key + '_' + fromIdx);
+      const dst = el('cmp' + key + '_' + toIdx);
+      if (!src || !dst) return;
+      if (src.tagName === 'SELECT') {
+        dst.selectedIndex = src.selectedIndex;
+      } else {
+        dst.value = src.value;
+      }
+    });
+
+    // Copy product text
+    const srcProduct = el('cmpProduct_' + fromIdx);
+    const dstProduct = el('cmpProduct_' + toIdx);
+    if (srcProduct && dstProduct) dstProduct.value = srcProduct.value;
+
+    // Copy notes
+    const srcNotes = el('cmpNotes_' + fromIdx);
+    const dstNotes = el('cmpNotes_' + toIdx);
+    if (srcNotes && dstNotes) dstNotes.value = srcNotes.value;
+
+    // Copy APR (mark as manual if source was manual)
+    const srcAPR = el('cmpAPR_' + fromIdx);
+    const dstAPR = el('cmpAPR_' + toIdx);
+    if (srcAPR && dstAPR) {
+      dstAPR.value = srcAPR.value;
+      if (aprManual[fromIdx]) {
+        aprManual[toIdx] = true;
+        dstAPR.classList.remove('cmp-computed');
+      }
+    }
   }
 
   function removeLoan(colIdx) {

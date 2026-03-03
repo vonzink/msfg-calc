@@ -437,7 +437,8 @@
           monthlyInsurance: val(doc, 'cmpMonthlyInsurance_' + i),
           monthlyMI: val(doc, 'cmpMonthlyMI_' + i),
           monthlyHOA: val(doc, 'cmpMonthlyHOA_' + i),
-          apr: val(doc, 'cmpAPR_' + i)
+          apr: val(doc, 'cmpAPR_' + i),
+          notes: txt(doc, 'cmpNotes_' + i)
         });
       }
 
@@ -624,6 +625,16 @@
 
       html += fmtRow('APR', 'apr', ratePct, true);
 
+      var hasNotes = false;
+      for (i = 0; i < n; i++) { if (loans[i].notes) hasNotes = true; }
+      if (hasNotes) {
+        html += '<tr><td>Notes</td>';
+        for (i = 0; i < n; i++) {
+          html += '<td style="font-size:0.82em;white-space:pre-wrap;text-align:left">' + MSFG.escHtml(loans[i].notes || '') + '</td>';
+        }
+        html += '</tr>';
+      }
+
       html += '</tbody></table>';
       return html;
     },
@@ -756,6 +767,12 @@
       body.push(dataRow('Total Interest', tiVals.map(function (v) { return fmt(v); }), { highlight: true, bestIdx: tiIdx2 }));
 
       body.push(dataRow('APR', loans.map(function (l) { return ratePct(l.apr); }), { highlight: true, bestIdx: bestOf('apr') }));
+
+      var hasNotes2 = false;
+      for (var ni = 0; ni < n; ni++) { if (loans[ni].notes) hasNotes2 = true; }
+      if (hasNotes2) {
+        body.push(dataRow('Notes', loans.map(function (l) { return l.notes || ''; })));
+      }
 
       content.push({
         table: { headerRows: 1, widths: widths, body: body },
