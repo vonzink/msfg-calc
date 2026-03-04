@@ -185,17 +185,13 @@
 }
 
 /* ---- Grand total row ---- */
-.cmp-total-row td {
+.cmp-table tbody tr.cmp-total-row td {
   font-weight: 700;
   font-size: 0.9rem;
   background: var(--brand-primary);
   color: #fff;
   border-bottom: none;
   padding: 8px var(--space-md) !important;
-}
-
-.cmp-total-row td:first-child {
-  color: #fff;
 }
 
 /* ---- Inputs ---- */

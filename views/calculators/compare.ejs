@@ -191,6 +191,27 @@
               <td><span class="cmp-computed" id="cmpEscrowTotal_1">$0</span></td>
             </tr>
 
+            <!-- ======== DETAIL: Payoffs ======== -->
+            <tr class="cmp-section-row" data-section="payoffs">
+              <td colspan="99">Payoffs <span class="cmp-section-toggle">&#9660;</span></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="payoffs" data-row="payoff1stMortgage">
+              <td>1st Mortgage Payoff</td>
+              <td><input type="number" class="cmp-input" id="cmpPayoff1stMortgage_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="payoffs" data-row="payoff2ndMortgage">
+              <td>2nd Mortgage Payoff</td>
+              <td><input type="number" class="cmp-input" id="cmpPayoff2ndMortgage_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="payoffs" data-row="payoffOther">
+              <td>Other Payoffs</td>
+              <td><input type="number" class="cmp-input" id="cmpPayoffOther_1" value="0" min="0" step="1"></td>
+            </tr>
+            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="payoffs" data-row="payoffsTotal">
+              <td>Total Payoffs</td>
+              <td><span class="cmp-computed" id="cmpPayoffsTotal_1">$0</span></td>
+            </tr>
+
             <!-- ======== COMPACT: Closing Cost Summary ======== -->
             <tr class="cmp-subtotal-row" data-row="totalClosing">
               <td>Total Closing Costs</td>
@@ -239,10 +260,6 @@
             </tr>
 
             <!-- ======== COMPACT: Totals ======== -->
-            <tr data-row="totalInterest">
-              <td>Total Interest</td>
-              <td><span class="cmp-computed" id="cmpTotalInterest_1">$0</span></td>
-            </tr>
             <tr data-row="APR">
               <td>APR (%)</td>
               <td><input type="number" class="cmp-input cmp-input--sm cmp-computed" id="cmpAPR_1" value="0" min="0" max="100" step="0.001"></td>
@@ -269,6 +286,7 @@
             <option value="government">Government Fees</option>
             <option value="prepaids">Prepaids</option>
             <option value="escrow">Escrow Deposits</option>
+            <option value="payoffs">Payoffs</option>
             <option value="monthly">Monthly Payment</option>
           </select>
         </div>

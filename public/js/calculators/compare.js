@@ -20,6 +20,7 @@
     'RecordingFee', 'TransferTax',
     'PrepaidInsurance', 'PrepaidInterest',
     'EscrowTax', 'EscrowInsurance',
+    'Payoff1stMortgage', 'Payoff2ndMortgage', 'PayoffOther',
     'DownPayment', 'SellerCredits', 'LenderCredits',
     'MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA'
   ];
@@ -40,6 +41,7 @@
     government: '.cmp-subtotal-row[data-section="government"]',
     prepaids: '.cmp-subtotal-row[data-section="prepaids"]',
     escrow: '.cmp-subtotal-row[data-section="escrow"]',
+    payoffs: '.cmp-subtotal-row[data-section="payoffs"]',
     monthly: '[data-row="totalMonthly"]'
   };
 
@@ -454,7 +456,11 @@
                         sumCustomForSection('escrow', idx);
     setText('cmpEscrowTotal_' + idx, fmt(escrowTotal));
 
-    const totalClosing = origTotal + thirdPartyTotal + govTotal + prepaidsTotal + escrowTotal;
+    const payoffsTotal = v('cmpPayoff1stMortgage_' + idx) + v('cmpPayoff2ndMortgage_' + idx) +
+                         v('cmpPayoffOther_' + idx) + sumCustomForSection('payoffs', idx);
+    setText('cmpPayoffsTotal_' + idx, fmt(payoffsTotal));
+
+    const totalClosing = origTotal + thirdPartyTotal + govTotal + prepaidsTotal + escrowTotal + payoffsTotal;
     setText('cmpTotalClosing_' + idx, fmt(totalClosing));
 
     // Cash to close
@@ -472,10 +478,6 @@
     const totalMonthly = monthlyPI + monthlyTax + monthlyIns + monthlyMI + monthlyHOA +
                          sumCustomForSection('monthly', idx);
     setText('cmpTotalMonthly_' + idx, fmt(totalMonthly));
-
-    // Total interest over life of loan
-    const totalInterest = term > 0 ? (monthlyPI * term) - loanAmount : 0;
-    setText('cmpTotalInterest_' + idx, fmt(Math.max(0, totalInterest)));
 
     // APR — skip if user manually overrode this loan's APR
     if (!aprManual[idx]) {
@@ -501,7 +503,7 @@
 
     const bestRows = {
       rate: 'Rate', totalClosing: 'TotalClosing', cashToClose: 'CashToClose',
-      totalMonthly: 'TotalMonthly', totalInterest: 'TotalInterest', apr: 'APR'
+      totalMonthly: 'TotalMonthly', apr: 'APR'
     };
 
     Object.keys(bestRows).forEach(rowKey => {
@@ -719,6 +721,7 @@
         government: ['RecordingFee', 'TransferTax'],
         prepaids: ['PrepaidInsurance', 'PrepaidInterest'],
         escrow: ['EscrowTax', 'EscrowInsurance'],
+        payoffs: ['Payoff1stMortgage', 'Payoff2ndMortgage', 'PayoffOther'],
         monthly: ['MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA']
       };
       Object.keys(feeFields).forEach(section => {

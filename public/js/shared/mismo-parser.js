@@ -1212,6 +1212,22 @@
     if (data.housing.mi || data.loan.miPayment) m['cmpMonthlyMI_' + idx] = data.housing.mi || data.loan.miPayment;
     if (data.housing.hoa) m['cmpMonthlyHOA_' + idx] = data.housing.hoa;
 
+    // Payoffs — liabilities marked for payoff at closing
+    var mortgagePayoffs = [];
+    var otherPayoffs = 0;
+    data.liabilities.forEach(function (l) {
+      if (l.payoff && l.balance > 0) {
+        if (l.type === 'MortgageLoan') {
+          mortgagePayoffs.push(l.balance);
+        } else {
+          otherPayoffs += l.balance;
+        }
+      }
+    });
+    if (mortgagePayoffs.length >= 1) m['cmpPayoff1stMortgage_' + idx] = mortgagePayoffs[0];
+    if (mortgagePayoffs.length >= 2) m['cmpPayoff2ndMortgage_' + idx] = mortgagePayoffs[1];
+    if (otherPayoffs > 0) m['cmpPayoffOther_' + idx] = otherPayoffs;
+
     return m;
   };
 
