@@ -28,15 +28,15 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="priceCash">Purchase Price ($)</label>
-              <input type="number" id="priceCash" value="400000" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="priceCash" value="400000" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="closingCash">Closing Costs - Cash Purchase ($)</label>
-              <input type="number" id="closingCash" value="2000" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="closingCash" value="2000" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="closingMortgage">Closing Costs - Mortgage ($)</label>
-              <input type="number" id="closingMortgage" value="8000" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="closingMortgage" value="8000" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -47,15 +47,15 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="downPct">Down Payment (%)</label>
-              <input type="number" id="downPct" value="20" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="downPct" value="20" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="mortRate">Interest Rate (%)</label>
-              <input type="number" id="mortRate" step="0.125" value="6.5" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="mortRate" step="0.125" value="6.5" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="mortTerm">Loan Term (years)</label>
-              <input type="number" id="mortTerm" value="30" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="mortTerm" value="30" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -66,15 +66,15 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="investReturn">Expected Annual Investment Return (%)</label>
-              <input type="number" id="investReturn" step="0.5" value="7" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="investReturn" step="0.5" value="7" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="appreciation">Annual Property Appreciation (%)</label>
-              <input type="number" id="appreciation" step="0.5" value="3" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="appreciation" step="0.5" value="3" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="periodCash">Analysis Period (years)</label>
-              <input type="number" id="periodCash" value="10" onchange="calcCashMortgage()" class="input-highlight" />
+              <input type="number" id="periodCash" value="10" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@
         <div class="math-section">
           <h3>
             Detailed Calculations
-            <button class="toggle-button" onclick="toggleCalculations()">
+            <button class="toggle-button">
               <span id="toggleText">Show Details</span>
             </button>
           </h3>
@@ -183,249 +183,6 @@
         </div>
       </div>
     </div>
-    <script>
-      function parseNum(v) {
-        const n = parseFloat(v);
-        return isNaN(n) ? 0 : n;
-      }
-      
-      function mortgagePay(principal, rate, months) {
-        if (rate === 0) return principal / months;
-        const m = rate / 12;
-        return (principal * m) / (1 - Math.pow(1 + m, -months));
-      }
-      
-      function futureValue(amount, rate, years) {
-        return amount * Math.pow(1 + rate, years);
-      }
-      
-      function balanceAfterPayments(principal, rate, totalMonths, paymentsMade) {
-        if (paymentsMade >= totalMonths) return 0;
-        if (rate === 0) return principal - (principal / totalMonths) * paymentsMade;
-        const m = rate / 12;
-        const pmt = mortgagePay(principal, rate, totalMonths);
-        return principal * Math.pow(1 + m, paymentsMade) -
-               pmt * ((Math.pow(1 + m, paymentsMade) - 1) / m);
-      }
-      
-      function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(amount);
-      }
-      
-      function toggleCalculations() {
-        const calculations = document.getElementById('mathCalculations');
-        const toggleText = document.getElementById('toggleText');
-        
-        if (calculations.classList.contains('hidden')) {
-          calculations.classList.remove('hidden');
-          toggleText.textContent = 'Hide Details';
-        } else {
-          calculations.classList.add('hidden');
-          toggleText.textContent = 'Show Details';
-        }
-      }
-      
-      function calcCashMortgage() {
-        // Get input values
-        const price = parseNum(document.getElementById('priceCash').value);
-        const closingCash = parseNum(document.getElementById('closingCash').value);
-        const closingMort = parseNum(document.getElementById('closingMortgage').value);
-        const downPct = parseNum(document.getElementById('downPct').value) / 100;
-        const rate = parseNum(document.getElementById('mortRate').value) / 100;
-        const term = parseNum(document.getElementById('mortTerm').value);
-        const investR = parseNum(document.getElementById('investReturn').value) / 100;
-        const apprR = parseNum(document.getElementById('appreciation').value) / 100;
-        const period = parseNum(document.getElementById('periodCash').value);
-        
-        // Calculate derived values
-        const down = price * downPct;
-        const loan = price - down;
-        const months = term * 12;
-        const monthly = mortgagePay(loan, rate, months);
-        const analysisMonths = period * 12;
-        
-        // Property appreciation (same for both scenarios)
-        const appreciatedValue = price * Math.pow(1 + apprR, period);
-        const appreciationGain = appreciatedValue - price;
-        
-        // Calculate cash purchase costs
-        let costCash = price + closingCash - appreciationGain;
-        
-        // Calculate mortgage purchase costs
-        let costMort = down + closingMort;
-        let investBalance = price - down - closingMort;
-        
-        for (let m = 1; m <= analysisMonths; m++) {
-          costMort += monthly;
-          investBalance *= 1 + investR / 12;
-        }
-        
-        // Calculate remaining mortgage balance at end of analysis period
-        const remainingBalance = Math.max(0, balanceAfterPayments(loan, rate, months, Math.min(analysisMonths, months)));
-        
-        // Net investment benefit: investments minus remaining balance payoff
-        const initialInvestment = price - down - closingMort;
-        const netAfterPayoff = investBalance - remainingBalance;
-        const investmentGrowth = netAfterPayoff - initialInvestment;
-        costMort -= investmentGrowth;
-        costMort -= appreciationGain;
-        
-        const diff = costMort - costCash;
-        
-        // Update main results
-        document.getElementById('costCash').textContent = formatCurrency(costCash);
-        document.getElementById('costMortgage').textContent = formatCurrency(costMort);
-        document.getElementById('diffCashMort').textContent = formatCurrency(Math.abs(diff));
-        
-        // Update difference styling and text
-        const diffCard = document.getElementById('differenceCard');
-        const diffText = document.getElementById('differenceText');
-        if (diff > 0) {
-          diffCard.className = 'difference negative';
-          diffText.textContent = 'Mortgage costs MORE than cash';
-        } else {
-          diffCard.className = 'difference positive';
-          diffText.textContent = 'Mortgage costs LESS than cash';
-        }
-        
-        // Update breakdowns
-        updateBreakdowns(price, closingCash, closingMort, down, monthly, analysisMonths, 
-                        costCash, costMort, investmentGrowth, investBalance, remainingBalance, appreciationGain);
-        
-        // Update math calculations
-        updateMathCalculations(price, closingCash, closingMort, down, loan, rate, monthly, 
-                              analysisMonths, investR, investmentGrowth, 
-                              costCash, costMort, diff, investBalance, remainingBalance, 
-                              apprR, appreciatedValue, appreciationGain);
-        
-        // Update recommendation
-        updateRecommendation(diff, Math.abs(diff), costCash, costMort);
-      }
-      
-      function updateBreakdowns(price, closingCash, closingMort, down, monthly, analysisMonths, 
-                               costCash, costMort, investmentGrowth, investBalance, remainingBalance, appreciationGain) {
-        // Cash breakdown
-        document.getElementById('cashPurchasePrice').textContent = formatCurrency(price);
-        document.getElementById('cashClosingCosts').textContent = formatCurrency(closingCash);
-        document.getElementById('cashAppreciation').textContent = '-' + formatCurrency(appreciationGain);
-        document.getElementById('cashTotal').textContent = formatCurrency(costCash);
-        
-        // Mortgage breakdown
-        document.getElementById('mortDownPayment').textContent = formatCurrency(down);
-        document.getElementById('mortClosingCosts').textContent = formatCurrency(closingMort);
-        document.getElementById('mortPayments').textContent = formatCurrency(monthly * analysisMonths);
-        document.getElementById('mortInvestmentBalance').textContent = formatCurrency(investBalance);
-        document.getElementById('mortRemainingBalance').textContent = '-' + formatCurrency(remainingBalance);
-        document.getElementById('mortInvestmentGrowth').textContent = '-' + formatCurrency(investmentGrowth);
-        document.getElementById('mortAppreciation').textContent = '-' + formatCurrency(appreciationGain);
-        document.getElementById('mortTotal').textContent = formatCurrency(costMort);
-      }
-      
-      function updateMathCalculations(price, closingCash, closingMort, down, loan, rate, monthly, 
-                                    analysisMonths, investR, investmentGrowth, 
-                                    costCash, costMort, diff, investBalance, remainingBalance,
-                                    apprR, appreciatedValue, appreciationGain) {
-        const mathDiv = document.getElementById('mathCalculations');
-        
-        const mortgagePaymentsTotal = monthly * analysisMonths;
-        const initialInvestment = price - down - closingMort;
-        const termMonths = parseNum(document.getElementById('mortTerm').value) * 12;
-        const period = analysisMonths / 12;
-        
-        mathDiv.innerHTML = `
-          <div class="calculation-step">
-            <h4>Property Appreciation</h4>
-            <p>Appreciated Value = Purchase Price × (1 + ${(apprR * 100).toFixed(2)}%)^${period}</p>
-            <p>Appreciated Value = ${formatCurrency(price)} × ${Math.pow(1 + apprR, period).toFixed(4)} = ${formatCurrency(appreciatedValue)}</p>
-            <p>Appreciation Gain = ${formatCurrency(appreciatedValue)} - ${formatCurrency(price)} = ${formatCurrency(appreciationGain)}</p>
-            <p>This gain applies equally to both the cash buyer and mortgage buyer.</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Cash Purchase Calculation</h4>
-            <p>Net Cost = Purchase Price + Closing Costs - Appreciation Gain</p>
-            <p>Net Cost = ${formatCurrency(price)} + ${formatCurrency(closingCash)} - ${formatCurrency(appreciationGain)}</p>
-            <p>Net Cost = ${formatCurrency(costCash)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Mortgage Purchase Calculation</h4>
-            <p>Monthly Payment = P × [r(1+r)^n] / [(1+r)^n - 1]</p>
-            <p>Where P = ${formatCurrency(loan)}, r = ${(rate * 100).toFixed(2)}%/12, n = ${termMonths} months</p>
-            <p>Monthly Payment = ${formatCurrency(monthly)}</p>
-            <p>Total Mortgage Payments (${analysisMonths} months) = ${formatCurrency(monthly)} × ${analysisMonths} = ${formatCurrency(mortgagePaymentsTotal)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Investment Growth Calculation</h4>
-            <p>Initial Investment = Purchase Price - Down Payment - Mortgage Closing Costs</p>
-            <p>Initial Investment = ${formatCurrency(price)} - ${formatCurrency(down)} - ${formatCurrency(closingMort)} = ${formatCurrency(initialInvestment)}</p>
-            <p>Monthly Growth Rate = ${(investR * 100).toFixed(2)}% / 12 = ${(investR / 12 * 100).toFixed(4)}%</p>
-            <p>Investment Balance = ${formatCurrency(initialInvestment)} × (1 + ${(investR / 12).toFixed(6)})^${analysisMonths} = ${formatCurrency(investBalance)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Remaining Mortgage Balance</h4>
-            <p>After ${analysisMonths} payments on a ${termMonths}-month loan:</p>
-            <p>Remaining Balance = ${formatCurrency(remainingBalance)}</p>
-            <p>At the end of the analysis period, the remaining mortgage balance must be paid off from the investment savings.</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Net Investment Benefit</h4>
-            <p>Net After Payoff = Investment Balance - Remaining Mortgage Balance</p>
-            <p>Net After Payoff = ${formatCurrency(investBalance)} - ${formatCurrency(remainingBalance)} = ${formatCurrency(investBalance - remainingBalance)}</p>
-            <p>Net Investment Benefit = Net After Payoff - Initial Investment</p>
-            <p>Net Investment Benefit = ${formatCurrency(investBalance - remainingBalance)} - ${formatCurrency(initialInvestment)} = ${formatCurrency(investmentGrowth)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Total Mortgage Cost</h4>
-            <p>Net Cost = Down Payment + Closing Costs + Mortgage Payments - Net Investment Benefit - Appreciation Gain</p>
-            <p>Net Cost = ${formatCurrency(down)} + ${formatCurrency(closingMort)} + ${formatCurrency(mortgagePaymentsTotal)} - ${formatCurrency(investmentGrowth)} - ${formatCurrency(appreciationGain)}</p>
-            <p>Net Cost = ${formatCurrency(costMort)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Cost Difference</h4>
-            <p>Difference = Mortgage Cost - Cash Cost</p>
-            <p>Difference = ${formatCurrency(costMort)} - ${formatCurrency(costCash)} = ${formatCurrency(diff)}</p>
-          </div>
-        `;
-      }
-      
-      function updateRecommendation(diff, absDiff, costCash, costMort) {
-        const recommendation = document.getElementById('recommendation');
-        const conclusionText = document.getElementById('conclusionText');
-        
-        const savingsPercent = ((absDiff / Math.min(costCash, costMort)) * 100).toFixed(1);
-        
-        if (diff > 0) {
-          recommendation.textContent = `RECOMMENDATION: Pay Cash`;
-          conclusionText.innerHTML = `
-            <strong>Paying cash is the better financial choice.</strong><br>
-            You would save <strong>${formatCurrency(absDiff)}</strong> (${savingsPercent}% of the lower cost option) 
-            by paying cash instead of taking a mortgage. This analysis assumes you would invest the 
-            remaining cash at the specified return rate if you chose the mortgage option.
-          `;
-        } else {
-          recommendation.textContent = `RECOMMENDATION: Take Mortgage`;
-          conclusionText.innerHTML = `
-            <strong>Taking a mortgage is the better financial choice.</strong><br>
-            You would save <strong>${formatCurrency(absDiff)}</strong> (${savingsPercent}% of the lower cost option) 
-            by taking a mortgage instead of paying cash. This assumes you invest the remaining cash 
-            at the specified return rate, which generates enough growth to offset the mortgage costs.
-          `;
-        }
-      }
-      
-      // Initialize calculator
-      calcCashMortgage();
-    </script>
+    <script src="./cash-vs-mortgage.js"></script>
   </body>
 </html>

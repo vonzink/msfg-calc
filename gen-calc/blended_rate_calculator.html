@@ -116,65 +116,65 @@
               <tr>
                 <td data-label="Debt #">1</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d1_bal" value="5000" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d1_bal" value="5000" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d1_rate" value="18.5" step="0.01" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d1_rate" value="18.5" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d1_pay" value="150" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d1_pay" value="150" class="input-highlight" />
                 </td>
               </tr>
               <!-- Debt 2 -->
               <tr>
                 <td data-label="Debt #">2</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d2_bal" value="15000" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d2_bal" value="15000" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d2_rate" value="6.5" step="0.01" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d2_rate" value="6.5" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d2_pay" value="300" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d2_pay" value="300" class="input-highlight" />
                 </td>
               </tr>
               <!-- Debt 3 -->
               <tr>
                 <td data-label="Debt #">3</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d3_bal" value="8000" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d3_bal" value="8000" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d3_rate" value="12.0" step="0.01" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d3_rate" value="12.0" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d3_pay" value="200" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d3_pay" value="200" class="input-highlight" />
                 </td>
               </tr>
               <!-- Debt 4 -->
               <tr>
                 <td data-label="Debt #">4</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d4_bal" value="0" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d4_bal" value="0" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d4_rate" value="0" step="0.01" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d4_rate" value="0" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d4_pay" value="0" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d4_pay" value="0" class="input-highlight" />
                 </td>
               </tr>
               <!-- Debt 5 -->
               <tr>
                 <td data-label="Debt #">5</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d5_bal" value="0" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d5_bal" value="0" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d5_rate" value="0" step="0.01" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d5_rate" value="0" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d5_pay" value="0" onchange="calcDebt()" class="input-highlight" />
+                  <input type="number" id="d5_pay" value="0" class="input-highlight" />
                 </td>
               </tr>
             </tbody>
@@ -203,7 +203,7 @@
         <div class="math-section">
           <h3>
             Detailed Calculations
-            <button class="toggle-button" onclick="toggleCalculations()">
+            <button class="toggle-button">
               <span id="toggleText">Show Details</span>
             </button>
           </h3>
@@ -222,128 +222,6 @@
       </div>
     </div>
 
-    <script>
-      function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(amount);
-      }
-      
-      function parseNum(v) {
-        const n = parseFloat(v);
-        return isNaN(n) ? 0 : n;
-      }
-      
-      function toggleCalculations() {
-        const calculations = document.getElementById('mathCalculations');
-        const toggleText = document.getElementById('toggleText');
-        
-        if (calculations.classList.contains('hidden')) {
-          calculations.classList.remove('hidden');
-          toggleText.textContent = 'Hide Details';
-        } else {
-          calculations.classList.add('hidden');
-          toggleText.textContent = 'Show Details';
-        }
-      }
-      
-      function calcDebt() {
-        let totalBal = 0;
-        let totalPay = 0;
-        let weightedRate = 0;
-        let debts = [];
-        
-        // Collect all debt information
-        for (let i = 1; i <= 5; i++) {
-          const bal = parseNum(document.getElementById('d' + i + '_bal').value);
-          const rate = parseNum(document.getElementById('d' + i + '_rate').value) / 100;
-          const pay = parseNum(document.getElementById('d' + i + '_pay').value);
-          
-          if (bal > 0) {
-            debts.push({
-              num: i,
-              balance: bal,
-              rate: rate,
-              payment: pay,
-              weightedContribution: bal * rate
-            });
-          }
-          
-          totalBal += bal;
-          totalPay += pay;
-          weightedRate += bal * rate;
-        }
-        
-        const blended = totalBal > 0 ? (weightedRate / totalBal) * 100 : 0;
-        
-        // Update results
-        document.getElementById('totalBal').textContent = formatCurrency(totalBal);
-        document.getElementById('totalPay').textContent = formatCurrency(totalPay);
-        document.getElementById('blendedRate').textContent = blended.toFixed(3) + '%';
-        
-        // Update calculation details
-        updateMathCalculations(debts, totalBal, totalPay, weightedRate, blended);
-      }
-      
-      function updateMathCalculations(debts, totalBal, totalPay, weightedRate, blended) {
-        const mathDiv = document.getElementById('mathCalculations');
-        
-        if (debts.length === 0) {
-          mathDiv.innerHTML = `
-            <div class="calculation-step">
-              <h4>No Debts Entered</h4>
-              <p>Enter at least one debt with a balance greater than zero to see the calculation details.</p>
-            </div>
-          `;
-          return;
-        }
-        
-        let debtBreakdown = '';
-        debts.forEach(debt => {
-          debtBreakdown += `
-            <div class="calculation-step">
-              <h4>Debt ${debt.num} Weighted Contribution</h4>
-              <p>Balance: ${formatCurrency(debt.balance)}</p>
-              <p>Interest Rate: ${(debt.rate * 100).toFixed(3)}%</p>
-              <p>Monthly Payment: ${formatCurrency(debt.payment)}</p>
-              <p>Weighted Contribution = Balance × Rate</p>
-              <p>Weighted Contribution = ${formatCurrency(debt.balance)} × ${(debt.rate * 100).toFixed(3)}%</p>
-              <p>Weighted Contribution = ${debt.weightedContribution.toFixed(2)}</p>
-            </div>
-          `;
-        });
-        
-        mathDiv.innerHTML = `
-          ${debtBreakdown}
-          
-          <div class="calculation-step">
-            <h4>Total Weighted Rate Calculation</h4>
-            <p>Sum of all weighted contributions: ${weightedRate.toFixed(2)}</p>
-            <p>Total Balance: ${formatCurrency(totalBal)}</p>
-            <p>Total Monthly Payments: ${formatCurrency(totalPay)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Blended Interest Rate Formula</h4>
-            <p>Blended Rate = (Sum of Weighted Contributions ÷ Total Balance) × 100</p>
-            <p>Blended Rate = (${weightedRate.toFixed(2)} ÷ ${totalBal.toFixed(2)}) × 100</p>
-            <p>Blended Rate = ${blended.toFixed(3)}%</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>What This Means</h4>
-            <p>Your effective interest rate across all debts is <strong>${blended.toFixed(3)}%</strong>.</p>
-            <p>If you consolidate these debts into a single loan with an interest rate lower than ${blended.toFixed(3)}%, you will save money on interest charges.</p>
-            <p>Consider focusing extra payments on your highest-rate debts first to reduce your overall interest costs faster.</p>
-          </div>
-        `;
-      }
-      
-      // Initialize calculator
-      calcDebt();
-    </script>
+    <script src="./blended-rate.js"></script>
   </body>
 </html>

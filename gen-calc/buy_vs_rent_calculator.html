@@ -26,19 +26,19 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="purchasePrice">Purchase Price ($)</label>
-              <input type="number" id="purchasePrice" value="300000" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="purchasePrice" value="300000" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="downPercent">Down Payment (%)</label>
-              <input type="number" id="downPercent" value="20" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="downPercent" value="20" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="rateBuy">Interest Rate (%)</label>
-              <input type="number" id="rateBuy" value="4" step="0.01" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="rateBuy" value="4" step="0.01" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="termBuy">Loan Term (years)</label>
-              <input type="number" id="termBuy" value="30" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="termBuy" value="30" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -48,19 +48,19 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="taxRate">Property Tax Rate (%)</label>
-              <input type="number" id="taxRate" value="1.0" step="0.01" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="taxRate" value="1.0" step="0.01" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="insurance">Annual Insurance ($)</label>
-              <input type="number" id="insurance" value="1200" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="insurance" value="1200" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="maintenance">Annual Maintenance ($)</label>
-              <input type="number" id="maintenance" value="1500" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="maintenance" value="1500" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="appreciation">Home Appreciation Rate (%)</label>
-              <input type="number" id="appreciation" value="3" step="0.01" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="appreciation" value="3" step="0.01" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -70,19 +70,19 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="rent">Current Monthly Rent ($)</label>
-              <input type="number" id="rent" value="1500" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="rent" value="1500" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="rentIncrease">Rent Increase Rate (%)</label>
-              <input type="number" id="rentIncrease" value="2.5" step="0.01" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="rentIncrease" value="2.5" step="0.01" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="period">Analysis Period (years)</label>
-              <input type="number" id="period" value="5" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="period" value="5" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="investmentReturn">Investment Return on Down Payment (%)</label>
-              <input type="number" id="investmentReturn" value="4" step="0.01" onchange="calcBuyRent()" class="input-highlight" />
+              <input type="number" id="investmentReturn" value="4" step="0.01" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -182,7 +182,7 @@
         <div class="math-section">
           <h3>
             Detailed Calculations
-            <button class="toggle-button" onclick="toggleCalculations()">
+            <button class="toggle-button">
               <span id="toggleText">Show Details</span>
             </button>
           </h3>
@@ -200,247 +200,6 @@
         </div>
       </div>
     </div>
-    <script>
-      function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(amount);
-      }
-      
-      function parseNum(val) {
-        const n = parseFloat(val);
-        return isNaN(n) ? 0 : n;
-      }
-      
-      function mortgagePayment(p, r, n) {
-        if (r === 0) return p / n;
-        const m = r / 12;
-        return (p * m) / (1 - Math.pow(1 + m, -n));
-      }
-      
-      function futureValue(p, r, n) {
-        return p * Math.pow(1 + r, n);
-      }
-      
-      function balanceAfterPayments(principal, r, n, paymentsMade) {
-        if (r === 0) return principal - (principal / n) * paymentsMade;
-        const m = r / 12;
-        return (
-          principal *
-            Math.pow(1 + m, paymentsMade) -
-          mortgagePayment(principal, r, n) *
-            ((Math.pow(1 + m, paymentsMade) - 1) / m)
-        );
-      }
-      
-      function toggleCalculations() {
-        const calculations = document.getElementById('calculationDetails');
-        const toggleText = document.getElementById('toggleText');
-        
-        if (calculations.classList.contains('hidden')) {
-          calculations.classList.remove('hidden');
-          toggleText.textContent = 'Hide Details';
-        } else {
-          calculations.classList.add('hidden');
-          toggleText.textContent = 'Show Details';
-        }
-      }
-      
-      function calcBuyRent() {
-        // Get values from inputs
-        const price = parseNum(document.getElementById('purchasePrice').value);
-        const downPct = parseNum(document.getElementById('downPercent').value) / 100;
-        const rate = parseNum(document.getElementById('rateBuy').value) / 100;
-        const term = parseNum(document.getElementById('termBuy').value);
-        const taxRate = parseNum(document.getElementById('taxRate').value) / 100;
-        const ins = parseNum(document.getElementById('insurance').value);
-        const maint = parseNum(document.getElementById('maintenance').value);
-        const appr = parseNum(document.getElementById('appreciation').value) / 100;
-        const rent = parseNum(document.getElementById('rent').value);
-        const rentInc = parseNum(document.getElementById('rentIncrease').value) / 100;
-        const period = parseNum(document.getElementById('period').value);
-        const investReturn = parseNum(document.getElementById('investmentReturn').value) / 100;
-        
-        // Calculate ownership costs
-        const down = price * downPct;
-        const loan = price - down;
-        const nPayments = term * 12;
-        const pmt = mortgagePayment(loan, rate, nPayments);
-        
-        let totalOwnership = down;
-        const analysisMonths = period * 12;
-        
-        let mortgageTotal = 0;
-        let taxesTotal = 0;
-        let insuranceTotal = 0;
-        let maintenanceTotal = 0;
-        
-        for (let m = 1; m <= analysisMonths; m++) {
-          // mortgage payment
-          totalOwnership += pmt;
-          mortgageTotal += pmt;
-          // property tax annually: price * taxRate / 12
-          const monthlyTax = (price * taxRate) / 12;
-          totalOwnership += monthlyTax;
-          taxesTotal += monthlyTax;
-          // insurance: ins/12, maintenance: maint/12
-          const monthlyIns = ins / 12;
-          const monthlyMaint = maint / 12;
-          totalOwnership += monthlyIns + monthlyMaint;
-          insuranceTotal += monthlyIns;
-          maintenanceTotal += monthlyMaint;
-        }
-        
-        // loan balance at sale
-        const bal = balanceAfterPayments(loan, rate, nPayments, analysisMonths);
-        const salePrice = price * Math.pow(1 + appr, period);
-        const sellingCost = salePrice * 0.06;
-        const equity = salePrice - bal - sellingCost;
-        
-        // Rent costs and investment
-        let totalRent = 0;
-        let investValue = down;
-        let currentRent = rent;
-        for (let y = 1; y <= period; y++) {
-          totalRent += currentRent * 12;
-          // invest down payment grows annually at investReturn
-          investValue *= 1 + investReturn;
-          currentRent *= 1 + rentInc;
-        }
-        
-        const investmentGrowth = investValue - down;
-        
-        // Net costs
-        const netOwn = totalOwnership - equity;
-        const netRent = totalRent - investmentGrowth;
-        const diff = netRent - netOwn;
-        
-        // Update main results
-        document.getElementById('mortgagePay').textContent = formatCurrency(pmt);
-        document.getElementById('ownCost').textContent = formatCurrency(totalOwnership);
-        document.getElementById('rentCost').textContent = formatCurrency(totalRent);
-        document.getElementById('equity').textContent = formatCurrency(equity);
-        
-        // Update difference styling and text
-        const diffCard = document.getElementById('differenceCard');
-        const diffText = document.getElementById('differenceText');
-        if (diff > 0) {
-          diffCard.className = 'difference positive';
-          diffText.textContent = 'Renting costs MORE than buying';
-        } else {
-          diffCard.className = 'difference negative';
-          diffText.textContent = 'Renting costs LESS than buying';
-        }
-        document.getElementById('difference').textContent = formatCurrency(Math.abs(diff));
-        
-        // Update recommendation
-        updateRecommendation(diff, Math.abs(diff), netOwn, netRent, period);
-        
-        // Update breakdowns
-        document.getElementById('downPayment').textContent = formatCurrency(down);
-        document.getElementById('mortgageTotal').textContent = formatCurrency(mortgageTotal);
-        document.getElementById('taxesTotal').textContent = formatCurrency(taxesTotal);
-        document.getElementById('insuranceTotal').textContent = formatCurrency(insuranceTotal);
-        document.getElementById('maintenanceTotal').textContent = formatCurrency(maintenanceTotal);
-        document.getElementById('equityBreakdown').textContent = '-' + formatCurrency(equity);
-        document.getElementById('netOwnBreakdown').textContent = formatCurrency(netOwn);
-        
-        document.getElementById('rentTotal').textContent = formatCurrency(totalRent);
-        document.getElementById('investmentGrowth').textContent = '-' + formatCurrency(investmentGrowth);
-        document.getElementById('netRentBreakdown').textContent = formatCurrency(netRent);
-        
-        // Update calculation details
-        updateCalculationDetails(price, down, pmt, totalOwnership, totalRent, equity, investmentGrowth, netOwn, netRent, diff, period);
-      }
-      
-      function updateRecommendation(diff, absDiff, netOwn, netRent, period) {
-        const recommendationText = document.getElementById('recommendationText');
-        const recommendationDetails = document.getElementById('recommendationDetails');
-        
-        const savingsPercent = ((absDiff / Math.min(netOwn, netRent)) * 100).toFixed(1);
-        const savingsPerYear = absDiff / period;
-        
-        if (diff > 0) {
-          recommendationText.textContent = 'RECOMMENDATION: Buy the Home';
-          recommendationDetails.innerHTML = `
-            <strong>Buying is the better financial choice.</strong><br>
-            You would save <strong>${formatCurrency(absDiff)}</strong> (${savingsPercent}% savings) 
-            over ${period} years by buying instead of renting. That's approximately 
-            <strong>${formatCurrency(savingsPerYear)}</strong> in savings per year. This analysis 
-            assumes the home appreciates as projected and you invest your down payment 
-            at the specified return rate if renting.
-          `;
-        } else {
-          recommendationText.textContent = 'RECOMMENDATION: Continue Renting';
-          recommendationDetails.innerHTML = `
-            <strong>Renting is the better financial choice.</strong><br>
-            You would save <strong>${formatCurrency(absDiff)}</strong> (${savingsPercent}% savings) 
-            over ${period} years by continuing to rent instead of buying. That's approximately 
-            <strong>${formatCurrency(savingsPerYear)}</strong> in savings per year. This assumes 
-            you invest the down payment at the specified return rate, which provides 
-            better returns than the net cost of homeownership.
-          `;
-        }
-      }
-      
-      function updateCalculationDetails(price, down, pmt, totalOwnership, totalRent, equity, investmentGrowth, netOwn, netRent, diff, period) {
-        const detailsDiv = document.getElementById('calculationDetails');
-        
-        const detailsHTML = `
-          <div class="calculation-step">
-            <h4>Buying Cost Calculation</h4>
-            <p>Down Payment: ${formatCurrency(down)}</p>
-            <p>Monthly Mortgage Payment: ${formatCurrency(pmt)}</p>
-            <p>Total Ownership Cost: ${formatCurrency(totalOwnership)}</p>
-            <p>Home Value After ${period} Years: ${formatCurrency(parseNum(document.getElementById('purchasePrice').value) * Math.pow(1 + parseNum(document.getElementById('appreciation').value) / 100, period))}</p>
-            <p>Net Equity at Sale: ${formatCurrency(equity)}</p>
-            <p>Net Cost of Buying: ${formatCurrency(netOwn)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Renting Cost Calculation</h4>
-            <p>Current Monthly Rent: ${formatCurrency(parseNum(document.getElementById('rent').value))}</p>
-            <p>Total Rent Payments: ${formatCurrency(totalRent)}</p>
-            <p>Down Payment Invested: ${formatCurrency(down)}</p>
-            <p>Investment Growth: ${formatCurrency(investmentGrowth)}</p>
-            <p>Net Cost of Renting: ${formatCurrency(netRent)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Mortgage Payment Formula</h4>
-            <p>Monthly Payment = P × [r(1+r)^n] / [(1+r)^n - 1]</p>
-            <p>Where P = Principal, r = Monthly Rate, n = Total Payments</p>
-            <p>Principal: ${formatCurrency(price - down)}</p>
-            <p>Monthly Rate: ${(parseNum(document.getElementById('rateBuy').value) / 12).toFixed(4)}%</p>
-            <p>Total Payments: ${parseNum(document.getElementById('termBuy').value) * 12}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Investment Growth Formula</h4>
-            <p>Future Value = Present Value × (1 + Annual Rate)^Years</p>
-            <p>Initial Investment: ${formatCurrency(down)}</p>
-            <p>Annual Return: ${parseNum(document.getElementById('investmentReturn').value)}%</p>
-            <p>Time Period: ${period} years</p>
-            <p>Final Value: ${formatCurrency(down + investmentGrowth)}</p>
-          </div>
-          
-          <div class="calculation-step">
-            <h4>Final Comparison</h4>
-            <p>Net Cost of Buying: ${formatCurrency(netOwn)}</p>
-            <p>Net Cost of Renting: ${formatCurrency(netRent)}</p>
-            <p>Difference: ${formatCurrency(diff)}</p>
-            <p>${diff > 0 ? 'Renting costs more' : 'Buying costs more'} by ${formatCurrency(Math.abs(diff))}</p>
-          </div>
-        `;
-        
-        detailsDiv.innerHTML = detailsHTML;
-      }
-      
-      // Initialize calculator
-      calcBuyRent();
-    </script>
+    <script src="./buy-vs-rent.js"></script>
   </body>
 </html>
