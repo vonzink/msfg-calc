@@ -1,0 +1,164 @@
+<div class="proc-page">
+
+  <!-- Sidebar nav for processing types -->
+  <aside class="proc-sidebar">
+    <h2 class="proc-sidebar__title">Processing</h2>
+    <nav class="proc-sidebar__nav">
+      <% processingTypes.forEach(pt => { %>
+        <a href="/processing/<%= pt.slug %>"
+           class="proc-sidebar__link<%= pt.slug === processingType.slug ? ' active' : '' %>">
+          <span class="proc-sidebar__icon"><%= pt.icon %></span>
+          <span><%= pt.name %></span>
+        </a>
+      <% }) %>
+    </nav>
+  </aside>
+
+  <!-- Main content area -->
+  <div class="proc-main">
+
+    <!-- Header -->
+    <div class="proc-header">
+      <div class="proc-header__text">
+        <h1>
+          <span class="proc-header__icon"><%= processingType.icon %></span>
+          <%= processingType.name %>
+        </h1>
+        <p class="proc-header__desc"><%= processingType.description %></p>
+      </div>
+      <button class="btn btn-primary" id="procAddNew">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Record
+      </button>
+    </div>
+
+    <!-- Search & filter bar -->
+    <div class="proc-toolbar">
+      <div class="proc-search">
+        <svg class="proc-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="procSearchInput" placeholder="Search by borrower name, loan number, or address..." autocomplete="off">
+      </div>
+      <div class="proc-filters">
+        <select id="procStatusFilter" class="proc-filter-select">
+          <option value="">All Statuses</option>
+          <option value="ordered">Ordered</option>
+          <option value="received">Received</option>
+          <option value="pending">Pending</option>
+          <option value="in-review">In Review</option>
+          <option value="complete">Complete</option>
+          <option value="issue">Issue</option>
+        </select>
+        <select id="procSortBy" class="proc-filter-select">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="borrower">Borrower A–Z</option>
+          <option value="status">Status</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Results table -->
+    <div class="proc-results" id="procResults">
+      <table class="proc-table">
+        <thead>
+          <tr>
+            <th>Borrower</th>
+            <th>Loan #</th>
+            <th>Property</th>
+            <th>Status</th>
+            <th>Ordered</th>
+            <th>Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="procTableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+
+      <!-- Empty state -->
+      <div class="proc-empty" id="procEmpty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <h3>No records yet</h3>
+        <p>Search for existing records or click <strong>New Record</strong> to add one.</p>
+      </div>
+
+      <!-- Loading state -->
+      <div class="proc-loading" id="procLoading" style="display:none;">
+        <div class="proc-spinner"></div>
+        <span>Searching...</span>
+      </div>
+    </div>
+
+    <!-- Pagination (hidden until results) -->
+    <div class="proc-pagination" id="procPagination" style="display:none;">
+      <button class="btn btn-sm btn-secondary" id="procPrevPage" disabled>Previous</button>
+      <span class="proc-pagination__info" id="procPageInfo">Page 1</span>
+      <button class="btn btn-sm btn-secondary" id="procNextPage">Next</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- New Record Modal -->
+<div class="proc-modal-overlay" id="procModalOverlay" style="display:none;">
+  <div class="proc-modal">
+    <div class="proc-modal__header">
+      <h2><%= processingType.icon %> New <%= processingType.name %> Record</h2>
+      <button class="proc-modal__close" id="procModalClose">&times;</button>
+    </div>
+    <div class="proc-modal__body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Borrower Name</label>
+          <input type="text" id="procFieldBorrower" placeholder="Last, First">
+        </div>
+        <div class="form-group">
+          <label>Loan Number</label>
+          <input type="text" id="procFieldLoan" placeholder="e.g. 2025-001234">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>Property Address</label>
+          <input type="text" id="procFieldAddress" placeholder="123 Main St, City, ST 00000">
+        </div>
+        <div class="form-group">
+          <label>Vendor / Company</label>
+          <input type="text" id="procFieldVendor" placeholder="Company name">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="procFieldStatus">
+            <option value="ordered">Ordered</option>
+            <option value="pending">Pending</option>
+            <option value="received">Received</option>
+            <option value="in-review">In Review</option>
+            <option value="complete">Complete</option>
+            <option value="issue">Issue</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Order Date</label>
+          <input type="date" id="procFieldDate">
+        </div>
+        <div class="form-group">
+          <label>Reference / Tracking #</label>
+          <input type="text" id="procFieldRef" placeholder="Optional">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>Notes</label>
+          <textarea id="procFieldNotes" rows="3" placeholder="Additional details..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="proc-modal__footer">
+      <button class="btn btn-secondary" id="procModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="procModalSave">Save Record</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.__processingType = '<%= processingType.slug %>';
+</script>

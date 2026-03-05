@@ -1,0 +1,71 @@
+<div class="hb-page">
+
+  <!-- Sidebar -->
+  <aside class="hb-sidebar" id="hbSidebar">
+    <h2 class="hb-sidebar__title">Handbook</h2>
+
+    <div class="hb-search">
+      <svg class="hb-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="hbSearchInput" placeholder="Search handbook..." autocomplete="off">
+    </div>
+
+    <nav class="hb-sidebar__nav" id="hbSidebarNav">
+      <% docs.forEach((doc, di) => { %>
+        <div class="hb-sidebar__group" data-doc="<%= doc.slug %>">
+          <button class="hb-sidebar__doc-toggle<%= di === 0 ? ' open' : '' %>" data-target="hb-group-<%= doc.slug %>">
+            <svg class="hb-sidebar__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            <span><%= doc.title %></span>
+          </button>
+          <div class="hb-sidebar__sections<%= di === 0 ? ' open' : '' %>" id="hb-group-<%= doc.slug %>">
+            <% doc.sections.forEach(sec => { %>
+              <a href="/handbook/<%= doc.slug %>/<%= sec.slug %>" class="hb-sidebar__link" data-title="<%= sec.title.toLowerCase() %>">
+                <%= sec.title %>
+              </a>
+            <% }) %>
+            <% if (isAdmin) { %>
+              <a href="/handbook/admin/add/<%= doc.slug %>" class="hb-sidebar__link hb-sidebar__add">+ Add Section</a>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="hb-main">
+
+    <div class="hb-header">
+      <h1>Employee Handbook</h1>
+      <p class="hb-header__desc">Company policies, procedures, and state-specific supplements.</p>
+    </div>
+
+    <!-- Search results (hidden by default) -->
+    <div class="hb-search-results" id="hbSearchResults" style="display:none;">
+      <h2 class="hb-search-results__title">Search Results</h2>
+      <div class="hb-search-results__list" id="hbSearchResultsList"></div>
+    </div>
+
+    <!-- TOC overview (shown by default) -->
+    <div class="hb-toc" id="hbToc">
+      <% docs.forEach(doc => { %>
+        <div class="hb-toc__doc">
+          <h2 class="hb-toc__doc-title"><%= doc.title %></h2>
+          <div class="hb-toc__sections">
+            <% doc.sections.forEach(sec => { %>
+              <a href="/handbook/<%= doc.slug %>/<%= sec.slug %>" class="hb-toc__link">
+                <%= sec.title %>
+              </a>
+            <% }) %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+  </div>
+
+  <!-- Mobile sidebar toggle -->
+  <button class="hb-sidebar-toggle" id="hbSidebarToggle" aria-label="Toggle sidebar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+
+</div>

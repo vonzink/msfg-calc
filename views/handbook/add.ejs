@@ -1,0 +1,34 @@
+<div class="hb-page">
+
+  <div class="hb-breadcrumb">
+    <a href="/handbook">Handbook</a>
+    <span class="hb-breadcrumb__sep">/</span>
+    <a href="/handbook#<%= doc.slug %>"><%= doc.title %></a>
+    <span class="hb-breadcrumb__sep">/</span>
+    <span>Add Section</span>
+  </div>
+
+  <div class="hb-form">
+    <h1>Add Section to <%= doc.title %></h1>
+
+    <form method="POST" action="/handbook/admin/add/<%= doc.slug %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="form-group">
+        <label for="hbTitle">Title</label>
+        <input type="text" id="hbTitle" name="title" required class="form-control" placeholder="Section title">
+      </div>
+
+      <div class="form-group">
+        <label for="hbContent">Content</label>
+        <textarea id="hbContent" name="content" rows="24" class="form-control hb-form__textarea" placeholder="Section content..."></textarea>
+      </div>
+
+      <div class="hb-form__actions">
+        <button type="submit" class="btn btn-primary">Add Section</button>
+        <a href="/handbook" class="btn">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+</div>

@@ -1,0 +1,45 @@
+<div class="hb-page">
+
+  <!-- Breadcrumb -->
+  <div class="hb-breadcrumb">
+    <a href="/handbook">Handbook</a>
+    <span class="hb-breadcrumb__sep">/</span>
+    <a href="/handbook#<%= doc.slug %>"><%= doc.title %></a>
+    <span class="hb-breadcrumb__sep">/</span>
+    <span><%= section.title %></span>
+  </div>
+
+  <div class="hb-section">
+
+    <div class="hb-section__header">
+      <h1><%= section.title %></h1>
+      <span class="hb-section__doc-badge"><%= doc.title %></span>
+      <% if (isAdmin) { %>
+        <a href="/handbook/admin/edit/<%= section.id %>" class="btn btn-sm">Edit</a>
+      <% } %>
+    </div>
+
+    <div class="hb-section__content">
+      <%- section.content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') %>
+    </div>
+
+    <div class="hb-section__nav">
+      <% if (prev) { %>
+        <a href="/handbook/<%= doc.slug %>/<%= prev.slug %>" class="hb-section__nav-link hb-section__nav-prev">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <span><%= prev.title %></span>
+        </a>
+      <% } else { %>
+        <span></span>
+      <% } %>
+      <% if (next) { %>
+        <a href="/handbook/<%= doc.slug %>/<%= next.slug %>" class="hb-section__nav-link hb-section__nav-next">
+          <span><%= next.title %></span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      <% } %>
+    </div>
+
+  </div>
+
+</div>

@@ -21,7 +21,7 @@
           <% categories.forEach(cat => { %>
             <div class="site-header__dropdown-group">
               <div class="site-header__dropdown-label"><%= cat.label %></div>
-              <% calculators.filter(c => c.category === cat.id).forEach(calc => { %>
+              <% calculators.filter(c => c.category === cat.id && !c.hideFromNav).forEach(calc => { %>
                 <a href="/calculators/<%= calc.slug %>" class="site-header__dropdown-item">
                   <span class="site-header__dropdown-icon"><%= calc.icon %></span>
                   <%= calc.name %>
@@ -29,6 +29,77 @@
               <% }) %>
             </div>
           <% }) %>
+        </div>
+      </div>
+      <div class="site-header__dropdown">
+        <button class="site-header__link site-header__dropdown-trigger">
+          Programs <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="site-header__dropdown-menu">
+          <div class="site-header__dropdown-group">
+            <div class="site-header__dropdown-label">Conventional</div>
+            <a href="https://selling-guide.fanniemae.com/sel/b/origination-through-closing" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">📘</span>
+              Fannie Mae Selling Guide
+            </a>
+            <a href="https://yourhome.fanniemae.com/calculators-tools/loan-lookup" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">🔍</span>
+              Fannie Mae Loan Lookup
+            </a>
+            <a href="https://ami-lookup-tool.fanniemae.com/" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">📍</span>
+              AMI Lookup Tool
+            </a>
+            <a href="https://guide.freddiemac.com/" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">📗</span>
+              Freddie Mac Guide
+            </a>
+            <a href="https://sf.freddiemac.com/working-with-us/affordable-lending/home-possible-eligibility-map" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">🗺️</span>
+              Home Possible Eligibility Map
+            </a>
+          </div>
+          <div class="site-header__dropdown-group">
+            <div class="site-header__dropdown-label">VA</div>
+            <a href="https://www.benefits.va.gov/homeloans/index.asp" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">🎖️</span>
+              VA Home Loans
+            </a>
+            <a href="https://www.va.gov/vapubs/search_action.cfm?dType=2" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">📄</span>
+              VA Publications
+            </a>
+            <a href="https://lgy.va.gov/lgyhub/" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">🏛️</span>
+              LGY Hub
+            </a>
+            <a href="https://yourit.va.gov/csm?id=rlc_test_test&sysparam_card=lender_appraisal" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">📋</span>
+              VA Appraisal Portal
+            </a>
+          </div>
+          <div class="site-header__dropdown-group">
+            <div class="site-header__dropdown-label">USDA</div>
+            <a href="https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do" target="_blank" rel="noopener" class="site-header__dropdown-item">
+              <span class="site-header__dropdown-icon">🌾</span>
+              USDA Eligibility Map
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="site-header__dropdown">
+        <button class="site-header__link site-header__dropdown-trigger<%= currentPath.startsWith('/handbook') || currentPath.startsWith('/processing') ? ' active' : '' %>">
+          HR <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="site-header__dropdown-menu">
+          <a href="/handbook" class="site-header__dropdown-item">
+            <span class="site-header__dropdown-icon">📖</span>
+            Employee Handbook
+          </a>
+          <a href="/processing/title" class="site-header__dropdown-item">
+            <span class="site-header__dropdown-icon">📋</span>
+            Processing
+          </a>
         </div>
       </div>
       <a href="/report" class="site-header__link site-header__report-link<%= currentPath === '/report' ? ' active' : '' %>" title="Session Report">
