@@ -38,26 +38,6 @@ function migrate(db) {
 
     CREATE INDEX IF NOT EXISTS idx_proc_type   ON processing_records(type);
     CREATE INDEX IF NOT EXISTS idx_proc_status ON processing_records(type, status);
-
-    CREATE TABLE IF NOT EXISTS handbook_documents (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      slug       TEXT    NOT NULL UNIQUE,
-      title      TEXT    NOT NULL,
-      sort_order INTEGER NOT NULL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS handbook_sections (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      document_id INTEGER NOT NULL REFERENCES handbook_documents(id),
-      slug        TEXT    NOT NULL,
-      title       TEXT    NOT NULL,
-      content     TEXT    NOT NULL DEFAULT '',
-      sort_order  INTEGER NOT NULL DEFAULT 0,
-      updated_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-      UNIQUE(document_id, slug)
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_hb_doc ON handbook_sections(document_id);
   `);
 }
 
@@ -173,86 +153,11 @@ function deleteRecord(id) {
   return result.changes > 0;
 }
 
-/* ---- Handbook helpers ---- */
-
-function getHandbookDocuments() {
-  return getDb().prepare('SELECT * FROM handbook_documents ORDER BY sort_order').all();
-}
-
-function getHandbookDocument(slug) {
-  return getDb().prepare('SELECT * FROM handbook_documents WHERE slug = ?').get(slug);
-}
-
-function getHandbookSections(documentId) {
-  return getDb().prepare('SELECT * FROM handbook_sections WHERE document_id = ? ORDER BY sort_order').all(documentId);
-}
-
-function getHandbookSection(id) {
-  return getDb().prepare(
-    `SELECT s.*, d.slug AS doc_slug, d.title AS doc_title
-     FROM handbook_sections s
-     JOIN handbook_documents d ON d.id = s.document_id
-     WHERE s.id = ?`
-  ).get(id);
-}
-
-function getHandbookSectionBySlugs(docSlug, sectionSlug) {
-  return getDb().prepare(
-    `SELECT s.*, d.slug AS doc_slug, d.title AS doc_title
-     FROM handbook_sections s
-     JOIN handbook_documents d ON d.id = s.document_id
-     WHERE d.slug = ? AND s.slug = ?`
-  ).get(docSlug, sectionSlug);
-}
-
-function updateHandbookSection(id, { title, content }) {
-  const db = getDb();
-  db.prepare(
-    `UPDATE handbook_sections SET title = @title, content = @content, updated_at = datetime('now') WHERE id = @id`
-  ).run({ id, title, content });
-  return getHandbookSection(id);
-}
-
-function createHandbookSection(documentId, { title, slug, content, sortOrder }) {
-  const db = getDb();
-  const result = db.prepare(
-    `INSERT INTO handbook_sections (document_id, title, slug, content, sort_order)
-     VALUES (@documentId, @title, @slug, @content, @sortOrder)`
-  ).run({ documentId, title, slug, content: content || '', sortOrder: sortOrder || 0 });
-  return getHandbookSection(result.lastInsertRowid);
-}
-
-function deleteHandbookSection(id) {
-  const result = getDb().prepare('DELETE FROM handbook_sections WHERE id = ?').run(id);
-  return result.changes > 0;
-}
-
-function searchHandbook(query) {
-  const db = getDb();
-  const q = '%' + query + '%';
-  return db.prepare(
-    `SELECT s.*, d.slug AS doc_slug, d.title AS doc_title
-     FROM handbook_sections s
-     JOIN handbook_documents d ON d.id = s.document_id
-     WHERE s.title LIKE @q OR s.content LIKE @q
-     ORDER BY d.sort_order, s.sort_order`
-  ).all({ q });
-}
-
 module.exports = {
   getDb,
   searchRecords,
   getRecord,
   createRecord,
   updateRecord,
-  deleteRecord,
-  getHandbookDocuments,
-  getHandbookDocument,
-  getHandbookSections,
-  getHandbookSection,
-  getHandbookSectionBySlugs,
-  updateHandbookSection,
-  createHandbookSection,
-  deleteHandbookSection,
-  searchHandbook
+  deleteRecord
 };
