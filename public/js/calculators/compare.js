@@ -467,7 +467,12 @@
     const downPayment = v('cmpDownPayment_' + idx);
     const sellerCredits = v('cmpSellerCredits_' + idx);
     const lenderCredits = v('cmpLenderCredits_' + idx);
-    const cashToClose = downPayment + totalClosing - sellerCredits - lenderCredits;
+    const purposeEl = el('cmpPurpose_' + idx);
+    const purpose = purposeEl ? purposeEl.value : 'Purchase';
+    const isRefi = purpose.indexOf('Refinance') !== -1 || purpose === 'Refinance';
+    const cashToClose = isRefi
+      ? totalClosing - loanAmount - sellerCredits - lenderCredits
+      : downPayment + totalClosing - sellerCredits - lenderCredits;
     setText('cmpCashToClose_' + idx, fmt(cashToClose));
 
     // Total monthly payment
