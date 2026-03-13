@@ -1145,40 +1145,7 @@
         html += '</div></div>';
       }
 
-      /* Dates grouped by category */
-      var categories = ['milestone', 'deadline', 'lock', 'contingency', 'condition', 'turntime'];
-      html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Dates</h4>';
-      categories.forEach(function (cat) {
-        var catDates = dates.filter(function (d) { return d.category === cat && d.visible; });
-        if (!catDates.length) return;
-        var color = LT_CATEGORY_COLORS[cat] || '#888';
-        var label = LT_CATEGORY_LABELS[cat] || cat;
-        html += '<table class="rpt-table rpt-table--compact" style="margin-bottom:8px"><thead><tr>';
-        html += '<th>' + dot(color) + label + '</th><th class="rpt-num" style="width:140px">Date</th>';
-        html += '</tr></thead><tbody>';
-        catDates.forEach(function (d) {
-          var style = d.date ? '' : ' style="color:#999"';
-          html += '<tr><td>' + MSFG.escHtml(d.label) + '</td>';
-          html += '<td class="rpt-num"' + style + '>' + formatDate(d.date) + '</td></tr>';
-        });
-        html += '</tbody></table>';
-      });
-
-      /* Custom dates */
-      if (customDates.length) {
-        html += '<table class="rpt-table rpt-table--compact" style="margin-bottom:8px"><thead><tr>';
-        html += '<th>Custom Dates</th><th class="rpt-num" style="width:140px">Date</th>';
-        html += '</tr></thead><tbody>';
-        customDates.forEach(function (d) {
-          var color = LT_CATEGORY_COLORS[d.category] || '#888';
-          html += '<tr><td>' + dot(color) + MSFG.escHtml(d.label) + '</td>';
-          html += '<td class="rpt-num">' + formatDate(d.date) + '</td></tr>';
-        });
-        html += '</tbody></table>';
-      }
-      html += '</div>';
-
-      /* Mini Calendar */
+      /* Calendar */
       var allDates = [];
       dates.forEach(function (d) { if (d.date && d.visible) allDates.push({ date: d.date, cat: d.category, label: d.label }); });
       customDates.forEach(function (d) { if (d.date) allDates.push({ date: d.date, cat: d.category, label: d.label }); });
@@ -1193,7 +1160,7 @@
         var monthKeys = Object.keys(monthSet).sort();
 
         html += '<div class="rpt-section"><h4 class="rpt-section-title">Calendar</h4>';
-        html += '<div style="display:flex;flex-wrap:wrap;gap:16px">';
+        html += '<div style="display:flex;flex-direction:column;gap:20px">';
 
         monthKeys.forEach(function (mk) {
           var parts = mk.split('-');
@@ -1214,7 +1181,7 @@
             }
           });
 
-          html += '<div style="flex:0 0 auto;min-width:280px;max-width:360px">';
+          html += '<div style="width:100%">';
           html += '<div style="font-weight:700;font-size:0.9rem;margin-bottom:4px;text-align:center">' + months[month] + ' ' + year + '</div>';
           html += '<table style="border-collapse:collapse;font-size:0.72rem;width:100%">';
           html += '<thead><tr>';
@@ -1319,49 +1286,6 @@
         var infoBody = [[{ text: 'Loan Information', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
         infoRows.forEach(function (r) { infoBody.push([r[0], { text: r[1], alignment: 'right' }]); });
         content.push({ table: { headerRows: 1, widths: ['*', 160], body: infoBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 8] });
-      }
-
-      /* Dates by category */
-      var categories = ['milestone', 'deadline', 'lock', 'contingency', 'condition', 'turntime'];
-      categories.forEach(function (cat) {
-        var catDates = dates.filter(function (d) { return d.category === cat && d.visible; });
-        if (!catDates.length) return;
-        var label = LT_CATEGORY_LABELS[cat] || cat;
-        var color = LT_CATEGORY_COLORS[cat] || '#888';
-        var body = [[
-          { text: label, fontSize: 8, bold: true, color: color },
-          { text: 'Date', fontSize: 8, bold: true, alignment: 'right', color: '#888' }
-        ]];
-        catDates.forEach(function (d) {
-          body.push([
-            { text: d.label, fontSize: 8 },
-            { text: formatDate(d.date), fontSize: 8, alignment: 'right', color: d.date ? '#333' : '#999' }
-          ]);
-        });
-        content.push({
-          table: { headerRows: 1, widths: ['*', 100], body: body },
-          layout: { hLineWidth: function () { return 0.5; }, vLineWidth: function () { return 0; }, hLineColor: function () { return '#e0e0e0'; }, paddingLeft: function () { return 6; }, paddingRight: function () { return 6; }, paddingTop: function () { return 3; }, paddingBottom: function () { return 3; } },
-          margin: [0, 0, 0, 4]
-        });
-      });
-
-      /* Custom dates */
-      if (customDates.length) {
-        var cdBody = [[
-          { text: 'Custom Dates', fontSize: 8, bold: true },
-          { text: 'Date', fontSize: 8, bold: true, alignment: 'right', color: '#888' }
-        ]];
-        customDates.forEach(function (d) {
-          cdBody.push([
-            { text: d.label, fontSize: 8, color: LT_CATEGORY_COLORS[d.category] || '#888' },
-            { text: formatDate(d.date), fontSize: 8, alignment: 'right' }
-          ]);
-        });
-        content.push({
-          table: { headerRows: 1, widths: ['*', 100], body: cdBody },
-          layout: { hLineWidth: function () { return 0.5; }, vLineWidth: function () { return 0; }, hLineColor: function () { return '#e0e0e0'; }, paddingLeft: function () { return 6; }, paddingRight: function () { return 6; }, paddingTop: function () { return 3; }, paddingBottom: function () { return 3; } },
-          margin: [0, 0, 0, 4]
-        });
       }
 
       /* TRID Alerts */
