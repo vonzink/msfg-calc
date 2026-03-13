@@ -147,6 +147,7 @@
 }
 .mismo-doc-item--required    { background: #ffebee; border-left-color: #c62828; }
 .mismo-doc-item--conditional { background: #fff3e0; border-left-color: #e65100; }
+.mismo-doc-item--incomplete  { background: #e3f2fd; border-left-color: #1565c0; }
 .mismo-doc-item--ok          { background: #e8f5e9; border-left-color: #2e7d32; }
 
 .mismo-doc-item__status {

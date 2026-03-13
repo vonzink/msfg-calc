@@ -186,7 +186,7 @@
   }
 
   function loadTemplates() {
-    if (_templatesLoaded || (MSFG.ReportTemplates && MSFG.ReportTemplates.extractors)) {
+    if (_templatesLoaded || (MSFG.ReportTemplates && MSFG.ReportTemplates.extractors && Object.keys(MSFG.ReportTemplates.extractors).length > 0)) {
       _templatesLoaded = true;
       return Promise.resolve();
     }

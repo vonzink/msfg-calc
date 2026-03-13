@@ -738,9 +738,11 @@
       const items = checklistState[key];
       const required = items.filter(function (i) { return i.status === 'required'; }).length;
       const conditional = items.filter(function (i) { return i.status === 'conditional'; }).length;
+      const incomplete = items.filter(function (i) { return i.status === 'incomplete'; }).length;
       const parts = [];
       if (required > 0) parts.push(required + ' required');
       if (conditional > 0) parts.push(conditional + ' conditional');
+      if (incomplete > 0) parts.push(incomplete + ' incomplete');
       countEl.textContent = parts.length > 0 ? '(' + parts.join(', ') + ')' : '';
     });
   }
@@ -753,7 +755,7 @@
     // Status select
     const statusSelect = document.createElement('select');
     statusSelect.className = 'mismo-doc-item__status';
-    ['required', 'conditional', 'ok'].forEach(function (s) {
+    ['required', 'conditional', 'incomplete', 'ok'].forEach(function (s) {
       const opt = document.createElement('option');
       opt.value = s;
       opt.textContent = s.charAt(0).toUpperCase() + s.slice(1);

@@ -133,13 +133,14 @@
       data.sections.forEach(function (sec) {
         if (!sec.items || !sec.items.length) return;
         html += '<div class="rpt-section"><h4 class="rpt-section-title">' + esc(sec.title) + '</h4>';
-        html += '<table class="rpt-table"><thead><tr><th style="width:50px">Status</th><th>Document</th><th>Reason</th></tr></thead><tbody>';
+        html += '<table class="rpt-table"><thead><tr><th style="width:90px">Status</th><th>Document</th><th>Reason</th></tr></thead><tbody>';
         sec.items.forEach(function (item) {
-          var icon = '\u25CF'; var color = '#c62828';
-          if (item.status === 'ok') { icon = '\u2713'; color = '#2e7d32'; }
-          else if (item.status === 'conditional') { icon = '\u25B2'; color = '#e65100'; }
+          var label = 'Required'; var color = '#c62828';
+          if (item.status === 'ok') { label = 'OK'; color = '#2e7d32'; }
+          else if (item.status === 'conditional') { label = 'Conditional'; color = '#e65100'; }
+          else if (item.status === 'incomplete') { label = 'Incomplete'; color = '#1565c0'; }
           html += '<tr>';
-          html += '<td style="text-align:center;color:' + color + ';font-weight:700">' + icon + '</td>';
+          html += '<td style="text-align:center;color:' + color + ';font-weight:700;font-size:0.82em">' + label + '</td>';
           html += '<td>' + esc(item.name) + '</td>';
           html += '<td style="font-size:0.85em;color:#666">' + esc(item.reason) + '</td>';
           html += '</tr>';
@@ -202,17 +203,18 @@
            { text: 'Reason', style: 'tableHeader' }]
         ];
         sec.items.forEach(function (item) {
-          var icon = '\u25CF'; var color = '#c62828';
-          if (item.status === 'ok') { icon = '\u2713'; color = '#2e7d32'; }
-          else if (item.status === 'conditional') { icon = '\u25B2'; color = '#e65100'; }
+          var label = 'Required'; var color = '#c62828';
+          if (item.status === 'ok') { label = 'OK'; color = '#2e7d32'; }
+          else if (item.status === 'conditional') { label = 'Conditional'; color = '#e65100'; }
+          else if (item.status === 'incomplete') { label = 'Incomplete'; color = '#1565c0'; }
           body.push([
-            { text: icon, alignment: 'center', color: color, bold: true },
+            { text: label, alignment: 'center', color: color, bold: true, fontSize: 8 },
             { text: item.name, fontSize: 9 },
             { text: item.reason, fontSize: 8, color: '#666' }
           ]);
         });
         content.push({
-          table: { headerRows: 1, widths: [30, '*', '*'], body: body },
+          table: { headerRows: 1, widths: [65, '*', '*'], body: body },
           layout: 'lightHorizontalLines'
         });
       });
