@@ -16,7 +16,15 @@
   try { cfg = JSON.parse(reportPageEl.dataset.siteConfig || '{}'); } catch (e) { /* ignore */ }
   var COMPANY_NAME = cfg.companyName || 'Mountain State Financial Group LLC';
   var COMPANY = COMPANY_NAME + (cfg.nmls ? ', NMLS# ' + cfg.nmls : '');
-  var LOGO_URL = cfg.logo || '/images/msfg-logo.png';
+  // Detect base path for subpath deployments (e.g. /calc/ on dashboard.msfgco.com)
+  var basePath = '';
+  var rpScript = document.querySelector('script[src*="report-page"]');
+  if (rpScript && rpScript.src) {
+    var m = rpScript.src.match(/^https?:\/\/[^/]+(\/.*?)\/js\/report-page/);
+    if (m && m[1]) basePath = m[1];
+  }
+  var rawLogo = cfg.logo || '/images/msfg-logo.png';
+  var LOGO_URL = rawLogo.charAt(0) === '/' ? basePath + rawLogo : rawLogo;
   var DOMAIN = cfg.domain || 'msfginfo.com';
   var EHL_URL = cfg.equalHousingLogo || '';
 

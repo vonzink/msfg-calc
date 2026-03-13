@@ -1,4 +1,4 @@
-/* Report template: MISMO Document Analyzer — Enhanced */
+/* Report template: Conditions & Documents */
 (function () {
   'use strict';
   var RT = MSFG.ReportTemplates;

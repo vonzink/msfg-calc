@@ -33,7 +33,7 @@ const generalCalcs = [
   { slug: 'fee-worksheet',  view: 'calculators/fee-worksheet',  title: 'Fee Worksheet',              css: 'fee-worksheet' },
   { slug: 'compare',        view: 'calculators/compare',        title: 'Loan Comparison',            css: 'compare', preScripts: ['/js/shared/mismo-parser.js'] },
   { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' },
-  { slug: 'mismo',          view: 'calculators/mismo',          title: 'MISMO Document Analyzer',    css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js', '/js/calculators/mismo-docs.js', '/js/calculators/mismo-ui.js'] },
+  { slug: 'mismo',          view: 'calculators/mismo',          title: 'Conditions & Documents',     css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js', '/js/calculators/mismo-docs.js', '/js/calculators/mismo-ui.js'] },
   { slug: 'loan-timeline',  view: 'calculators/loan-timeline',  title: 'Loan Timeline',              css: 'loan-timeline', preScripts: ['/js/shared/mismo-parser.js'] }
 ];
 
