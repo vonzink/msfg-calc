@@ -85,6 +85,15 @@
   border-style: dashed;
 }
 
+/* Default / unpopulated field indicator */
+.is-default {
+  color: var(--color-gray-400) !important;
+}
+.is-default::placeholder {
+  color: var(--color-gray-400);
+  font-style: italic;
+}
+
 .form-group small {
   font-size: 0.78rem;
   color: var(--color-gray-500);

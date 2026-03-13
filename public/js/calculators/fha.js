@@ -815,6 +815,9 @@ const FhaCalc = (() => {
      Init
      =========================================================== */
   document.addEventListener('DOMContentLoaded', () => {
+    MSFG.markDefaults('.calc-page');
+    MSFG.bindDefaultClearing('.calc-page');
+
     // Set current date
     const today = new Date().toISOString().split('T')[0];
     const cdEl = el('fhaCurrentDate');

@@ -10,6 +10,8 @@
     <!-- Page-Specific Styles -->
     <link rel="stylesheet" href="css/refi-calc.css">
 
+    <style>.is-default{color:#adb5bd!important}.is-default::placeholder{color:#adb5bd;font-style:italic}</style>
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
 </head>
@@ -40,19 +42,19 @@
                 <div class="input-grid">
                     <div class="input-group">
                         <label for="currentBalance">Current Loan Balance ($)</label>
-                        <input type="number" id="currentBalance" value="485000" min="0" step="1000">
+                        <input type="number" id="currentBalance" value="0" placeholder="Current balance" min="0" step="1000">
                     </div>
                     <div class="input-group">
                         <label for="currentRate">Current Interest Rate (%)</label>
-                        <input type="number" id="currentRate" value="6.875" min="0" max="20" step="0.125">
+                        <input type="number" id="currentRate" value="0" placeholder="Current rate" min="0" max="20" step="0.125">
                     </div>
                     <div class="input-group">
                         <label for="currentTermRemaining">Remaining Term (months)</label>
-                        <input type="number" id="currentTermRemaining" value="348" min="1" max="480" step="1">
+                        <input type="number" id="currentTermRemaining" value="0" placeholder="Months remaining" min="1" max="480" step="1">
                     </div>
                     <div class="input-group">
                         <label for="currentPropertyValue">Property Value ($)</label>
-                        <input type="number" id="currentPropertyValue" value="660000" min="0" step="1000">
+                        <input type="number" id="currentPropertyValue" value="0" placeholder="Property value" min="0" step="1000">
                     </div>
                     <div class="input-group">
                         <label for="monthlyEscrow">Mo. Escrow — T&I ($)</label>
@@ -140,15 +142,15 @@
                 <div class="input-grid">
                     <div class="input-group">
                         <label for="refiLoanAmount">New Loan Amount ($)</label>
-                        <input type="number" id="refiLoanAmount" value="485000" min="0" step="1000">
+                        <input type="number" id="refiLoanAmount" value="0" placeholder="New loan amount" min="0" step="1000">
                     </div>
                     <div class="input-group">
                         <label for="refiRate">New Interest Rate (%)</label>
-                        <input type="number" id="refiRate" value="5.750" min="0" max="20" step="0.125">
+                        <input type="number" id="refiRate" value="0" placeholder="New rate" min="0" max="20" step="0.125">
                     </div>
                     <div class="input-group">
                         <label for="refiTerm">New Loan Term (months)</label>
-                        <input type="number" id="refiTerm" value="360" min="1" max="480" step="1">
+                        <input type="number" id="refiTerm" value="0" placeholder="Term in months" min="1" max="480" step="1">
                     </div>
                     <div class="input-group">
                         <label for="refiLoanType">Loan Type</label>
@@ -314,35 +316,35 @@
                         <div class="fee-grid">
                             <div class="fee-item">
                                 <label for="feeAppraisal">Appraisal Fee ($)</label>
-                                <input type="number" id="feeAppraisal" value="850" min="0" step="1">
+                                <input type="number" id="feeAppraisal" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeCreditReport">Credit Report Fee ($)</label>
-                                <input type="number" id="feeCreditReport" value="145" min="0" step="1">
+                                <input type="number" id="feeCreditReport" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeFloodCert">Flood Certification ($)</label>
-                                <input type="number" id="feeFloodCert" value="13.50" min="0" step="0.01">
+                                <input type="number" id="feeFloodCert" value="0" placeholder="Fee amount" min="0" step="0.01">
                             </div>
                             <div class="fee-item">
                                 <label for="feeMERS">MERS Registration Fee ($)</label>
-                                <input type="number" id="feeMERS" value="24.95" min="0" step="0.01">
+                                <input type="number" id="feeMERS" value="0" placeholder="Fee amount" min="0" step="0.01">
                             </div>
                             <div class="fee-item">
                                 <label for="feeTaxService">Tax Related Service Fee ($)</label>
-                                <input type="number" id="feeTaxService" value="90" min="0" step="1">
+                                <input type="number" id="feeTaxService" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeTechnology">Technology Fee ($)</label>
-                                <input type="number" id="feeTechnology" value="100" min="0" step="1">
+                                <input type="number" id="feeTechnology" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeVOE">Verification of Employment Fee ($)</label>
-                                <input type="number" id="feeVOE" value="110" min="0" step="1">
+                                <input type="number" id="feeVOE" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeVOT">Verification of Tax Return Fee ($)</label>
-                                <input type="number" id="feeVOT" value="50" min="0" step="1">
+                                <input type="number" id="feeVOT" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                         </div>
                         <div class="total-row">
@@ -357,23 +359,23 @@
                         <div class="fee-grid">
                             <div class="fee-item">
                                 <label for="feeERecording">E-Recording Fee ($)</label>
-                                <input type="number" id="feeERecording" value="12" min="0" step="1">
+                                <input type="number" id="feeERecording" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeTitleCPL">Title - Closing Protection Letter Fee ($)</label>
-                                <input type="number" id="feeTitleCPL" value="25" min="0" step="1">
+                                <input type="number" id="feeTitleCPL" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeTitleLenders">Title - Lenders Coverage Premium ($)</label>
-                                <input type="number" id="feeTitleLenders" value="750" min="0" step="1">
+                                <input type="number" id="feeTitleLenders" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeTitleSettlement">Title - Settlement Fee ($)</label>
-                                <input type="number" id="feeTitleSettlement" value="300" min="0" step="1">
+                                <input type="number" id="feeTitleSettlement" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                             <div class="fee-item">
                                 <label for="feeTitleTaxCert">Title - Tax Cert Fee ($)</label>
-                                <input type="number" id="feeTitleTaxCert" value="50" min="0" step="1">
+                                <input type="number" id="feeTitleTaxCert" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                         </div>
                         <div class="total-row">
@@ -388,7 +390,7 @@
                         <div class="fee-grid">
                             <div class="fee-item">
                                 <label for="feeRecording">Recording Fee for Deed ($)</label>
-                                <input type="number" id="feeRecording" value="195" min="0" step="1">
+                                <input type="number" id="feeRecording" value="0" placeholder="Fee amount" min="0" step="1">
                             </div>
                         </div>
                         <div class="total-row">
@@ -498,7 +500,7 @@
                         </div>
                         <div class="input-group">
                             <label for="monthsToWait">Months Until Future Rate Available</label>
-                            <input type="number" id="monthsToWait" value="6" min="1" max="60" step="1">
+                            <input type="number" id="monthsToWait" value="0" placeholder="Months" min="1" max="60" step="1">
                         </div>
                         <div class="input-group">
                             <label for="futureMIInput">Expected Monthly MI</label>
@@ -541,12 +543,12 @@
                 <div class="input-grid">
                     <div class="input-group">
                         <label for="targetBreakeven">Target Breakeven Threshold (months)</label>
-                        <input type="number" id="targetBreakeven" value="36" min="1" max="120" step="1">
+                        <input type="number" id="targetBreakeven" value="0" placeholder="Months" min="1" max="120" step="1">
                         <span class="form-note">Refinancing is favorable if breakeven is at or below this number of months</span>
                     </div>
                     <div class="input-group">
                         <label for="planToStayMonths">How Long Borrower Plans to Stay (months)</label>
-                        <input type="number" id="planToStayMonths" value="84" min="1" max="480" step="1">
+                        <input type="number" id="planToStayMonths" value="0" placeholder="Months" min="1" max="480" step="1">
                         <span class="form-note">Used to calculate total savings over the remaining time in the home</span>
                     </div>
                 </div>
@@ -922,6 +924,18 @@
 <script>window.__calcSlug = 'refi';</script>
 <script src="/js/shared/report-templates.js"></script>
 <script src="/js/shared/report.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+    if (el.readOnly || el.type === 'hidden') return;
+    var v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+  });
+});
+</script>
 
 </body>
 </html>

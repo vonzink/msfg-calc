@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Buy vs Rent Calculator</title>
     <link rel="stylesheet" href="/css/main.css" />
+    <style>
+      .is-default { color: #adb5bd !important; }
+      .is-default::placeholder { color: #adb5bd; font-style: italic; }
+    </style>
   </head>
   <body>
     <div class="main-container">
@@ -26,19 +30,19 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="purchasePrice">Purchase Price ($)</label>
-              <input type="number" id="purchasePrice" value="300000" class="input-highlight" />
+              <input type="number" id="purchasePrice" value="0" placeholder="Purchase price" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="downPercent">Down Payment (%)</label>
-              <input type="number" id="downPercent" value="20" class="input-highlight" />
+              <input type="number" id="downPercent" value="0" placeholder="Down %" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="rateBuy">Interest Rate (%)</label>
-              <input type="number" id="rateBuy" value="4" step="0.01" class="input-highlight" />
+              <input type="number" id="rateBuy" value="0" placeholder="Rate" step="0.01" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="termBuy">Loan Term (years)</label>
-              <input type="number" id="termBuy" value="30" class="input-highlight" />
+              <input type="number" id="termBuy" value="0" placeholder="Years" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -48,19 +52,19 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="taxRate">Property Tax Rate (%)</label>
-              <input type="number" id="taxRate" value="1.0" step="0.01" class="input-highlight" />
+              <input type="number" id="taxRate" value="0" placeholder="Tax rate" step="0.01" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="insurance">Annual Insurance ($)</label>
-              <input type="number" id="insurance" value="1200" class="input-highlight" />
+              <input type="number" id="insurance" value="0" placeholder="Annual insurance" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="maintenance">Annual Maintenance ($)</label>
-              <input type="number" id="maintenance" value="1500" class="input-highlight" />
+              <input type="number" id="maintenance" value="0" placeholder="Annual maintenance" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="appreciation">Home Appreciation Rate (%)</label>
-              <input type="number" id="appreciation" value="3" step="0.01" class="input-highlight" />
+              <input type="number" id="appreciation" value="0" placeholder="Appreciation %" step="0.01" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -70,19 +74,19 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="rent">Current Monthly Rent ($)</label>
-              <input type="number" id="rent" value="1500" class="input-highlight" />
+              <input type="number" id="rent" value="0" placeholder="Monthly rent" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="rentIncrease">Rent Increase Rate (%)</label>
-              <input type="number" id="rentIncrease" value="2.5" step="0.01" class="input-highlight" />
+              <input type="number" id="rentIncrease" value="0" placeholder="Increase %" step="0.01" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="period">Analysis Period (years)</label>
-              <input type="number" id="period" value="5" class="input-highlight" />
+              <input type="number" id="period" value="0" placeholder="Years" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="investmentReturn">Investment Return on Down Payment (%)</label>
-              <input type="number" id="investmentReturn" value="4" step="0.01" class="input-highlight" />
+              <input type="number" id="investmentReturn" value="0" placeholder="Return %" step="0.01" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -201,5 +205,17 @@
       </div>
     </div>
     <script src="./buy-vs-rent.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+    if (el.readOnly || el.type === 'hidden') return;
+    var v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+  });
+});
+</script>
   </body>
 </html>

@@ -1214,33 +1214,35 @@
             }
           });
 
-          html += '<div style="flex:0 0 auto;min-width:220px">';
-          html += '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px;text-align:center">' + months[month] + ' ' + year + '</div>';
+          html += '<div style="flex:0 0 auto;min-width:280px;max-width:360px">';
+          html += '<div style="font-weight:700;font-size:0.9rem;margin-bottom:4px;text-align:center">' + months[month] + ' ' + year + '</div>';
           html += '<table style="border-collapse:collapse;font-size:0.72rem;width:100%">';
           html += '<thead><tr>';
           ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(function (d) {
-            html += '<th style="padding:2px 4px;text-align:center;color:#888;font-weight:600">' + d + '</th>';
+            html += '<th style="padding:3px 2px;text-align:center;color:#888;font-weight:600;border-bottom:1px solid #e0e0e0">' + d + '</th>';
           });
           html += '</tr></thead><tbody><tr>';
 
           /* Leading empty cells */
           for (var e = 0; e < firstDay; e++) {
-            html += '<td style="padding:2px"></td>';
+            html += '<td style="padding:2px;border:1px solid #f0f0f0"></td>';
           }
 
           for (var d = 1; d <= daysInMonth; d++) {
             var cellIdx = (firstDay + d - 1) % 7;
             var isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
-            var bg = isToday ? '#f0fdf4' : '';
-            html += '<td style="padding:2px 3px;text-align:center;vertical-align:top;min-width:28px;' + (bg ? 'background:' + bg + ';' : '') + '">';
-            html += '<div style="font-size:0.7rem;' + (isToday ? 'font-weight:700;color:#22c55e' : '') + '">' + d + '</div>';
+            var hasEvents = !!eventsInMonth[d];
+            var bg = isToday ? '#f0fdf4' : (hasEvents ? '#fafafa' : '');
+            html += '<td style="padding:2px 3px;text-align:left;vertical-align:top;min-width:36px;min-height:40px;border:1px solid #f0f0f0;' + (bg ? 'background:' + bg + ';' : '') + '">';
+            html += '<div style="font-size:0.7rem;margin-bottom:1px;' + (isToday ? 'font-weight:700;color:#22c55e' : 'color:#666') + '">' + d + '</div>';
             if (eventsInMonth[d]) {
-              html += '<div style="display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:1px">';
               eventsInMonth[d].forEach(function (ev) {
                 var color = LT_CATEGORY_COLORS[ev.cat] || '#888';
-                html += '<span title="' + MSFG.escHtml(ev.label) + '" style="width:6px;height:6px;border-radius:50%;background:' + color + ';display:inline-block"></span>';
+                html += '<div style="display:flex;align-items:center;gap:2px;margin-bottom:1px;line-height:1.1">';
+                html += '<span style="width:6px;height:6px;min-width:6px;border-radius:50%;background:' + color + ';display:inline-block"></span>';
+                html += '<span style="font-size:0.58rem;color:' + color + ';font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">' + MSFG.escHtml(ev.label) + '</span>';
+                html += '</div>';
               });
-              html += '</div>';
             }
             html += '</td>';
             if (cellIdx === 6 && d < daysInMonth) html += '</tr><tr>';
@@ -1249,7 +1251,7 @@
           /* Trailing empty cells */
           var lastCellIdx = (firstDay + daysInMonth - 1) % 7;
           for (var t = lastCellIdx + 1; t < 7; t++) {
-            html += '<td style="padding:2px"></td>';
+            html += '<td style="padding:2px;border:1px solid #f0f0f0"></td>';
           }
           html += '</tr></tbody></table></div>';
         });

@@ -228,6 +228,9 @@
 
   /* ---- Init ---- */
   document.addEventListener('DOMContentLoaded', function() {
+    MSFG.markDefaults('.calc-page');
+    MSFG.bindDefaultClearing('.calc-page');
+
     // Set default body text
     el('laBody').value = DEFAULT_BODY;
 

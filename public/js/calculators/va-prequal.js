@@ -144,6 +144,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+    MSFG.markDefaults('.calc-page');
+    MSFG.bindDefaultClearing('.calc-page');
+
     // Build interest rate dropdown
     const sel = document.getElementById('interestRate');
     Object.keys(piFactors).sort(function(a,b){return parseFloat(a)-parseFloat(b);}).forEach(function(rate) {

@@ -6,6 +6,9 @@
   <title>LLPA / LLPM Calculator - MSFG Home Loans</title>
   <link rel="stylesheet" href="/css/main.css" />
 <style>
+    .is-default { color: #adb5bd !important; }
+    .is-default::placeholder { color: #adb5bd; font-style: italic; }
+
     /* LLPA Tool Specific Styles (inherits main.css) */
     .chips-row { display:flex; flex-wrap:wrap; gap:.75rem; margin: 0 0 1.25rem 0; }
     .chip {
@@ -80,17 +83,17 @@
         <div class="input-grid">
           <div class="input-group">
             <label>Loan Amount</label>
-            <input id="loanAmount" type="number" value="400000" min="0" step="1000" />
+            <input id="loanAmount" type="number" value="0" placeholder="Loan amount" min="0" step="1000" />
           </div>
 
           <div class="input-group">
             <label>Property Value</label>
-            <input id="propertyValue" type="number" value="500000" min="0" step="1000" />
+            <input id="propertyValue" type="number" value="0" placeholder="Property value" min="0" step="1000" />
           </div>
 
           <div class="input-group">
             <label>Credit Score</label>
-            <input id="creditScore" type="number" value="740" min="300" max="850" step="1" />
+            <input id="creditScore" type="number" value="0" placeholder="Credit score" min="300" max="850" step="1" />
           </div>
 
           <div class="input-group">
@@ -106,7 +109,7 @@
 
           <div class="input-group">
             <label>Base Rate</label>
-            <input id="baseRate" type="number" value="6.750" step="0.001" />
+            <input id="baseRate" type="number" value="0" step="0.001" placeholder="Base rate %" />
           </div>
 
           <div class="input-group">
@@ -294,5 +297,17 @@
 
   <script type="module" src="./llpm-tool.js"></script>
   <script src="/js/shared/report.js"></script>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+    if (el.readOnly || el.type === 'hidden') return;
+    var v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+  });
+});
+</script>
 </body>
 </html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Form 1120S S-Corporation Income Calculator - MSFG Home Loans</title>
     <link rel="stylesheet" href="/css/main.css" />
+    <style>.is-default{color:#adb5bd!important}.is-default::placeholder{color:#adb5bd;font-style:italic}</style>
     <style>
       .income-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; background: var(--light); border-radius: 8px; overflow: hidden; }
       .income-table th { background: var(--primary); color: var(--light); padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.85rem; }
@@ -119,7 +120,7 @@
           
           <div class="ownership-row">
             <label for="c1_owner">Ownership Percentage:</label>
-            <input type="number" id="c1_owner" value="100" min="0" max="100" step="0.01" oninput="calculate()" />
+            <input type="number" id="c1_owner" value="0" min="0" max="100" step="0.01" oninput="calculate()" placeholder="Ownership %" />
             <span>%</span>
           </div>
           
@@ -208,7 +209,7 @@
           
           <div class="ownership-row">
             <label for="c2_owner">Ownership Percentage:</label>
-            <input type="number" id="c2_owner" value="100" min="0" max="100" step="0.01" oninput="calculate()" />
+            <input type="number" id="c2_owner" value="0" min="0" max="100" step="0.01" oninput="calculate()" placeholder="Ownership %" />
             <span>%</span>
           </div>
           
@@ -423,5 +424,17 @@
 
       document.addEventListener('DOMContentLoaded', calculate);
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+    if (el.readOnly || el.type === 'hidden') return;
+    var v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+  });
+});
+</script>
   </body>
 </html>

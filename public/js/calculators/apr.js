@@ -166,6 +166,9 @@
 
   // Init
   document.addEventListener('DOMContentLoaded', function() {
+    MSFG.markDefaults('.calc-page');
+    MSFG.bindDefaultClearing('.calc-page');
+
     const params = new URLSearchParams(window.location.search);
     if (params.has('la')) {
       applyState({

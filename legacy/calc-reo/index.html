@@ -9,6 +9,10 @@
   <link rel="stylesheet" href="/css/main.css" />
   <!-- Calculator-specific + print styles -->
   <link rel="stylesheet" href="./reo.css" />
+  <style>
+    .is-default { color: #adb5bd !important; }
+    .is-default::placeholder { color: #adb5bd; font-style: italic; }
+  </style>
 </head>
 
 <body>
@@ -35,11 +39,11 @@
         <div class="input-grid">
           <div class="input-group">
             <label for="street">Street Address</label>
-            <input id="street" type="text" value="1234 Example Street" />
+            <input id="street" type="text" value="" placeholder="Street address" />
           </div>
           <div class="input-group">
             <label for="city">City</label>
-            <input id="city" type="text" value="Your City" />
+            <input id="city" type="text" value="" placeholder="City" />
           </div>
         </div>
       </div>
@@ -55,18 +59,18 @@
 
           <div class="input-group">
             <label for="downPct">Downpayment %</label>
-            <input id="downPct" type="number" step="0.01" value="20" />
+            <input id="downPct" type="number" step="0.01" value="0" placeholder="Down %" />
             <div class="info-text">Enter percent down (e.g., 20 for 20%).</div>
           </div>
 
           <div class="input-group">
             <label for="rate">Interest Rate %</label>
-            <input id="rate" type="number" step="0.01" value="7.00" />
+            <input id="rate" type="number" step="0.01" value="0" placeholder="Rate %" />
           </div>
 
           <div class="input-group">
             <label for="termYears">Loan Term (years)</label>
-            <input id="termYears" type="number" step="1" value="30" />
+            <input id="termYears" type="number" step="1" value="0" placeholder="Years" />
           </div>
 
           <div class="input-group">
@@ -80,7 +84,7 @@
 
           <div class="input-group">
             <label for="acqCosts">Acquisition / Closing Costs</label>
-            <input id="acqCosts" type="number" step="0.01" value="5000" />
+            <input id="acqCosts" type="number" step="0.01" value="0" placeholder="Closing costs" />
             <div class="info-text">Default matches legacy sheet assumption.</div>
           </div>
         </div>
@@ -132,7 +136,7 @@
 
           <div class="input-group">
             <label for="sellCostPct">Estimated Selling Costs %</label>
-            <input id="sellCostPct" type="number" step="0.01" value="6.25" />
+            <input id="sellCostPct" type="number" step="0.01" value="0" placeholder="Sell cost %" />
           </div>
         </div>
       </div>
@@ -188,7 +192,7 @@
 
           <div class="input-group">
             <label for="propTaxRate">Property Tax Rate % (annual)</label>
-            <input id="propTaxRate" type="number" step="0.001" value="1.30" />
+            <input id="propTaxRate" type="number" step="0.001" value="0" placeholder="Tax rate %" />
             <div class="info-text">Legacy sheet assumed ~1.30% annually.</div>
           </div>
         </div>
@@ -200,19 +204,19 @@
         <div class="input-grid">
           <div class="input-group">
             <label for="appreciation">Property Appreciation %</label>
-            <input id="appreciation" type="number" step="0.01" value="3.00" />
+            <input id="appreciation" type="number" step="0.01" value="0" placeholder="Annual %" />
           </div>
           <div class="input-group">
             <label for="rentIncrease">Rent Increase %</label>
-            <input id="rentIncrease" type="number" step="0.01" value="4.00" />
+            <input id="rentIncrease" type="number" step="0.01" value="0" placeholder="Annual %" />
           </div>
           <div class="input-group">
             <label for="expIncrease">Expense Increase %</label>
-            <input id="expIncrease" type="number" step="0.01" value="2.00" />
+            <input id="expIncrease" type="number" step="0.01" value="0" placeholder="Annual %" />
           </div>
           <div class="input-group">
             <label for="vacancy">Vacancy Rate %</label>
-            <input id="vacancy" type="number" step="0.01" value="10.00" />
+            <input id="vacancy" type="number" step="0.01" value="0" placeholder="Vacancy %" />
           </div>
         </div>
       </div>
@@ -223,18 +227,18 @@
         <div class="input-grid">
           <div class="input-group">
             <label for="improvePct">Market Value of Improvements (portion)</label>
-            <input id="improvePct" type="number" step="0.01" value="75.00" />
+            <input id="improvePct" type="number" step="0.01" value="0" placeholder="Improve %" />
             <div class="info-text">Legacy sheet default: 75% of renovation counted as improvements.</div>
           </div>
 
           <div class="input-group">
             <label for="taxBracket">Effective Income Tax Bracket %</label>
-            <input id="taxBracket" type="number" step="0.01" value="29.90" />
+            <input id="taxBracket" type="number" step="0.01" value="0" placeholder="Tax bracket %" />
           </div>
 
           <div class="input-group">
             <label for="deprYears">Depreciable Years</label>
-            <input id="deprYears" type="number" step="0.1" value="27.5" />
+            <input id="deprYears" type="number" step="0.1" value="0" placeholder="Years" />
           </div>
         </div>
 
@@ -319,5 +323,17 @@
   </div>
 
   <script src="./reo.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+      if (el.readOnly || el.type === 'hidden') return;
+      var v = el.value.trim();
+      if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+    });
+    document.addEventListener('input', function(e) {
+      if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+    });
+  });
+  </script>
 </body>
 </html>

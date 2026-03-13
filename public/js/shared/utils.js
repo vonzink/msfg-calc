@@ -89,6 +89,65 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+/* ---- Default-value helpers ---- */
+
+/**
+ * Mark all inputs/selects inside a container that still hold their initial
+ * default value (value === defaultValue at page load) with the `.is-default` class.
+ * Call once on DOMContentLoaded after the DOM is ready.
+ * @param {string|Element} container — selector or element (default: document)
+ */
+MSFG.markDefaults = function(container) {
+  const root = typeof container === 'string' ? document.querySelector(container) : (container || document);
+  if (!root) return;
+  root.querySelectorAll('input[type="number"], input[type="text"], input[type="date"]').forEach(function(el) {
+    // Skip hidden, readonly, or calculated fields
+    if (el.readOnly || el.classList.contains('calculated-field') || el.type === 'hidden') return;
+    // If value is empty or '0' or '0.00' etc, mark as default
+    const v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000' || v === '0.0') {
+      el.classList.add('is-default');
+    }
+  });
+};
+
+/**
+ * Clear the `.is-default` class from a single element (e.g. after MISMO populates it).
+ * @param {string|Element} el — element or its ID
+ */
+MSFG.clearDefault = function(el) {
+  if (typeof el === 'string') el = document.getElementById(el);
+  if (el) el.classList.remove('is-default');
+};
+
+/**
+ * Bind delegated listeners so that typing into an `.is-default` field removes the class.
+ * Call once on DOMContentLoaded.
+ * @param {string|Element} container — selector or element (default: document)
+ */
+MSFG.bindDefaultClearing = function(container) {
+  const root = typeof container === 'string' ? document.querySelector(container) : (container || document);
+  if (!root) return;
+  root.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) {
+      e.target.classList.remove('is-default');
+    }
+  });
+};
+
+/**
+ * Remove `.is-default` from every element inside a container.
+ * Useful after MISMO fully populates all fields.
+ * @param {string|Element} container — selector or element (default: document)
+ */
+MSFG.clearAllDefaults = function(container) {
+  const root = typeof container === 'string' ? document.querySelector(container) : (container || document);
+  if (!root) return;
+  root.querySelectorAll('.is-default').forEach(function(el) {
+    el.classList.remove('is-default');
+  });
+};
+
 MSFG.escHtml = function(str) {
   return String(str)
     .replace(/&/g, '&amp;')

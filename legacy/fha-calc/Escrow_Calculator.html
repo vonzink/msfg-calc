@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/hub.css" />
   <link rel="stylesheet" href="/css/tools.css" />
+  <style>
+    .is-default { color: #adb5bd !important; }
+    .is-default::placeholder { color: #adb5bd; font-style: italic; }
+  </style>
 </head>
 
 <body>
@@ -79,7 +83,7 @@
             <label>Cushion Months
               <span class="help-icon" data-help="Escrow cushion in months. RESPA allows up to 2 months (1/6 of annual disbursements).">?</span>
             </label>
-            <input type="number" id="cushionMonths" min="0" max="2" step="1" value="2" />
+            <input type="number" id="cushionMonths" min="0" max="2" step="1" value="0" placeholder="Months" />
             <small>Typical: 2 months</small>
           </div>
         </div>
@@ -212,5 +216,17 @@
   </div>
 
   <script src="escrow.js"></script>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+    if (el.readOnly || el.type === 'hidden') return;
+    var v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+  });
+});
+</script>
 </body>
 </html>

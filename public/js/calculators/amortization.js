@@ -986,4 +986,8 @@ const AmortCalc = (() => {
 
 })();
 
-document.addEventListener('DOMContentLoaded', AmortCalc.init);
+document.addEventListener('DOMContentLoaded', function() {
+  AmortCalc.init();
+  MSFG.markDefaults('.calc-page');
+  MSFG.bindDefaultClearing('.calc-page');
+});

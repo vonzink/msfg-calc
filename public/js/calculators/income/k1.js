@@ -311,5 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  MSFG.markDefaults('.calc-page');
+  MSFG.bindDefaultClearing('.calc-page');
   calculate();
 });

@@ -469,5 +469,9 @@
     calculate();
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', function() {
+    init();
+    MSFG.markDefaults('.calc-page');
+    MSFG.bindDefaultClearing('.calc-page');
+  });
 })();

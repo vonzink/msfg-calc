@@ -1030,4 +1030,7 @@
   calcBtn.addEventListener('click', calculate);
   resetBtn.addEventListener('click', resetAll);
 
+  MSFG.markDefaults('.calc-page');
+  MSFG.bindDefaultClearing('.calc-page');
+
 })();

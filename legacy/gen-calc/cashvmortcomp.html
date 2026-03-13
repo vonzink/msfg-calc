@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cash vs Mortgage Calculator</title>
     <link rel="stylesheet" href="/css/main.css" />
+    <style>.is-default{color:#adb5bd!important}.is-default::placeholder{color:#adb5bd;font-style:italic}</style>
   </head>
   <body>
     <div class="main-container">
@@ -28,15 +29,15 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="priceCash">Purchase Price ($)</label>
-              <input type="number" id="priceCash" value="400000" class="input-highlight" />
+              <input type="number" id="priceCash" value="0" placeholder="Purchase price" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="closingCash">Closing Costs - Cash Purchase ($)</label>
-              <input type="number" id="closingCash" value="2000" class="input-highlight" />
+              <input type="number" id="closingCash" value="0" placeholder="Closing costs" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="closingMortgage">Closing Costs - Mortgage ($)</label>
-              <input type="number" id="closingMortgage" value="8000" class="input-highlight" />
+              <input type="number" id="closingMortgage" value="0" placeholder="Closing costs" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -47,15 +48,15 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="downPct">Down Payment (%)</label>
-              <input type="number" id="downPct" value="20" class="input-highlight" />
+              <input type="number" id="downPct" value="0" placeholder="Down %" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="mortRate">Interest Rate (%)</label>
-              <input type="number" id="mortRate" step="0.125" value="6.5" class="input-highlight" />
+              <input type="number" id="mortRate" step="0.125" value="0" placeholder="Rate" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="mortTerm">Loan Term (years)</label>
-              <input type="number" id="mortTerm" value="30" class="input-highlight" />
+              <input type="number" id="mortTerm" value="0" placeholder="Years" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -66,15 +67,15 @@
           <div class="input-grid">
             <div class="input-group">
               <label for="investReturn">Expected Annual Investment Return (%)</label>
-              <input type="number" id="investReturn" step="0.5" value="7" class="input-highlight" />
+              <input type="number" id="investReturn" step="0.5" value="0" placeholder="Return %" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="appreciation">Annual Property Appreciation (%)</label>
-              <input type="number" id="appreciation" step="0.5" value="3" class="input-highlight" />
+              <input type="number" id="appreciation" step="0.5" value="0" placeholder="Appreciation %" class="input-highlight" />
             </div>
             <div class="input-group">
               <label for="periodCash">Analysis Period (years)</label>
-              <input type="number" id="periodCash" value="10" class="input-highlight" />
+              <input type="number" id="periodCash" value="0" placeholder="Years" class="input-highlight" />
             </div>
           </div>
         </div>
@@ -184,5 +185,17 @@
       </div>
     </div>
     <script src="./cash-vs-mortgage.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+    if (el.readOnly || el.type === 'hidden') return;
+    var v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+  });
+});
+</script>
   </body>
 </html>

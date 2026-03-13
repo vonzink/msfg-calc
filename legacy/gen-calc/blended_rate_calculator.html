@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blended Rate Calculator</title>
     <link rel="stylesheet" href="/css/main.css" />
+    <style>.is-default{color:#adb5bd!important}.is-default::placeholder{color:#adb5bd;font-style:italic}</style>
     <style>
       /* Additional styles specific to debt table */
       .debt-table {
@@ -116,39 +117,39 @@
               <tr>
                 <td data-label="Debt #">1</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d1_bal" value="5000" class="input-highlight" />
+                  <input type="number" id="d1_bal" value="0" placeholder="Balance" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d1_rate" value="18.5" step="0.01" class="input-highlight" />
+                  <input type="number" id="d1_rate" value="0" placeholder="Rate" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d1_pay" value="150" class="input-highlight" />
+                  <input type="number" id="d1_pay" value="0" placeholder="Payment" class="input-highlight" />
                 </td>
               </tr>
               <!-- Debt 2 -->
               <tr>
                 <td data-label="Debt #">2</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d2_bal" value="15000" class="input-highlight" />
+                  <input type="number" id="d2_bal" value="0" placeholder="Balance" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d2_rate" value="6.5" step="0.01" class="input-highlight" />
+                  <input type="number" id="d2_rate" value="0" placeholder="Rate" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d2_pay" value="300" class="input-highlight" />
+                  <input type="number" id="d2_pay" value="0" placeholder="Payment" class="input-highlight" />
                 </td>
               </tr>
               <!-- Debt 3 -->
               <tr>
                 <td data-label="Debt #">3</td>
                 <td data-label="Balance ($)">
-                  <input type="number" id="d3_bal" value="8000" class="input-highlight" />
+                  <input type="number" id="d3_bal" value="0" placeholder="Balance" class="input-highlight" />
                 </td>
                 <td data-label="Interest Rate (%)">
-                  <input type="number" id="d3_rate" value="12.0" step="0.01" class="input-highlight" />
+                  <input type="number" id="d3_rate" value="0" placeholder="Rate" step="0.01" class="input-highlight" />
                 </td>
                 <td data-label="Monthly Payment ($)">
-                  <input type="number" id="d3_pay" value="200" class="input-highlight" />
+                  <input type="number" id="d3_pay" value="0" placeholder="Payment" class="input-highlight" />
                 </td>
               </tr>
               <!-- Debt 4 -->
@@ -223,5 +224,17 @@
     </div>
 
     <script src="./blended-rate.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function(el) {
+    if (el.readOnly || el.type === 'hidden') return;
+    var v = el.value.trim();
+    if (v === '' || v === '0' || v === '0.00' || v === '0.000') el.classList.add('is-default');
+  });
+  document.addEventListener('input', function(e) {
+    if (e.target.classList && e.target.classList.contains('is-default')) e.target.classList.remove('is-default');
+  });
+});
+</script>
   </body>
 </html>
