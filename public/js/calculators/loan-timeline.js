@@ -163,6 +163,10 @@
     });
 
     bindEvents();
+
+    // Restore saved state before MISMO check (MISMO will overwrite if present)
+    const restored = restoreState();
+
     initMISMODropZone();
     initMISMOMessageListener();
     render();
@@ -187,6 +191,7 @@
         const row = cb.closest('.lt-date-row');
         if (row) row.classList.toggle('lt-row--hidden', !cb.checked);
         render();
+        saveState();
       });
     });
 
@@ -195,16 +200,19 @@
       state.loanPurpose = e.target.value;
       deriveFundingDate();
       render();
+      saveState();
     });
 
     // Calendar nav
     qs('[data-action="prev-month"]').addEventListener('click', () => {
       state.currentMonth.setMonth(state.currentMonth.getMonth() - 1);
       renderCalendar();
+      saveState();
     });
     qs('[data-action="next-month"]').addEventListener('click', () => {
       state.currentMonth.setMonth(state.currentMonth.getMonth() + 1);
       renderCalendar();
+      saveState();
     });
 
     // Custom dates — Add button
@@ -213,6 +221,7 @@
     // Notes
     el('ltNotes').addEventListener('input', (e) => {
       state.notes = e.target.value;
+      saveState();
     });
 
     // Report button
@@ -266,6 +275,7 @@
     state.mismoLoaded = false;
     state.currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     render();
+    sessionStorage.removeItem(STORAGE_KEY);
   }
 
   // ---- Custom Dates ----
@@ -290,6 +300,7 @@
     labelInput.addEventListener('input', () => {
       cd.label = labelInput.value;
       render();
+      saveState();
     });
 
     // Date input
@@ -315,6 +326,7 @@
     catSelect.addEventListener('change', () => {
       cd.category = catSelect.value;
       render();
+      saveState();
     });
 
     // Remove button
@@ -327,6 +339,7 @@
       row.remove();
       render();
       sendTally();
+      saveState();
     });
 
     row.appendChild(labelInput);
@@ -357,16 +370,18 @@
       if (e.dataTransfer.files.length) handleMISMOFile(e.dataTransfer.files[0]);
     });
 
-    // Check sessionStorage for existing MISMO data
-    const storedXml = sessionStorage.getItem('msfg-mismo-xml');
-    const storedData = sessionStorage.getItem('msfg-mismo-data');
-    if (storedXml) {
-      try {
-        const parsed = storedData ? JSON.parse(storedData) : null;
-        applyMISMOFromXml(storedXml, parsed);
-        dropZone.classList.add('loaded');
-        dropZone.textContent = 'MISMO data loaded from session';
-      } catch(_) { /* ignore */ }
+    // Check sessionStorage for existing MISMO data (skip if state was already restored)
+    if (!state.mismoLoaded) {
+      const storedXml = sessionStorage.getItem('msfg-mismo-xml');
+      const storedData = sessionStorage.getItem('msfg-mismo-data');
+      if (storedXml) {
+        try {
+          const parsed = storedData ? JSON.parse(storedData) : null;
+          applyMISMOFromXml(storedXml, parsed);
+          dropZone.classList.add('loaded');
+          dropZone.textContent = 'MISMO data loaded from session';
+        } catch(_) { /* ignore */ }
+      }
     }
   }
 
@@ -544,6 +559,7 @@
     deriveFundingDate();
     centerCalendar();
     render();
+    saveState();
   }
 
   function setEventDate(evId, dateStr) {
@@ -578,6 +594,7 @@
     centerCalendar();
     render();
     sendTally();
+    saveState();
   }
 
   // ---- Calendar Centering ----
@@ -818,6 +835,124 @@
     container.innerHTML = alerts.map(a =>
       `<div class="lt-alert lt-alert--${a.level}"><span class="lt-alert__icon">${a.icon}</span><span>${a.text}</span></div>`
     ).join('');
+  }
+
+  // ---- Session Persistence ----
+  const STORAGE_KEY = 'msfg-loan-timeline-state';
+
+  function saveState() {
+    try {
+      const data = {
+        events: {},
+        visibility: state.visibility,
+        customDates: state.customDates.map(cd => ({
+          id: cd.id,
+          label: cd.label,
+          date: cd.date ? toISO(cd.date) : null,
+          category: cd.category
+        })),
+        loanPurpose: state.loanPurpose,
+        notes: state.notes,
+        mismoLoaded: state.mismoLoaded,
+        currentMonth: toISO(state.currentMonth),
+        loanInfo: {
+          borrower: el('ltBorrower') ? el('ltBorrower').textContent : '--',
+          fileNum: el('ltFileNum') ? el('ltFileNum').textContent : '--',
+          purpose: el('ltPurpose') ? el('ltPurpose').textContent : '--',
+          program: el('ltProgram') ? el('ltProgram').textContent : '--'
+        },
+        mismoDropText: (el('ltMismoDrop') && el('ltMismoDrop').classList.contains('loaded'))
+          ? el('ltMismoDrop').textContent.trim() : ''
+      };
+      EVENT_DEFS.forEach(ev => {
+        data.events[ev.id] = state.events[ev.id] ? toISO(state.events[ev.id]) : null;
+      });
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (_) { /* quota exceeded or private browsing */ }
+  }
+
+  function restoreState() {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+
+      // Restore events
+      EVENT_DEFS.forEach(ev => {
+        if (data.events && data.events[ev.id]) {
+          state.events[ev.id] = toDate(data.events[ev.id]);
+          const inp = qs(`[data-event="${ev.id}"]`);
+          if (inp) inp.value = data.events[ev.id];
+        }
+      });
+
+      // Restore visibility (toggle checkboxes)
+      if (data.visibility) {
+        Object.keys(data.visibility).forEach(evId => {
+          state.visibility[evId] = data.visibility[evId];
+          const cb = qs(`[data-toggle="${evId}"]`);
+          if (cb) cb.checked = data.visibility[evId];
+          if (!data.visibility[evId]) {
+            const row = cb ? cb.closest('.lt-date-row') : null;
+            if (row) row.classList.add('lt-row--hidden');
+          }
+        });
+      }
+
+      // Restore custom dates
+      if (data.customDates && data.customDates.length) {
+        data.customDates.forEach(cd => {
+          const restored = {
+            id: cd.id,
+            label: cd.label || '',
+            date: cd.date ? toDate(cd.date) : null,
+            category: cd.category || 'milestone'
+          };
+          state.customDates.push(restored);
+          renderCustomDateRow(restored);
+        });
+      }
+
+      // Restore loan purpose
+      if (data.loanPurpose) {
+        state.loanPurpose = data.loanPurpose;
+        el('ltLoanPurpose').value = data.loanPurpose;
+      }
+
+      // Restore notes
+      if (data.notes) {
+        state.notes = data.notes;
+        el('ltNotes').value = data.notes;
+      }
+
+      // Restore current month
+      if (data.currentMonth) {
+        const cm = toDate(data.currentMonth);
+        if (cm) state.currentMonth = new Date(cm.getFullYear(), cm.getMonth(), 1);
+      }
+
+      // Restore loan info bar
+      if (data.mismoLoaded) {
+        state.mismoLoaded = true;
+        el('ltLoanInfo').style.display = 'flex';
+        if (data.loanInfo) {
+          if (data.loanInfo.borrower && data.loanInfo.borrower !== '--') el('ltBorrower').textContent = data.loanInfo.borrower;
+          if (data.loanInfo.fileNum && data.loanInfo.fileNum !== '--') el('ltFileNum').textContent = data.loanInfo.fileNum;
+          if (data.loanInfo.purpose && data.loanInfo.purpose !== '--') el('ltPurpose').textContent = data.loanInfo.purpose;
+          if (data.loanInfo.program && data.loanInfo.program !== '--') el('ltProgram').textContent = data.loanInfo.program;
+        }
+        const dropZone = el('ltMismoDrop');
+        if (dropZone) {
+          dropZone.classList.add('loaded');
+          dropZone.textContent = data.mismoDropText || 'MISMO data loaded from session';
+          // Re-append hidden file input
+          const fi = el('ltMismoFile');
+          if (fi) dropZone.appendChild(fi);
+        }
+      }
+
+      return true;
+    } catch (_) { return false; }
   }
 
   // ---- Workspace postMessage Tally ----
