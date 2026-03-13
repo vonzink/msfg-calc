@@ -17,14 +17,14 @@
 
   <%- include('../partials/header') %>
 
-  <main class="site-main" data-ver="<%= v %>"<% if (typeof calc !== 'undefined' && calc) { %> data-calc-icon="<%= calc.icon || '' %>" data-calc-slug="<%= calc.slug || '' %>"<% } %>>
+  <main class="site-main" data-ver="<%= v %>" data-js-ext="<%= jsExt %>"<% if (typeof calc !== 'undefined' && calc) { %> data-calc-icon="<%= calc.icon || '' %>" data-calc-slug="<%= calc.slug || '' %>"<% } %>>
     <%- body %>
   </main>
 
   <%- include('../partials/footer') %>
-  <script src="/js/shared/utils.js?v=<%= v %>"></script>
-  <script src="/js/shared/file-upload-utils.js?v=<%= v %>"></script>
-  <script src="/js/shared/report.js?v=<%= v %>"></script>
+  <script src="/js/shared/utils<%= jsExt %>?v=<%= v %>"></script>
+  <script src="/js/shared/file-upload-utils<%= jsExt %>?v=<%= v %>"></script>
+  <script src="/js/shared/report<%= jsExt %>?v=<%= v %>"></script>
   <%- typeof extraScripts !== 'undefined' ? extraScripts : '' %>
 </body>
 </html>

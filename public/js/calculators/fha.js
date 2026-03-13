@@ -553,7 +553,7 @@ const FhaCalc = (() => {
     let html = '';
 
     if (purchase) {
-      var purchSteps = [
+      const purchSteps = [
         step('Value Used', 'Lesser of ' + fmt(state.purchasePrice) + ' and ' + fmt(state.appraisedValue),
           fmt(minPositive(state.purchasePrice, state.appraisedValue))),
         step('Max Base Loan', 'Value Used \u00D7 96.5%', fmt(purchase.maxBaseLoan))
@@ -573,7 +573,7 @@ const FhaCalc = (() => {
     if (refi) {
       const isCashOut = state.refiType === 'cashOut';
       const maxPct = isCashOut ? '80%' : '97.75%';
-      var refiSteps = [
+      const refiSteps = [
         step('Max Base Loan', fmt(state.appraisedValue) + ' \u00D7 ' + maxPct, fmt(refi.maxBaseLoan))
       ];
       if (refi.actualLoan !== refi.maxBaseLoan) {

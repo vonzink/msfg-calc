@@ -162,7 +162,7 @@ router.get('/:type', (req, res) => {
     processingType: type,
     processingTypes: PROCESSING_TYPES,
     extraHead: `<link rel="stylesheet" href="/css/processing.css?v=${ver}">`,
-    extraScripts: `<script src="/js/processing.js?v=${ver}"></script>`
+    extraScripts: `<script src="/js/processing${res.locals.jsExt}?v=${ver}"></script>`
   });
 });
 

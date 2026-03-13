@@ -1,0 +1,233 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Loan Timeline</h1>
+    <p>Track loan milestones, deadlines, and TRID compliance dates. Auto-populates from MISMO XML.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- MISMO Drop Zone -->
+    <div class="lt-mismo-drop" id="ltMismoDrop">
+      Drop a MISMO XML file here to auto-populate dates, or <strong>click to browse</strong>
+      <input type="file" id="ltMismoFile" accept=".xml,.mismo" style="display:none">
+    </div>
+
+    <!-- Loan Info Bar (hidden until MISMO loaded) -->
+    <div class="lt-loan-info" id="ltLoanInfo" style="display:none">
+      <div class="lt-loan-info__item">
+        <span class="lt-loan-info__label">Borrower</span>
+        <span class="lt-loan-info__value" id="ltBorrower">--</span>
+      </div>
+      <div class="lt-loan-info__item">
+        <span class="lt-loan-info__label">File #</span>
+        <span class="lt-loan-info__value" id="ltFileNum">--</span>
+      </div>
+      <div class="lt-loan-info__item">
+        <span class="lt-loan-info__label">Purpose</span>
+        <span class="lt-loan-info__value" id="ltPurpose">--</span>
+      </div>
+      <div class="lt-loan-info__item">
+        <span class="lt-loan-info__label">Program</span>
+        <span class="lt-loan-info__value" id="ltProgram">--</span>
+      </div>
+    </div>
+
+    <!-- Timeline Bar -->
+    <div class="lt-timeline" id="ltTimeline">
+      <div class="lt-timeline__labels">
+        <span>Application</span>
+        <span>Funded</span>
+      </div>
+      <div class="lt-timeline__track">
+        <div class="lt-timeline__progress" id="ltTimelineProgress"></div>
+        <div class="lt-timeline__dots" id="ltTimelineDots"></div>
+      </div>
+    </div>
+
+    <!-- Main Content: Calendar + Dates Panel -->
+    <div class="lt-main">
+
+      <!-- Calendar -->
+      <div class="lt-calendar-wrap">
+        <div class="lt-calendar-nav">
+          <button type="button" class="lt-calendar-nav__btn" data-action="prev-month">&lsaquo;</button>
+          <span class="lt-calendar-nav__title" id="ltCalTitle">March 2026</span>
+          <button type="button" class="lt-calendar-nav__btn" data-action="next-month">&rsaquo;</button>
+        </div>
+        <div class="lt-calendar" id="ltCalendar">
+          <div class="lt-calendar__header">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+          </div>
+          <div class="lt-calendar__grid" id="ltCalGrid"></div>
+        </div>
+      </div>
+
+      <!-- Dates Panel -->
+      <div class="lt-dates-panel">
+        <h3>Loan Milestones</h3>
+
+        <div class="lt-date-group" data-category="milestone">
+          <div class="lt-date-group__title"><span class="lt-dot lt-dot--milestone"></span> Milestones</div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="applicationTaken" checked>
+            <label for="ltApplicationTaken">Application Taken</label>
+            <input type="date" id="ltApplicationTaken" data-event="applicationTaken">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="leDelivered" checked>
+            <label for="ltLeDelivered">LE Delivered</label>
+            <input type="date" id="ltLeDelivered" data-event="leDelivered">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="intentToProceed" checked>
+            <label for="ltIntentToProceed">Intent to Proceed</label>
+            <input type="date" id="ltIntentToProceed" data-event="intentToProceed">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="approved" checked>
+            <label for="ltApproved">Approved</label>
+            <input type="date" id="ltApproved" data-event="approved">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="cdIssued" checked>
+            <label for="ltCdIssued">CD Issued</label>
+            <input type="date" id="ltCdIssued" data-event="cdIssued">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="clearToClose" checked>
+            <label for="ltClearToClose">Clear to Close</label>
+            <input type="date" id="ltClearToClose" data-event="clearToClose">
+          </div>
+        </div>
+
+        <div class="lt-date-group" data-category="deadline">
+          <div class="lt-date-group__title"><span class="lt-dot lt-dot--deadline"></span> Deadlines</div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="closingEstimate" checked>
+            <label for="ltClosingEstimate">Closing Date</label>
+            <input type="date" id="ltClosingEstimate" data-event="closingEstimate">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="fundingEstimate" checked>
+            <label for="ltFundingEstimate">Funding Date</label>
+            <input type="date" id="ltFundingEstimate" data-event="fundingEstimate">
+          </div>
+        </div>
+
+        <div class="lt-date-group" data-category="lock">
+          <div class="lt-date-group__title"><span class="lt-dot lt-dot--lock"></span> Rate Lock</div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="lockDate" checked>
+            <label for="ltLockDate">Lock Date</label>
+            <input type="date" id="ltLockDate" data-event="lockDate">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="lockExpiration" checked>
+            <label for="ltLockExpiration">Lock Expiration</label>
+            <input type="date" id="ltLockExpiration" data-event="lockExpiration">
+          </div>
+        </div>
+
+        <div class="lt-date-group" data-category="contingency">
+          <div class="lt-date-group__title"><span class="lt-dot lt-dot--contingency"></span> Contingencies</div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="appraisalContingency" checked>
+            <label for="ltAppraisalContingency">Appraisal Contingency</label>
+            <input type="date" id="ltAppraisalContingency" data-event="appraisalContingency">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="financingContingency" checked>
+            <label for="ltFinancingContingency">Financing Contingency</label>
+            <input type="date" id="ltFinancingContingency" data-event="financingContingency">
+          </div>
+        </div>
+
+        <div class="lt-date-group" data-category="condition">
+          <div class="lt-date-group__title"><span class="lt-dot lt-dot--condition"></span> Conditions</div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="conditionsDue" checked>
+            <label for="ltConditionsDue">Conditions Due</label>
+            <input type="date" id="ltConditionsDue" data-event="conditionsDue">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="conditionsCleared" checked>
+            <label for="ltConditionsCleared">Conditions Cleared</label>
+            <input type="date" id="ltConditionsCleared" data-event="conditionsCleared">
+          </div>
+        </div>
+
+        <div class="lt-date-group" data-category="turntime">
+          <div class="lt-date-group__title"><span class="lt-dot lt-dot--turntime"></span> Turntimes</div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="submittedToUW" checked>
+            <label for="ltSubmittedToUW">Submitted to UW</label>
+            <input type="date" id="ltSubmittedToUW" data-event="submittedToUW">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="uwDecision" checked>
+            <label for="ltUwDecision">UW Decision</label>
+            <input type="date" id="ltUwDecision" data-event="uwDecision">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="resubmitted" checked>
+            <label for="ltResubmitted">Resubmitted</label>
+            <input type="date" id="ltResubmitted" data-event="resubmitted">
+          </div>
+          <div class="lt-date-row">
+            <input type="checkbox" class="lt-toggle" data-toggle="finalApproval" checked>
+            <label for="ltFinalApproval">Final Approval</label>
+            <input type="date" id="ltFinalApproval" data-event="finalApproval">
+          </div>
+        </div>
+
+        <!-- Custom Dates -->
+        <div class="lt-date-group lt-date-group--custom" data-category="custom">
+          <div class="lt-date-group__title">
+            <span>✏️</span> Custom Dates
+            <button type="button" class="lt-add-custom-btn" id="ltAddCustomDate">+ Add</button>
+          </div>
+          <div id="ltCustomDatesContainer"></div>
+        </div>
+
+        <!-- Loan Purpose Toggle -->
+        <div class="lt-purpose-toggle">
+          <label for="ltLoanPurpose">Loan Purpose</label>
+          <select id="ltLoanPurpose">
+            <option value="Purchase">Purchase</option>
+            <option value="Refinance">Refinance</option>
+            <option value="NoCashOutRefinance">No Cash Out Refinance</option>
+            <option value="CashOutRefinance">Cash Out Refinance</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRID Compliance Alerts -->
+    <div class="lt-alerts" id="ltAlerts"></div>
+
+    <!-- Legend -->
+    <div class="lt-legend">
+      <div class="lt-legend__item"><span class="lt-dot lt-dot--milestone"></span> Milestone</div>
+      <div class="lt-legend__item"><span class="lt-dot lt-dot--deadline"></span> Deadline</div>
+      <div class="lt-legend__item"><span class="lt-dot lt-dot--lock"></span> Rate Lock</div>
+      <div class="lt-legend__item"><span class="lt-dot lt-dot--contingency"></span> Contingency</div>
+      <div class="lt-legend__item"><span class="lt-dot lt-dot--condition"></span> Condition</div>
+      <div class="lt-legend__item"><span class="lt-dot lt-dot--turntime"></span> Turntime</div>
+      <div class="lt-legend__item"><span class="lt-dot lt-dot--today"></span> Today</div>
+    </div>
+
+    <!-- Notes -->
+    <div class="lt-notes-section">
+      <label for="ltNotes" class="lt-notes-label">Notes</label>
+      <textarea id="ltNotes" class="lt-notes" rows="4" placeholder="Add notes about this loan timeline..."></textarea>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button type="button" class="btn btn-primary" id="ltReportBtn">Add to Report</button>
+      <button type="button" class="btn btn-secondary" id="ltPrintBtn">Print Timeline</button>
+      <button type="button" class="btn btn-ghost" id="ltClearBtn">Clear All</button>
+    </div>
+
+  </div>
+</div>

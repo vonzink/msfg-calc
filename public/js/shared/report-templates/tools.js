@@ -1025,4 +1025,362 @@
       return content;
     }
   );
+
+  /* =========================================================
+     Loan Timeline
+     ========================================================= */
+
+  var LT_CATEGORY_COLORS = {
+    milestone: '#22c55e', deadline: '#f59e0b', lock: '#3b82f6',
+    contingency: '#f87171', condition: '#8b5cf6', turntime: '#06b6d4'
+  };
+  var LT_CATEGORY_LABELS = {
+    milestone: 'Milestones', deadline: 'Deadlines', lock: 'Rate Lock',
+    contingency: 'Contingencies', condition: 'Conditions', turntime: 'Turntimes'
+  };
+
+  RT.register('loan-timeline',
+    /* ---- Extractor ---- */
+    function (doc) {
+      /* Loan info bar */
+      var borrower = txt(doc, 'ltBorrower');
+      var fileNum = txt(doc, 'ltFileNum');
+      var purpose = txt(doc, 'ltPurpose');
+      var program = txt(doc, 'ltProgram');
+      var loanPurpose = '';
+      var lpSel = doc.getElementById('ltLoanPurpose');
+      if (lpSel) loanPurpose = lpSel.value;
+
+      /* Standard dates + visibility */
+      var dateRows = doc.querySelectorAll('.lt-date-row');
+      var dates = [];
+      dateRows.forEach(function (row) {
+        var input = row.querySelector('input[type="date"]');
+        var toggle = row.querySelector('.lt-toggle');
+        var label = row.querySelector('label');
+        if (!input || !input.dataset.event) return;
+        var cat = '';
+        var group = row.closest('[data-category]');
+        if (group) cat = group.getAttribute('data-category');
+        dates.push({
+          id: input.dataset.event,
+          label: label ? label.textContent.trim() : input.dataset.event,
+          date: input.value || '',
+          category: cat,
+          visible: toggle ? toggle.checked : true
+        });
+      });
+
+      /* Custom dates */
+      var customDates = [];
+      var customRows = doc.querySelectorAll('.lt-custom-row');
+      customRows.forEach(function (row) {
+        var nameInput = row.querySelector('input[type="text"]');
+        var dateInput = row.querySelector('input[type="date"]');
+        var catSelect = row.querySelector('select');
+        if (nameInput && dateInput && dateInput.value) {
+          customDates.push({
+            label: nameInput.value || 'Custom',
+            date: dateInput.value,
+            category: catSelect ? catSelect.value : 'milestone'
+          });
+        }
+      });
+
+      /* TRID alerts */
+      var alerts = [];
+      var alertEls = doc.querySelectorAll('.lt-alert');
+      alertEls.forEach(function (a) {
+        var icon = a.querySelector('.lt-alert__icon');
+        var msg = a.querySelector('.lt-alert__msg, span:last-child');
+        var type = 'info';
+        if (a.classList.contains('lt-alert--ok')) type = 'ok';
+        else if (a.classList.contains('lt-alert--warn')) type = 'warn';
+        else if (a.classList.contains('lt-alert--danger')) type = 'danger';
+        alerts.push({
+          type: type,
+          icon: icon ? icon.textContent.trim() : '',
+          text: msg ? msg.textContent.trim() : a.textContent.trim()
+        });
+      });
+
+      /* Notes */
+      var notesEl = doc.getElementById('ltNotes');
+      var notes = notesEl ? notesEl.value : '';
+
+      return {
+        borrower: borrower, fileNum: fileNum, purpose: purpose, program: program,
+        loanPurpose: loanPurpose, dates: dates, customDates: customDates,
+        alerts: alerts, notes: notes
+      };
+    },
+
+    /* ---- HTML Renderer ---- */
+    function (data) {
+      var html = '';
+      var dates = data.dates || [];
+      var customDates = data.customDates || [];
+      var alerts = data.alerts || [];
+
+      /* Dot helper */
+      function dot(color) {
+        return '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + color + ';margin-right:6px;vertical-align:middle"></span>';
+      }
+      function formatDate(iso) {
+        if (!iso) return '—';
+        var parts = iso.split('-');
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10) + ', ' + parts[0];
+      }
+
+      /* Loan Info */
+      if (data.borrower || data.fileNum || data.purpose || data.program) {
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Information</h4>';
+        html += '<div class="rpt-params">';
+        if (data.borrower) html += '<div class="rpt-param"><span>Borrower</span><span>' + MSFG.escHtml(data.borrower) + '</span></div>';
+        if (data.fileNum) html += '<div class="rpt-param"><span>File #</span><span>' + MSFG.escHtml(data.fileNum) + '</span></div>';
+        if (data.purpose) html += '<div class="rpt-param"><span>Purpose</span><span>' + MSFG.escHtml(data.purpose) + '</span></div>';
+        if (data.program) html += '<div class="rpt-param"><span>Program</span><span>' + MSFG.escHtml(data.program) + '</span></div>';
+        if (data.loanPurpose) html += '<div class="rpt-param"><span>TRID Purpose</span><span>' + MSFG.escHtml(data.loanPurpose) + '</span></div>';
+        html += '</div></div>';
+      }
+
+      /* Dates grouped by category */
+      var categories = ['milestone', 'deadline', 'lock', 'contingency', 'condition', 'turntime'];
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Dates</h4>';
+      categories.forEach(function (cat) {
+        var catDates = dates.filter(function (d) { return d.category === cat && d.visible; });
+        if (!catDates.length) return;
+        var color = LT_CATEGORY_COLORS[cat] || '#888';
+        var label = LT_CATEGORY_LABELS[cat] || cat;
+        html += '<table class="rpt-table rpt-table--compact" style="margin-bottom:8px"><thead><tr>';
+        html += '<th>' + dot(color) + label + '</th><th class="rpt-num" style="width:140px">Date</th>';
+        html += '</tr></thead><tbody>';
+        catDates.forEach(function (d) {
+          var style = d.date ? '' : ' style="color:#999"';
+          html += '<tr><td>' + MSFG.escHtml(d.label) + '</td>';
+          html += '<td class="rpt-num"' + style + '>' + formatDate(d.date) + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      });
+
+      /* Custom dates */
+      if (customDates.length) {
+        html += '<table class="rpt-table rpt-table--compact" style="margin-bottom:8px"><thead><tr>';
+        html += '<th>Custom Dates</th><th class="rpt-num" style="width:140px">Date</th>';
+        html += '</tr></thead><tbody>';
+        customDates.forEach(function (d) {
+          var color = LT_CATEGORY_COLORS[d.category] || '#888';
+          html += '<tr><td>' + dot(color) + MSFG.escHtml(d.label) + '</td>';
+          html += '<td class="rpt-num">' + formatDate(d.date) + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+      html += '</div>';
+
+      /* Mini Calendar */
+      var allDates = [];
+      dates.forEach(function (d) { if (d.date && d.visible) allDates.push({ date: d.date, cat: d.category, label: d.label }); });
+      customDates.forEach(function (d) { if (d.date) allDates.push({ date: d.date, cat: d.category, label: d.label }); });
+
+      if (allDates.length) {
+        /* Figure out which months to render */
+        var monthSet = {};
+        allDates.forEach(function (d) {
+          var key = d.date.substring(0, 7); // YYYY-MM
+          monthSet[key] = true;
+        });
+        var monthKeys = Object.keys(monthSet).sort();
+
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">Calendar</h4>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:16px">';
+
+        monthKeys.forEach(function (mk) {
+          var parts = mk.split('-');
+          var year = parseInt(parts[0], 10);
+          var month = parseInt(parts[1], 10) - 1;
+          var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+          var firstDay = new Date(year, month, 1).getDay();
+          var daysInMonth = new Date(year, month + 1, 0).getDate();
+          var today = new Date();
+
+          /* Events for this month */
+          var eventsInMonth = {};
+          allDates.forEach(function (d) {
+            if (d.date.substring(0, 7) === mk) {
+              var day = parseInt(d.date.substring(8, 10), 10);
+              if (!eventsInMonth[day]) eventsInMonth[day] = [];
+              eventsInMonth[day].push(d);
+            }
+          });
+
+          html += '<div style="flex:0 0 auto;min-width:220px">';
+          html += '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px;text-align:center">' + months[month] + ' ' + year + '</div>';
+          html += '<table style="border-collapse:collapse;font-size:0.72rem;width:100%">';
+          html += '<thead><tr>';
+          ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(function (d) {
+            html += '<th style="padding:2px 4px;text-align:center;color:#888;font-weight:600">' + d + '</th>';
+          });
+          html += '</tr></thead><tbody><tr>';
+
+          /* Leading empty cells */
+          for (var e = 0; e < firstDay; e++) {
+            html += '<td style="padding:2px"></td>';
+          }
+
+          for (var d = 1; d <= daysInMonth; d++) {
+            var cellIdx = (firstDay + d - 1) % 7;
+            var isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+            var bg = isToday ? '#f0fdf4' : '';
+            html += '<td style="padding:2px 3px;text-align:center;vertical-align:top;min-width:28px;' + (bg ? 'background:' + bg + ';' : '') + '">';
+            html += '<div style="font-size:0.7rem;' + (isToday ? 'font-weight:700;color:#22c55e' : '') + '">' + d + '</div>';
+            if (eventsInMonth[d]) {
+              html += '<div style="display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:1px">';
+              eventsInMonth[d].forEach(function (ev) {
+                var color = LT_CATEGORY_COLORS[ev.cat] || '#888';
+                html += '<span title="' + MSFG.escHtml(ev.label) + '" style="width:6px;height:6px;border-radius:50%;background:' + color + ';display:inline-block"></span>';
+              });
+              html += '</div>';
+            }
+            html += '</td>';
+            if (cellIdx === 6 && d < daysInMonth) html += '</tr><tr>';
+          }
+
+          /* Trailing empty cells */
+          var lastCellIdx = (firstDay + daysInMonth - 1) % 7;
+          for (var t = lastCellIdx + 1; t < 7; t++) {
+            html += '<td style="padding:2px"></td>';
+          }
+          html += '</tr></tbody></table></div>';
+        });
+
+        html += '</div>';
+
+        /* Legend */
+        html += '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:0.72rem;color:#666">';
+        var cats = ['milestone', 'deadline', 'lock', 'contingency', 'condition', 'turntime'];
+        cats.forEach(function (c) {
+          html += '<span>' + dot(LT_CATEGORY_COLORS[c]) + LT_CATEGORY_LABELS[c] + '</span>';
+        });
+        html += '</div>';
+        html += '</div>';
+      }
+
+      /* TRID Alerts */
+      if (alerts.length) {
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">TRID Compliance</h4>';
+        alerts.forEach(function (a) {
+          var bg = '#e3f2fd', border = '#90caf9', color = '#1565c0';
+          if (a.type === 'ok') { bg = '#e8f5e9'; border = '#a5d6a7'; color = '#2e7d32'; }
+          else if (a.type === 'warn') { bg = '#fff8e1'; border = '#ffcc80'; color = '#e65100'; }
+          else if (a.type === 'danger') { bg = '#ffebee'; border = '#ef9a9a'; color = '#c62828'; }
+          html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:0.8rem;line-height:1.4;background:' + bg + ';border:1px solid ' + border + ';color:' + color + '">';
+          html += '<span style="flex-shrink:0">' + (a.icon || '') + '</span>';
+          html += '<span>' + MSFG.escHtml(a.text) + '</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      /* Notes */
+      if (data.notes) {
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">Notes</h4>';
+        html += '<div style="white-space:pre-wrap;font-size:0.85rem;line-height:1.5;color:#333">' + MSFG.escHtml(data.notes) + '</div>';
+        html += '</div>';
+      }
+
+      return html;
+    },
+
+    /* ---- PDF Generator ---- */
+    function (data) {
+      var dates = data.dates || [];
+      var customDates = data.customDates || [];
+      var alerts = data.alerts || [];
+      var content = [];
+
+      function formatDate(iso) {
+        if (!iso) return '—';
+        var parts = iso.split('-');
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10) + ', ' + parts[0];
+      }
+
+      /* Loan Info */
+      var infoRows = [];
+      if (data.borrower) infoRows.push(['Borrower', data.borrower]);
+      if (data.fileNum) infoRows.push(['File #', data.fileNum]);
+      if (data.purpose) infoRows.push(['Purpose', data.purpose]);
+      if (data.program) infoRows.push(['Program', data.program]);
+      if (data.loanPurpose) infoRows.push(['TRID Purpose', data.loanPurpose]);
+      if (infoRows.length) {
+        var infoBody = [[{ text: 'Loan Information', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
+        infoRows.forEach(function (r) { infoBody.push([r[0], { text: r[1], alignment: 'right' }]); });
+        content.push({ table: { headerRows: 1, widths: ['*', 160], body: infoBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 8] });
+      }
+
+      /* Dates by category */
+      var categories = ['milestone', 'deadline', 'lock', 'contingency', 'condition', 'turntime'];
+      categories.forEach(function (cat) {
+        var catDates = dates.filter(function (d) { return d.category === cat && d.visible; });
+        if (!catDates.length) return;
+        var label = LT_CATEGORY_LABELS[cat] || cat;
+        var color = LT_CATEGORY_COLORS[cat] || '#888';
+        var body = [[
+          { text: label, fontSize: 8, bold: true, color: color },
+          { text: 'Date', fontSize: 8, bold: true, alignment: 'right', color: '#888' }
+        ]];
+        catDates.forEach(function (d) {
+          body.push([
+            { text: d.label, fontSize: 8 },
+            { text: formatDate(d.date), fontSize: 8, alignment: 'right', color: d.date ? '#333' : '#999' }
+          ]);
+        });
+        content.push({
+          table: { headerRows: 1, widths: ['*', 100], body: body },
+          layout: { hLineWidth: function () { return 0.5; }, vLineWidth: function () { return 0; }, hLineColor: function () { return '#e0e0e0'; }, paddingLeft: function () { return 6; }, paddingRight: function () { return 6; }, paddingTop: function () { return 3; }, paddingBottom: function () { return 3; } },
+          margin: [0, 0, 0, 4]
+        });
+      });
+
+      /* Custom dates */
+      if (customDates.length) {
+        var cdBody = [[
+          { text: 'Custom Dates', fontSize: 8, bold: true },
+          { text: 'Date', fontSize: 8, bold: true, alignment: 'right', color: '#888' }
+        ]];
+        customDates.forEach(function (d) {
+          cdBody.push([
+            { text: d.label, fontSize: 8, color: LT_CATEGORY_COLORS[d.category] || '#888' },
+            { text: formatDate(d.date), fontSize: 8, alignment: 'right' }
+          ]);
+        });
+        content.push({
+          table: { headerRows: 1, widths: ['*', 100], body: cdBody },
+          layout: { hLineWidth: function () { return 0.5; }, vLineWidth: function () { return 0; }, hLineColor: function () { return '#e0e0e0'; }, paddingLeft: function () { return 6; }, paddingRight: function () { return 6; }, paddingTop: function () { return 3; }, paddingBottom: function () { return 3; } },
+          margin: [0, 0, 0, 4]
+        });
+      }
+
+      /* TRID Alerts */
+      if (alerts.length) {
+        content.push({ text: 'TRID Compliance', style: 'sectionHeader', margin: [0, 10, 0, 4] });
+        alerts.forEach(function (a) {
+          var color = '#1565c0';
+          if (a.type === 'ok') color = '#2e7d32';
+          else if (a.type === 'warn') color = '#e65100';
+          else if (a.type === 'danger') color = '#c62828';
+          content.push({ text: (a.icon ? a.icon + ' ' : '') + a.text, fontSize: 8, color: color, margin: [0, 2, 0, 2] });
+        });
+      }
+
+      /* Notes */
+      if (data.notes) {
+        content.push({ text: 'Notes', style: 'sectionHeader', margin: [0, 10, 0, 4] });
+        content.push({ text: data.notes, fontSize: 8, color: '#333', margin: [0, 0, 0, 4] });
+      }
+
+      return content;
+    }
+  );
 })();

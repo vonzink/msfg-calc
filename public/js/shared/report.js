@@ -195,17 +195,18 @@
     var ver = '';
     var main = document.querySelector('.site-main');
     if (main && main.dataset.ver) ver = '?v=' + main.dataset.ver;
+    var ext = (main && main.dataset.jsExt) || '.js';
 
     // Load registry first, then sub-templates in parallel
-    _templatesPromise = loadScript('/js/shared/report-templates.js' + ver).then(function() {
+    _templatesPromise = loadScript('/js/shared/report-templates' + ext + ver).then(function() {
       return Promise.all([
-        loadScript('/js/shared/report-templates/income-standard.js' + ver),
-        loadScript('/js/shared/report-templates/income-special.js' + ver),
-        loadScript('/js/shared/report-templates/general-analysis.js' + ver),
-        loadScript('/js/shared/report-templates/general-simple.js' + ver),
-        loadScript('/js/shared/report-templates/government.js' + ver),
-        loadScript('/js/shared/report-templates/tools.js' + ver),
-        loadScript('/js/shared/report-templates/mismo.js' + ver)
+        loadScript('/js/shared/report-templates/income-standard' + ext + ver),
+        loadScript('/js/shared/report-templates/income-special' + ext + ver),
+        loadScript('/js/shared/report-templates/general-analysis' + ext + ver),
+        loadScript('/js/shared/report-templates/general-simple' + ext + ver),
+        loadScript('/js/shared/report-templates/government' + ext + ver),
+        loadScript('/js/shared/report-templates/tools' + ext + ver),
+        loadScript('/js/shared/report-templates/mismo' + ext + ver)
       ]);
     }).then(function() {
       _templatesLoaded = true;

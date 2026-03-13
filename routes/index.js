@@ -7,7 +7,7 @@ router.get('/', (req, res) => {
     title: 'Calculator Hub',
     bodyClass: 'hub-page',
     extraHead: `<link rel="stylesheet" href="/css/page-hub.css?v=${ver}">`,
-    extraScripts: `<script src="/js/hub.js?v=${ver}"></script>`
+    extraScripts: `<script src="/js/hub${res.locals.jsExt}?v=${ver}"></script>`
   });
 });
 

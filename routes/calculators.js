@@ -33,12 +33,14 @@ const generalCalcs = [
   { slug: 'fee-worksheet',  view: 'calculators/fee-worksheet',  title: 'Fee Worksheet',              css: 'fee-worksheet' },
   { slug: 'compare',        view: 'calculators/compare',        title: 'Loan Comparison',            css: 'compare', preScripts: ['/js/shared/mismo-parser.js'] },
   { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' },
-  { slug: 'mismo',          view: 'calculators/mismo',          title: 'MISMO Document Analyzer',    css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js'] }
+  { slug: 'mismo',          view: 'calculators/mismo',          title: 'MISMO Document Analyzer',    css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js', '/js/calculators/mismo-docs.js', '/js/calculators/mismo-ui.js'] },
+  { slug: 'loan-timeline',  view: 'calculators/loan-timeline',  title: 'Loan Timeline',              css: 'loan-timeline', preScripts: ['/js/shared/mismo-parser.js'] }
 ];
 
 generalCalcs.forEach(gc => {
   router.get(`/${gc.slug}`, (req, res) => {
     const ver = res.locals.v;
+    const ext = res.locals.jsExt;
     const extraHeadParts = [];
     if (gc.css) extraHeadParts.push(`<link rel="stylesheet" href="/css/calculators/${gc.css}.css?v=${ver}">`);
     if (gc.cdnScripts) extraHeadParts.push(...gc.cdnScripts);
@@ -48,8 +50,8 @@ generalCalcs.forEach(gc => {
       calc: findCalc(gc.slug),
       extraHead: extraHeadParts.length ? extraHeadParts.join('') : undefined,
       extraScripts: gc.noScript ? undefined :
-        (gc.preScripts ? gc.preScripts.map(s => `<script src="${s}?v=${ver}"></script>`).join('') : '') +
-        `<script src="/js/calculators/${gc.slug}.js?v=${ver}"></script>`
+        (gc.preScripts ? gc.preScripts.map(s => `<script src="${s.replace(/\.js$/, ext)}?v=${ver}"></script>`).join('') : '') +
+        `<script src="/js/calculators/${gc.slug}${ext}?v=${ver}"></script>`
     });
   });
 });
@@ -82,6 +84,7 @@ const incomeCalcs = [
 incomeCalcs.forEach(ic => {
   router.get(`/income/${ic.slug}`, (req, res) => {
     const ver = res.locals.v;
+    const ext = res.locals.jsExt;
     const extraHeadParts = [
       `<link rel="stylesheet" href="/css/calculators/income-base.css?v=${ver}">`
     ];
@@ -92,8 +95,8 @@ incomeCalcs.forEach(ic => {
       title: ic.title,
       calc: findCalc(`income/${ic.slug}`),
       extraHead: extraHeadParts.join(''),
-      extraScripts: `<script src="/js/shared/income-upload.js?v=${ver}"></script>` +
-                    `<script src="/js/calculators/${ic.view}.js?v=${ver}"></script>`
+      extraScripts: `<script src="/js/shared/income-upload${ext}?v=${ver}"></script>` +
+                    `<script src="/js/calculators/${ic.view}${ext}?v=${ver}"></script>`
     });
   });
 });

@@ -3,16 +3,16 @@
    ===================================================== */
 'use strict';
 
-var MSFG = window.MSFG || {};
+const MSFG = window.MSFG || {};
 
 MSFG.parseNum = function(val) {
   if (typeof val === 'string') val = val.replace(/[,$]/g, '');
-  var n = parseFloat(val);
+  const n = parseFloat(val);
   return isNaN(n) ? 0 : n;
 };
 
 MSFG.parseNumById = function(id) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   return el ? MSFG.parseNum(el.value) : 0;
 };
 
@@ -43,16 +43,16 @@ MSFG.formatNumber = function(num, decimals) {
 MSFG.calcMonthlyPayment = function(principal, annualRate, years) {
   if (principal <= 0 || years <= 0) return 0;
   if (annualRate === 0) return principal / (years * 12);
-  var r = annualRate / 12;
-  var n = years * 12;
+  const r = annualRate / 12;
+  const n = years * 12;
   return (principal * r) / (1 - Math.pow(1 + r, -n));
 };
 
 /* Toggle show-calculations section */
 MSFG.toggleCalcSteps = function(calcId) {
-  var body = document.getElementById('calcSteps-' + calcId);
-  var chevron = document.getElementById('calcStepsChevron-' + calcId);
-  var label = document.getElementById('calcStepsLabel-' + calcId);
+  const body = document.getElementById('calcSteps-' + calcId);
+  const chevron = document.getElementById('calcStepsChevron-' + calcId);
+  const label = document.getElementById('calcStepsLabel-' + calcId);
 
   if (body.classList.contains('open')) {
     body.classList.remove('open');
@@ -67,16 +67,22 @@ MSFG.toggleCalcSteps = function(calcId) {
 
 /* Mobile menu toggle + calc metadata from data attributes */
 document.addEventListener('DOMContentLoaded', function() {
-  var toggle = document.getElementById('mobileMenuToggle');
+  const toggle = document.getElementById('mobileMenuToggle');
   if (toggle) {
     toggle.addEventListener('click', function() {
-      var nav = document.querySelector('.site-header__nav');
+      const nav = document.querySelector('.site-header__nav');
       if (nav) nav.classList.toggle('open');
     });
   }
 
+  // Delegated handler for show-calculations toggle buttons (replaces inline onclick)
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action="toggle-calc-steps"]');
+    if (btn) MSFG.toggleCalcSteps(btn.dataset.calcId);
+  });
+
   // Read calculator metadata from data attributes (replaces inline script)
-  var main = document.querySelector('.site-main');
+  const main = document.querySelector('.site-main');
   if (main) {
     if (main.dataset.calcIcon) window.__calcIcon = main.dataset.calcIcon;
     if (main.dataset.calcSlug) window.__calcSlug = main.dataset.calcSlug;

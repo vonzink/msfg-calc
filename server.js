@@ -4,6 +4,7 @@ const path = require('path');
 const helmet = require('helmet');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
 const expressLayouts = require('express-ejs-layouts');
 
 const fs = require('fs');
@@ -45,8 +46,7 @@ app.use(helmet({
         "https://cdnjs.cloudflare.com",
         "https://cdn.jsdelivr.net"
       ],
-      // TODO: Remove after migrating remaining inline handlers (income calcs, amortization)
-      scriptSrcAttr: ["'unsafe-inline'"],
+      scriptSrcAttr: ["'none'"],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
@@ -79,7 +79,17 @@ app.use((req, res, next) => {
   res.locals.categories = calcConfig.categories;
   res.locals.currentPath = req.path;
   res.locals.v = ASSET_VERSION;
+  // In production, serve minified JS bundles (.min.js) built by scripts/build.js
+  res.locals.jsExt = process.env.NODE_ENV === 'production' ? '.min.js' : '.js';
   next();
+});
+
+// Request logging
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// Health check — for load balancers, uptime monitors, and deployment probes
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', uptime: Math.floor(process.uptime()), version: ASSET_VERSION });
 });
 
 // Gzip/Brotli compression
@@ -88,8 +98,8 @@ app.use(compression());
 // Static files — new assets first, then legacy CSS/JS fallback
 const staticOpts = process.env.NODE_ENV === 'production' ? { maxAge: '30d' } : {};
 app.use(express.static(path.join(__dirname, 'public'), staticOpts));
-app.use('/css', express.static(path.join(__dirname, 'css'), staticOpts));
-app.use('/js', express.static(path.join(__dirname, 'js'), staticOpts));
+app.use('/css', express.static(path.join(__dirname, 'legacy', 'css'), staticOpts));
+app.use('/js', express.static(path.join(__dirname, 'legacy', 'js'), staticOpts));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -110,14 +120,14 @@ function serveLegacyHtml(filePath) {
   };
 }
 
-app.get('/legacy/refi-calc/index.html', serveLegacyHtml(path.join(__dirname, 'refi-calc', 'index.html')));
-app.use('/legacy/amort-calc', express.static(path.join(__dirname, 'amort-calc')));
+app.get('/legacy/refi-calc/index.html', serveLegacyHtml(path.join(__dirname, 'legacy', 'refi-calc', 'index.html')));
+app.use('/legacy/amort-calc', express.static(path.join(__dirname, 'legacy', 'amort-calc')));
 
-app.get('/calculators/llpm', serveLegacyHtml(path.join(__dirname, 'llpm-calc', 'LLPMTool.html')));
-app.use('/calculators/llpm', express.static(path.join(__dirname, 'llpm-calc')));
+app.get('/calculators/llpm', serveLegacyHtml(path.join(__dirname, 'legacy', 'llpm-calc', 'LLPMTool.html')));
+app.use('/calculators/llpm', express.static(path.join(__dirname, 'legacy', 'llpm-calc')));
 
-app.get('/calculators/batch-llpm', serveLegacyHtml(path.join(__dirname, 'batch-llpm', 'index.html')));
-app.use('/calculators/batch-llpm', express.static(path.join(__dirname, 'batch-llpm')));
+app.get('/calculators/batch-llpm', serveLegacyHtml(path.join(__dirname, 'legacy', 'batch-llpm', 'index.html')));
+app.use('/calculators/batch-llpm', express.static(path.join(__dirname, 'legacy', 'batch-llpm')));
 
 // Routes
 app.use('/', require('./routes/index'));
@@ -129,12 +139,12 @@ app.use('/api', require('./routes/api'));
 
 // Serve legacy calculator files (for iframe stubs during migration)
 // Only expose the specific directories that legacy iframes actually need
-app.use('/legacy/income', express.static(path.join(__dirname, 'income')));
-app.use('/legacy/refi-calc', express.static(path.join(__dirname, 'refi-calc')));
-app.use('/legacy/fha-calc', express.static(path.join(__dirname, 'fha-calc')));
-app.use('/legacy/gen-calc', express.static(path.join(__dirname, 'gen-calc')));
-app.use('/legacy/calc-reo', express.static(path.join(__dirname, 'calc-reo')));
-app.use('/legacy/buydown-calc', express.static(path.join(__dirname, 'buydown-calc')));
+app.use('/legacy/income', express.static(path.join(__dirname, 'legacy', 'income')));
+app.use('/legacy/refi-calc', express.static(path.join(__dirname, 'legacy', 'refi-calc')));
+app.use('/legacy/fha-calc', express.static(path.join(__dirname, 'legacy', 'fha-calc')));
+app.use('/legacy/gen-calc', express.static(path.join(__dirname, 'legacy', 'gen-calc')));
+app.use('/legacy/calc-reo', express.static(path.join(__dirname, 'legacy', 'calc-reo')));
+app.use('/legacy/buydown-calc', express.static(path.join(__dirname, 'legacy', 'buydown-calc')));
 
 // 404 handler
 app.use((req, res) => {

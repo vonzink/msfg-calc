@@ -51,7 +51,15 @@ router.get('/login', (req, res) => {
   res.render('settings-login', { title: 'Settings Login', error: false });
 });
 
-router.post('/login', (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15-minute window
+  max: 10,                    // 10 attempts per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many login attempts. Please try again in 15 minutes.'
+});
+
+router.post('/login', loginLimiter, (req, res) => {
   const password = process.env.SETTINGS_PASSWORD;
   if (!password) return res.redirect('/settings');
 
@@ -147,7 +155,7 @@ router.get('/', (req, res) => {
     title: 'Site Settings',
     config,
     maskedAi,
-    extraScripts: `<script src="/js/settings.js?v=${res.locals.v}"></script>`,
+    extraScripts: `<script src="/js/settings${res.locals.jsExt}?v=${res.locals.v}"></script>`,
     saved: req.query.saved === '1'
   });
 });
