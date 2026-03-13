@@ -485,7 +485,7 @@
     if (loan) {
       // Application date
       const appDate = txt(loan, 'LOAN_DETAIL/ApplicationReceivedDate');
-      if (appDate) setEventDate('applicationTaken', appDate);
+      if (appDate) setEventDate('applicationTaken', appDate, true);
 
       // File number
       const fileNum = txt(loan, 'LOAN_IDENTIFIERS/LOAN_IDENTIFIER/LoanIdentifier') ||
@@ -501,7 +501,7 @@
         const scheduled = txt(detail, 'LoanScheduledClosingDate');
         const estimated = txt(detail, 'LoanEstimatedClosingDate');
         const closingDate = scheduled || estimated;
-        if (closingDate) setEventDate('closingEstimate', closingDate);
+        if (closingDate) setEventDate('closingEstimate', closingDate, true);
       }
     }
 
@@ -513,8 +513,8 @@
       const lockExp = txt(lock, 'LockExpirationDate') || txt(lock, 'LOCK_DETAIL/LockExpirationDate') ||
                       txt(lock, 'LockExpirationDatetime') || txt(lock, 'LOCK_DETAIL/LockExpirationDatetime');
       // Strip time portion from datetime values (e.g. "2026-03-02T14:14:05-07:00" → "2026-03-02")
-      if (lockDate) setEventDate('lockDate', lockDate.substring(0, 10));
-      if (lockExp) setEventDate('lockExpiration', lockExp.substring(0, 10));
+      if (lockDate) setEventDate('lockDate', lockDate.substring(0, 10), true);
+      if (lockExp) setEventDate('lockExpiration', lockExp.substring(0, 10), true);
     }
 
     // Also check CLOSING_INFORMATION_DETAIL for CurrentRateSetDate as fallback lock date
@@ -522,7 +522,7 @@
       const closingDetails = qnAll(root, 'CLOSING_INFORMATION_DETAIL');
       for (const cd of closingDetails) {
         const rateSetDate = txt(cd, 'CurrentRateSetDate');
-        if (rateSetDate) { setEventDate('lockDate', rateSetDate); break; }
+        if (rateSetDate) { setEventDate('lockDate', rateSetDate, true); break; }
       }
     }
 
@@ -532,10 +532,10 @@
       const docType = txt(doc, 'DOCUMENT_CLASSES/DOCUMENT_CLASS/DocumentType');
       const issuedDate = txt(doc, 'INTEGRATED_DISCLOSURE/INTEGRATED_DISCLOSURE_DETAIL/IntegratedDisclosureIssuedDate');
       if (docType === 'LoanEstimate' && issuedDate && !state.events.leDelivered) {
-        setEventDate('leDelivered', issuedDate);
+        setEventDate('leDelivered', issuedDate, true);
       }
       if (docType === 'ClosingDisclosure' && issuedDate && !state.events.cdIssued) {
-        setEventDate('cdIssued', issuedDate);
+        setEventDate('cdIssued', issuedDate, true);
       }
     }
 
@@ -562,11 +562,17 @@
     saveState();
   }
 
-  function setEventDate(evId, dateStr) {
+  function setEventDate(evId, dateStr, fromMISMO) {
     const d = toDate(dateStr);
     state.events[evId] = d;
     const inp = qs(`[data-event="${evId}"]`);
-    if (inp && d) inp.value = toISO(d);
+    if (inp && d) {
+      inp.value = toISO(d);
+      if (fromMISMO) {
+        inp.classList.remove('is-default');
+        inp.classList.add('mismo-populated');
+      }
+    }
   }
 
   // ---- Derived Dates ----

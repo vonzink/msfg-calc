@@ -235,6 +235,8 @@
       } else {
         MSFG.WS.setInputValue(el, val);
       }
+      el.classList.remove('is-default');
+      el.classList.add('mismo-populated');
       populated++;
     });
 

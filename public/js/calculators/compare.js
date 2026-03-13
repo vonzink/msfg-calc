@@ -708,15 +708,19 @@
         } else {
           e.value = fields[id];
         }
+        e.classList.remove('is-default');
+        e.classList.add('mismo-populated');
       });
 
       // Also fill shared fields if this is the first loan
       if (colIdx === 1) {
         if (data.borrowerName && el('cmpBorrower') && !el('cmpBorrower').value) {
           el('cmpBorrower').value = data.borrowerName;
+          el('cmpBorrower').classList.add('mismo-populated');
         }
         if (data.propertyAddress && el('cmpProperty') && !el('cmpProperty').value) {
           el('cmpProperty').value = data.propertyAddress;
+          el('cmpProperty').classList.add('mismo-populated');
         }
       }
       // Auto-expand fee sections that have populated values

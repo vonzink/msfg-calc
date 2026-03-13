@@ -774,6 +774,8 @@ const FhaCalc = (() => {
       } else {
         field.value = value;
       }
+      field.classList.remove('is-default');
+      field.classList.add('mismo-populated');
     }
 
     // Trigger closing costs display update
