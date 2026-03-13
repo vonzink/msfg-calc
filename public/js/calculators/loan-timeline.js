@@ -219,8 +219,11 @@
     const reportBtn = el('ltReportBtn');
     if (reportBtn) {
       reportBtn.addEventListener('click', () => {
-        if (MSFG && MSFG.Report && MSFG.Report.captureCalc) {
-          MSFG.Report.captureCalc('loan-timeline');
+        if (MSFG && MSFG.Report && MSFG.Report.captureCurrentCalculator) {
+          const h1 = document.querySelector('.calc-page__header h1');
+          const calcName = h1 ? h1.textContent.trim() : 'Loan Timeline';
+          const calcIcon = window.__calcIcon || '📅';
+          MSFG.Report.captureCurrentCalculator(calcName, calcIcon);
         }
       });
     }
@@ -487,13 +490,38 @@
       }
     }
 
-    // Lock info
+    // Lock info — MISMO uses LockDatetime / LockExpirationDatetime (full ISO)
     const locks = qnAll(root, 'LOCK');
     for (const lock of locks) {
-      const lockDate = txt(lock, 'LockDate') || txt(lock, 'LOCK_DETAIL/LockDate');
-      const lockExp = txt(lock, 'LockExpirationDate') || txt(lock, 'LOCK_DETAIL/LockExpirationDate');
-      if (lockDate) setEventDate('lockDate', lockDate);
-      if (lockExp) setEventDate('lockExpiration', lockExp);
+      const lockDate = txt(lock, 'LockDate') || txt(lock, 'LOCK_DETAIL/LockDate') ||
+                       txt(lock, 'LockDatetime') || txt(lock, 'LOCK_DETAIL/LockDatetime');
+      const lockExp = txt(lock, 'LockExpirationDate') || txt(lock, 'LOCK_DETAIL/LockExpirationDate') ||
+                      txt(lock, 'LockExpirationDatetime') || txt(lock, 'LOCK_DETAIL/LockExpirationDatetime');
+      // Strip time portion from datetime values (e.g. "2026-03-02T14:14:05-07:00" → "2026-03-02")
+      if (lockDate) setEventDate('lockDate', lockDate.substring(0, 10));
+      if (lockExp) setEventDate('lockExpiration', lockExp.substring(0, 10));
+    }
+
+    // Also check CLOSING_INFORMATION_DETAIL for CurrentRateSetDate as fallback lock date
+    if (!state.events.lockDate) {
+      const closingDetails = qnAll(root, 'CLOSING_INFORMATION_DETAIL');
+      for (const cd of closingDetails) {
+        const rateSetDate = txt(cd, 'CurrentRateSetDate');
+        if (rateSetDate) { setEventDate('lockDate', rateSetDate); break; }
+      }
+    }
+
+    // LE Delivered & CD Issued — from INTEGRATED_DISCLOSURE documents
+    const documents = qnAll(root, 'DOCUMENT');
+    for (const doc of documents) {
+      const docType = txt(doc, 'DOCUMENT_CLASSES/DOCUMENT_CLASS/DocumentType');
+      const issuedDate = txt(doc, 'INTEGRATED_DISCLOSURE/INTEGRATED_DISCLOSURE_DETAIL/IntegratedDisclosureIssuedDate');
+      if (docType === 'LoanEstimate' && issuedDate && !state.events.leDelivered) {
+        setEventDate('leDelivered', issuedDate);
+      }
+      if (docType === 'ClosingDisclosure' && issuedDate && !state.events.cdIssued) {
+        setEventDate('cdIssued', issuedDate);
+      }
     }
 
     // Product/program info
