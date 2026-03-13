@@ -197,16 +197,26 @@
     if (main && main.dataset.ver) ver = '?v=' + main.dataset.ver;
     var ext = (main && main.dataset.jsExt) || '.js';
 
+    // Detect base path prefix from the report.js script tag already on the page.
+    // On dashboard.msfgco.com, nginx rewrites paths to /calc/js/..., so we need
+    // to use the same prefix for dynamically loaded scripts.
+    var basePath = '';
+    var reportScript = document.querySelector('script[src*="report"]');
+    if (reportScript && reportScript.src) {
+      var match = reportScript.src.match(/^https?:\/\/[^/]+(\/.*?)\/js\/shared\/report/);
+      if (match && match[1]) basePath = match[1];
+    }
+
     // Load registry first, then sub-templates in parallel
-    _templatesPromise = loadScript('/js/shared/report-templates' + ext + ver).then(function() {
+    _templatesPromise = loadScript(basePath + '/js/shared/report-templates' + ext + ver).then(function() {
       return Promise.all([
-        loadScript('/js/shared/report-templates/income-standard' + ext + ver),
-        loadScript('/js/shared/report-templates/income-special' + ext + ver),
-        loadScript('/js/shared/report-templates/general-analysis' + ext + ver),
-        loadScript('/js/shared/report-templates/general-simple' + ext + ver),
-        loadScript('/js/shared/report-templates/government' + ext + ver),
-        loadScript('/js/shared/report-templates/tools' + ext + ver),
-        loadScript('/js/shared/report-templates/mismo' + ext + ver)
+        loadScript(basePath + '/js/shared/report-templates/income-standard' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/income-special' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/general-analysis' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/general-simple' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/government' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/tools' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/mismo' + ext + ver)
       ]);
     }).then(function() {
       _templatesLoaded = true;
