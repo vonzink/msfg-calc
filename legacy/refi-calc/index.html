@@ -12,8 +12,6 @@
 
     <style>.is-default{color:#adb5bd!important}.is-default::placeholder{color:#adb5bd;font-style:italic}</style>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -797,65 +795,6 @@
                 <div id="adviceBullets" style="text-align:left; max-width:600px; margin:1rem auto;"></div>
             </div>
 
-            <!-- ====================================================
-                 CHARTS
-                 ==================================================== -->
-            <div class="chart-section">
-                <div class="chart-header" onclick="toggleSection('chartBreakeven')">
-                    <h2>Breakeven Timeline Chart</h2>
-                    <button class="chart-toggle" id="toggleBreakevenBtn">Show Chart</button>
-                </div>
-                <div class="chart-content" id="chartBreakeven">
-                    <div class="chart-description">
-                        <strong>How to read this chart:</strong> The X-axis shows months. The blue line shows cumulative savings
-                        from refinancing now. The orange line shows cumulative savings if you wait. The point where each line
-                        crosses zero is the breakeven point.
-                    </div>
-                    <canvas id="canvasBreakeven" height="350"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-section">
-                <div class="chart-header" onclick="toggleSection('chartComparison')">
-                    <h2>Monthly Payment Comparison</h2>
-                    <button class="chart-toggle" id="toggleComparisonBtn">Show Chart</button>
-                </div>
-                <div class="chart-content" id="chartComparison">
-                    <div class="chart-description">
-                        <strong>Side-by-side comparison</strong> of your current payment, the refinance now payment,
-                        and the future rate payment.
-                    </div>
-                    <canvas id="canvasComparison" height="300"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-section">
-                <div class="chart-header" onclick="toggleSection('chartCostBreakdown')">
-                    <h2>Closing Cost Breakdown</h2>
-                    <button class="chart-toggle" id="toggleCostBreakdownBtn">Show Chart</button>
-                </div>
-                <div class="chart-content" id="chartCostBreakdown">
-                    <div class="chart-description">
-                        <strong>Visual breakdown</strong> of where your closing costs are allocated.
-                        Prepaids and Escrow are shown separately since they are excluded from the breakeven calculation.
-                    </div>
-                    <canvas id="canvasCostBreakdown" height="300"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-section">
-                <div class="chart-header" onclick="toggleSection('chartAmortization')">
-                    <h2>Amortization Comparison (First 5 Years)</h2>
-                    <button class="chart-toggle" id="toggleAmortizationBtn">Show Chart</button>
-                </div>
-                <div class="chart-content" id="chartAmortization">
-                    <div class="chart-description">
-                        <strong>Interest vs. Principal</strong> paid over the first 60 months for each scenario.
-                        Lower interest = more equity building.
-                    </div>
-                    <canvas id="canvasAmortization" height="350"></canvas>
-                </div>
-            </div>
 
             <!-- ====================================================
                  CALCULATION DETAILS (Collapsible)
@@ -919,7 +858,6 @@
 <script src="js/refi-engine.js"></script>
 <script src="js/refi-mi.js"></script>
 <script src="js/refi-ui.js"></script>
-<script src="js/refi-charts.js"></script>
 <script src="js/refi-advice.js"></script>
 <script>window.__calcSlug = 'refi';</script>
 <script src="/js/shared/report-templates.js"></script>
