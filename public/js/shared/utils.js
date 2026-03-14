@@ -81,6 +81,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btn) MSFG.toggleCalcSteps(btn.dataset.calcId);
   });
 
+  // Remove .mismo-populated glow when user manually edits a field
+  document.addEventListener('input', function(e) {
+    if (e.isTrusted && e.target.classList && e.target.classList.contains('mismo-populated')) {
+      e.target.classList.remove('mismo-populated');
+    }
+  });
+  document.addEventListener('change', function(e) {
+    if (e.isTrusted && e.target.classList && e.target.classList.contains('mismo-populated')) {
+      e.target.classList.remove('mismo-populated');
+    }
+  });
+
   // Read calculator metadata from data attributes (replaces inline script)
   const main = document.querySelector('.site-main');
   if (main) {

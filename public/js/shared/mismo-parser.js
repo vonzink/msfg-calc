@@ -709,6 +709,7 @@
     if (data.property.value) m['priceCash'] = data.property.value;
     if (data.loan.rate) m['mortRate'] = data.loan.rate;
     if (data.loan.downPct) m['downPct'] = data.loan.downPct;
+    if (data.loan.termMonths) m['mortTerm'] = Math.round(data.loan.termMonths / 12);
     return m;
   };
 
@@ -720,6 +721,7 @@
     if (data.loan.downPct) m['downPercent'] = data.loan.downPct;
     if (data.escrow.taxAnnual && data.property.value) m['taxRate'] = +(data.escrow.taxAnnual / data.property.value * 100).toFixed(3);
     if (data.escrow.insAnnual) m['insurance'] = data.escrow.insAnnual;
+    if (data.loan.termMonths) m['termBuy'] = Math.round(data.loan.termMonths / 12);
     return m;
   };
 
@@ -858,6 +860,7 @@
     if (data.escrow.taxAnnual) m['propertyTaxes'] = data.escrow.taxAnnual;
     if (data.escrow.insAnnual) m['insurance'] = data.escrow.insAnnual;
     if (data.housing.hoa) m['hoa'] = data.housing.hoa;
+    if (data.loan.termMonths) m['loanTerm'] = Math.round(data.loan.termMonths / 12);
     return m;
   };
 

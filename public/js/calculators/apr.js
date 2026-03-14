@@ -164,6 +164,39 @@
     calculate();
   }
 
+  // ---- MISMO Data Integration ----
+  // Fields that belong to financed fee breakdown
+  const financedFeeIds = ['originationFee','processingFee','underwritingFee','applicationFee','otherFinancedFees','creditReportFee','floodCertFee','taxServiceFee'];
+  // Fields that belong to prepaid fee breakdown
+  const prepaidFeeIds = ['prepaidInterest','mortgageInsurance','monthlyMI','otherPrepaidFees','escrowReserves','titleInsurance','recordingFees'];
+
+  function applyMISMOData(data) {
+    if (!MSFG.MISMOParser) return;
+    const mapFn = MSFG.MISMOParser.getCalcMap('apr');
+    if (!mapFn) return;
+    const fieldMap = mapFn(data);
+
+    let hasFinanced = false;
+    let hasPrepaid = false;
+
+    for (const [id, value] of Object.entries(fieldMap)) {
+      const field = document.getElementById(id);
+      if (!field) continue;
+
+      field.value = value;
+      field.classList.remove('is-default');
+      field.classList.add('mismo-populated');
+
+      if (financedFeeIds.indexOf(id) !== -1) hasFinanced = true;
+      if (prepaidFeeIds.indexOf(id) !== -1) hasPrepaid = true;
+    }
+
+    // Roll up sub-fees into totals
+    if (hasFinanced) updateFinancedFees();
+    if (hasPrepaid) updatePrepaidFees();
+    calculate();
+  }
+
   // Init
   document.addEventListener('DOMContentLoaded', function() {
     MSFG.markDefaults('.calc-page');
@@ -213,6 +246,36 @@
     document.querySelectorAll('[data-action]').forEach(function(el) {
       const fn = actions[el.dataset.action];
       if (fn) el.addEventListener('click', fn);
+    });
+
+    // Remove mismo-populated class on manual user input
+    document.querySelectorAll('.calc-page input').forEach(function(input) {
+      input.addEventListener('input', function() {
+        input.classList.remove('mismo-populated');
+      });
+    });
+
+    // Check sessionStorage for existing MISMO data (from workspace)
+    const stored = sessionStorage.getItem('msfg-mismo-data');
+    if (stored) {
+      try {
+        applyMISMOData(JSON.parse(stored));
+      } catch (_) { /* ignore parse errors */ }
+    }
+
+    // Listen for workspace MISMO broadcasts via postMessage
+    window.addEventListener('message', function(e) {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === 'msfg-mismo-broadcast' || e.data.type === 'msfg-mismo-update') {
+        let parsed = e.data.parsed || null;
+        if (!parsed && e.data.xml && MSFG.MISMOParser) {
+          parsed = MSFG.MISMOParser.parse(e.data.xml);
+        }
+        if (parsed) {
+          sessionStorage.setItem('msfg-mismo-data', JSON.stringify(parsed));
+          applyMISMOData(parsed);
+        }
+      }
     });
 
     calculate();

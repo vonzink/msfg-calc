@@ -516,6 +516,94 @@
   box-shadow: 0 0 0 2px rgba(64, 145, 108, 0.15);
 }
 
+/* ---- Custom Date Popup ---- */
+.lt-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.lt-popup {
+  background: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  width: 340px;
+  max-width: 90vw;
+  overflow: hidden;
+}
+.lt-popup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+.lt-popup__header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--brand-primary);
+}
+.lt-popup__close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.lt-popup__close:hover { color: var(--color-gray-700); }
+.lt-popup__body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lt-popup__field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-gray-500);
+  margin-bottom: 4px;
+}
+.lt-popup__field input,
+.lt-popup__field select {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 6px;
+  background: var(--color-white);
+}
+.lt-popup__field input:focus,
+.lt-popup__field select:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 0 2px rgba(64, 145, 108, 0.15);
+}
+.lt-popup__footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--color-gray-100);
+  background: var(--color-gray-50);
+}
+
+/* Click hint on calendar days */
+.lt-day:not(.lt-day--empty) {
+  cursor: pointer;
+}
+.lt-day:not(.lt-day--empty):hover {
+  background: var(--brand-light, #f0fdf4);
+}
+
 /* ---- Print Styles ---- */
 @media print {
   .lt-mismo-drop,

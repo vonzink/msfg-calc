@@ -224,9 +224,43 @@
 
     <!-- Action Bar -->
     <div class="action-bar">
-      <button type="button" class="btn btn-primary" id="ltReportBtn">Add to Report</button>
       <button type="button" class="btn btn-secondary" id="ltPrintBtn">Print Timeline</button>
       <button type="button" class="btn btn-ghost" id="ltClearBtn">Clear All</button>
+    </div>
+
+    <!-- Custom Date Popup (hidden by default) -->
+    <div class="lt-popup-overlay" id="ltPopupOverlay" style="display:none">
+      <div class="lt-popup">
+        <div class="lt-popup__header">
+          <h4>Add Custom Date</h4>
+          <button type="button" class="lt-popup__close" id="ltPopupClose">&times;</button>
+        </div>
+        <div class="lt-popup__body">
+          <div class="lt-popup__field">
+            <label for="ltPopupLabel">Label</label>
+            <input type="text" id="ltPopupLabel" placeholder="e.g. Home Inspection">
+          </div>
+          <div class="lt-popup__field">
+            <label for="ltPopupDate">Date</label>
+            <input type="date" id="ltPopupDate">
+          </div>
+          <div class="lt-popup__field">
+            <label for="ltPopupCategory">Category</label>
+            <select id="ltPopupCategory">
+              <option value="milestone">Milestone</option>
+              <option value="deadline">Deadline</option>
+              <option value="lock">Rate Lock</option>
+              <option value="contingency">Contingency</option>
+              <option value="condition">Condition</option>
+              <option value="turntime">Turntime</option>
+            </select>
+          </div>
+        </div>
+        <div class="lt-popup__footer">
+          <button type="button" class="btn btn-primary" id="ltPopupAdd">Add Date</button>
+          <button type="button" class="btn btn-ghost" id="ltPopupCancel">Cancel</button>
+        </div>
+      </div>
     </div>
 
   </div>

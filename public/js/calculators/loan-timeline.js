@@ -218,24 +218,14 @@
     // Custom dates — Add button
     el('ltAddCustomDate').addEventListener('click', addCustomDate);
 
+    // Custom date popup
+    initCustomDatePopup();
+
     // Notes
     el('ltNotes').addEventListener('input', (e) => {
       state.notes = e.target.value;
       saveState();
     });
-
-    // Report button
-    const reportBtn = el('ltReportBtn');
-    if (reportBtn) {
-      reportBtn.addEventListener('click', () => {
-        if (MSFG && MSFG.Report && MSFG.Report.captureCurrentCalculator) {
-          const h1 = document.querySelector('.calc-page__header h1');
-          const calcName = h1 ? h1.textContent.trim() : 'Loan Timeline';
-          const calcIcon = window.__calcIcon || '📅';
-          MSFG.Report.captureCurrentCalculator(calcName, calcIcon);
-        }
-      });
-    }
 
     // Print
     el('ltPrintBtn').addEventListener('click', () => window.print());
@@ -347,6 +337,57 @@
     row.appendChild(catSelect);
     row.appendChild(removeBtn);
     container.appendChild(row);
+  }
+
+  // ---- Custom Date Popup (click calendar day) ----
+  function initCustomDatePopup() {
+    const overlay = el('ltPopupOverlay');
+    const popupDate = el('ltPopupDate');
+    const popupLabel = el('ltPopupLabel');
+    const popupCategory = el('ltPopupCategory');
+    if (!overlay) return;
+
+    function openPopup(dateStr) {
+      popupDate.value = dateStr || '';
+      popupLabel.value = '';
+      popupCategory.value = 'milestone';
+      overlay.style.display = 'flex';
+      setTimeout(() => popupLabel.focus(), 50);
+    }
+
+    function closePopup() {
+      overlay.style.display = 'none';
+    }
+
+    function addFromPopup() {
+      const label = popupLabel.value.trim();
+      const date = popupDate.value;
+      const category = popupCategory.value;
+      if (!label || !date) return;
+
+      const id = 'custom-' + Date.now();
+      const cd = { id: id, label: label, date: toDate(date), category: category };
+      state.customDates.push(cd);
+      renderCustomDateRow(cd);
+      render();
+      sendTally();
+      saveState();
+      closePopup();
+    }
+
+    el('ltPopupClose').addEventListener('click', closePopup);
+    el('ltPopupCancel').addEventListener('click', closePopup);
+    el('ltPopupAdd').addEventListener('click', addFromPopup);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closePopup();
+    });
+
+    // Enter key submits
+    popupLabel.addEventListener('keydown', (e) => { if (e.key === 'Enter') addFromPopup(); });
+    popupDate.addEventListener('keydown', (e) => { if (e.key === 'Enter') addFromPopup(); });
+
+    // Expose for calendar click handler
+    state._openPopup = openPopup;
   }
 
   // ---- MISMO Integration ----
@@ -671,21 +712,11 @@
 
     grid.innerHTML = html;
 
-    // Click handler for day cells
-    grid.querySelectorAll('.lt-day--has-event').forEach(cell => {
+    // Click handler for day cells — open custom date popup
+    grid.querySelectorAll('.lt-day:not(.lt-day--empty)').forEach(cell => {
       cell.addEventListener('click', () => {
         const dateStr = cell.dataset.date;
-        // Find matching event input and scroll to it
-        const allEvents = EVENT_DEFS.concat(state.customDates.map(cd => ({ id: cd.id })));
-        EVENT_DEFS.forEach(ev => {
-          if (state.events[ev.id] && toISO(state.events[ev.id]) === dateStr) {
-            const inp = qs(`[data-event="${ev.id}"]`);
-            if (inp) {
-              inp.focus();
-              inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }
-        });
+        if (state._openPopup) state._openPopup(dateStr);
       });
     });
   }
