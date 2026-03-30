@@ -617,7 +617,7 @@
     var qualification = budgetData.qualification || {};
 
     /* --- Income: build rows from each borrower's employers and income items --- */
-    var hasDetailedIncome = false;
+    var detailedIncomeTotal = 0;
 
     borrowers.forEach(function (b) {
       /* Per-employer income items */
@@ -631,7 +631,7 @@
                 amount: item.monthly || 0,
                 mismo: true
               });
-              hasDetailedIncome = true;
+              detailedIncomeTotal += item.monthly || 0;
             });
           } else if (emp.monthlyIncome > 0) {
             /* Employer with aggregate income but no line items */
@@ -641,7 +641,7 @@
               amount: emp.monthlyIncome,
               mismo: true
             });
-            hasDetailedIncome = true;
+            detailedIncomeTotal += emp.monthlyIncome;
           }
         });
       }
@@ -652,22 +652,43 @@
           /* Skip if already added via employer */
           if (item.employer) return;
           createIncomeRow({
-            name: item.employer || 'Other Income',
+            name: 'Other Income',
             type: item.type || 'Other',
             amount: item.monthly || 0,
             mismo: true
           });
-          hasDetailedIncome = true;
+          detailedIncomeTotal += item.monthly || 0;
         });
       }
     });
 
-    /* If no detailed income found, use qualifying income total as single row */
-    if (!hasDetailedIncome && qualification.totalMonthlyIncome > 0) {
+    /* If qualifying income exceeds what we found in detailed items, add the remainder
+       attributed to the first employer (or as generic qualifying income) */
+    var qualTotal = qualification.totalMonthlyIncome || 0;
+    if (qualTotal > 0 && detailedIncomeTotal < qualTotal) {
+      var remainder = qualTotal - detailedIncomeTotal;
+      /* Find first employer name for attribution */
+      var empName = 'Employment Income';
+      borrowers.forEach(function (b) {
+        if (empName === 'Employment Income' && b.employers && b.employers.length) {
+          var first = b.employers[0];
+          if (first && first.name) empName = first.name;
+        }
+      });
+      createIncomeRow({
+        name: empName,
+        type: 'Base',
+        amount: remainder,
+        mismo: true
+      });
+    }
+
+    /* If no income at all and qualifying total exists, use it */
+    if (incomeRows.length === 0 && qualTotal > 0) {
       createIncomeRow({
         name: 'Qualifying Income (total)',
         type: 'Base',
-        amount: qualification.totalMonthlyIncome,
+        amount: qualTotal,
         mismo: true
       });
     }
@@ -679,8 +700,8 @@
 
     /* --- Liabilities: each individual item from credit report --- */
     liabilities.forEach(function (l) {
-      /* Skip mortgage loans — they go in the existing mortgage section or are the subject property */
       var isMortgage = (l.type || '').toLowerCase() === 'mortgageloan';
+      var isPayoff = l.payoff || false;
 
       createLiabilityRow({
         holder: l.holder || l.name || '',
@@ -688,8 +709,8 @@
         balance: l.balance || 0,
         payment: l.payment || 0,
         months: l.remainingMonths || 0,
-        omit: isMortgage ? true : false,
-        payoff: l.payoff || false,
+        omit: isMortgage && !isPayoff ? true : false,
+        payoff: isPayoff || isMortgage ? true : false,
         account: l.account || '',
         mismo: true
       });
