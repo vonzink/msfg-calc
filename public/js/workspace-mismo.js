@@ -203,7 +203,7 @@
         amortKeys[key.replace('__amort_', '')] = fieldMap[key];
       } else if (key.indexOf('__radio_') === 0) {
         radioKeys[key.replace('__radio_', '')] = fieldMap[key];
-      } else if (key === '__custom_items' || key === '__mismo_xml_inject') {
+      } else if (key === '__custom_items' || key === '__mismo_xml_inject' || key === '__budget_data') {
         // Handled separately
       } else {
         domKeys[key] = fieldMap[key];
@@ -291,6 +291,23 @@
           targetWin.MSFG_FW_addCustomItem(item.section, item.name, item.amount);
           populated++;
         });
+      }
+    }
+
+    // Handle budget calculator structured data
+    if (fieldMap.__budget_data) {
+      var budgetWin = null;
+      try {
+        if (nestedIframe) {
+          budgetWin = nestedIframe.contentWindow;
+        } else {
+          budgetWin = iframe.contentWindow;
+        }
+      } catch (e) { /* cross-origin */ }
+
+      if (budgetWin && typeof budgetWin.MSFG_BG_populateMISMO === 'function') {
+        budgetWin.MSFG_BG_populateMISMO(fieldMap.__budget_data);
+        populated++;
       }
     }
 

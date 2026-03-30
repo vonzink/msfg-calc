@@ -4,54 +4,35 @@
   var P = MSFG.parseNum;
   var fmt = MSFG.formatCurrency;
 
-  /* ---- DOM cache ---- */
-  var dom = {};
+  /* ---- Dynamic row stores ---- */
+  var incomeRows = [];   // { id, name, type, amount }
+  var liabilityRows = []; // { id, holder, type, balance, payment, months, omit, payoff, account }
+  var incomeCounter = 0;
+  var liabilityCounter = 0;
 
-  /* ---- Field ID groups ---- */
-  var employmentIds = ['bgBaseIncome', 'bgOvertime', 'bgBonus', 'bgCommission'];
-  var otherQualIds = ['bgSelfEmployment', 'bgRental', 'bgDividends', 'bgSSPension', 'bgSupportReceived'];
+  /* ---- Static field IDs ---- */
   var additionalIds = ['bgSpouseIncome', 'bgSideGig', 'bgOtherHousehold'];
   var housingIds = ['bgPI', 'bgPropertyTax', 'bgHomeInsurance', 'bgMI', 'bgHOA', 'bgFlood', 'bgOtherHousing'];
-  var liabilityIds = ['bgAutoLoan', 'bgStudentLoan', 'bgCreditCard', 'bgPersonalLoan', 'bgSupportPaid', 'bgOtherDebt'];
   var livingIds = ['bgUtilities', 'bgTelecom', 'bgGroceries', 'bgTransport', 'bgInsurance', 'bgChildcare', 'bgEntertainment', 'bgOtherLiving'];
   var reserveIds = ['bgChecking', 'bgSavings', 'bgRetirement', 'bgInvestments', 'bgOtherAssets'];
   var loanIds = ['bgLoanAmount', 'bgRate', 'bgTermMonths', 'bgPropertyValue', 'bgCreditScore', 'bgNumBorrowers'];
   var metaIds = ['bgBorrowerName', 'bgFileNumber', 'bgPrepDate', 'bgLoanPurpose', 'bgProduct'];
 
-  var allInputIds = [].concat(employmentIds, otherQualIds, additionalIds, housingIds, liabilityIds, livingIds, reserveIds, loanIds, metaIds);
+  var allStaticIds = [].concat(additionalIds, housingIds, livingIds, reserveIds, loanIds, metaIds);
 
   /* Computed fields */
   var computedIds = ['bgPI'];
   var overrides = {};
 
-  /* Custom line items */
-  var customItems = [];
-  var customItemCounter = 0;
-
-  var sectionContainers = {
-    employment: 'bgEmploymentItems',
-    otherQual: 'bgOtherQualItems',
-    additional: 'bgAdditionalItems',
-    housing: 'bgHousingItems',
-    liabilities: 'bgLiabilityItems',
-    living: 'bgLivingItems'
-  };
-
   /* ---- Helpers ---- */
-  function cacheDom() {
-    allInputIds.forEach(function (id) {
-      dom[id] = document.getElementById(id);
-    });
-  }
-
   function v(id) {
-    var el = dom[id] || document.getElementById(id);
+    var el = document.getElementById(id);
     if (!el) return 0;
     return P(el.value) || 0;
   }
 
   function setComputed(id, calculatedValue) {
-    var el = dom[id] || document.getElementById(id);
+    var el = document.getElementById(id);
     if (!el) return calculatedValue;
     if (overrides[id]) return P(el.value) || 0;
     el.value = Math.round(calculatedValue * 100) / 100;
@@ -64,15 +45,292 @@
     return total;
   }
 
-  function sumCustomItems(section) {
-    var total = 0;
-    customItems.forEach(function (item) {
-      if (item.section === section) {
-        var el = document.getElementById(item.inputId);
-        if (el) total += P(el.value) || 0;
-      }
+  function friendlyLiabType(type) {
+    if (!type) return '';
+    var map = {
+      'Revolving': 'Revolving',
+      'Installment': 'Installment',
+      'MortgageLoan': 'Mortgage',
+      'HELOC': 'HELOC',
+      'Open30DayChargeAccount': 'Charge Acct',
+      'LeasePayment': 'Lease',
+      'Other': 'Other',
+      'CollectionsJudgmentsAndLiens': 'Collections'
+    };
+    return map[type] || type.replace(/([A-Z])/g, ' $1').trim();
+  }
+
+  /* ---- Income Row Management ---- */
+  function createIncomeRow(data) {
+    incomeCounter++;
+    var id = incomeCounter;
+    var row = {
+      id: id,
+      name: (data && data.name) || '',
+      type: (data && data.type) || '',
+      amount: (data && data.amount) || 0
+    };
+    incomeRows.push(row);
+    renderIncomeRow(row, data && data.mismo);
+    return row;
+  }
+
+  function renderIncomeRow(row, isMismo) {
+    var container = document.getElementById('bgIncomeBody');
+    if (!container) return;
+
+    var div = document.createElement('div');
+    div.className = 'bg-income-row';
+    div.dataset.incomeIdx = String(row.id);
+
+    var main = document.createElement('div');
+    main.className = 'bg-income-row__main';
+
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'bg-income-row__name';
+    nameInput.placeholder = 'Employer / Source';
+    nameInput.value = row.name;
+    nameInput.dataset.field = 'name';
+    if (isMismo) nameInput.classList.add('mismo-populated');
+
+    var typeInput = document.createElement('input');
+    typeInput.type = 'text';
+    typeInput.className = 'bg-income-row__type';
+    typeInput.placeholder = 'Type';
+    typeInput.value = row.type;
+    typeInput.dataset.field = 'type';
+    if (isMismo) typeInput.classList.add('mismo-populated');
+
+    var amountInput = document.createElement('input');
+    amountInput.type = 'number';
+    amountInput.className = 'bg-input bg-income-row__amount';
+    amountInput.value = row.amount;
+    amountInput.min = '0';
+    amountInput.step = '1';
+    amountInput.dataset.field = 'amount';
+    if (isMismo) amountInput.classList.add('mismo-populated');
+
+    var period = document.createElement('span');
+    period.className = 'bg-row__period';
+    period.textContent = '/mo';
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'bg-row__remove';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', function () { removeIncomeRow(row.id); });
+
+    main.appendChild(nameInput);
+    main.appendChild(typeInput);
+    main.appendChild(amountInput);
+    main.appendChild(period);
+    main.appendChild(removeBtn);
+    div.appendChild(main);
+
+    /* Bind change events */
+    nameInput.addEventListener('input', function () {
+      row.name = nameInput.value;
+      nameInput.classList.remove('mismo-populated');
     });
-    return total;
+    typeInput.addEventListener('input', function () {
+      row.type = typeInput.value;
+      typeInput.classList.remove('mismo-populated');
+    });
+    amountInput.addEventListener('input', function () {
+      row.amount = P(amountInput.value) || 0;
+      amountInput.classList.remove('mismo-populated');
+      calculate();
+    });
+    amountInput.addEventListener('change', calculate);
+
+    container.appendChild(div);
+  }
+
+  function removeIncomeRow(id) {
+    incomeRows = incomeRows.filter(function (r) { return r.id !== id; });
+    var el = document.querySelector('[data-income-idx="' + id + '"]');
+    if (el) el.remove();
+    calculate();
+  }
+
+  function clearIncomeRows() {
+    incomeRows = [];
+    incomeCounter = 0;
+    var body = document.getElementById('bgIncomeBody');
+    if (body) body.innerHTML = '';
+  }
+
+  /* ---- Liability Row Management ---- */
+  function createLiabilityRow(data) {
+    liabilityCounter++;
+    var id = liabilityCounter;
+    var row = {
+      id: id,
+      holder: (data && data.holder) || '',
+      type: (data && data.type) || '',
+      balance: (data && data.balance) || 0,
+      payment: (data && data.payment) || 0,
+      months: (data && data.months) || 0,
+      omit: (data && data.omit) || false,
+      payoff: (data && data.payoff) || false,
+      account: (data && data.account) || ''
+    };
+    liabilityRows.push(row);
+    renderLiabilityRow(row, data && data.mismo);
+    return row;
+  }
+
+  function renderLiabilityRow(row, isMismo) {
+    var body = document.getElementById('bgLiabilityBody');
+    if (!body) return;
+
+    var div = document.createElement('div');
+    div.className = 'bg-liab-row';
+    if (row.omit) div.classList.add('bg-liab-row--omitted');
+    if (row.payoff) div.classList.add('bg-liab-row--payoff');
+    div.dataset.liabIdx = String(row.id);
+
+    /* Holder / Creditor name */
+    var holderInput = document.createElement('input');
+    holderInput.type = 'text';
+    holderInput.className = 'bg-liab-col bg-liab-col--name';
+    holderInput.placeholder = 'Creditor';
+    holderInput.value = row.holder;
+    if (isMismo) holderInput.classList.add('mismo-populated');
+
+    /* Type */
+    var typeSpan = document.createElement('span');
+    typeSpan.className = 'bg-liab-col bg-liab-col--type';
+    typeSpan.textContent = friendlyLiabType(row.type);
+    typeSpan.title = row.type;
+
+    /* Balance */
+    var balanceInput = document.createElement('input');
+    balanceInput.type = 'number';
+    balanceInput.className = 'bg-liab-col bg-liab-col--balance bg-input';
+    balanceInput.value = row.balance;
+    balanceInput.min = '0';
+    balanceInput.step = '1';
+    if (isMismo) balanceInput.classList.add('mismo-populated');
+
+    /* Payment */
+    var paymentInput = document.createElement('input');
+    paymentInput.type = 'number';
+    paymentInput.className = 'bg-liab-col bg-liab-col--payment bg-input';
+    paymentInput.value = row.payment;
+    paymentInput.min = '0';
+    paymentInput.step = '1';
+    if (isMismo) paymentInput.classList.add('mismo-populated');
+
+    /* Remaining months */
+    var monthsInput = document.createElement('input');
+    monthsInput.type = 'number';
+    monthsInput.className = 'bg-liab-col bg-liab-col--months bg-input';
+    monthsInput.value = row.months || '';
+    monthsInput.min = '0';
+    monthsInput.step = '1';
+    monthsInput.placeholder = '-';
+    if (isMismo && row.months) monthsInput.classList.add('mismo-populated');
+
+    /* Omit checkbox */
+    var omitLabel = document.createElement('label');
+    omitLabel.className = 'bg-liab-col bg-liab-col--omit bg-liab-check';
+    var omitCb = document.createElement('input');
+    omitCb.type = 'checkbox';
+    omitCb.checked = row.omit;
+    omitLabel.appendChild(omitCb);
+
+    /* Payoff checkbox */
+    var payoffLabel = document.createElement('label');
+    payoffLabel.className = 'bg-liab-col bg-liab-col--payoff bg-liab-check';
+    var payoffCb = document.createElement('input');
+    payoffCb.type = 'checkbox';
+    payoffCb.checked = row.payoff;
+    payoffLabel.appendChild(payoffCb);
+
+    /* Remove button */
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'bg-liab-col bg-liab-col--remove bg-row__remove';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '&times;';
+
+    div.appendChild(holderInput);
+    div.appendChild(typeSpan);
+    div.appendChild(balanceInput);
+    div.appendChild(paymentInput);
+    div.appendChild(monthsInput);
+    div.appendChild(omitLabel);
+    div.appendChild(payoffLabel);
+    div.appendChild(removeBtn);
+
+    /* Event bindings */
+    holderInput.addEventListener('input', function () {
+      row.holder = holderInput.value;
+      holderInput.classList.remove('mismo-populated');
+    });
+    balanceInput.addEventListener('input', function () {
+      row.balance = P(balanceInput.value) || 0;
+      balanceInput.classList.remove('mismo-populated');
+      calculate();
+    });
+    balanceInput.addEventListener('change', calculate);
+    paymentInput.addEventListener('input', function () {
+      row.payment = P(paymentInput.value) || 0;
+      paymentInput.classList.remove('mismo-populated');
+      calculate();
+    });
+    paymentInput.addEventListener('change', calculate);
+    monthsInput.addEventListener('input', function () {
+      row.months = P(monthsInput.value) || 0;
+      monthsInput.classList.remove('mismo-populated');
+    });
+
+    omitCb.addEventListener('change', function () {
+      row.omit = omitCb.checked;
+      if (row.omit) {
+        row.payoff = false;
+        payoffCb.checked = false;
+        div.classList.add('bg-liab-row--omitted');
+        div.classList.remove('bg-liab-row--payoff');
+      } else {
+        div.classList.remove('bg-liab-row--omitted');
+      }
+      calculate();
+    });
+
+    payoffCb.addEventListener('change', function () {
+      row.payoff = payoffCb.checked;
+      if (row.payoff) {
+        row.omit = false;
+        omitCb.checked = false;
+        div.classList.remove('bg-liab-row--omitted');
+        div.classList.add('bg-liab-row--payoff');
+      } else {
+        div.classList.remove('bg-liab-row--payoff');
+      }
+      calculate();
+    });
+
+    removeBtn.addEventListener('click', function () { removeLiabilityRow(row.id); });
+
+    body.appendChild(div);
+  }
+
+  function removeLiabilityRow(id) {
+    liabilityRows = liabilityRows.filter(function (r) { return r.id !== id; });
+    var el = document.querySelector('[data-liab-idx="' + id + '"]');
+    if (el) el.remove();
+    calculate();
+  }
+
+  function clearLiabilityRows() {
+    liabilityRows = [];
+    liabilityCounter = 0;
+    var body = document.getElementById('bgLiabilityBody');
+    if (body) body.innerHTML = '';
   }
 
   /* ---- DTI status helpers ---- */
@@ -106,15 +364,14 @@
 
   /* ---- Main calculation ---- */
   function calculate() {
-    /* INCOME */
-    var employmentTotal = sumIds(employmentIds) + sumCustomItems('employment');
-    var otherQualTotal = sumIds(otherQualIds) + sumCustomItems('otherQual');
-    var qualifyingIncome = employmentTotal + otherQualTotal;
-    var additionalTotal = sumIds(additionalIds) + sumCustomItems('additional');
+    /* INCOME — sum all dynamic income rows */
+    var employmentTotal = 0;
+    incomeRows.forEach(function (r) { employmentTotal += r.amount || 0; });
+    var qualifyingIncome = employmentTotal;
+    var additionalTotal = sumIds(additionalIds);
     var grandTotalIncome = qualifyingIncome + additionalTotal;
 
     document.getElementById('bgEmploymentTotal').textContent = fmt(employmentTotal);
-    document.getElementById('bgOtherQualTotal').textContent = fmt(otherQualTotal);
     document.getElementById('bgTotalQualIncome').textContent = fmt(qualifyingIncome);
     document.getElementById('bgAdditionalTotal').textContent = fmt(additionalTotal);
     document.getElementById('bgGrandTotalIncome').textContent = fmt(grandTotalIncome);
@@ -130,15 +387,34 @@
     }
     var pi = setComputed('bgPI', piCalc);
 
-    var housingTotal = sumIds(housingIds) + sumCustomItems('housing');
+    var housingTotal = sumIds(housingIds);
     document.getElementById('bgHousingTotal').textContent = fmt(housingTotal);
 
-    /* LIABILITIES */
-    var liabilitiesTotal = sumIds(liabilityIds) + sumCustomItems('liabilities');
+    /* LIABILITIES — only active (not omitted, not payoff) */
+    var liabilitiesTotal = 0;
+    var payoffTotal = 0;
+    var activeCount = 0;
+    var omittedCount = 0;
+
+    liabilityRows.forEach(function (r) {
+      if (r.omit) {
+        omittedCount++;
+      } else if (r.payoff) {
+        omittedCount++;
+        payoffTotal += r.balance || 0;
+      } else {
+        liabilitiesTotal += r.payment || 0;
+        activeCount++;
+      }
+    });
+
     document.getElementById('bgLiabilitiesTotal').textContent = fmt(liabilitiesTotal);
+    document.getElementById('bgActiveLiabCount').textContent = activeCount;
+    document.getElementById('bgOmittedLiabCount').textContent = omittedCount;
+    document.getElementById('bgPayoffTotal').textContent = fmt(payoffTotal);
 
     /* LIVING EXPENSES */
-    var livingTotal = sumIds(livingIds) + sumCustomItems('living');
+    var livingTotal = sumIds(livingIds);
     document.getElementById('bgLivingTotal').textContent = fmt(livingTotal);
 
     /* TOTAL EXPENSES */
@@ -182,11 +458,11 @@
     /* NET CASH FLOW */
     var netCashFlow = grandTotalIncome - grandTotalExpenses;
     document.getElementById('bgNetCashFlow').textContent = fmt(netCashFlow);
-    document.getElementById('bgSummaryIncome').textContent = fmt(grandTotalIncome);
     document.getElementById('bgSummaryQualIncome').textContent = fmt(qualifyingIncome);
     document.getElementById('bgSummaryHousing').textContent = fmt(housingTotal);
     document.getElementById('bgSummaryDebts').textContent = fmt(liabilitiesTotal);
     document.getElementById('bgSummaryLiving').textContent = fmt(livingTotal);
+    document.getElementById('bgSummaryPayoff').textContent = fmt(payoffTotal);
 
     var cfStatus = document.getElementById('bgCashFlowStatus');
     if (cfStatus) {
@@ -195,14 +471,14 @@
         cfStatus.textContent = 'Positive cash flow';
         cfStatus.classList.add('bg-card__status--good');
       } else if (netCashFlow < 0) {
-        cfStatus.textContent = 'Negative cash flow — budget exceeds income';
+        cfStatus.textContent = 'Negative cash flow \u2014 budget exceeds income';
         cfStatus.classList.add('bg-card__status--over');
       } else {
         cfStatus.innerHTML = '&nbsp;';
       }
     }
 
-    /* Color the card values based on DTI health */
+    /* Color card values */
     var frontValEl = document.getElementById('bgFrontDTI');
     var backValEl = document.getElementById('bgBackDTI');
     var residualValEl = document.getElementById('bgResidualIncome');
@@ -227,6 +503,9 @@
       housingTotal: housingTotal,
       liabilitiesTotal: liabilitiesTotal,
       livingTotal: livingTotal,
+      payoffTotal: payoffTotal,
+      activeCount: activeCount,
+      omittedCount: omittedCount,
       pi: pi,
       loanAmount: loanAmount,
       rate: rate,
@@ -277,7 +556,14 @@
     html += '<div class="calc-step__values"><strong>Total Housing = ' + fmt(d.housingTotal) + '</strong></div>';
     html += '</div>';
 
-    html += '<div class="calc-step"><h4>Step 3: Front-End DTI Ratio</h4>';
+    html += '<div class="calc-step"><h4>Step 3: Credit Report Liabilities</h4>';
+    html += '<div class="calc-step__values">';
+    html += d.activeCount + ' active liabilities included in DTI = ' + fmt(d.liabilitiesTotal) + '/mo<br>';
+    if (d.omittedCount > 0) html += d.omittedCount + ' liabilities omitted or marked for payoff<br>';
+    if (d.payoffTotal > 0) html += '<strong>Total payoff balance (cash needed): ' + fmt(d.payoffTotal) + '</strong><br>';
+    html += '</div></div>';
+
+    html += '<div class="calc-step"><h4>Step 4: Front-End DTI Ratio</h4>';
     html += '<div class="calc-step__formula">Front-End DTI = (Total Housing Payment / Qualifying Monthly Income) &times; 100</div>';
     html += '<div class="calc-step__values">';
     html += 'Front-End DTI = (' + fmt(d.housingTotal) + ' / ' + fmt(d.qualifyingIncome) + ') &times; 100';
@@ -285,23 +571,23 @@
     html += '<br><em>Conventional guideline: &le;28%, FHA: &le;31%, VA: no front-end limit</em>';
     html += '</div></div>';
 
-    html += '<div class="calc-step"><h4>Step 4: Back-End DTI Ratio</h4>';
-    html += '<div class="calc-step__formula">Back-End DTI = (Housing + Recurring Debts) / Qualifying Monthly Income &times; 100</div>';
+    html += '<div class="calc-step"><h4>Step 5: Back-End DTI Ratio</h4>';
+    html += '<div class="calc-step__formula">Back-End DTI = (Housing + Active Debts) / Qualifying Monthly Income &times; 100</div>';
     html += '<div class="calc-step__values">';
     html += 'Back-End DTI = (' + fmt(d.housingTotal) + ' + ' + fmt(d.liabilitiesTotal) + ') / ' + fmt(d.qualifyingIncome) + ' &times; 100';
     html += '<br><strong>Back-End DTI = ' + d.backDTI.toFixed(2) + '%</strong>';
     html += '<br><em>Conventional guideline: &le;36-45%, FHA: &le;43-57%, VA: &le;41%</em>';
     html += '</div></div>';
 
-    html += '<div class="calc-step"><h4>Step 5: Residual Income</h4>';
-    html += '<div class="calc-step__formula">Residual = Qualifying Income - Housing - Recurring Debts</div>';
+    html += '<div class="calc-step"><h4>Step 6: Residual Income</h4>';
+    html += '<div class="calc-step__formula">Residual = Qualifying Income - Housing - Active Debts</div>';
     html += '<div class="calc-step__values">';
     html += 'Residual = ' + fmt(d.qualifyingIncome) + ' - ' + fmt(d.housingTotal) + ' - ' + fmt(d.liabilitiesTotal);
     html += '<br><strong>Residual Income = ' + fmt(d.residualAfterDTI) + '</strong>';
     html += '<br><em>VA residual income requirements vary by region, loan amount, and family size</em>';
     html += '</div></div>';
 
-    html += '<div class="calc-step"><h4>Step 6: Reserves</h4>';
+    html += '<div class="calc-step"><h4>Step 7: Reserves</h4>';
     html += '<div class="calc-step__formula">Months of Reserves = Total Liquid Assets / Total Monthly Housing Payment</div>';
     html += '<div class="calc-step__values">';
     html += 'Reserves = ' + fmt(d.totalReserves) + ' / ' + fmt(d.housingTotal);
@@ -309,8 +595,8 @@
     html += '<br><em>Most lenders require 2-6 months reserves for qualification</em>';
     html += '</div></div>';
 
-    html += '<div class="calc-step"><h4>Step 7: Full Budget Cash Flow</h4>';
-    html += '<div class="calc-step__formula">Net Cash Flow = All Income - Housing - Debts - Living Expenses</div>';
+    html += '<div class="calc-step"><h4>Step 8: Full Budget Cash Flow</h4>';
+    html += '<div class="calc-step__formula">Net Cash Flow = All Income - Housing - Active Debts - Living Expenses</div>';
     html += '<div class="calc-step__values">';
     html += 'Cash Flow = ' + fmt(d.grandTotalIncome) + ' - ' + fmt(d.housingTotal) + ' - ' + fmt(d.liabilitiesTotal) + ' - ' + fmt(d.livingTotal);
     html += '<br><strong>Net Monthly Cash Flow = ' + fmt(d.residualAfterLiving) + '</strong>';
@@ -320,189 +606,138 @@
     container.innerHTML = html;
   }
 
-  /* ---- Custom line items ---- */
-  function addLineItem() {
-    var sectionKey = document.getElementById('bgNewItemSection').value;
-    var nameInput = document.getElementById('bgNewItemName');
-    var amountInput = document.getElementById('bgNewItemAmount');
-    var name = (nameInput.value || '').trim();
-    var amount = P(amountInput.value) || 0;
+  /* ---- MISMO Population (called by workspace or direct upload) ---- */
+  function populateMISMO(budgetData) {
+    /* Clear existing dynamic rows */
+    clearIncomeRows();
+    clearLiabilityRows();
 
-    if (!name) { nameInput.focus(); return; }
+    var borrowers = budgetData.borrowers || [];
+    var liabilities = budgetData.liabilities || [];
+    var qualification = budgetData.qualification || {};
 
-    customItemCounter++;
-    var inputId = 'bgCustom_' + customItemCounter;
+    /* --- Income: build rows from each borrower's employers and income items --- */
+    var hasDetailedIncome = false;
 
-    var item = { id: customItemCounter, section: sectionKey, name: name, inputId: inputId };
-    customItems.push(item);
-
-    var row = document.createElement('div');
-    row.className = 'bg-row bg-row--custom';
-    row.dataset.customId = String(customItemCounter);
-
-    var label = document.createElement('label');
-    label.textContent = name;
-
-    var input = document.createElement('input');
-    input.type = 'number';
-    input.id = inputId;
-    input.value = amount;
-    input.min = '0';
-    input.step = '0.01';
-    input.className = 'bg-input';
-    input.addEventListener('input', calculate);
-    input.addEventListener('change', calculate);
-
-    var period = document.createElement('span');
-    period.className = 'bg-row__period';
-    period.textContent = '/mo';
-
-    var removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'bg-row__remove';
-    removeBtn.title = 'Remove';
-    removeBtn.innerHTML = '&times;';
-    removeBtn.addEventListener('click', function () { removeLineItem(item.id); });
-
-    row.appendChild(label);
-    row.appendChild(input);
-    row.appendChild(period);
-    row.appendChild(removeBtn);
-
-    var containerId = sectionContainers[sectionKey];
-    var container = document.getElementById(containerId);
-    if (container) container.appendChild(row);
-
-    nameInput.value = '';
-    amountInput.value = '0';
-    calculate();
-  }
-
-  function removeLineItem(id) {
-    customItems = customItems.filter(function (item) { return item.id !== id; });
-    var row = document.querySelector('[data-custom-id="' + id + '"]');
-    if (row) row.remove();
-    calculate();
-  }
-
-  /* ---- MISMO Auto-Fill ---- */
-  function populateFromMISMO(data) {
-    var fields = {};
-
-    /* Borrower info */
-    if (data.borrowerName) fields['bgBorrowerName'] = data.borrowerName;
-    if (data.loan.loanIdentifier) fields['bgFileNumber'] = data.loan.loanIdentifier;
-
-    /* Loan info */
-    if (data.loan.amount) fields['bgLoanAmount'] = data.loan.amount;
-    if (data.loan.rate) fields['bgRate'] = data.loan.rate;
-    if (data.loan.termMonths) fields['bgTermMonths'] = data.loan.termMonths;
-    if (data.property.value) fields['bgPropertyValue'] = data.property.value;
-    if (data.loan.productName) fields['bgProduct'] = data.loan.productName;
-    if (data.borrowers.length > 0 && data.borrowers[0].creditScore) fields['bgCreditScore'] = data.borrowers[0].creditScore;
-    if (data.borrowers.length) fields['bgNumBorrowers'] = data.borrowers.length;
-
-    /* Loan purpose */
-    var purposeEl = document.getElementById('bgLoanPurpose');
-    if (purposeEl && data.loan.purpose) {
-      var opts = purposeEl.options;
-      for (var i = 0; i < opts.length; i++) {
-        if (opts[i].value === data.loan.purpose || opts[i].value.toLowerCase().indexOf(data.loan.purpose.toLowerCase()) !== -1) {
-          purposeEl.selectedIndex = i;
-          purposeEl.classList.add('mismo-populated');
-          break;
-        }
+    borrowers.forEach(function (b) {
+      /* Per-employer income items */
+      if (b.employers && b.employers.length) {
+        b.employers.forEach(function (emp) {
+          if (emp.incomeItems && emp.incomeItems.length) {
+            emp.incomeItems.forEach(function (item) {
+              createIncomeRow({
+                name: emp.name || 'Employer',
+                type: item.type || 'Employment',
+                amount: item.monthly || 0,
+                mismo: true
+              });
+              hasDetailedIncome = true;
+            });
+          } else if (emp.monthlyIncome > 0) {
+            /* Employer with aggregate income but no line items */
+            createIncomeRow({
+              name: emp.name || 'Employer',
+              type: emp.status === 'Current' ? 'Base' : (emp.status || 'Employment'),
+              amount: emp.monthlyIncome,
+              mismo: true
+            });
+            hasDetailedIncome = true;
+          }
+        });
       }
-    }
 
-    /* Qualifying income from MISMO */
-    if (data.qualification && data.qualification.totalMonthlyIncome) {
-      fields['bgBaseIncome'] = data.qualification.totalMonthlyIncome;
-    } else {
-      /* Sum borrower incomes */
-      var totalBorrowerIncome = 0;
-      data.borrowers.forEach(function (b) { totalBorrowerIncome += b.income || 0; });
-      if (totalBorrowerIncome > 0) fields['bgBaseIncome'] = totalBorrowerIncome;
-    }
-
-    /* Housing expenses */
-    if (data.housing.pi) fields['bgPI'] = data.housing.pi;
-    if (data.housing.taxMo) fields['bgPropertyTax'] = data.housing.taxMo;
-    if (data.housing.insuranceMo) fields['bgHomeInsurance'] = data.housing.insuranceMo;
-    if (data.housing.mi) fields['bgMI'] = data.housing.mi;
-    if (data.housing.hoa) fields['bgHOA'] = data.housing.hoa;
-
-    /* If no housing breakdown, use projected payments */
-    if (!data.housing.pi && data.loan.piPayment) fields['bgPI'] = data.loan.piPayment;
-    if (!data.housing.mi && data.loan.miPayment) fields['bgMI'] = data.loan.miPayment;
-
-    /* Escrow-based housing if no housing node */
-    if (!data.housing.taxMo && data.escrow.taxMonthly) fields['bgPropertyTax'] = data.escrow.taxMonthly;
-    if (!data.housing.insuranceMo && data.escrow.insMonthly) fields['bgHomeInsurance'] = data.escrow.insMonthly;
-
-    /* Set fields and mark as MISMO-populated */
-    Object.keys(fields).forEach(function (id) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.value = fields[id];
-      el.classList.add('mismo-populated');
-      /* If it's a computed field, mark the override since MISMO set it */
-      if (computedIds.indexOf(id) !== -1 && fields[id]) {
-        overrides[id] = true;
+      /* Direct income items (not under employer) */
+      if (b.incomeItems && b.incomeItems.length) {
+        b.incomeItems.forEach(function (item) {
+          /* Skip if already added via employer */
+          if (item.employer) return;
+          createIncomeRow({
+            name: item.employer || 'Other Income',
+            type: item.type || 'Other',
+            amount: item.monthly || 0,
+            mismo: true
+          });
+          hasDetailedIncome = true;
+        });
       }
     });
 
-    /* Liabilities from MISMO — aggregate by type */
-    if (data.liabilities && data.liabilities.length) {
-      var liabAgg = { auto: 0, student: 0, creditCard: 0, personal: 0, other: 0 };
-
-      data.liabilities.forEach(function (l) {
-        if (l.payoff) return; // Skip liabilities being paid off
-        var pmt = l.payment || 0;
-        if (!pmt) return;
-        var type = (l.type || '').toLowerCase();
-        if (type.indexOf('auto') !== -1 || type.indexOf('carloan') !== -1 || type === 'installment') {
-          liabAgg.auto += pmt;
-        } else if (type.indexOf('student') !== -1 || type.indexOf('education') !== -1) {
-          liabAgg.student += pmt;
-        } else if (type.indexOf('revolving') !== -1 || type.indexOf('creditcard') !== -1 || type === 'revolving') {
-          liabAgg.creditCard += pmt;
-        } else if (type === 'mortgageloan') {
-          // Skip — this is the existing mortgage, not a recurring debt for DTI
-          return;
-        } else {
-          liabAgg.other += pmt;
-        }
-      });
-
-      var liabMap = {
-        'bgAutoLoan': liabAgg.auto,
-        'bgStudentLoan': liabAgg.student,
-        'bgCreditCard': liabAgg.creditCard,
-        'bgOtherDebt': liabAgg.other
-      };
-
-      Object.keys(liabMap).forEach(function (id) {
-        if (liabMap[id] > 0) {
-          var el = document.getElementById(id);
-          if (el) {
-            el.value = Math.round(liabMap[id] * 100) / 100;
-            el.classList.add('mismo-populated');
-          }
-        }
+    /* If no detailed income found, use qualifying income total as single row */
+    if (!hasDetailedIncome && qualification.totalMonthlyIncome > 0) {
+      createIncomeRow({
+        name: 'Qualifying Income (total)',
+        type: 'Base',
+        amount: qualification.totalMonthlyIncome,
+        mismo: true
       });
     }
+
+    /* If still no income rows, add one empty row */
+    if (incomeRows.length === 0) {
+      createIncomeRow({});
+    }
+
+    /* --- Liabilities: each individual item from credit report --- */
+    liabilities.forEach(function (l) {
+      /* Skip mortgage loans — they go in the existing mortgage section or are the subject property */
+      var isMortgage = (l.type || '').toLowerCase() === 'mortgageloan';
+
+      createLiabilityRow({
+        holder: l.holder || l.name || '',
+        type: l.type || '',
+        balance: l.balance || 0,
+        payment: l.payment || 0,
+        months: l.remainingMonths || 0,
+        omit: isMortgage ? true : false,
+        payoff: l.payoff || false,
+        account: l.account || '',
+        mismo: true
+      });
+    });
 
     calculate();
   }
 
-  /* ---- File upload handler (reuses MSFG.FileUpload pattern) ---- */
+  /* Expose for workspace integration */
+  window.MSFG_BG_populateMISMO = populateMISMO;
+
+  /* ---- File upload handler ---- */
   function handleMISMOFile(file) {
     var reader = new FileReader();
     reader.onload = function (e) {
       try {
         var data = MSFG.MISMOParser.parse(e.target.result);
-        populateFromMISMO(data);
+
+        /* Set standard fields */
+        var fieldMap = MSFG.MISMOParser.getCalcMap('budget');
+        if (fieldMap) {
+          var mapped = fieldMap(data);
+          Object.keys(mapped).forEach(function (id) {
+            if (id.indexOf('__') === 0) return; // skip special keys
+            var el = document.getElementById(id);
+            if (!el) return;
+            if (el.tagName === 'SELECT') {
+              for (var i = 0; i < el.options.length; i++) {
+                if (el.options[i].value === mapped[id]) {
+                  el.selectedIndex = i;
+                  el.classList.add('mismo-populated');
+                  break;
+                }
+              }
+            } else {
+              el.value = mapped[id];
+              el.classList.add('mismo-populated');
+            }
+            if (computedIds.indexOf(id) !== -1 && mapped[id]) {
+              overrides[id] = true;
+            }
+          });
+
+          /* Populate dynamic data */
+          if (mapped.__budget_data) {
+            populateMISMO(mapped.__budget_data);
+          }
+        }
       } catch (err) {
         console.error('MISMO parse error:', err);
       }
@@ -517,7 +752,33 @@
     if (msg && msg.type === 'msfg-mismo-data') {
       try {
         var data = MSFG.MISMOParser.parse(msg.xml);
-        populateFromMISMO(data);
+        var fieldMap = MSFG.MISMOParser.getCalcMap('budget');
+        if (fieldMap) {
+          var mapped = fieldMap(data);
+          Object.keys(mapped).forEach(function (id) {
+            if (id.indexOf('__') === 0) return;
+            var el = document.getElementById(id);
+            if (!el) return;
+            if (el.tagName === 'SELECT') {
+              for (var i = 0; i < el.options.length; i++) {
+                if (el.options[i].value === mapped[id]) {
+                  el.selectedIndex = i;
+                  el.classList.add('mismo-populated');
+                  break;
+                }
+              }
+            } else {
+              el.value = mapped[id];
+              el.classList.add('mismo-populated');
+            }
+            if (computedIds.indexOf(id) !== -1 && mapped[id]) {
+              overrides[id] = true;
+            }
+          });
+          if (mapped.__budget_data) {
+            populateMISMO(mapped.__budget_data);
+          }
+        }
       } catch (err) {
         console.error('MISMO parse error:', err);
       }
@@ -529,15 +790,14 @@
 
   function clearAll() {
     overrides = {};
-    customItems.forEach(function (item) {
-      var row = document.querySelector('[data-custom-id="' + item.id + '"]');
-      if (row) row.remove();
-    });
-    customItems = [];
-    customItemCounter = 0;
+    clearIncomeRows();
+    clearLiabilityRows();
 
-    allInputIds.forEach(function (id) {
-      var el = dom[id] || document.getElementById(id);
+    /* Add one empty income row */
+    createIncomeRow({});
+
+    allStaticIds.forEach(function (id) {
+      var el = document.getElementById(id);
       if (!el) return;
       el.classList.remove('mismo-populated');
       if (el.tagName === 'SELECT') {
@@ -555,18 +815,21 @@
 
   /* ---- Init ---- */
   function init() {
-    cacheDom();
-
     /* Set date */
-    var prepDate = dom['bgPrepDate'];
+    var prepDate = document.getElementById('bgPrepDate');
     if (prepDate && !prepDate.value) {
       var today = new Date();
       prepDate.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
     }
 
+    /* Remove the placeholder income row from HTML — we manage rows dynamically */
+    var body = document.getElementById('bgIncomeBody');
+    if (body) body.innerHTML = '';
+    createIncomeRow({});
+
     /* Computed field override tracking */
     computedIds.forEach(function (id) {
-      var el = dom[id] || document.getElementById(id);
+      var el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', function () {
         overrides[id] = true;
@@ -579,28 +842,23 @@
       });
     });
 
-    /* Bind all inputs */
-    allInputIds.forEach(function (id) {
-      var el = dom[id] || document.getElementById(id);
+    /* Bind all static inputs */
+    allStaticIds.forEach(function (id) {
+      var el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', calculate);
       el.addEventListener('change', calculate);
     });
 
-    /* Buttons */
-    var addBtn = document.getElementById('bgAddItemBtn');
-    if (addBtn) addBtn.addEventListener('click', addLineItem);
+    /* Add income row button */
+    var addIncomeBtn = document.getElementById('bgAddIncomeRow');
+    if (addIncomeBtn) addIncomeBtn.addEventListener('click', function () { createIncomeRow({}); });
 
-    var nameInput = document.getElementById('bgNewItemName');
-    var amountInput = document.getElementById('bgNewItemAmount');
-    [nameInput, amountInput].forEach(function (el) {
-      if (el) {
-        el.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') { e.preventDefault(); addLineItem(); }
-        });
-      }
-    });
+    /* Add liability row button */
+    var addLiabBtn = document.getElementById('bgAddLiabilityRow');
+    if (addLiabBtn) addLiabBtn.addEventListener('click', function () { createLiabilityRow({}); });
 
+    /* Print & Clear buttons */
     var printBtn = document.getElementById('bgPrintBtn');
     if (printBtn) printBtn.addEventListener('click', printBudget);
 

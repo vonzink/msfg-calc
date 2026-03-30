@@ -1,7 +1,7 @@
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>Household Budgeting Calculator</h1>
-    <p>Complete monthly budget with income, expenses, proposed housing payment, DTI ratios, and residual income. Auto-fills from MISMO.</p>
+    <p>Detailed monthly budget with individual income sources, credit report liabilities, proposed housing payment, DTI ratios, and residual income.</p>
   </div>
 
   <div class="calc-page__body">
@@ -84,62 +84,20 @@
               <span>Employment / Application Income</span>
               <span class="bg-category__total" id="bgEmploymentTotal">$0</span>
             </div>
-            <div class="bg-category__items" id="bgEmploymentItems">
-              <div class="bg-row">
-                <label>Base Employment Income</label>
-                <input type="number" id="bgBaseIncome" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row">
-                <label>Overtime</label>
-                <input type="number" id="bgOvertime" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row">
-                <label>Bonus</label>
-                <input type="number" id="bgBonus" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row">
-                <label>Commission</label>
-                <input type="number" id="bgCommission" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
+            <div id="bgIncomeBody">
+              <!-- Dynamic income rows inserted by JS from MISMO data -->
+              <!-- Fallback manual row if no MISMO data -->
+              <div class="bg-income-row" data-income-idx="0">
+                <div class="bg-income-row__main">
+                  <input type="text" class="bg-income-row__name" placeholder="Employer / Source" data-field="name">
+                  <input type="text" class="bg-income-row__type" placeholder="Type" data-field="type" value="Base">
+                  <input type="number" class="bg-input bg-income-row__amount" value="0" min="0" step="1" data-field="amount">
+                  <span class="bg-row__period">/mo</span>
+                  <button type="button" class="bg-row__remove" title="Remove">&times;</button>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="bg-category">
-            <div class="bg-category__header">
-              <span>Other Qualifying Income</span>
-              <span class="bg-category__total" id="bgOtherQualTotal">$0</span>
-            </div>
-            <div class="bg-category__items" id="bgOtherQualItems">
-              <div class="bg-row">
-                <label>Self-Employment / Business</label>
-                <input type="number" id="bgSelfEmployment" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row">
-                <label>Rental Income (net)</label>
-                <input type="number" id="bgRental" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row">
-                <label>Interest &amp; Dividends</label>
-                <input type="number" id="bgDividends" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row">
-                <label>Social Security / Pension</label>
-                <input type="number" id="bgSSPension" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row">
-                <label>Child Support / Alimony Received</label>
-                <input type="number" id="bgSupportReceived" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-            </div>
+            <button type="button" class="bg-add-row-btn" id="bgAddIncomeRow">+ Add Income Source</button>
           </div>
 
           <div class="bg-subtotal">
@@ -273,42 +231,40 @@
             </div>
           </div>
 
-          <!-- Liabilities / Recurring Debts -->
+          <!-- Individual Liabilities from Credit Report -->
           <div class="bg-category">
             <div class="bg-category__header">
-              <span>Recurring Debts &amp; Liabilities</span>
+              <span>Credit Report Liabilities</span>
               <span class="bg-category__total" id="bgLiabilitiesTotal">$0</span>
             </div>
-            <div class="bg-category__items" id="bgLiabilityItems">
-              <div class="bg-row bg-row--liability" data-liability-idx="0">
-                <label>Auto Loan(s)</label>
-                <input type="number" id="bgAutoLoan" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
+            <div class="bg-liabilities-table" id="bgLiabilityTable">
+              <div class="bg-liab-header">
+                <span class="bg-liab-col bg-liab-col--name">Creditor</span>
+                <span class="bg-liab-col bg-liab-col--type">Type</span>
+                <span class="bg-liab-col bg-liab-col--balance">Balance</span>
+                <span class="bg-liab-col bg-liab-col--payment">Payment</span>
+                <span class="bg-liab-col bg-liab-col--months">Mo.</span>
+                <span class="bg-liab-col bg-liab-col--omit">Omit</span>
+                <span class="bg-liab-col bg-liab-col--payoff">Payoff</span>
+                <span class="bg-liab-col bg-liab-col--remove"></span>
               </div>
-              <div class="bg-row bg-row--liability" data-liability-idx="1">
-                <label>Student Loan(s)</label>
-                <input type="number" id="bgStudentLoan" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
+              <div id="bgLiabilityBody">
+                <!-- Dynamic liability rows inserted by JS -->
               </div>
-              <div class="bg-row bg-row--liability" data-liability-idx="2">
-                <label>Credit Card(s)</label>
-                <input type="number" id="bgCreditCard" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
+            </div>
+            <button type="button" class="bg-add-row-btn" id="bgAddLiabilityRow">+ Add Liability</button>
+            <div class="bg-liab-summary">
+              <div class="bg-liab-summary__row">
+                <span>Active Liabilities (included in DTI)</span>
+                <span id="bgActiveLiabCount">0</span>
               </div>
-              <div class="bg-row bg-row--liability" data-liability-idx="3">
-                <label>Personal Loan(s)</label>
-                <input type="number" id="bgPersonalLoan" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
+              <div class="bg-liab-summary__row">
+                <span>Omitted Liabilities</span>
+                <span id="bgOmittedLiabCount">0</span>
               </div>
-              <div class="bg-row bg-row--liability" data-liability-idx="4">
-                <label>Child Support / Alimony Paid</label>
-                <input type="number" id="bgSupportPaid" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
-              </div>
-              <div class="bg-row bg-row--liability" data-liability-idx="5">
-                <label>Other Recurring Debt</label>
-                <input type="number" id="bgOtherDebt" value="0" min="0" step="1" class="bg-input">
-                <span class="bg-row__period">/mo</span>
+              <div class="bg-liab-summary__row bg-liab-summary__row--payoff">
+                <span>Total Payoff Amount (cash needed)</span>
+                <span id="bgPayoffTotal">$0</span>
               </div>
             </div>
           </div>
@@ -417,14 +373,14 @@
         <div class="bg-card">
           <div class="bg-card__label">Monthly Residual Income</div>
           <div class="bg-card__value" id="bgResidualIncome">$0</div>
-          <div class="bg-card__detail">Total Income &minus; All Expenses</div>
+          <div class="bg-card__detail">Qualifying Income &minus; Housing &minus; Debts</div>
           <div class="bg-card__breakdown">
             <div class="bg-card__row">
               <span>After DTI Obligations</span>
               <span id="bgResidualAfterDTI">$0</span>
             </div>
             <div class="bg-card__row">
-              <span>After Living Expenses</span>
+              <span>After All Expenses</span>
               <span id="bgResidualAfterLiving">$0</span>
             </div>
           </div>
@@ -438,10 +394,6 @@
           <div class="bg-card__detail">All Income &minus; All Outflows</div>
           <div class="bg-card__breakdown">
             <div class="bg-card__row">
-              <span>Total Income (all sources)</span>
-              <span id="bgSummaryIncome">$0</span>
-            </div>
-            <div class="bg-card__row">
               <span>Qualifying Income</span>
               <span id="bgSummaryQualIncome">$0</span>
             </div>
@@ -450,12 +402,16 @@
               <span id="bgSummaryHousing">$0</span>
             </div>
             <div class="bg-card__row">
-              <span>Recurring Debts</span>
+              <span>Active Debts</span>
               <span id="bgSummaryDebts">$0</span>
             </div>
             <div class="bg-card__row">
               <span>Living Expenses</span>
               <span id="bgSummaryLiving">$0</span>
+            </div>
+            <div class="bg-card__row bg-card__row--highlight">
+              <span>Payoff Cash Needed</span>
+              <span id="bgSummaryPayoff">$0</span>
             </div>
           </div>
           <div class="bg-card__status" id="bgCashFlowStatus">&nbsp;</div>
@@ -466,33 +422,6 @@
     <!-- ============ Show Calculations ============ -->
     <%- include('../partials/show-calculations', { calcId: 'budget' }) %>
 
-    <!-- ============ Add Custom Line Item ============ -->
-    <div class="bg-add-item">
-      <h3>Add Custom Line Item</h3>
-      <div class="bg-add-item__form">
-        <div class="form-group">
-          <label for="bgNewItemSection">Section</label>
-          <select id="bgNewItemSection">
-            <option value="employment">Employment Income</option>
-            <option value="otherQual">Other Qualifying Income</option>
-            <option value="additional">Additional Income</option>
-            <option value="housing">Housing Payment</option>
-            <option value="liabilities" selected>Recurring Debts</option>
-            <option value="living">Living Expenses</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="bgNewItemName">Description</label>
-          <input type="text" id="bgNewItemName" placeholder="e.g. Personal Loan #2">
-        </div>
-        <div class="form-group">
-          <label for="bgNewItemAmount">Amount ($)</label>
-          <input type="number" id="bgNewItemAmount" value="0" min="0" step="0.01">
-        </div>
-        <button type="button" class="btn btn-primary" id="bgAddItemBtn">Add</button>
-      </div>
-    </div>
-
     <!-- Action Bar -->
     <div class="action-bar">
       <button type="button" class="btn btn-secondary" id="bgPrintBtn">Print Budget</button>
@@ -501,7 +430,7 @@
 
     <!-- Disclaimer -->
     <div class="bg-disclaimer">
-      <p><em>DTI ratios use qualifying income only (income on the loan application). Additional household income and living expenses are shown for budgeting purposes and do not affect DTI calculations. Residual income is calculated after all obligations.</em></p>
+      <p><em>DTI ratios use qualifying income only (income on the loan application). Omitted liabilities are excluded from DTI. Payoff liabilities are excluded from DTI but their balances are added to cash needed at closing. Additional household income and living expenses do not affect DTI calculations.</em></p>
     </div>
 
   </div>

@@ -126,6 +126,57 @@
             }
           }
 
+          /* Employers & per-employer income */
+          b.employers = [];
+          b.incomeItems = [];
+          var employersNode = qn(borrower, 'EMPLOYERS');
+          if (employersNode) {
+            var empList = qnAll(employersNode, 'EMPLOYER');
+            empList.forEach(function (emp) {
+              var ed = qn(emp, 'EMPLOYER_DETAIL');
+              var le = qn(emp, 'LEGAL_ENTITY/LEGAL_ENTITY_DETAIL');
+              var empName = '';
+              if (le) empName = txt(le, 'FullName');
+              if (!empName && ed) empName = txt(ed, 'EmployerName');
+              var empStatus = ed ? txt(ed, 'EmploymentStatusType') : '';
+              var empMonthly = ed ? num(ed, 'EmploymentMonthlyIncomeAmount') : 0;
+              var empEntry = { name: empName, status: empStatus, monthlyIncome: empMonthly, incomeItems: [] };
+
+              /* Income items under employer */
+              var incomeNode = qn(emp, 'INCOME/CURRENT_INCOME/CURRENT_INCOME_ITEMS');
+              if (incomeNode) {
+                var ciList = qnAll(incomeNode, 'CURRENT_INCOME_ITEM');
+                ciList.forEach(function (ci) {
+                  var cid = qn(ci, 'CURRENT_INCOME_ITEM_DETAIL');
+                  if (!cid) return;
+                  var iType = txt(cid, 'IncomeType');
+                  var iAmt = num(cid, 'CurrentIncomeMonthlyTotalAmount');
+                  if (iType || iAmt) {
+                    empEntry.incomeItems.push({ type: iType, monthly: iAmt });
+                    b.incomeItems.push({ type: iType, monthly: iAmt, employer: empName });
+                  }
+                });
+              }
+              b.employers.push(empEntry);
+            });
+          }
+
+          /* Direct income items on borrower (not under employer) */
+          var directIncome = qn(borrower, 'CURRENT_INCOME/CURRENT_INCOME_ITEMS');
+          if (!directIncome) directIncome = qn(borrower, 'CURRENT_INCOME_ITEMS');
+          if (directIncome) {
+            var diList = qnAll(directIncome, 'CURRENT_INCOME_ITEM');
+            diList.forEach(function (di) {
+              var did = qn(di, 'CURRENT_INCOME_ITEM_DETAIL');
+              if (!did) return;
+              var diType = txt(did, 'IncomeType');
+              var diAmt = num(did, 'CurrentIncomeMonthlyTotalAmount');
+              if (diType || diAmt) {
+                b.incomeItems.push({ type: diType, monthly: diAmt, employer: '' });
+              }
+            });
+          }
+
           if (b.firstName || b.lastName) data.borrowers.push(b);
         });
       });
@@ -1325,6 +1376,66 @@
     if (data.property.type === 'ManufacturedHousing' || data.property.type === 'Manufactured') {
       m['isManufacturedHome'] = true;
     }
+
+    return m;
+  };
+
+  /* ---- Budgeting Calculator ---- */
+  CALC_MAPS['budget'] = function (data) {
+    var m = {};
+
+    /* Borrower & loan info */
+    if (data.borrowerName) m['bgBorrowerName'] = data.borrowerName;
+    if (data.loan.loanIdentifier) m['bgFileNumber'] = data.loan.loanIdentifier;
+    if (data.loan.amount) m['bgLoanAmount'] = data.loan.amount;
+    if (data.loan.rate) m['bgRate'] = data.loan.rate;
+    if (data.loan.termMonths) m['bgTermMonths'] = data.loan.termMonths;
+    if (data.property.value) m['bgPropertyValue'] = data.property.value;
+    if (data.borrowers.length > 0 && data.borrowers[0].creditScore) m['bgCreditScore'] = data.borrowers[0].creditScore;
+
+    /* Loan purpose */
+    if (data.loan.purpose) {
+      var purposeMap = { 'Purchase': 'Purchase', 'Refinance': 'Refinance',
+        'NoCash-OutRefinance': 'NoCashOutRefinance', 'NoCashOutRefinance': 'NoCashOutRefinance',
+        'CashOutRefinance': 'CashOutRefinance', 'Cash-OutRefinance': 'CashOutRefinance' };
+      if (purposeMap[data.loan.purpose]) m['bgLoanPurpose'] = purposeMap[data.loan.purpose];
+    }
+
+    /* Product */
+    if (data.loan.productName) m['bgProduct'] = data.loan.productName;
+    else {
+      var pp = [];
+      if (data.loan.mortgageType) {
+        var mt = { 'Conventional': 'Conv', 'FHA': 'FHA', 'VA': 'VA', 'USDA': 'USDA',
+                   'FederalHousingAdministration': 'FHA', 'VeteransAffairs': 'VA' };
+        pp.push(mt[data.loan.mortgageType] || data.loan.mortgageType);
+      }
+      if (data.loan.termMonths) pp.push(Math.round(data.loan.termMonths / 12) + ' Year');
+      if (data.loan.amortType) {
+        var at = { 'Fixed': 'Fixed', 'AdjustableRate': 'ARM' };
+        pp.push(at[data.loan.amortType] || data.loan.amortType);
+      }
+      if (pp.length) m['bgProduct'] = pp.join(' ');
+    }
+
+    /* Housing expenses */
+    if (data.housing.pi) m['bgPI'] = data.housing.pi;
+    else if (data.loan.piPayment) m['bgPI'] = data.loan.piPayment;
+    if (data.housing.taxMo) m['bgPropertyTax'] = data.housing.taxMo;
+    else if (data.escrow.taxMonthly) m['bgPropertyTax'] = data.escrow.taxMonthly;
+    if (data.housing.insuranceMo) m['bgHomeInsurance'] = data.housing.insuranceMo;
+    else if (data.escrow.insMonthly) m['bgHomeInsurance'] = data.escrow.insMonthly;
+    if (data.housing.mi) m['bgMI'] = data.housing.mi;
+    else if (data.loan.miPayment) m['bgMI'] = data.loan.miPayment;
+    if (data.housing.hoa) m['bgHOA'] = data.housing.hoa;
+
+    /* Pass structured data via __budget_data for the calculator to process dynamically */
+    m['__budget_data'] = {
+      borrowers: data.borrowers,
+      liabilities: data.liabilities,
+      qualification: data.qualification,
+      existingMortgage: data.existingMortgage
+    };
 
     return m;
   };

@@ -136,6 +136,213 @@
   color: #666;
 }
 
+/* ---- Dynamic Income Rows ---- */
+.bg-income-row {
+  padding: 0.2rem 0;
+}
+
+.bg-income-row__main {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bg-income-row__name {
+  flex: 1.5;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: #333;
+}
+
+.bg-income-row__type {
+  flex: 0.8;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: #666;
+}
+
+.bg-income-row__amount {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.bg-income-row__name:focus,
+.bg-income-row__type:focus {
+  border-color: #2d6a4f;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45,106,79,0.15);
+}
+
+/* ---- Liability Table ---- */
+.bg-liabilities-table {
+  margin: 0.5rem 0;
+}
+
+.bg-liab-header {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0;
+  border-bottom: 2px solid #e0e0e0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #777;
+}
+
+.bg-liab-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.bg-liab-row:hover {
+  background: #fafafa;
+}
+
+.bg-liab-row--omitted {
+  opacity: 0.45;
+  background: #f5f5f5;
+}
+
+.bg-liab-row--omitted:hover {
+  opacity: 0.7;
+}
+
+.bg-liab-row--payoff {
+  background: #fff8e1;
+}
+
+.bg-liab-row--payoff:hover {
+  background: #fff3c4;
+}
+
+/* Liability column widths */
+.bg-liab-col--name {
+  flex: 2;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+
+.bg-liab-row .bg-liab-col--name {
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+.bg-liab-col--type {
+  flex: 0.8;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bg-liab-col--balance {
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.bg-liab-col--payment {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.bg-liab-col--months {
+  width: 45px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.bg-liab-col--omit,
+.bg-liab-col--payoff {
+  width: 36px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.bg-liab-col--remove {
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.bg-liab-check {
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.bg-liab-check input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: #2d6a4f;
+}
+
+/* Liability table input sizing */
+.bg-liab-row .bg-input {
+  width: 100%;
+  padding: 0.25rem 0.35rem;
+  font-size: 0.8rem;
+}
+
+/* Liability summary */
+.bg-liab-summary {
+  padding: 0.5rem 0;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 0.25rem;
+}
+
+.bg-liab-summary__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 0.15rem 0;
+  color: #666;
+}
+
+.bg-liab-summary__row span:last-child {
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.bg-liab-summary__row--payoff {
+  color: #e65100;
+  font-weight: 600;
+}
+
+/* Add row button */
+.bg-add-row-btn {
+  display: inline-block;
+  margin: 0.4rem 0;
+  padding: 0.3rem 0.75rem;
+  border: 1px dashed #bbb;
+  border-radius: 4px;
+  background: none;
+  color: #666;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.bg-add-row-btn:hover {
+  border-color: #2d6a4f;
+  color: #2d6a4f;
+}
+
 /* ---- Subtotals & Grand Totals ---- */
 .bg-subtotal {
   display: flex;
@@ -256,6 +463,14 @@
   font-weight: 600;
 }
 
+.bg-card__row--highlight {
+  color: #e65100;
+  font-weight: 600;
+  border-top: 1px dashed #e0e0e0;
+  margin-top: 0.2rem;
+  padding-top: 0.3rem;
+}
+
 .bg-card__status {
   font-size: 0.75rem;
   margin-top: 0.5rem;
@@ -316,37 +531,7 @@
   font-weight: 600;
 }
 
-/* ---- Add Item ---- */
-.bg-add-item {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #fafafa;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-}
-
-.bg-add-item h3 {
-  margin: 0 0 0.75rem;
-  font-size: 0.95rem;
-}
-
-.bg-add-item__form {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.bg-add-item__form .form-group {
-  flex: 1;
-  min-width: 140px;
-}
-
-/* ---- Custom row remove button ---- */
-.bg-row--custom {
-  position: relative;
-}
-
+/* ---- Remove button ---- */
 .bg-row__remove {
   background: none;
   border: none;
@@ -356,6 +541,7 @@
   padding: 0 0.25rem;
   line-height: 1;
   opacity: 0.6;
+  flex-shrink: 0;
 }
 
 .bg-row__remove:hover {
@@ -374,7 +560,8 @@
 
 /* ---- Print ---- */
 @media print {
-  .bg-add-item,
+  .bg-add-row-btn,
+  .bg-row__remove,
   .action-bar,
   .bg-disclaimer { display: none; }
 
@@ -383,4 +570,6 @@
   .bg-results__cards { grid-template-columns: repeat(4, 1fr); }
 
   .bg-card { break-inside: avoid; }
+
+  .bg-liab-row--omitted { opacity: 0.5; }
 }

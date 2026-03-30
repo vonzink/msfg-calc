@@ -720,6 +720,49 @@
   RT.register('budget',
     /* ---- Extractor ---- */
     function (doc) {
+      /* Extract dynamic income rows */
+      var incomeItems = [];
+      var incomeBody = doc.getElementById('bgIncomeBody');
+      if (incomeBody) {
+        var rows = incomeBody.querySelectorAll('.bg-income-row');
+        rows.forEach(function (row) {
+          var nameEl = row.querySelector('[data-field="name"]');
+          var typeEl = row.querySelector('[data-field="type"]');
+          var amtEl = row.querySelector('[data-field="amount"]');
+          var name = nameEl ? nameEl.value : '';
+          var type = typeEl ? typeEl.value : '';
+          var amount = amtEl ? (parseFloat(amtEl.value) || 0) : 0;
+          if (name || amount) incomeItems.push({ name: name, type: type, amount: amount });
+        });
+      }
+
+      /* Extract dynamic liability rows */
+      var liabItems = [];
+      var liabBody = doc.getElementById('bgLiabilityBody');
+      if (liabBody) {
+        var liabRows = liabBody.querySelectorAll('.bg-liab-row');
+        liabRows.forEach(function (row) {
+          var holderEl = row.querySelector('.bg-liab-col--name');
+          var typeEl = row.querySelector('.bg-liab-col--type');
+          var balEl = row.querySelector('.bg-liab-col--balance');
+          var pmtEl = row.querySelector('.bg-liab-col--payment');
+          var moEl = row.querySelector('.bg-liab-col--months');
+          var omitEl = row.querySelector('.bg-liab-col--omit input');
+          var payoffEl = row.querySelector('.bg-liab-col--payoff input');
+
+          var holder = holderEl && holderEl.value ? holderEl.value : (holderEl ? holderEl.textContent : '');
+          liabItems.push({
+            holder: holder,
+            type: typeEl ? typeEl.textContent : '',
+            balance: balEl ? (parseFloat(balEl.value) || 0) : 0,
+            payment: pmtEl ? (parseFloat(pmtEl.value) || 0) : 0,
+            months: moEl ? (parseFloat(moEl.value) || 0) : 0,
+            omit: omitEl ? omitEl.checked : false,
+            payoff: payoffEl ? payoffEl.checked : false
+          });
+        });
+      }
+
       return {
         borrower: txt(doc, 'bgBorrowerName'),
         fileNumber: txt(doc, 'bgFileNumber'),
@@ -731,12 +774,8 @@
         termMonths: val(doc, 'bgTermMonths'),
         product: txt(doc, 'bgProduct'),
         creditScore: val(doc, 'bgCreditScore'),
-        income: {
-          base: val(doc, 'bgBaseIncome'), overtime: val(doc, 'bgOvertime'),
-          bonus: val(doc, 'bgBonus'), commission: val(doc, 'bgCommission'),
-          selfEmployment: val(doc, 'bgSelfEmployment'), rental: val(doc, 'bgRental'),
-          dividends: val(doc, 'bgDividends'), ssPension: val(doc, 'bgSSPension'),
-          supportReceived: val(doc, 'bgSupportReceived'),
+        incomeItems: incomeItems,
+        additional: {
           spouse: val(doc, 'bgSpouseIncome'), sideGig: val(doc, 'bgSideGig'),
           otherHousehold: val(doc, 'bgOtherHousehold')
         },
@@ -746,11 +785,7 @@
           hoa: val(doc, 'bgHOA'), flood: val(doc, 'bgFlood'),
           other: val(doc, 'bgOtherHousing')
         },
-        liabilities: {
-          auto: val(doc, 'bgAutoLoan'), student: val(doc, 'bgStudentLoan'),
-          creditCard: val(doc, 'bgCreditCard'), personal: val(doc, 'bgPersonalLoan'),
-          supportPaid: val(doc, 'bgSupportPaid'), otherDebt: val(doc, 'bgOtherDebt')
-        },
+        liabItems: liabItems,
         living: {
           utilities: val(doc, 'bgUtilities'), telecom: val(doc, 'bgTelecom'),
           groceries: val(doc, 'bgGroceries'), transport: val(doc, 'bgTransport'),
@@ -774,20 +809,22 @@
           residual: txt(doc, 'bgResidualIncome'),
           cashFlow: txt(doc, 'bgNetCashFlow'),
           reserves: txt(doc, 'bgTotalReserves'),
-          reserveMonths: txt(doc, 'bgReserveMonths')
+          reserveMonths: txt(doc, 'bgReserveMonths'),
+          payoff: txt(doc, 'bgPayoffTotal')
         }
       };
     },
 
     /* ---- HTML Renderer ---- */
     function (data) {
-      var inc = data.income;
       var hou = data.housing;
-      var liab = data.liabilities;
+      var add = data.additional;
       var liv = data.living;
       var res = data.reserves;
       var tot = data.totals;
       var html = '';
+
+      function incRow(label, val) { return val ? '<tr><td>' + label + '</td><td class="rpt-num">' + fmt(val) + '</td></tr>' : ''; }
 
       /* Loan summary */
       html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Information</h4>';
@@ -800,23 +837,23 @@
       if (data.loanPurpose) html += '<div class="rpt-param"><span>Purpose</span><span>' + data.loanPurpose + '</span></div>';
       html += '</div></div>';
 
-      /* Income */
-      function incRow(label, val) { return val ? '<tr><td>' + label + '</td><td class="rpt-num">' + fmt(val) + '</td></tr>' : ''; }
-
-      html += '<div class="rpt-section"><h4 class="rpt-section-title">Monthly Income</h4>';
-      html += '<table class="rpt-table"><thead><tr><th>Source</th><th class="rpt-num">Monthly</th></tr></thead><tbody>';
-      html += incRow('Base Employment', inc.base);
-      html += incRow('Overtime', inc.overtime);
-      html += incRow('Bonus', inc.bonus);
-      html += incRow('Commission', inc.commission);
-      html += incRow('Self-Employment', inc.selfEmployment);
-      html += incRow('Rental Income', inc.rental);
-      html += incRow('Interest & Dividends', inc.dividends);
-      html += incRow('Social Security / Pension', inc.ssPension);
-      html += incRow('Child Support Received', inc.supportReceived);
+      /* Income — individual sources */
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Qualifying Income</h4>';
+      html += '<table class="rpt-table"><thead><tr><th>Source / Employer</th><th>Type</th><th class="rpt-num">Monthly</th></tr></thead><tbody>';
+      if (data.incomeItems && data.incomeItems.length) {
+        data.incomeItems.forEach(function (item) {
+          if (item.amount) html += '<tr><td>' + (item.name || '-') + '</td><td>' + (item.type || '-') + '</td><td class="rpt-num">' + fmt(item.amount) + '</td></tr>';
+        });
+      }
       html += '</tbody></table>';
-      html += '<div class="rpt-subtotal"><span>Qualifying Income</span><span>' + tot.qualIncome + '</span></div>';
-      html += incRow('Spouse / Partner', inc.spouse) ? '<table class="rpt-table"><tbody>' + incRow('Spouse / Partner', inc.spouse) + incRow('Side Gig', inc.sideGig) + incRow('Other Household', inc.otherHousehold) + '</tbody></table>' : '';
+      html += '<div class="rpt-subtotal"><span>Total Qualifying Income</span><span>' + tot.qualIncome + '</span></div>';
+      if (add.spouse || add.sideGig || add.otherHousehold) {
+        html += '<table class="rpt-table" style="margin-top:0.25rem"><tbody>';
+        html += incRow('Spouse / Partner', add.spouse);
+        html += incRow('Side Gig', add.sideGig);
+        html += incRow('Other Household', add.otherHousehold);
+        html += '</tbody></table>';
+      }
       html += '<div class="rpt-grand-total"><span>Total Monthly Income</span><span>' + tot.totalIncome + '</span></div>';
       html += '</div>';
 
@@ -834,17 +871,22 @@
       html += '<div class="rpt-grand-total"><span>Total Housing</span><span>' + tot.housing + '</span></div>';
       html += '</div>';
 
-      /* Liabilities */
-      html += '<div class="rpt-section"><h4 class="rpt-section-title">Recurring Debts</h4>';
-      html += '<table class="rpt-table"><thead><tr><th>Liability</th><th class="rpt-num">Monthly</th></tr></thead><tbody>';
-      html += incRow('Auto Loan(s)', liab.auto);
-      html += incRow('Student Loan(s)', liab.student);
-      html += incRow('Credit Card(s)', liab.creditCard);
-      html += incRow('Personal Loan(s)', liab.personal);
-      html += incRow('Child Support / Alimony Paid', liab.supportPaid);
-      html += incRow('Other Recurring Debt', liab.otherDebt);
-      html += '</tbody></table>';
-      html += '<div class="rpt-grand-total"><span>Total Debts</span><span>' + tot.liabilities + '</span></div>';
+      /* Individual Liabilities */
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Credit Report Liabilities</h4>';
+      if (data.liabItems && data.liabItems.length) {
+        html += '<table class="rpt-table"><thead><tr><th>Creditor</th><th>Type</th><th class="rpt-num">Balance</th><th class="rpt-num">Payment</th><th>Status</th></tr></thead><tbody>';
+        data.liabItems.forEach(function (l) {
+          var status = l.payoff ? '<em>Payoff</em>' : l.omit ? '<em>Omitted</em>' : 'Active';
+          var style = (l.omit || l.payoff) ? ' style="opacity:0.6"' : '';
+          html += '<tr' + style + '><td>' + (l.holder || '-') + '</td><td>' + (l.type || '-') + '</td>';
+          html += '<td class="rpt-num">' + fmt(l.balance) + '</td>';
+          html += '<td class="rpt-num">' + fmt(l.payment) + '</td>';
+          html += '<td>' + status + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+      html += '<div class="rpt-grand-total"><span>Active Debts (in DTI)</span><span>' + tot.liabilities + '</span></div>';
+      if (tot.payoff && tot.payoff !== '$0') html += '<div class="rpt-subtotal" style="color:#e65100"><span>Total Payoff Amount</span><span>' + tot.payoff + '</span></div>';
       html += '</div>';
 
       /* DTI & Residual */
@@ -852,7 +894,7 @@
       html += '<div class="rpt-comparison"><div class="rpt-compare-col">';
       html += '<h4>Front-End DTI</h4><div class="rpt-grand-total"><span>Housing / Qualifying Income</span><span>' + tot.frontDTI + '</span></div>';
       html += '</div><div class="rpt-compare-col">';
-      html += '<h4>Back-End DTI</h4><div class="rpt-grand-total"><span>(Housing + Debts) / Qualifying Income</span><span>' + tot.backDTI + '</span></div>';
+      html += '<h4>Back-End DTI</h4><div class="rpt-grand-total"><span>(Housing + Active Debts) / Qualifying Income</span><span>' + tot.backDTI + '</span></div>';
       html += '</div></div>';
       html += '<div class="rpt-grand-total" style="margin-top:0.5rem"><span>Residual Income (after DTI obligations)</span><span>' + tot.residual + '</span></div>';
       html += '</div>';
@@ -899,9 +941,7 @@
 
     /* ---- PDF Generator ---- */
     function (data) {
-      var inc = data.income;
       var hou = data.housing;
-      var liab = data.liabilities;
       var tot = data.totals;
       var content = [];
 
@@ -921,16 +961,14 @@
       }
 
       /* Income */
-      var incBody = [[{ text: 'Source', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
-      filterRows([
-        row('Base Employment', inc.base), row('Overtime', inc.overtime),
-        row('Bonus', inc.bonus), row('Commission', inc.commission),
-        row('Self-Employment', inc.selfEmployment), row('Rental Income', inc.rental),
-        row('Interest & Dividends', inc.dividends), row('Social Security / Pension', inc.ssPension),
-        row('Child Support Received', inc.supportReceived)
-      ]).forEach(function (r) { incBody.push(r); });
-      content.push({ text: 'Monthly Income', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-      content.push({ table: { headerRows: 1, widths: ['*', 100], body: incBody }, layout: 'lightHorizontalLines' });
+      var incBody = [[{ text: 'Source / Employer', style: 'tableHeader' }, { text: 'Type', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
+      if (data.incomeItems && data.incomeItems.length) {
+        data.incomeItems.forEach(function (item) {
+          if (item.amount) incBody.push([item.name || '-', item.type || '-', { text: fmt(item.amount), alignment: 'right' }]);
+        });
+      }
+      content.push({ text: 'Qualifying Income', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ table: { headerRows: 1, widths: ['*', 80, 80], body: incBody }, layout: 'lightHorizontalLines' });
       content.push({ columns: [{ text: 'Qualifying Income', bold: true }, { text: tot.qualIncome, alignment: 'right', bold: true }], margin: [0, 4, 0, 0] });
       content.push({ columns: [{ text: 'Total Monthly Income', bold: true, color: '#2d6a4f' }, { text: tot.totalIncome, alignment: 'right', bold: true, color: '#2d6a4f' }], margin: [0, 4, 0, 0] });
 
@@ -944,15 +982,33 @@
       content.push({ table: { headerRows: 1, widths: ['*', 100], body: houBody }, layout: 'lightHorizontalLines' });
       content.push({ columns: [{ text: 'Total Housing', bold: true, color: '#c62828' }, { text: tot.housing, alignment: 'right', bold: true, color: '#c62828' }], margin: [0, 4, 0, 0] });
 
-      /* Debts */
-      var liabBody = [[{ text: 'Liability', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
-      filterRows([
-        row('Auto Loan(s)', liab.auto), row('Student Loan(s)', liab.student),
-        row('Credit Card(s)', liab.creditCard), row('Personal Loan(s)', liab.personal),
-        row('Child Support Paid', liab.supportPaid), row('Other Debt', liab.otherDebt)
-      ]).forEach(function (r) { liabBody.push(r); });
-      content.push({ text: 'Recurring Debts', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-      content.push({ table: { headerRows: 1, widths: ['*', 100], body: liabBody }, layout: 'lightHorizontalLines' });
+      /* Individual Liabilities */
+      var liabBody = [[
+        { text: 'Creditor', style: 'tableHeader' },
+        { text: 'Type', style: 'tableHeader' },
+        { text: 'Balance', style: 'tableHeader', alignment: 'right' },
+        { text: 'Payment', style: 'tableHeader', alignment: 'right' },
+        { text: 'Status', style: 'tableHeader' }
+      ]];
+      if (data.liabItems && data.liabItems.length) {
+        data.liabItems.forEach(function (l) {
+          var status = l.payoff ? 'Payoff' : l.omit ? 'Omitted' : 'Active';
+          var color = (l.omit || l.payoff) ? '#999' : '#333';
+          liabBody.push([
+            { text: l.holder || '-', color: color },
+            { text: l.type || '-', color: color },
+            { text: fmt(l.balance), alignment: 'right', color: color },
+            { text: fmt(l.payment), alignment: 'right', color: color },
+            { text: status, color: color }
+          ]);
+        });
+      }
+      content.push({ text: 'Credit Report Liabilities', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ table: { headerRows: 1, widths: ['*', 60, 70, 60, 50], body: liabBody }, layout: 'lightHorizontalLines' });
+      content.push({ columns: [{ text: 'Active Debts (in DTI)', bold: true }, { text: tot.liabilities, alignment: 'right', bold: true }], margin: [0, 4, 0, 0] });
+      if (tot.payoff && tot.payoff !== '$0') {
+        content.push({ columns: [{ text: 'Total Payoff Amount', bold: true, color: '#e65100' }, { text: tot.payoff, alignment: 'right', bold: true, color: '#e65100' }], margin: [0, 2, 0, 0] });
+      }
 
       /* DTI */
       content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: '#2d6a4f' }], margin: [0, 10, 0, 4] });
