@@ -713,4 +713,259 @@
     }
     return content;
   });
+
+  /* =========================================================
+     Budgeting Calculator
+     ========================================================= */
+  RT.register('budget',
+    /* ---- Extractor ---- */
+    function (doc) {
+      return {
+        borrower: txt(doc, 'bgBorrowerName'),
+        fileNumber: txt(doc, 'bgFileNumber'),
+        prepDate: txt(doc, 'bgPrepDate'),
+        loanPurpose: txt(doc, 'bgLoanPurpose'),
+        propertyValue: val(doc, 'bgPropertyValue'),
+        loanAmount: val(doc, 'bgLoanAmount'),
+        rate: val(doc, 'bgRate'),
+        termMonths: val(doc, 'bgTermMonths'),
+        product: txt(doc, 'bgProduct'),
+        creditScore: val(doc, 'bgCreditScore'),
+        income: {
+          base: val(doc, 'bgBaseIncome'), overtime: val(doc, 'bgOvertime'),
+          bonus: val(doc, 'bgBonus'), commission: val(doc, 'bgCommission'),
+          selfEmployment: val(doc, 'bgSelfEmployment'), rental: val(doc, 'bgRental'),
+          dividends: val(doc, 'bgDividends'), ssPension: val(doc, 'bgSSPension'),
+          supportReceived: val(doc, 'bgSupportReceived'),
+          spouse: val(doc, 'bgSpouseIncome'), sideGig: val(doc, 'bgSideGig'),
+          otherHousehold: val(doc, 'bgOtherHousehold')
+        },
+        housing: {
+          pi: val(doc, 'bgPI'), tax: val(doc, 'bgPropertyTax'),
+          insurance: val(doc, 'bgHomeInsurance'), mi: val(doc, 'bgMI'),
+          hoa: val(doc, 'bgHOA'), flood: val(doc, 'bgFlood'),
+          other: val(doc, 'bgOtherHousing')
+        },
+        liabilities: {
+          auto: val(doc, 'bgAutoLoan'), student: val(doc, 'bgStudentLoan'),
+          creditCard: val(doc, 'bgCreditCard'), personal: val(doc, 'bgPersonalLoan'),
+          supportPaid: val(doc, 'bgSupportPaid'), otherDebt: val(doc, 'bgOtherDebt')
+        },
+        living: {
+          utilities: val(doc, 'bgUtilities'), telecom: val(doc, 'bgTelecom'),
+          groceries: val(doc, 'bgGroceries'), transport: val(doc, 'bgTransport'),
+          insurance: val(doc, 'bgInsurance'), childcare: val(doc, 'bgChildcare'),
+          entertainment: val(doc, 'bgEntertainment'), otherLiving: val(doc, 'bgOtherLiving')
+        },
+        reserves: {
+          checking: val(doc, 'bgChecking'), savings: val(doc, 'bgSavings'),
+          retirement: val(doc, 'bgRetirement'), investments: val(doc, 'bgInvestments'),
+          otherAssets: val(doc, 'bgOtherAssets')
+        },
+        totals: {
+          qualIncome: txt(doc, 'bgTotalQualIncome'),
+          totalIncome: txt(doc, 'bgGrandTotalIncome'),
+          housing: txt(doc, 'bgHousingTotal'),
+          liabilities: txt(doc, 'bgLiabilitiesTotal'),
+          living: txt(doc, 'bgLivingTotal'),
+          expenses: txt(doc, 'bgGrandTotalExpenses'),
+          frontDTI: txt(doc, 'bgFrontDTI'),
+          backDTI: txt(doc, 'bgBackDTI'),
+          residual: txt(doc, 'bgResidualIncome'),
+          cashFlow: txt(doc, 'bgNetCashFlow'),
+          reserves: txt(doc, 'bgTotalReserves'),
+          reserveMonths: txt(doc, 'bgReserveMonths')
+        }
+      };
+    },
+
+    /* ---- HTML Renderer ---- */
+    function (data) {
+      var inc = data.income;
+      var hou = data.housing;
+      var liab = data.liabilities;
+      var liv = data.living;
+      var res = data.reserves;
+      var tot = data.totals;
+      var html = '';
+
+      /* Loan summary */
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Loan Information</h4>';
+      html += '<div class="rpt-params">';
+      if (data.borrower) html += '<div class="rpt-param"><span>Borrower(s)</span><span>' + data.borrower + '</span></div>';
+      if (data.loanAmount) html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(data.loanAmount) + '</span></div>';
+      if (data.rate) html += '<div class="rpt-param"><span>Interest Rate</span><span>' + ratePct(data.rate) + '</span></div>';
+      if (data.termMonths) html += '<div class="rpt-param"><span>Term</span><span>' + data.termMonths + ' months</span></div>';
+      if (data.product) html += '<div class="rpt-param"><span>Product</span><span>' + data.product + '</span></div>';
+      if (data.loanPurpose) html += '<div class="rpt-param"><span>Purpose</span><span>' + data.loanPurpose + '</span></div>';
+      html += '</div></div>';
+
+      /* Income */
+      function incRow(label, val) { return val ? '<tr><td>' + label + '</td><td class="rpt-num">' + fmt(val) + '</td></tr>' : ''; }
+
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Monthly Income</h4>';
+      html += '<table class="rpt-table"><thead><tr><th>Source</th><th class="rpt-num">Monthly</th></tr></thead><tbody>';
+      html += incRow('Base Employment', inc.base);
+      html += incRow('Overtime', inc.overtime);
+      html += incRow('Bonus', inc.bonus);
+      html += incRow('Commission', inc.commission);
+      html += incRow('Self-Employment', inc.selfEmployment);
+      html += incRow('Rental Income', inc.rental);
+      html += incRow('Interest & Dividends', inc.dividends);
+      html += incRow('Social Security / Pension', inc.ssPension);
+      html += incRow('Child Support Received', inc.supportReceived);
+      html += '</tbody></table>';
+      html += '<div class="rpt-subtotal"><span>Qualifying Income</span><span>' + tot.qualIncome + '</span></div>';
+      html += incRow('Spouse / Partner', inc.spouse) ? '<table class="rpt-table"><tbody>' + incRow('Spouse / Partner', inc.spouse) + incRow('Side Gig', inc.sideGig) + incRow('Other Household', inc.otherHousehold) + '</tbody></table>' : '';
+      html += '<div class="rpt-grand-total"><span>Total Monthly Income</span><span>' + tot.totalIncome + '</span></div>';
+      html += '</div>';
+
+      /* Housing */
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Proposed Monthly Housing Payment</h4>';
+      html += '<table class="rpt-table"><thead><tr><th>Item</th><th class="rpt-num">Monthly</th></tr></thead><tbody>';
+      html += incRow('Principal & Interest', hou.pi);
+      html += incRow('Property Taxes', hou.tax);
+      html += incRow('Homeowners Insurance', hou.insurance);
+      html += incRow('Mortgage Insurance', hou.mi);
+      html += incRow('HOA / Condo Fees', hou.hoa);
+      html += incRow('Flood Insurance', hou.flood);
+      html += incRow('Other Housing', hou.other);
+      html += '</tbody></table>';
+      html += '<div class="rpt-grand-total"><span>Total Housing</span><span>' + tot.housing + '</span></div>';
+      html += '</div>';
+
+      /* Liabilities */
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Recurring Debts</h4>';
+      html += '<table class="rpt-table"><thead><tr><th>Liability</th><th class="rpt-num">Monthly</th></tr></thead><tbody>';
+      html += incRow('Auto Loan(s)', liab.auto);
+      html += incRow('Student Loan(s)', liab.student);
+      html += incRow('Credit Card(s)', liab.creditCard);
+      html += incRow('Personal Loan(s)', liab.personal);
+      html += incRow('Child Support / Alimony Paid', liab.supportPaid);
+      html += incRow('Other Recurring Debt', liab.otherDebt);
+      html += '</tbody></table>';
+      html += '<div class="rpt-grand-total"><span>Total Debts</span><span>' + tot.liabilities + '</span></div>';
+      html += '</div>';
+
+      /* DTI & Residual */
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">DTI Analysis & Residual Income</h4>';
+      html += '<div class="rpt-comparison"><div class="rpt-compare-col">';
+      html += '<h4>Front-End DTI</h4><div class="rpt-grand-total"><span>Housing / Qualifying Income</span><span>' + tot.frontDTI + '</span></div>';
+      html += '</div><div class="rpt-compare-col">';
+      html += '<h4>Back-End DTI</h4><div class="rpt-grand-total"><span>(Housing + Debts) / Qualifying Income</span><span>' + tot.backDTI + '</span></div>';
+      html += '</div></div>';
+      html += '<div class="rpt-grand-total" style="margin-top:0.5rem"><span>Residual Income (after DTI obligations)</span><span>' + tot.residual + '</span></div>';
+      html += '</div>';
+
+      /* Living expenses summary */
+      if (liv.utilities || liv.telecom || liv.groceries || liv.transport || liv.insurance || liv.childcare || liv.entertainment || liv.otherLiving) {
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">Living Expenses</h4>';
+        html += '<table class="rpt-table"><tbody>';
+        html += incRow('Utilities', liv.utilities);
+        html += incRow('Phone / Internet', liv.telecom);
+        html += incRow('Groceries', liv.groceries);
+        html += incRow('Transportation', liv.transport);
+        html += incRow('Insurance (auto/health/life)', liv.insurance);
+        html += incRow('Childcare / Education', liv.childcare);
+        html += incRow('Subscriptions / Entertainment', liv.entertainment);
+        html += incRow('Other Living', liv.otherLiving);
+        html += '</tbody></table>';
+        html += '<div class="rpt-grand-total"><span>Total Living Expenses</span><span>' + tot.living + '</span></div>';
+        html += '</div>';
+      }
+
+      /* Net cash flow */
+      html += '<div class="rpt-section"><h4 class="rpt-section-title">Monthly Cash Flow</h4>';
+      html += '<div class="rpt-grand-total"><span>Net Cash Flow (All Income - All Expenses)</span><span>' + tot.cashFlow + '</span></div>';
+      html += '</div>';
+
+      /* Reserves */
+      if (res.checking || res.savings || res.retirement || res.investments || res.otherAssets) {
+        html += '<div class="rpt-section"><h4 class="rpt-section-title">Savings & Reserves</h4>';
+        html += '<table class="rpt-table"><tbody>';
+        html += incRow('Checking', res.checking);
+        html += incRow('Savings', res.savings);
+        html += incRow('Retirement / 401k', res.retirement);
+        html += incRow('Investments', res.investments);
+        html += incRow('Other Assets', res.otherAssets);
+        html += '</tbody></table>';
+        html += '<div class="rpt-grand-total"><span>Total Reserves</span><span>' + tot.reserves + '</span></div>';
+        html += '<div class="rpt-subtotal"><span>Months of Reserves</span><span>' + tot.reserveMonths + '</span></div>';
+        html += '</div>';
+      }
+
+      return html;
+    },
+
+    /* ---- PDF Generator ---- */
+    function (data) {
+      var inc = data.income;
+      var hou = data.housing;
+      var liab = data.liabilities;
+      var tot = data.totals;
+      var content = [];
+
+      function row(label, val) { return val ? [label, { text: fmt(val), alignment: 'right' }] : null; }
+      function filterRows(rows) { return rows.filter(function (r) { return r !== null; }); }
+
+      /* Loan info */
+      var loanRows = [];
+      if (data.borrower) loanRows.push(['Borrower(s)', data.borrower]);
+      if (data.loanAmount) loanRows.push(['Loan Amount', fmt0(data.loanAmount)]);
+      if (data.rate) loanRows.push(['Rate', ratePct(data.rate)]);
+      if (data.termMonths) loanRows.push(['Term', data.termMonths + ' months']);
+      if (data.product) loanRows.push(['Product', data.product]);
+      if (loanRows.length) {
+        content.push({ text: 'Loan Information', style: 'sectionTitle', margin: [0, 4, 0, 4] });
+        content.push({ table: { widths: ['*', 150], body: loanRows }, layout: 'noBorders' });
+      }
+
+      /* Income */
+      var incBody = [[{ text: 'Source', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
+      filterRows([
+        row('Base Employment', inc.base), row('Overtime', inc.overtime),
+        row('Bonus', inc.bonus), row('Commission', inc.commission),
+        row('Self-Employment', inc.selfEmployment), row('Rental Income', inc.rental),
+        row('Interest & Dividends', inc.dividends), row('Social Security / Pension', inc.ssPension),
+        row('Child Support Received', inc.supportReceived)
+      ]).forEach(function (r) { incBody.push(r); });
+      content.push({ text: 'Monthly Income', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ table: { headerRows: 1, widths: ['*', 100], body: incBody }, layout: 'lightHorizontalLines' });
+      content.push({ columns: [{ text: 'Qualifying Income', bold: true }, { text: tot.qualIncome, alignment: 'right', bold: true }], margin: [0, 4, 0, 0] });
+      content.push({ columns: [{ text: 'Total Monthly Income', bold: true, color: '#2d6a4f' }, { text: tot.totalIncome, alignment: 'right', bold: true, color: '#2d6a4f' }], margin: [0, 4, 0, 0] });
+
+      /* Housing */
+      var houBody = [[{ text: 'Item', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
+      filterRows([
+        row('P&I', hou.pi), row('Property Tax', hou.tax), row('Insurance', hou.insurance),
+        row('MI', hou.mi), row('HOA', hou.hoa), row('Flood', hou.flood), row('Other', hou.other)
+      ]).forEach(function (r) { houBody.push(r); });
+      content.push({ text: 'Proposed Housing Payment', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ table: { headerRows: 1, widths: ['*', 100], body: houBody }, layout: 'lightHorizontalLines' });
+      content.push({ columns: [{ text: 'Total Housing', bold: true, color: '#c62828' }, { text: tot.housing, alignment: 'right', bold: true, color: '#c62828' }], margin: [0, 4, 0, 0] });
+
+      /* Debts */
+      var liabBody = [[{ text: 'Liability', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
+      filterRows([
+        row('Auto Loan(s)', liab.auto), row('Student Loan(s)', liab.student),
+        row('Credit Card(s)', liab.creditCard), row('Personal Loan(s)', liab.personal),
+        row('Child Support Paid', liab.supportPaid), row('Other Debt', liab.otherDebt)
+      ]).forEach(function (r) { liabBody.push(r); });
+      content.push({ text: 'Recurring Debts', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ table: { headerRows: 1, widths: ['*', 100], body: liabBody }, layout: 'lightHorizontalLines' });
+
+      /* DTI */
+      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: '#2d6a4f' }], margin: [0, 10, 0, 4] });
+      content.push({ columns: [{ text: 'Front-End DTI', bold: true, fontSize: 11 }, { text: tot.frontDTI, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }] });
+      content.push({ columns: [{ text: 'Back-End DTI', bold: true, fontSize: 11 }, { text: tot.backDTI, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }] });
+      content.push({ columns: [{ text: 'Residual Income', bold: true, fontSize: 11 }, { text: tot.residual, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
+      content.push({ columns: [{ text: 'Net Cash Flow', bold: true, fontSize: 11 }, { text: tot.cashFlow, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
+
+      /* Reserves */
+      content.push({ columns: [{ text: 'Total Reserves', bold: true, fontSize: 10 }, { text: tot.reserves, alignment: 'right', bold: true, fontSize: 10 }], margin: [0, 8, 0, 0] });
+      content.push({ columns: [{ text: 'Months of Reserves', fontSize: 10 }, { text: tot.reserveMonths, alignment: 'right', fontSize: 10 }], margin: [0, 2, 0, 0] });
+
+      return content;
+    }
+  );
 })();

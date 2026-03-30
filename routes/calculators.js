@@ -31,6 +31,7 @@ const generalCalcs = [
   },
   { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer', css: 'var-income' },
   { slug: 'fee-worksheet',  view: 'calculators/fee-worksheet',  title: 'Fee Worksheet',              css: 'fee-worksheet' },
+  { slug: 'budget',          view: 'calculators/budget',          title: 'Budgeting Calculator',       css: 'budget', preScripts: ['/js/shared/mismo-parser.js'] },
   { slug: 'compare',        view: 'calculators/compare',        title: 'Loan Comparison',            css: 'compare', preScripts: ['/js/shared/mismo-parser.js'] },
   { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' },
   { slug: 'mismo',          view: 'calculators/mismo',          title: 'Conditions & Documents',     css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js', '/js/calculators/mismo-docs.js', '/js/calculators/mismo-ui.js'] },

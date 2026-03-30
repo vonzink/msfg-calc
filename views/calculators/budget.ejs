@@ -1,0 +1,513 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Household Budgeting Calculator</h1>
+    <p>Complete monthly budget with income, expenses, proposed housing payment, DTI ratios, and residual income. Auto-fills from MISMO.</p>
+  </div>
+
+  <div class="calc-page__body">
+
+    <!-- ============ Borrower & Loan Info ============ -->
+    <div class="calc-section">
+      <h2>Borrower &amp; Loan Information</h2>
+      <div class="form-grid form-grid--3col">
+        <div class="form-group">
+          <label for="bgBorrowerName">Borrower(s)</label>
+          <input type="text" id="bgBorrowerName" placeholder="e.g. John & Jane Smith">
+        </div>
+        <div class="form-group">
+          <label for="bgFileNumber">File Number</label>
+          <input type="text" id="bgFileNumber" placeholder="e.g. R008580">
+        </div>
+        <div class="form-group">
+          <label for="bgPrepDate">Date</label>
+          <input type="date" id="bgPrepDate">
+        </div>
+      </div>
+      <div class="form-grid form-grid--4col">
+        <div class="form-group">
+          <label for="bgLoanPurpose">Loan Purpose</label>
+          <select id="bgLoanPurpose">
+            <option value="Purchase">Purchase</option>
+            <option value="Refinance">Refinance</option>
+            <option value="NoCashOutRefinance">No Cash-Out Refinance</option>
+            <option value="CashOutRefinance">Cash-Out Refinance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="bgPropertyValue">Property Value ($)</label>
+          <input type="number" id="bgPropertyValue" value="0" min="0" step="1000">
+        </div>
+        <div class="form-group">
+          <label for="bgLoanAmount">Loan Amount ($)</label>
+          <input type="number" id="bgLoanAmount" value="0" min="0" step="1000">
+        </div>
+        <div class="form-group">
+          <label for="bgRate">Interest Rate (%)</label>
+          <input type="number" id="bgRate" value="0" min="0" max="20" step="0.125">
+        </div>
+      </div>
+      <div class="form-grid form-grid--4col">
+        <div class="form-group">
+          <label for="bgTermMonths">Term (Months)</label>
+          <input type="number" id="bgTermMonths" value="360" min="0" max="600" step="1">
+        </div>
+        <div class="form-group">
+          <label for="bgProduct">Loan Product</label>
+          <input type="text" id="bgProduct" placeholder="e.g. Conv 30 Year Fixed">
+        </div>
+        <div class="form-group">
+          <label for="bgCreditScore">Credit Score</label>
+          <input type="number" id="bgCreditScore" value="0" min="300" max="850" step="1">
+        </div>
+        <div class="form-group">
+          <label for="bgNumBorrowers">Number of Borrowers</label>
+          <input type="number" id="bgNumBorrowers" value="1" min="1" max="4" step="1">
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Two-column layout: Income | Expenses ============ -->
+    <div class="bg-columns">
+
+      <!-- LEFT: MONEY COMING IN -->
+      <div class="bg-col">
+
+        <!-- Application Income -->
+        <div class="bg-section bg-section--income">
+          <div class="bg-section__header">
+            <span class="bg-section__icon">&#x1F4B0;</span>
+            <h2>Money Coming In</h2>
+          </div>
+
+          <div class="bg-category">
+            <div class="bg-category__header">
+              <span>Employment / Application Income</span>
+              <span class="bg-category__total" id="bgEmploymentTotal">$0</span>
+            </div>
+            <div class="bg-category__items" id="bgEmploymentItems">
+              <div class="bg-row">
+                <label>Base Employment Income</label>
+                <input type="number" id="bgBaseIncome" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Overtime</label>
+                <input type="number" id="bgOvertime" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Bonus</label>
+                <input type="number" id="bgBonus" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Commission</label>
+                <input type="number" id="bgCommission" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-category">
+            <div class="bg-category__header">
+              <span>Other Qualifying Income</span>
+              <span class="bg-category__total" id="bgOtherQualTotal">$0</span>
+            </div>
+            <div class="bg-category__items" id="bgOtherQualItems">
+              <div class="bg-row">
+                <label>Self-Employment / Business</label>
+                <input type="number" id="bgSelfEmployment" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Rental Income (net)</label>
+                <input type="number" id="bgRental" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Interest &amp; Dividends</label>
+                <input type="number" id="bgDividends" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Social Security / Pension</label>
+                <input type="number" id="bgSSPension" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Child Support / Alimony Received</label>
+                <input type="number" id="bgSupportReceived" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-subtotal">
+            <span>Total Qualifying Income</span>
+            <span id="bgTotalQualIncome">$0</span>
+          </div>
+
+          <div class="bg-category">
+            <div class="bg-category__header">
+              <span>Additional Income (not on application)</span>
+              <span class="bg-category__total" id="bgAdditionalTotal">$0</span>
+            </div>
+            <div class="bg-category__items" id="bgAdditionalItems">
+              <div class="bg-row">
+                <label>Spouse / Partner Income</label>
+                <input type="number" id="bgSpouseIncome" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Side Gig / Freelance</label>
+                <input type="number" id="bgSideGig" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Other Household Income</label>
+                <input type="number" id="bgOtherHousehold" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-grand-total bg-grand-total--income">
+            <span>Total Monthly Income</span>
+            <span id="bgGrandTotalIncome">$0</span>
+          </div>
+        </div>
+
+        <!-- Savings & Reserves -->
+        <div class="bg-section bg-section--reserves">
+          <div class="bg-section__header">
+            <span class="bg-section__icon">&#x1F3E6;</span>
+            <h2>Savings &amp; Reserves</h2>
+          </div>
+          <div class="bg-category">
+            <div class="bg-category__items">
+              <div class="bg-row">
+                <label>Checking Accounts</label>
+                <input type="number" id="bgChecking" value="0" min="0" step="1" class="bg-input">
+              </div>
+              <div class="bg-row">
+                <label>Savings Accounts</label>
+                <input type="number" id="bgSavings" value="0" min="0" step="1" class="bg-input">
+              </div>
+              <div class="bg-row">
+                <label>Retirement / 401k / IRA</label>
+                <input type="number" id="bgRetirement" value="0" min="0" step="1" class="bg-input">
+              </div>
+              <div class="bg-row">
+                <label>Stocks / Investments</label>
+                <input type="number" id="bgInvestments" value="0" min="0" step="1" class="bg-input">
+              </div>
+              <div class="bg-row">
+                <label>Other Assets</label>
+                <input type="number" id="bgOtherAssets" value="0" min="0" step="1" class="bg-input">
+              </div>
+            </div>
+          </div>
+          <div class="bg-subtotal">
+            <span>Total Reserves</span>
+            <span id="bgTotalReserves">$0</span>
+          </div>
+          <div class="bg-reserves-months">
+            <span>Months of Reserves (based on total housing payment)</span>
+            <span id="bgReserveMonths">0</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: MONEY GOING OUT -->
+      <div class="bg-col">
+
+        <div class="bg-section bg-section--expenses">
+          <div class="bg-section__header">
+            <span class="bg-section__icon">&#x1F4B8;</span>
+            <h2>Money Going Out</h2>
+          </div>
+
+          <!-- Proposed Housing Payment -->
+          <div class="bg-category bg-category--housing">
+            <div class="bg-category__header bg-category__header--primary">
+              <span>Proposed Monthly Housing Payment</span>
+              <span class="bg-category__total" id="bgHousingTotal">$0</span>
+            </div>
+            <div class="bg-category__items" id="bgHousingItems">
+              <div class="bg-row">
+                <label>Principal &amp; Interest</label>
+                <input type="number" id="bgPI" value="0" min="0" step="0.01" class="bg-input bg-input--computed">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Property Taxes</label>
+                <input type="number" id="bgPropertyTax" value="0" min="0" step="0.01" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Homeowners Insurance</label>
+                <input type="number" id="bgHomeInsurance" value="0" min="0" step="0.01" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Mortgage Insurance</label>
+                <input type="number" id="bgMI" value="0" min="0" step="0.01" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>HOA / Condo Fees</label>
+                <input type="number" id="bgHOA" value="0" min="0" step="0.01" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Flood Insurance</label>
+                <input type="number" id="bgFlood" value="0" min="0" step="0.01" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Other Housing Expense</label>
+                <input type="number" id="bgOtherHousing" value="0" min="0" step="0.01" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Liabilities / Recurring Debts -->
+          <div class="bg-category">
+            <div class="bg-category__header">
+              <span>Recurring Debts &amp; Liabilities</span>
+              <span class="bg-category__total" id="bgLiabilitiesTotal">$0</span>
+            </div>
+            <div class="bg-category__items" id="bgLiabilityItems">
+              <div class="bg-row bg-row--liability" data-liability-idx="0">
+                <label>Auto Loan(s)</label>
+                <input type="number" id="bgAutoLoan" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row bg-row--liability" data-liability-idx="1">
+                <label>Student Loan(s)</label>
+                <input type="number" id="bgStudentLoan" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row bg-row--liability" data-liability-idx="2">
+                <label>Credit Card(s)</label>
+                <input type="number" id="bgCreditCard" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row bg-row--liability" data-liability-idx="3">
+                <label>Personal Loan(s)</label>
+                <input type="number" id="bgPersonalLoan" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row bg-row--liability" data-liability-idx="4">
+                <label>Child Support / Alimony Paid</label>
+                <input type="number" id="bgSupportPaid" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row bg-row--liability" data-liability-idx="5">
+                <label>Other Recurring Debt</label>
+                <input type="number" id="bgOtherDebt" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Living Expenses (non-DTI) -->
+          <div class="bg-category">
+            <div class="bg-category__header">
+              <span>Monthly Living Expenses (non-DTI)</span>
+              <span class="bg-category__total" id="bgLivingTotal">$0</span>
+            </div>
+            <div class="bg-category__items" id="bgLivingItems">
+              <div class="bg-row">
+                <label>Utilities (electric, gas, water)</label>
+                <input type="number" id="bgUtilities" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Phone / Internet / Cable</label>
+                <input type="number" id="bgTelecom" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Groceries</label>
+                <input type="number" id="bgGroceries" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Transportation / Gas</label>
+                <input type="number" id="bgTransport" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Insurance (auto, health, life)</label>
+                <input type="number" id="bgInsurance" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Childcare / Education</label>
+                <input type="number" id="bgChildcare" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Subscriptions / Entertainment</label>
+                <input type="number" id="bgEntertainment" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+              <div class="bg-row">
+                <label>Other Living Expenses</label>
+                <input type="number" id="bgOtherLiving" value="0" min="0" step="1" class="bg-input">
+                <span class="bg-row__period">/mo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-grand-total bg-grand-total--expenses">
+            <span>Total Monthly Expenses</span>
+            <span id="bgGrandTotalExpenses">$0</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ Results Dashboard ============ -->
+    <div class="calc-section bg-results">
+      <h2>Budget Summary &amp; DTI Analysis</h2>
+
+      <div class="bg-results__cards">
+        <!-- Front-End DTI -->
+        <div class="bg-card">
+          <div class="bg-card__label">Front-End DTI</div>
+          <div class="bg-card__value" id="bgFrontDTI">0.00%</div>
+          <div class="bg-card__detail">Housing / Qualifying Income</div>
+          <div class="bg-card__gauge">
+            <div class="bg-gauge">
+              <div class="bg-gauge__fill" id="bgFrontGauge" style="width: 0%"></div>
+            </div>
+            <div class="bg-gauge__labels">
+              <span>0%</span>
+              <span class="bg-gauge__threshold">28%</span>
+              <span>50%</span>
+            </div>
+          </div>
+          <div class="bg-card__status" id="bgFrontStatus">Enter income &amp; housing data</div>
+        </div>
+
+        <!-- Back-End DTI -->
+        <div class="bg-card">
+          <div class="bg-card__label">Back-End DTI</div>
+          <div class="bg-card__value" id="bgBackDTI">0.00%</div>
+          <div class="bg-card__detail">Housing + Debts / Qualifying Income</div>
+          <div class="bg-card__gauge">
+            <div class="bg-gauge">
+              <div class="bg-gauge__fill" id="bgBackGauge" style="width: 0%"></div>
+            </div>
+            <div class="bg-gauge__labels">
+              <span>0%</span>
+              <span class="bg-gauge__threshold">36%</span>
+              <span>50%</span>
+            </div>
+          </div>
+          <div class="bg-card__status" id="bgBackStatus">Enter income &amp; debt data</div>
+        </div>
+
+        <!-- Residual Income -->
+        <div class="bg-card">
+          <div class="bg-card__label">Monthly Residual Income</div>
+          <div class="bg-card__value" id="bgResidualIncome">$0</div>
+          <div class="bg-card__detail">Total Income &minus; All Expenses</div>
+          <div class="bg-card__breakdown">
+            <div class="bg-card__row">
+              <span>After DTI Obligations</span>
+              <span id="bgResidualAfterDTI">$0</span>
+            </div>
+            <div class="bg-card__row">
+              <span>After Living Expenses</span>
+              <span id="bgResidualAfterLiving">$0</span>
+            </div>
+          </div>
+          <div class="bg-card__status" id="bgResidualStatus">Enter all data for complete picture</div>
+        </div>
+
+        <!-- Monthly Snapshot -->
+        <div class="bg-card">
+          <div class="bg-card__label">Monthly Cash Flow</div>
+          <div class="bg-card__value" id="bgNetCashFlow">$0</div>
+          <div class="bg-card__detail">All Income &minus; All Outflows</div>
+          <div class="bg-card__breakdown">
+            <div class="bg-card__row">
+              <span>Total Income (all sources)</span>
+              <span id="bgSummaryIncome">$0</span>
+            </div>
+            <div class="bg-card__row">
+              <span>Qualifying Income</span>
+              <span id="bgSummaryQualIncome">$0</span>
+            </div>
+            <div class="bg-card__row">
+              <span>Housing Payment</span>
+              <span id="bgSummaryHousing">$0</span>
+            </div>
+            <div class="bg-card__row">
+              <span>Recurring Debts</span>
+              <span id="bgSummaryDebts">$0</span>
+            </div>
+            <div class="bg-card__row">
+              <span>Living Expenses</span>
+              <span id="bgSummaryLiving">$0</span>
+            </div>
+          </div>
+          <div class="bg-card__status" id="bgCashFlowStatus">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Show Calculations ============ -->
+    <%- include('../partials/show-calculations', { calcId: 'budget' }) %>
+
+    <!-- ============ Add Custom Line Item ============ -->
+    <div class="bg-add-item">
+      <h3>Add Custom Line Item</h3>
+      <div class="bg-add-item__form">
+        <div class="form-group">
+          <label for="bgNewItemSection">Section</label>
+          <select id="bgNewItemSection">
+            <option value="employment">Employment Income</option>
+            <option value="otherQual">Other Qualifying Income</option>
+            <option value="additional">Additional Income</option>
+            <option value="housing">Housing Payment</option>
+            <option value="liabilities" selected>Recurring Debts</option>
+            <option value="living">Living Expenses</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="bgNewItemName">Description</label>
+          <input type="text" id="bgNewItemName" placeholder="e.g. Personal Loan #2">
+        </div>
+        <div class="form-group">
+          <label for="bgNewItemAmount">Amount ($)</label>
+          <input type="number" id="bgNewItemAmount" value="0" min="0" step="0.01">
+        </div>
+        <button type="button" class="btn btn-primary" id="bgAddItemBtn">Add</button>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button type="button" class="btn btn-secondary" id="bgPrintBtn">Print Budget</button>
+      <button type="button" class="btn btn-ghost" id="bgClearBtn">Clear All</button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="bg-disclaimer">
+      <p><em>DTI ratios use qualifying income only (income on the loan application). Additional household income and living expenses are shown for budgeting purposes and do not affect DTI calculations. Residual income is calculated after all obligations.</em></p>
+    </div>
+
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Disclaimers</div>
+    <p>This budgeting tool provides estimates for informational purposes only. DTI ratios are calculated using qualifying income and do not include non-application income. Actual ratios and qualification may differ based on lender guidelines, AUS findings, and documentation. Consult your loan officer for official qualification.</p>
+  </div>
+</div>
