@@ -308,6 +308,19 @@
       if (budgetWin && typeof budgetWin.MSFG_BG_populateMISMO === 'function') {
         budgetWin.MSFG_BG_populateMISMO(fieldMap.__budget_data);
         populated++;
+      } else if (budgetWin) {
+        // Script may not have executed yet — retry with backoff
+        (function retryBudget(attempts) {
+          if (attempts > 15) return;
+          setTimeout(function() {
+            if (typeof budgetWin.MSFG_BG_populateMISMO === 'function') {
+              budgetWin.MSFG_BG_populateMISMO(fieldMap.__budget_data);
+              MSFG.WS.highlightPanel(slug, 1);
+            } else {
+              retryBudget(attempts + 1);
+            }
+          }, 300);
+        })(0);
       }
     }
 
