@@ -292,9 +292,9 @@
   accent-color: #2d6a4f;
 }
 
-/* Liability table input sizing */
+/* Liability table input sizing — do NOT set width:100% here,
+   it overrides the column-specific widths and breaks the flex layout */
 .bg-liab-row .bg-input {
-  width: 100%;
   padding: 0.25rem 0.35rem;
   font-size: 0.8rem;
 }
