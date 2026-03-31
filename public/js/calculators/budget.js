@@ -1,39 +1,39 @@
 (function () {
   'use strict';
 
-  var P = MSFG.parseNum;
-  var fmt = MSFG.formatCurrency;
+  const P = MSFG.parseNum;
+  const fmt = MSFG.formatCurrency;
 
   /* ---- Dynamic row stores ---- */
-  var incomeRows = [];   // { id, name, type, amount }
-  var liabilityRows = []; // { id, holder, type, balance, payment, months, omit, payoff, account }
-  var incomeCounter = 0;
-  var liabilityCounter = 0;
+  let incomeRows = [];   // { id, name, type, amount }
+  let liabilityRows = []; // { id, holder, type, balance, payment, months, omit, payoff, account }
+  let incomeCounter = 0;
+  let liabilityCounter = 0;
 
   /* ---- Static field IDs ---- */
-  var additionalIds = ['bgSpouseIncome', 'bgSideGig', 'bgOtherHousehold'];
-  var housingIds = ['bgPI', 'bgPropertyTax', 'bgHomeInsurance', 'bgMI', 'bgHOA', 'bgFlood', 'bgOtherHousing'];
-  var livingIds = ['bgUtilities', 'bgTelecom', 'bgGroceries', 'bgTransport', 'bgInsurance', 'bgChildcare', 'bgEntertainment', 'bgOtherLiving'];
-  var reserveIds = ['bgChecking', 'bgSavings', 'bgRetirement', 'bgInvestments', 'bgOtherAssets'];
-  var adjustmentIds = ['bgTaxRate', 'bgSavingsRate'];
-  var loanIds = ['bgLoanAmount', 'bgRate', 'bgTermMonths', 'bgPropertyValue', 'bgCreditScore', 'bgNumBorrowers'];
-  var metaIds = ['bgBorrowerName', 'bgFileNumber', 'bgPrepDate', 'bgLoanPurpose', 'bgProduct'];
+  const additionalIds = ['bgSpouseIncome', 'bgSideGig', 'bgOtherHousehold'];
+  const housingIds = ['bgPI', 'bgPropertyTax', 'bgHomeInsurance', 'bgMI', 'bgHOA', 'bgFlood', 'bgOtherHousing'];
+  const livingIds = ['bgUtilities', 'bgTelecom', 'bgGroceries', 'bgTransport', 'bgInsurance', 'bgChildcare', 'bgEntertainment', 'bgOtherLiving'];
+  const reserveIds = ['bgChecking', 'bgSavings', 'bgRetirement', 'bgInvestments', 'bgOtherAssets'];
+  const adjustmentIds = ['bgTaxRate', 'bgSavingsRate'];
+  const loanIds = ['bgLoanAmount', 'bgRate', 'bgTermMonths', 'bgPropertyValue', 'bgCreditScore', 'bgNumBorrowers'];
+  const metaIds = ['bgBorrowerName', 'bgFileNumber', 'bgPrepDate', 'bgLoanPurpose', 'bgProduct'];
 
-  var allStaticIds = [].concat(additionalIds, housingIds, livingIds, reserveIds, adjustmentIds, loanIds, metaIds);
+  const allStaticIds = [].concat(additionalIds, housingIds, livingIds, reserveIds, adjustmentIds, loanIds, metaIds);
 
   /* Computed fields */
-  var computedIds = ['bgPI'];
-  var overrides = {};
+  const computedIds = ['bgPI'];
+  let overrides = {};
 
   /* ---- Helpers ---- */
   function v(id) {
-    var el = document.getElementById(id);
+    const el = document.getElementById(id);
     if (!el) return 0;
     return P(el.value) || 0;
   }
 
   function setComputed(id, calculatedValue) {
-    var el = document.getElementById(id);
+    const el = document.getElementById(id);
     if (!el) return calculatedValue;
     if (overrides[id]) return P(el.value) || 0;
     el.value = Math.round(calculatedValue * 100) / 100;
@@ -41,14 +41,14 @@
   }
 
   function sumIds(ids) {
-    var total = 0;
-    ids.forEach(function (id) { total += v(id); });
+    let total = 0;
+    ids.forEach((id) => { total += v(id); });
     return total;
   }
 
   function friendlyLiabType(type) {
     if (!type) return '';
-    var map = {
+    const map = {
       'Revolving': 'Revolving',
       'Installment': 'Installment',
       'MortgageLoan': 'Mortgage',
@@ -64,8 +64,8 @@
   /* ---- Income Row Management ---- */
   function createIncomeRow(data) {
     incomeCounter++;
-    var id = incomeCounter;
-    var row = {
+    const id = incomeCounter;
+    const row = {
       id: id,
       name: (data && data.name) || '',
       type: (data && data.type) || '',
@@ -77,17 +77,17 @@
   }
 
   function renderIncomeRow(row, isMismo) {
-    var container = document.getElementById('bgIncomeBody');
+    const container = document.getElementById('bgIncomeBody');
     if (!container) return;
 
-    var div = document.createElement('div');
+    const div = document.createElement('div');
     div.className = 'bg-income-row';
     div.dataset.incomeIdx = String(row.id);
 
-    var main = document.createElement('div');
+    const main = document.createElement('div');
     main.className = 'bg-income-row__main';
 
-    var nameInput = document.createElement('input');
+    const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.className = 'bg-income-row__name';
     nameInput.placeholder = 'Employer / Source';
@@ -95,7 +95,7 @@
     nameInput.dataset.field = 'name';
     if (isMismo) nameInput.classList.add('mismo-populated');
 
-    var typeInput = document.createElement('input');
+    const typeInput = document.createElement('input');
     typeInput.type = 'text';
     typeInput.className = 'bg-income-row__type';
     typeInput.placeholder = 'Type';
@@ -103,7 +103,7 @@
     typeInput.dataset.field = 'type';
     if (isMismo) typeInput.classList.add('mismo-populated');
 
-    var amountInput = document.createElement('input');
+    const amountInput = document.createElement('input');
     amountInput.type = 'number';
     amountInput.className = 'bg-input bg-income-row__amount';
     amountInput.value = row.amount;
@@ -112,16 +112,16 @@
     amountInput.dataset.field = 'amount';
     if (isMismo) amountInput.classList.add('mismo-populated');
 
-    var period = document.createElement('span');
+    const period = document.createElement('span');
     period.className = 'bg-row__period';
     period.textContent = '/mo';
 
-    var removeBtn = document.createElement('button');
+    const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'bg-row__remove';
     removeBtn.title = 'Remove';
     removeBtn.innerHTML = '&times;';
-    removeBtn.addEventListener('click', function () { removeIncomeRow(row.id); });
+    removeBtn.addEventListener('click', () => { removeIncomeRow(row.id); });
 
     main.appendChild(nameInput);
     main.appendChild(typeInput);
@@ -131,15 +131,15 @@
     div.appendChild(main);
 
     /* Bind change events */
-    nameInput.addEventListener('input', function () {
+    nameInput.addEventListener('input', () => {
       row.name = nameInput.value;
       nameInput.classList.remove('mismo-populated');
     });
-    typeInput.addEventListener('input', function () {
+    typeInput.addEventListener('input', () => {
       row.type = typeInput.value;
       typeInput.classList.remove('mismo-populated');
     });
-    amountInput.addEventListener('input', function () {
+    amountInput.addEventListener('input', () => {
       row.amount = P(amountInput.value) || 0;
       amountInput.classList.remove('mismo-populated');
       calculate();
@@ -150,8 +150,8 @@
   }
 
   function removeIncomeRow(id) {
-    incomeRows = incomeRows.filter(function (r) { return r.id !== id; });
-    var el = document.querySelector('[data-income-idx="' + id + '"]');
+    incomeRows = incomeRows.filter((r) => r.id !== id);
+    const el = document.querySelector('[data-income-idx="' + id + '"]');
     if (el) el.remove();
     calculate();
   }
@@ -159,15 +159,15 @@
   function clearIncomeRows() {
     incomeRows = [];
     incomeCounter = 0;
-    var body = document.getElementById('bgIncomeBody');
+    const body = document.getElementById('bgIncomeBody');
     if (body) body.innerHTML = '';
   }
 
   /* ---- Liability Row Management ---- */
   function createLiabilityRow(data) {
     liabilityCounter++;
-    var id = liabilityCounter;
-    var row = {
+    const id = liabilityCounter;
+    const row = {
       id: id,
       holder: (data && data.holder) || '',
       type: (data && data.type) || '',
@@ -184,17 +184,17 @@
   }
 
   function renderLiabilityRow(row, isMismo) {
-    var body = document.getElementById('bgLiabilityBody');
+    const body = document.getElementById('bgLiabilityBody');
     if (!body) return;
 
-    var div = document.createElement('div');
+    const div = document.createElement('div');
     div.className = 'bg-liab-row';
     if (row.omit) div.classList.add('bg-liab-row--omitted');
     if (row.payoff) div.classList.add('bg-liab-row--payoff');
     div.dataset.liabIdx = String(row.id);
 
     /* Holder / Creditor name */
-    var holderInput = document.createElement('input');
+    const holderInput = document.createElement('input');
     holderInput.type = 'text';
     holderInput.className = 'bg-liab-col bg-liab-col--name';
     holderInput.placeholder = 'Creditor';
@@ -202,13 +202,13 @@
     if (isMismo) holderInput.classList.add('mismo-populated');
 
     /* Type */
-    var typeSpan = document.createElement('span');
+    const typeSpan = document.createElement('span');
     typeSpan.className = 'bg-liab-col bg-liab-col--type';
     typeSpan.textContent = friendlyLiabType(row.type);
     typeSpan.title = row.type;
 
     /* Balance */
-    var balanceInput = document.createElement('input');
+    const balanceInput = document.createElement('input');
     balanceInput.type = 'number';
     balanceInput.className = 'bg-liab-col bg-liab-col--balance bg-input';
     balanceInput.value = row.balance;
@@ -217,7 +217,7 @@
     if (isMismo) balanceInput.classList.add('mismo-populated');
 
     /* Payment */
-    var paymentInput = document.createElement('input');
+    const paymentInput = document.createElement('input');
     paymentInput.type = 'number';
     paymentInput.className = 'bg-liab-col bg-liab-col--payment bg-input';
     paymentInput.value = row.payment;
@@ -226,7 +226,7 @@
     if (isMismo) paymentInput.classList.add('mismo-populated');
 
     /* Remaining months */
-    var monthsInput = document.createElement('input');
+    const monthsInput = document.createElement('input');
     monthsInput.type = 'number';
     monthsInput.className = 'bg-liab-col bg-liab-col--months bg-input';
     monthsInput.value = row.months || '';
@@ -236,23 +236,23 @@
     if (isMismo && row.months) monthsInput.classList.add('mismo-populated');
 
     /* Omit checkbox */
-    var omitLabel = document.createElement('label');
+    const omitLabel = document.createElement('label');
     omitLabel.className = 'bg-liab-col bg-liab-col--omit bg-liab-check';
-    var omitCb = document.createElement('input');
+    const omitCb = document.createElement('input');
     omitCb.type = 'checkbox';
     omitCb.checked = row.omit;
     omitLabel.appendChild(omitCb);
 
     /* Payoff checkbox */
-    var payoffLabel = document.createElement('label');
+    const payoffLabel = document.createElement('label');
     payoffLabel.className = 'bg-liab-col bg-liab-col--payoff bg-liab-check';
-    var payoffCb = document.createElement('input');
+    const payoffCb = document.createElement('input');
     payoffCb.type = 'checkbox';
     payoffCb.checked = row.payoff;
     payoffLabel.appendChild(payoffCb);
 
     /* Remove button */
-    var removeBtn = document.createElement('button');
+    const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'bg-liab-col bg-liab-col--remove bg-row__remove';
     removeBtn.title = 'Remove';
@@ -268,28 +268,28 @@
     div.appendChild(removeBtn);
 
     /* Event bindings */
-    holderInput.addEventListener('input', function () {
+    holderInput.addEventListener('input', () => {
       row.holder = holderInput.value;
       holderInput.classList.remove('mismo-populated');
     });
-    balanceInput.addEventListener('input', function () {
+    balanceInput.addEventListener('input', () => {
       row.balance = P(balanceInput.value) || 0;
       balanceInput.classList.remove('mismo-populated');
       calculate();
     });
     balanceInput.addEventListener('change', calculate);
-    paymentInput.addEventListener('input', function () {
+    paymentInput.addEventListener('input', () => {
       row.payment = P(paymentInput.value) || 0;
       paymentInput.classList.remove('mismo-populated');
       calculate();
     });
     paymentInput.addEventListener('change', calculate);
-    monthsInput.addEventListener('input', function () {
+    monthsInput.addEventListener('input', () => {
       row.months = P(monthsInput.value) || 0;
       monthsInput.classList.remove('mismo-populated');
     });
 
-    omitCb.addEventListener('change', function () {
+    omitCb.addEventListener('change', () => {
       row.omit = omitCb.checked;
       if (row.omit) {
         row.payoff = false;
@@ -302,7 +302,7 @@
       calculate();
     });
 
-    payoffCb.addEventListener('change', function () {
+    payoffCb.addEventListener('change', () => {
       row.payoff = payoffCb.checked;
       if (row.payoff) {
         row.omit = false;
@@ -315,14 +315,14 @@
       calculate();
     });
 
-    removeBtn.addEventListener('click', function () { removeLiabilityRow(row.id); });
+    removeBtn.addEventListener('click', () => { removeLiabilityRow(row.id); });
 
     body.appendChild(div);
   }
 
   function removeLiabilityRow(id) {
-    liabilityRows = liabilityRows.filter(function (r) { return r.id !== id; });
-    var el = document.querySelector('[data-liab-idx="' + id + '"]');
+    liabilityRows = liabilityRows.filter((r) => r.id !== id);
+    const el = document.querySelector('[data-liab-idx="' + id + '"]');
     if (el) el.remove();
     calculate();
   }
@@ -330,15 +330,15 @@
   function clearLiabilityRows() {
     liabilityRows = [];
     liabilityCounter = 0;
-    var body = document.getElementById('bgLiabilityBody');
+    const body = document.getElementById('bgLiabilityBody');
     if (body) body.innerHTML = '';
   }
 
   /* ---- DTI status helpers ---- */
   function setGauge(gaugeId, pct, guidelinePct, limitPct, maxPct) {
-    var el = document.getElementById(gaugeId);
+    const el = document.getElementById(gaugeId);
     if (!el) return;
-    var capped = Math.min(pct, maxPct);
+    const capped = Math.min(pct, maxPct);
     el.style.width = (capped / maxPct * 100) + '%';
     el.className = 'bg-gauge__fill';
     if (pct > limitPct) el.classList.add('bg-gauge__fill--over');
@@ -346,7 +346,7 @@
   }
 
   function setStatus(id, pct, guideline, limit, label) {
-    var el = document.getElementById(id);
+    const el = document.getElementById(id);
     if (!el) return;
     el.className = 'bg-card__status';
     if (pct === 0) {
@@ -366,19 +366,19 @@
   /* ---- Main calculation ---- */
   function calculate() {
     /* INCOME — sum all dynamic income rows */
-    var employmentTotal = 0;
-    incomeRows.forEach(function (r) { employmentTotal += r.amount || 0; });
-    var qualifyingIncome = employmentTotal;
-    var additionalTotal = sumIds(additionalIds);
-    var grandTotalIncome = qualifyingIncome + additionalTotal;
+    let employmentTotal = 0;
+    incomeRows.forEach((r) => { employmentTotal += r.amount || 0; });
+    const qualifyingIncome = employmentTotal;
+    const additionalTotal = sumIds(additionalIds);
+    const grandTotalIncome = qualifyingIncome + additionalTotal;
 
     /* TAX & SAVINGS ADJUSTMENTS */
-    var taxRate = v('bgTaxRate') / 100;
-    var savingsRate = v('bgSavingsRate') / 100;
-    var taxAmount = grandTotalIncome * taxRate;
-    var afterTaxIncome = grandTotalIncome - taxAmount;
-    var savingsAmount = grandTotalIncome * savingsRate;
-    var spendableIncome = afterTaxIncome - savingsAmount;
+    const taxRate = v('bgTaxRate') / 100;
+    const savingsRate = v('bgSavingsRate') / 100;
+    const taxAmount = grandTotalIncome * taxRate;
+    const afterTaxIncome = grandTotalIncome - taxAmount;
+    const savingsAmount = grandTotalIncome * savingsRate;
+    const spendableIncome = afterTaxIncome - savingsAmount;
 
     document.getElementById('bgEmploymentTotal').textContent = fmt(employmentTotal);
     document.getElementById('bgTotalQualIncome').textContent = fmt(qualifyingIncome);
@@ -389,26 +389,26 @@
     document.getElementById('bgSpendableIncome').textContent = fmt(spendableIncome);
 
     /* PROPOSED HOUSING */
-    var loanAmount = v('bgLoanAmount');
-    var rate = v('bgRate');
-    var termMonths = v('bgTermMonths');
+    const loanAmount = v('bgLoanAmount');
+    const rate = v('bgRate');
+    const termMonths = v('bgTermMonths');
 
-    var piCalc = 0;
+    let piCalc = 0;
     if (loanAmount > 0 && rate > 0 && termMonths > 0) {
       piCalc = MSFG.calcMonthlyPayment(loanAmount, rate / 100, termMonths / 12);
     }
-    var pi = setComputed('bgPI', piCalc);
+    const pi = setComputed('bgPI', piCalc);
 
-    var housingTotal = sumIds(housingIds);
+    const housingTotal = sumIds(housingIds);
     document.getElementById('bgHousingTotal').textContent = fmt(housingTotal);
 
     /* LIABILITIES — only active (not omitted, not payoff) */
-    var liabilitiesTotal = 0;
-    var payoffTotal = 0;
-    var activeCount = 0;
-    var omittedCount = 0;
+    let liabilitiesTotal = 0;
+    let payoffTotal = 0;
+    let activeCount = 0;
+    let omittedCount = 0;
 
-    liabilityRows.forEach(function (r) {
+    liabilityRows.forEach((r) => {
       if (r.omit) {
         omittedCount++;
       } else if (r.payoff) {
@@ -426,16 +426,16 @@
     document.getElementById('bgPayoffTotal').textContent = fmt(payoffTotal);
 
     /* LIVING EXPENSES */
-    var livingTotal = sumIds(livingIds);
+    const livingTotal = sumIds(livingIds);
     document.getElementById('bgLivingTotal').textContent = fmt(livingTotal);
 
     /* TOTAL EXPENSES */
-    var grandTotalExpenses = housingTotal + liabilitiesTotal + livingTotal;
+    const grandTotalExpenses = housingTotal + liabilitiesTotal + livingTotal;
     document.getElementById('bgGrandTotalExpenses').textContent = fmt(grandTotalExpenses);
 
     /* DTI RATIOS (use qualifying income only) */
-    var frontDTI = qualifyingIncome > 0 ? (housingTotal / qualifyingIncome * 100) : 0;
-    var backDTI = qualifyingIncome > 0 ? ((housingTotal + liabilitiesTotal) / qualifyingIncome * 100) : 0;
+    const frontDTI = qualifyingIncome > 0 ? (housingTotal / qualifyingIncome * 100) : 0;
+    const backDTI = qualifyingIncome > 0 ? ((housingTotal + liabilitiesTotal) / qualifyingIncome * 100) : 0;
 
     document.getElementById('bgFrontDTI').textContent = frontDTI.toFixed(2) + '%';
     document.getElementById('bgBackDTI').textContent = backDTI.toFixed(2) + '%';
@@ -446,14 +446,14 @@
     setStatus('bgBackStatus', backDTI, 47, 55, 'debt');
 
     /* RESIDUAL INCOME */
-    var residualAfterDTI = qualifyingIncome - housingTotal - liabilitiesTotal;
-    var residualAfterLiving = grandTotalIncome - grandTotalExpenses;
+    const residualAfterDTI = qualifyingIncome - housingTotal - liabilitiesTotal;
+    const residualAfterLiving = grandTotalIncome - grandTotalExpenses;
 
     document.getElementById('bgResidualAfterDTI').textContent = fmt(residualAfterDTI);
     document.getElementById('bgResidualAfterLiving').textContent = fmt(residualAfterLiving);
     document.getElementById('bgResidualIncome').textContent = fmt(residualAfterDTI);
 
-    var residualEl = document.getElementById('bgResidualStatus');
+    const residualEl = document.getElementById('bgResidualStatus');
     if (residualEl) {
       residualEl.className = 'bg-card__status';
       if (qualifyingIncome === 0) {
@@ -468,12 +468,12 @@
     }
 
     /* NET CASH FLOW (uses spendable income — after tax & savings) */
-    var netCashFlow = spendableIncome - grandTotalExpenses;
+    const netCashFlow = spendableIncome - grandTotalExpenses;
     document.getElementById('bgNetCashFlow').textContent = fmt(netCashFlow);
     document.getElementById('bgSummaryGrossIncome').textContent = fmt(grandTotalIncome);
 
-    var taxRow = document.getElementById('bgSummaryTaxRow');
-    var savingsRow = document.getElementById('bgSummarySavingsRow');
+    const taxRow = document.getElementById('bgSummaryTaxRow');
+    const savingsRow = document.getElementById('bgSummarySavingsRow');
     if (taxRow) {
       taxRow.style.display = taxRate > 0 ? '' : 'none';
       document.getElementById('bgSummaryTax').textContent = '-' + fmt(taxAmount);
@@ -488,7 +488,7 @@
     document.getElementById('bgSummaryLiving').textContent = fmt(livingTotal);
     document.getElementById('bgSummaryPayoff').textContent = fmt(payoffTotal);
 
-    var cfStatus = document.getElementById('bgCashFlowStatus');
+    const cfStatus = document.getElementById('bgCashFlowStatus');
     if (cfStatus) {
       cfStatus.className = 'bg-card__status';
       if (netCashFlow > 0) {
@@ -503,10 +503,10 @@
     }
 
     /* Color card values */
-    var frontValEl = document.getElementById('bgFrontDTI');
-    var backValEl = document.getElementById('bgBackDTI');
-    var residualValEl = document.getElementById('bgResidualIncome');
-    var cashFlowValEl = document.getElementById('bgNetCashFlow');
+    const frontValEl = document.getElementById('bgFrontDTI');
+    const backValEl = document.getElementById('bgBackDTI');
+    const residualValEl = document.getElementById('bgResidualIncome');
+    const cashFlowValEl = document.getElementById('bgNetCashFlow');
 
     if (frontValEl) frontValEl.style.color = frontDTI > 47 ? '#c62828' : frontDTI > 32 ? '#e65100' : '#2d6a4f';
     if (backValEl) backValEl.style.color = backDTI > 55 ? '#c62828' : backDTI > 47 ? '#e65100' : '#2d6a4f';
@@ -514,9 +514,9 @@
     if (cashFlowValEl) cashFlowValEl.style.color = netCashFlow < 0 ? '#c62828' : '#2d6a4f';
 
     /* RESERVES */
-    var totalReserves = sumIds(reserveIds);
+    const totalReserves = sumIds(reserveIds);
     document.getElementById('bgTotalReserves').textContent = fmt(totalReserves);
-    var reserveMonths = housingTotal > 0 ? Math.floor(totalReserves / housingTotal) : 0;
+    const reserveMonths = housingTotal > 0 ? Math.floor(totalReserves / housingTotal) : 0;
     document.getElementById('bgReserveMonths').textContent = reserveMonths + ' months';
 
     /* CALCULATION STEPS */
@@ -564,14 +564,14 @@
 
   /* ---- Math steps ---- */
   function updateMathSteps(d) {
-    var container = document.getElementById('calcSteps-budget');
+    const container = document.getElementById('calcSteps-budget');
     if (!container) return;
 
-    var html = '';
+    let html = '';
 
     html += '<div class="calc-step"><h4>Step 1: Monthly P&I Payment</h4>';
     if (d.loanAmount > 0 && d.rate > 0 && d.termMonths > 0) {
-      var r = d.rate / 100 / 12;
+      const r = d.rate / 100 / 12;
       html += '<div class="calc-step__formula">M = P &times; [r(1+r)<sup>n</sup>] / [(1+r)<sup>n</sup> - 1]</div>';
       html += '<div class="calc-step__values">';
       html += 'P = ' + fmt(d.loanAmount) + ', r = ' + d.rate + '% / 12 = ' + (r * 100).toFixed(6) + '%, n = ' + d.termMonths + ' months<br>';
@@ -661,19 +661,19 @@
     clearIncomeRows();
     clearLiabilityRows();
 
-    var borrowers = budgetData.borrowers || [];
-    var liabilities = budgetData.liabilities || [];
-    var qualification = budgetData.qualification || {};
+    const borrowers = budgetData.borrowers || [];
+    const liabilities = budgetData.liabilities || [];
+    const qualification = budgetData.qualification || {};
 
     /* --- Income: build rows from each borrower's employers and income items --- */
-    var detailedIncomeTotal = 0;
+    let detailedIncomeTotal = 0;
 
-    borrowers.forEach(function (b) {
+    borrowers.forEach((b) => {
       /* Per-employer income items */
       if (b.employers && b.employers.length) {
-        b.employers.forEach(function (emp) {
+        b.employers.forEach((emp) => {
           if (emp.incomeItems && emp.incomeItems.length) {
-            emp.incomeItems.forEach(function (item) {
+            emp.incomeItems.forEach((item) => {
               createIncomeRow({
                 name: emp.name || 'Employer',
                 type: item.type || 'Employment',
@@ -697,7 +697,7 @@
 
       /* Direct income items (not under employer) */
       if (b.incomeItems && b.incomeItems.length) {
-        b.incomeItems.forEach(function (item) {
+        b.incomeItems.forEach((item) => {
           /* Skip if already added via employer */
           if (item.employer) return;
           createIncomeRow({
@@ -713,14 +713,14 @@
 
     /* If qualifying income exceeds what we found in detailed items, add the remainder
        attributed to the first employer (or as generic qualifying income) */
-    var qualTotal = qualification.totalMonthlyIncome || 0;
+    const qualTotal = qualification.totalMonthlyIncome || 0;
     if (qualTotal > 0 && detailedIncomeTotal < qualTotal) {
-      var remainder = qualTotal - detailedIncomeTotal;
+      const remainder = qualTotal - detailedIncomeTotal;
       /* Find first employer name for attribution */
-      var empName = 'Employment Income';
-      borrowers.forEach(function (b) {
+      let empName = 'Employment Income';
+      borrowers.forEach((b) => {
         if (empName === 'Employment Income' && b.employers && b.employers.length) {
-          var first = b.employers[0];
+          const first = b.employers[0];
           if (first && first.name) empName = first.name;
         }
       });
@@ -748,9 +748,9 @@
     }
 
     /* --- Liabilities: each individual item from credit report --- */
-    liabilities.forEach(function (l) {
-      var isMortgage = (l.type || '').toLowerCase() === 'mortgageloan';
-      var isPayoff = l.payoff || false;
+    liabilities.forEach((l) => {
+      const isMortgage = (l.type || '').toLowerCase() === 'mortgageloan';
+      const isPayoff = l.payoff || false;
 
       createLiabilityRow({
         holder: l.holder || l.name || '',
@@ -773,21 +773,21 @@
 
   /* ---- File upload handler ---- */
   function handleMISMOFile(file) {
-    var reader = new FileReader();
-    reader.onload = function (e) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
       try {
-        var data = MSFG.MISMOParser.parse(e.target.result);
+        const data = MSFG.MISMOParser.parse(e.target.result);
 
         /* Set standard fields */
-        var fieldMap = MSFG.MISMOParser.getCalcMap('budget');
+        const fieldMap = MSFG.MISMOParser.getCalcMap('budget');
         if (fieldMap) {
-          var mapped = fieldMap(data);
-          Object.keys(mapped).forEach(function (id) {
+          const mapped = fieldMap(data);
+          Object.keys(mapped).forEach((id) => {
             if (id.indexOf('__') === 0) return; // skip special keys
-            var el = document.getElementById(id);
+            const el = document.getElementById(id);
             if (!el) return;
             if (el.tagName === 'SELECT') {
-              for (var i = 0; i < el.options.length; i++) {
+              for (let i = 0; i < el.options.length; i++) {
                 if (el.options[i].value === mapped[id]) {
                   el.selectedIndex = i;
                   el.classList.add('mismo-populated');
@@ -818,19 +818,19 @@
   /* ---- Listen for workspace MISMO broadcast ---- */
   function handleMessage(e) {
     if (e.origin !== window.location.origin) return;
-    var msg = e.data;
+    const msg = e.data;
     if (msg && msg.type === 'msfg-mismo-data') {
       try {
-        var data = MSFG.MISMOParser.parse(msg.xml);
-        var fieldMap = MSFG.MISMOParser.getCalcMap('budget');
+        const data = MSFG.MISMOParser.parse(msg.xml);
+        const fieldMap = MSFG.MISMOParser.getCalcMap('budget');
         if (fieldMap) {
-          var mapped = fieldMap(data);
-          Object.keys(mapped).forEach(function (id) {
+          const mapped = fieldMap(data);
+          Object.keys(mapped).forEach((id) => {
             if (id.indexOf('__') === 0) return;
-            var el = document.getElementById(id);
+            const el = document.getElementById(id);
             if (!el) return;
             if (el.tagName === 'SELECT') {
-              for (var i = 0; i < el.options.length; i++) {
+              for (let i = 0; i < el.options.length; i++) {
                 if (el.options[i].value === mapped[id]) {
                   el.selectedIndex = i;
                   el.classList.add('mismo-populated');
@@ -866,8 +866,8 @@
     /* Add one empty income row */
     createIncomeRow({});
 
-    allStaticIds.forEach(function (id) {
-      var el = document.getElementById(id);
+    allStaticIds.forEach((id) => {
+      const el = document.getElementById(id);
       if (!el) return;
       el.classList.remove('mismo-populated');
       if (el.tagName === 'SELECT') {
@@ -886,26 +886,26 @@
   /* ---- Init ---- */
   function init() {
     /* Set date */
-    var prepDate = document.getElementById('bgPrepDate');
+    const prepDate = document.getElementById('bgPrepDate');
     if (prepDate && !prepDate.value) {
-      var today = new Date();
+      const today = new Date();
       prepDate.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
     }
 
     /* Remove the placeholder income row from HTML — we manage rows dynamically */
-    var body = document.getElementById('bgIncomeBody');
+    const body = document.getElementById('bgIncomeBody');
     if (body) body.innerHTML = '';
     createIncomeRow({});
 
     /* Computed field override tracking */
-    computedIds.forEach(function (id) {
-      var el = document.getElementById(id);
+    computedIds.forEach((id) => {
+      const el = document.getElementById(id);
       if (!el) return;
-      el.addEventListener('input', function () {
+      el.addEventListener('input', () => {
         overrides[id] = true;
         el.classList.add('bg-input--overridden');
       });
-      el.addEventListener('dblclick', function () {
+      el.addEventListener('dblclick', () => {
         delete overrides[id];
         el.classList.remove('bg-input--overridden');
         calculate();
@@ -913,26 +913,26 @@
     });
 
     /* Bind all static inputs */
-    allStaticIds.forEach(function (id) {
-      var el = document.getElementById(id);
+    allStaticIds.forEach((id) => {
+      const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', calculate);
       el.addEventListener('change', calculate);
     });
 
     /* Add income row button */
-    var addIncomeBtn = document.getElementById('bgAddIncomeRow');
-    if (addIncomeBtn) addIncomeBtn.addEventListener('click', function () { createIncomeRow({}); });
+    const addIncomeBtn = document.getElementById('bgAddIncomeRow');
+    if (addIncomeBtn) addIncomeBtn.addEventListener('click', () => { createIncomeRow({}); });
 
     /* Add liability row button */
-    var addLiabBtn = document.getElementById('bgAddLiabilityRow');
-    if (addLiabBtn) addLiabBtn.addEventListener('click', function () { createLiabilityRow({}); });
+    const addLiabBtn = document.getElementById('bgAddLiabilityRow');
+    if (addLiabBtn) addLiabBtn.addEventListener('click', () => { createLiabilityRow({}); });
 
     /* Print & Clear buttons */
-    var printBtn = document.getElementById('bgPrintBtn');
+    const printBtn = document.getElementById('bgPrintBtn');
     if (printBtn) printBtn.addEventListener('click', printBudget);
 
-    var clearBtn = document.getElementById('bgClearBtn');
+    const clearBtn = document.getElementById('bgClearBtn');
     if (clearBtn) clearBtn.addEventListener('click', clearAll);
 
     /* Workspace message listener */
@@ -940,7 +940,7 @@
 
 
     /* MISMO-populated field: remove glow on manual edit */
-    document.querySelector('.calc-page').addEventListener('input', function (e) {
+    document.querySelector('.calc-page').addEventListener('input', (e) => {
       if (e.target.classList.contains('mismo-populated')) {
         e.target.classList.remove('mismo-populated');
       }
@@ -960,26 +960,26 @@
     if (window === window.top) return;
     if (incomeRows.length > 1 || liabilityRows.length > 0) return;
 
-    var stored = sessionStorage.getItem('msfg-mismo-data');
-    var storedXml = sessionStorage.getItem('msfg-mismo-xml');
+    const stored = sessionStorage.getItem('msfg-mismo-data');
+    const storedXml = sessionStorage.getItem('msfg-mismo-xml');
     if (!stored && !storedXml) return;
 
     try {
-      var data = stored ? JSON.parse(stored) : null;
+      const data = stored ? JSON.parse(stored) : null;
 
       /* If we have parsed data, use it directly for __budget_data */
       if (data) {
         /* Set standard DOM fields first */
         if (MSFG.MISMOParser) {
-          var mapFn = MSFG.MISMOParser.getCalcMap('budget');
+          const mapFn = MSFG.MISMOParser.getCalcMap('budget');
           if (mapFn) {
-            var mapped = mapFn(data);
-            Object.keys(mapped).forEach(function (id) {
+            const mapped = mapFn(data);
+            Object.keys(mapped).forEach((id) => {
               if (id.indexOf('__') === 0) return;
-              var el = document.getElementById(id);
+              const el = document.getElementById(id);
               if (!el) return;
               if (el.tagName === 'SELECT') {
-                for (var i = 0; i < el.options.length; i++) {
+                for (let i = 0; i < el.options.length; i++) {
                   if (el.options[i].value === mapped[id]) {
                     el.selectedIndex = i;
                     el.classList.add('mismo-populated');
@@ -998,7 +998,7 @@
         }
 
         /* Populate dynamic rows from structured data */
-        var budgetData = {
+        const budgetData = {
           borrowers: data.borrowers || [],
           liabilities: data.liabilities || [],
           qualification: data.qualification || {},
@@ -1013,7 +1013,7 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', () => {
     init();
     MSFG.markDefaults('.calc-page');
     MSFG.bindDefaultClearing('.calc-page');
