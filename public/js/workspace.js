@@ -7,11 +7,11 @@
 (function() {
   'use strict';
 
-  var activePanels = [];
-  var DEFAULT_ZOOM = 85;
+  let activePanels = [];
+  const DEFAULT_ZOOM = 85;
 
   // Map income calculator slugs to their total monthly income element IDs
-  var INCOME_ELEMENT_MAP = {
+  const INCOME_ELEMENT_MAP = {
     'income/1040': 'combined1040',
     'income/1065': 'combined1065',
     'income/1120': 'monthly_income',
@@ -27,9 +27,9 @@
     'income/rental-1038': 'methodA_result'
   };
 
-  var panelsContainer, emptyState, tallyBar, countBadge, selectorDrawer;
+  let panelsContainer, emptyState, tallyBar, countBadge, selectorDrawer;
 
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', () => {
     panelsContainer = document.getElementById('wsPanels');
     emptyState = document.getElementById('wsEmpty');
     tallyBar = document.getElementById('wsTally');
@@ -37,29 +37,29 @@
     selectorDrawer = document.getElementById('wsSelector');
 
     MSFG.WorkspaceMISMO.init({
-      onDataLoaded: function() {
+      onDataLoaded: () => {
         MSFG.WorkspaceMISMO.populateAll(activePanels);
       }
     });
 
     // Toggle selector
-    document.getElementById('wsToggleSelector').addEventListener('click', function() {
+    document.getElementById('wsToggleSelector').addEventListener('click', () => {
       selectorDrawer.style.display = selectorDrawer.style.display === 'none' ? 'block' : 'none';
     });
 
     // Selector search
     document.getElementById('wsSelectorSearch').addEventListener('input', function() {
-      var q = this.value.toLowerCase().trim();
-      document.querySelectorAll('.workspace__selector-btn').forEach(function(btn) {
-        var name = btn.getAttribute('data-name') || '';
+      const q = this.value.toLowerCase().trim();
+      document.querySelectorAll('.workspace__selector-btn').forEach((btn) => {
+        const name = btn.getAttribute('data-name') || '';
         btn.classList.toggle('hidden', q && name.indexOf(q) === -1);
       });
     });
 
     // Selector buttons
-    document.querySelectorAll('.workspace__selector-btn').forEach(function(btn) {
+    document.querySelectorAll('.workspace__selector-btn').forEach((btn) => {
       btn.addEventListener('click', function() {
-        var slug = this.getAttribute('data-slug');
+        const slug = this.getAttribute('data-slug');
         if (this.classList.contains('active')) {
           removePanel(slug);
           this.classList.remove('active');
@@ -72,27 +72,27 @@
     });
 
     // Collapse all
-    document.getElementById('wsCollapseAll').addEventListener('click', function() {
-      document.querySelectorAll('.ws-panel__body').forEach(function(b) { b.classList.add('collapsed'); });
+    document.getElementById('wsCollapseAll').addEventListener('click', () => {
+      document.querySelectorAll('.ws-panel__body').forEach((b) => { b.classList.add('collapsed'); });
     });
 
     // Clear all
-    document.getElementById('wsClearAll').addEventListener('click', function() {
+    document.getElementById('wsClearAll').addEventListener('click', () => {
       activePanels = [];
-      panelsContainer.querySelectorAll('.ws-panel').forEach(function(p) { p.remove(); });
-      document.querySelectorAll('.workspace__selector-btn.active').forEach(function(b) { b.classList.remove('active'); });
+      panelsContainer.querySelectorAll('.ws-panel').forEach((p) => { p.remove(); });
+      document.querySelectorAll('.workspace__selector-btn.active').forEach((b) => { b.classList.remove('active'); });
       sessionStorage.removeItem('msfg-workspace-panels');
       sessionStorage.removeItem('msfg-workspace-inputs');
       updateState();
     });
 
     // Save calculator inputs before navigating away
-    window.addEventListener('beforeunload', function() {
+    window.addEventListener('beforeunload', () => {
       saveAllInputs();
     });
 
     // Listen for tally updates from iframes (same-origin only)
-    window.addEventListener('message', function(e) {
+    window.addEventListener('message', (e) => {
       if (e.origin !== window.location.origin) return;
       if (e.data && e.data.type === 'msfg-tally-update') {
         updateTallyFromMessage(e.data);
@@ -103,17 +103,17 @@
     restorePanels();
 
     // Auto-add calculators from URL query params (e.g., ?add=income/1040,income/schedule-c)
-    var urlParams = new URLSearchParams(window.location.search);
-    var addParam = urlParams.get('add');
+    const urlParams = new URLSearchParams(window.location.search);
+    const addParam = urlParams.get('add');
     if (addParam) {
-      var slugsToAdd = addParam.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
-      slugsToAdd.forEach(function(slug) {
-        var btn = document.querySelector('.workspace__selector-btn[data-slug="' + slug + '"]');
+      const slugsToAdd = addParam.split(',').map((s) => s.trim()).filter(Boolean);
+      slugsToAdd.forEach((slug) => {
+        const btn = document.querySelector('.workspace__selector-btn[data-slug="' + slug + '"]');
         if (btn && !btn.classList.contains('active')) {
-          var nameEl = btn.querySelector('.workspace__selector-name');
-          var iconEl = btn.querySelector('.workspace__selector-icon');
-          var name = nameEl ? nameEl.textContent : slug;
-          var icon = iconEl ? iconEl.textContent : '📝';
+          const nameEl = btn.querySelector('.workspace__selector-name');
+          const iconEl = btn.querySelector('.workspace__selector-icon');
+          const name = nameEl ? nameEl.textContent : slug;
+          const icon = iconEl ? iconEl.textContent : '\u{1F4DD}';
           addPanel(slug, name, icon);
           btn.classList.add('active');
         }
@@ -130,9 +130,9 @@
   /* ---- Panel management ---- */
 
   function addPanel(slug, name, icon) {
-    if (activePanels.find(function(p) { return p.slug === slug; })) return;
+    if (activePanels.find((p) => p.slug === slug)) return;
 
-    var panel = {
+    const panel = {
       slug: slug,
       name: name,
       icon: icon,
@@ -141,7 +141,7 @@
     };
     activePanels.push(panel);
 
-    var el = document.createElement('div');
+    const el = document.createElement('div');
     el.className = 'ws-panel';
     el.id = 'ws-panel-' + slug;
 
@@ -174,49 +174,49 @@
       '</div>';
 
     // Prevent zoom slider clicks from toggling panel collapse
-    var zoomContainer = el.querySelector('.ws-panel__zoom');
-    zoomContainer.addEventListener('click', function(e) { e.stopPropagation(); });
+    const zoomContainer = el.querySelector('.ws-panel__zoom');
+    zoomContainer.addEventListener('click', (e) => { e.stopPropagation(); });
 
     // Zoom slider handler
-    var slider = el.querySelector('.ws-panel__zoom-slider');
-    var label = el.querySelector('.ws-panel__zoom-label');
-    var iframe = el.querySelector('.ws-panel__iframe');
+    const slider = el.querySelector('.ws-panel__zoom-slider');
+    const label = el.querySelector('.ws-panel__zoom-label');
+    const iframe = el.querySelector('.ws-panel__iframe');
 
     slider.addEventListener('input', function() {
-      var val = parseInt(this.value, 10);
+      const val = parseInt(this.value, 10);
       label.textContent = val + '%';
       panel.zoom = val;
       MSFG.WS.applyZoomToIframe(iframe, val);
     });
 
     // Apply embed mode + default zoom when iframe loads, then populate MISMO data + restore inputs
-    iframe.addEventListener('load', function() {
+    iframe.addEventListener('load', () => {
       MSFG.WS.applyZoomToIframe(iframe, panel.zoom);
       MSFG.WorkspaceMISMO.schedulePopulate(iframe, slug);
       scheduleRestore(iframe, slug);
     });
 
     // Collapse toggle
-    el.querySelector('.ws-panel__btn--collapse').addEventListener('click', function(e) {
+    el.querySelector('.ws-panel__btn--collapse').addEventListener('click', (e) => {
       e.stopPropagation();
-      var body = el.querySelector('.ws-panel__body');
+      const body = el.querySelector('.ws-panel__body');
       body.classList.toggle('collapsed');
     });
 
     // Header click also toggles collapse
-    el.querySelector('.ws-panel__header').addEventListener('click', function() {
-      var body = el.querySelector('.ws-panel__body');
+    el.querySelector('.ws-panel__header').addEventListener('click', () => {
+      const body = el.querySelector('.ws-panel__body');
       body.classList.toggle('collapsed');
     });
 
     // Report capture (structured data extraction)
-    var reportBtn = el.querySelector('.ws-panel__btn--report');
-    reportBtn.addEventListener('click', function(e) {
+    const reportBtn = el.querySelector('.ws-panel__btn--report');
+    reportBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       reportBtn.disabled = true;
       reportBtn.style.opacity = '0.5';
 
-      var baseDoc = null;
+      let baseDoc = null;
       try {
         baseDoc = iframe.contentDocument || iframe.contentWindow.document;
       } catch (err) { /* cross-origin */ }
@@ -228,12 +228,12 @@
         return;
       }
 
-      MSFG.Report.captureStructured(slug, name, icon, baseDoc).then(function() {
+      MSFG.Report.captureStructured(slug, name, icon, baseDoc).then(() => {
         reportBtn.disabled = false;
         reportBtn.style.opacity = '';
         reportBtn.style.color = 'var(--brand-primary)';
-        setTimeout(function() { reportBtn.style.color = ''; }, 1500);
-      }).catch(function(err) {
+        setTimeout(() => { reportBtn.style.color = ''; }, 1500);
+      }).catch((err) => {
         console.error('Workspace report capture failed:', err);
         reportBtn.disabled = false;
         reportBtn.style.opacity = '';
@@ -242,10 +242,10 @@
     });
 
     // Remove
-    el.querySelector('.ws-panel__btn--remove').addEventListener('click', function(e) {
+    el.querySelector('.ws-panel__btn--remove').addEventListener('click', (e) => {
       e.stopPropagation();
       removePanel(slug);
-      var selectorBtn = document.querySelector('.workspace__selector-btn[data-slug="' + slug + '"]');
+      const selectorBtn = document.querySelector('.workspace__selector-btn[data-slug="' + slug + '"]');
       if (selectorBtn) selectorBtn.classList.remove('active');
     });
 
@@ -254,14 +254,14 @@
   }
 
   function removePanel(slug) {
-    activePanels = activePanels.filter(function(p) { return p.slug !== slug; });
-    var el = document.getElementById('ws-panel-' + slug);
+    activePanels = activePanels.filter((p) => p.slug !== slug);
+    const el = document.getElementById('ws-panel-' + slug);
     if (el) el.remove();
     updateState();
   }
 
   function updateState() {
-    var count = activePanels.length;
+    const count = activePanels.length;
     countBadge.textContent = count + ' active';
     emptyState.style.display = count === 0 ? 'block' : 'none';
     tallyBar.style.display = count > 0 ? 'block' : 'none';
@@ -272,35 +272,35 @@
   /* ---- Persist/restore active panels across navigation ---- */
 
   function savePanels() {
-    var data = activePanels.map(function(p) {
+    const data = activePanels.map((p) => {
       return { slug: p.slug, name: p.name, icon: p.icon, zoom: p.zoom };
     });
     sessionStorage.setItem('msfg-workspace-panels', JSON.stringify(data));
   }
 
   function restorePanels() {
-    var stored = sessionStorage.getItem('msfg-workspace-panels');
+    const stored = sessionStorage.getItem('msfg-workspace-panels');
     if (!stored) return;
     try {
-      var data = JSON.parse(stored);
+      const data = JSON.parse(stored);
       if (!Array.isArray(data) || data.length === 0) return;
-      data.forEach(function(p) {
+      data.forEach((p) => {
         if (!p.slug) return;
         addPanel(p.slug, p.name, p.icon);
         if (p.zoom && p.zoom !== DEFAULT_ZOOM) {
-          var panelEl = document.getElementById('ws-panel-' + p.slug);
+          const panelEl = document.getElementById('ws-panel-' + p.slug);
           if (panelEl) {
-            var slider = panelEl.querySelector('.ws-panel__zoom-slider');
-            var label = panelEl.querySelector('.ws-panel__zoom-label');
+            const slider = panelEl.querySelector('.ws-panel__zoom-slider');
+            const label = panelEl.querySelector('.ws-panel__zoom-label');
             if (slider) {
               slider.value = p.zoom;
               label.textContent = p.zoom + '%';
-              var panel = activePanels.find(function(ap) { return ap.slug === p.slug; });
+              const panel = activePanels.find((ap) => ap.slug === p.slug);
               if (panel) panel.zoom = p.zoom;
             }
           }
         }
-        var btn = document.querySelector('.workspace__selector-btn[data-slug="' + p.slug + '"]');
+        const btn = document.querySelector('.workspace__selector-btn[data-slug="' + p.slug + '"]');
         if (btn) btn.classList.add('active');
       });
     } catch (e) { /* corrupted data, skip */ }
@@ -309,9 +309,9 @@
   /* ---- Persist/restore calculator input values across navigation ---- */
 
   function saveAllInputs() {
-    var data = {};
-    activePanels.forEach(function(panel) {
-      var inputs = extractPanelInputs(panel.slug);
+    const data = {};
+    activePanels.forEach((panel) => {
+      const inputs = extractPanelInputs(panel.slug);
       if (inputs) data[panel.slug] = inputs;
     });
     try {
@@ -320,19 +320,19 @@
   }
 
   function extractPanelInputs(slug) {
-    var panelEl = document.getElementById('ws-panel-' + slug);
+    const panelEl = document.getElementById('ws-panel-' + slug);
     if (!panelEl) return null;
-    var iframe = panelEl.querySelector('.ws-panel__iframe');
+    const iframe = panelEl.querySelector('.ws-panel__iframe');
     if (!iframe) return null;
 
     try {
-      var outerDoc = iframe.contentDocument || iframe.contentWindow.document;
+      const outerDoc = iframe.contentDocument || iframe.contentWindow.document;
       if (!outerDoc) return null;
-      var nestedIframe = outerDoc.querySelector('iframe');
+      const nestedIframe = outerDoc.querySelector('iframe');
 
       if (nestedIframe) {
-        var innerWin = nestedIframe.contentWindow;
-        var innerDoc = nestedIframe.contentDocument || innerWin.document;
+        const innerWin = nestedIframe.contentWindow;
+        const innerDoc = nestedIframe.contentDocument || innerWin.document;
 
         if (innerWin && innerWin.RefiUI && typeof innerWin.RefiUI.readAllInputs === 'function') {
           return { _api: 'RefiUI', data: innerWin.RefiUI.readAllInputs() };
@@ -351,24 +351,24 @@
   }
 
   function scheduleRestore(iframe, slug) {
-    var stored = sessionStorage.getItem('msfg-workspace-inputs');
+    const stored = sessionStorage.getItem('msfg-workspace-inputs');
     if (!stored) return;
     try {
-      var allData = JSON.parse(stored);
+      const allData = JSON.parse(stored);
       if (!allData[slug]) return;
     } catch (e) { return; }
 
     function tryRestore(attempt) {
       if (attempt > 15) return;
       try {
-        var doc = iframe.contentDocument || iframe.contentWindow.document;
-        var nested = doc ? doc.querySelector('iframe') : null;
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        const nested = doc ? doc.querySelector('iframe') : null;
         if (nested) {
-          var nestedDoc = null;
-          try { nestedDoc = nested.contentDocument || nested.contentWindow.document; } catch (e) {}
+          let nestedDoc = null;
+          try { nestedDoc = nested.contentDocument || nested.contentWindow.document; } catch (_e) { /* cross-origin */ }
           if (!nestedDoc || !nestedDoc.body || !nestedDoc.body.innerHTML) {
-            nested.addEventListener('load', function() {
-              setTimeout(function() { restorePanelInputs(slug); }, 600);
+            nested.addEventListener('load', () => {
+              setTimeout(() => { restorePanelInputs(slug); }, 600);
             });
             return;
           }
@@ -377,55 +377,55 @@
       restorePanelInputs(slug);
     }
 
-    setTimeout(function() { tryRestore(0); }, 1200);
+    setTimeout(() => { tryRestore(0); }, 1200);
   }
 
   function restorePanelInputs(slug) {
-    var stored = sessionStorage.getItem('msfg-workspace-inputs');
+    const stored = sessionStorage.getItem('msfg-workspace-inputs');
     if (!stored) return;
     try {
-      var allData = JSON.parse(stored);
-      var panelData = allData[slug];
+      const allData = JSON.parse(stored);
+      const panelData = allData[slug];
       if (!panelData) return;
       applyPanelInputs(slug, panelData);
     } catch (e) { /* corrupted */ }
   }
 
   function applyPanelInputs(slug, panelData) {
-    var panelEl = document.getElementById('ws-panel-' + slug);
+    const panelEl = document.getElementById('ws-panel-' + slug);
     if (!panelEl) return;
-    var iframe = panelEl.querySelector('.ws-panel__iframe');
+    const iframe = panelEl.querySelector('.ws-panel__iframe');
     if (!iframe) return;
 
     try {
-      var outerDoc = iframe.contentDocument || iframe.contentWindow.document;
+      const outerDoc = iframe.contentDocument || iframe.contentWindow.document;
       if (!outerDoc) return;
-      var nestedIframe = outerDoc.querySelector('iframe');
+      const nestedIframe = outerDoc.querySelector('iframe');
 
       if (panelData._api === 'RefiUI' && nestedIframe) {
-        var innerWin = nestedIframe.contentWindow;
+        const innerWin = nestedIframe.contentWindow;
         if (innerWin && innerWin.RefiUI && typeof innerWin.RefiUI.writeAllInputs === 'function') {
           innerWin.RefiUI.writeAllInputs(panelData.data);
           return;
         }
       }
 
-      var targetDoc = outerDoc;
+      let targetDoc = outerDoc;
       if (nestedIframe) {
         try {
-          var nd = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
+          const nd = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
           if (nd && nd.body) targetDoc = nd;
         } catch (e) { /* cross-origin */ }
       }
 
-      var fields = panelData.data;
+      const fields = panelData.data;
       if (!fields) return;
-      var keys = Object.keys(fields);
-      for (var i = 0; i < keys.length; i++) {
-        var id = keys[i];
-        var el = targetDoc.getElementById(id);
+      const keys = Object.keys(fields);
+      for (let i = 0; i < keys.length; i++) {
+        const id = keys[i];
+        const el = targetDoc.getElementById(id);
         if (!el) continue;
-        var info = fields[id];
+        const info = fields[id];
         if (info.t === 'checkbox' || info.t === 'radio') {
           el.checked = info.c;
           MSFG.WS.triggerEvent(el, 'change');
@@ -441,7 +441,7 @@
   /* ---- Tally ---- */
 
   function updateTallyFromMessage(data) {
-    var panel = activePanels.find(function(p) { return p.slug === data.slug; });
+    const panel = activePanels.find((p) => p.slug === data.slug);
     if (!panel) return;
     if (typeof data.monthlyPayment === 'number' && isFinite(data.monthlyPayment)) panel.tally.monthlyPayment = data.monthlyPayment;
     if (typeof data.loanAmount === 'number' && isFinite(data.loanAmount)) panel.tally.loanAmount = data.loanAmount;
@@ -451,32 +451,32 @@
   }
 
   function pollIncomePanels() {
-    var changed = false;
-    activePanels.forEach(function(panel) {
-      var elementId = INCOME_ELEMENT_MAP[panel.slug];
+    let changed = false;
+    activePanels.forEach((panel) => {
+      const elementId = INCOME_ELEMENT_MAP[panel.slug];
       if (!elementId) return;
 
-      var panelEl = document.getElementById('ws-panel-' + panel.slug);
+      const panelEl = document.getElementById('ws-panel-' + panel.slug);
       if (!panelEl) return;
 
-      var iframe = panelEl.querySelector('.ws-panel__iframe');
+      const iframe = panelEl.querySelector('.ws-panel__iframe');
       if (!iframe) return;
 
       try {
-        var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        var targetDoc = iframeDoc;
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        let targetDoc = iframeDoc;
 
-        var nestedIframe = iframeDoc.querySelector('iframe');
+        const nestedIframe = iframeDoc.querySelector('iframe');
         if (nestedIframe) {
           try {
             targetDoc = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
           } catch (e) { return; }
         }
 
-        var el = targetDoc.getElementById(elementId);
+        const el = targetDoc.getElementById(elementId);
         if (el) {
-          var text = el.textContent || '';
-          var val = parseFloat(text.replace(/[^0-9.-]/g, ''));
+          const text = el.textContent || '';
+          let val = parseFloat(text.replace(/[^0-9.-]/g, ''));
           if (isNaN(val)) val = 0;
           if (val !== panel.tally.monthlyIncome) {
             panel.tally.monthlyIncome = val;
@@ -489,8 +489,8 @@
   }
 
   function updateTally() {
-    var totals = { monthlyPayment: 0, loanAmount: 0, cashToClose: 0, monthlyIncome: 0 };
-    activePanels.forEach(function(p) {
+    const totals = { monthlyPayment: 0, loanAmount: 0, cashToClose: 0, monthlyIncome: 0 };
+    activePanels.forEach((p) => {
       totals.monthlyPayment += p.tally.monthlyPayment || 0;
       totals.loanAmount += p.tally.loanAmount || 0;
       totals.cashToClose += p.tally.cashToClose || 0;
