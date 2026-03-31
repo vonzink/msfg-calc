@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
     title: 'Calculator Workspace',
     extraHead: `<link rel="stylesheet" href="/css/workspace.css?v=${ver}">`,
     extraScripts: `<script src="/js/shared/mismo-parser${ext}?v=${ver}"></script>` +
+                  `<script src="/js/shared/mismo-calc-maps${ext}?v=${ver}"></script>` +
                   `<script src="/js/workspace-helpers${ext}?v=${ver}"></script>` +
                   `<script src="/js/workspace-mismo${ext}?v=${ver}"></script>` +
                   `<script src="/js/workspace${ext}?v=${ver}"></script>`

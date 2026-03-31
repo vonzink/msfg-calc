@@ -11,7 +11,7 @@ function findCalc(slug) {
 
 const generalCalcs = [
   { slug: 'apr',             view: 'calculators/apr',             title: 'APR Calculator',                css: 'apr' },
-  { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator', css: 'fha', preScripts: ['/js/shared/mismo-parser.js'] },
+  { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator', css: 'fha', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
   { slug: 'va-prequal',      view: 'calculators/va-prequal',      title: 'VA Pre-Qualification Worksheet', css: 'va-prequal' },
   { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator',  noScript: true },
   { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator',       noScript: true },
@@ -31,11 +31,11 @@ const generalCalcs = [
   },
   { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer', css: 'var-income' },
   { slug: 'fee-worksheet',  view: 'calculators/fee-worksheet',  title: 'Fee Worksheet',              css: 'fee-worksheet' },
-  { slug: 'budget',          view: 'calculators/budget',          title: 'Budgeting Calculator',       css: 'budget', preScripts: ['/js/shared/mismo-parser.js'] },
-  { slug: 'compare',        view: 'calculators/compare',        title: 'Loan Comparison',            css: 'compare', preScripts: ['/js/shared/mismo-parser.js'] },
+  { slug: 'budget',          view: 'calculators/budget',          title: 'Budgeting Calculator',       css: 'budget', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
+  { slug: 'compare',        view: 'calculators/compare',        title: 'Loan Comparison',            css: 'compare', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
   { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' },
   { slug: 'mismo',          view: 'calculators/mismo',          title: 'Conditions & Documents',     css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js', '/js/calculators/mismo-docs.js', '/js/calculators/mismo-ui.js'] },
-  { slug: 'loan-timeline',  view: 'calculators/loan-timeline',  title: 'Loan Timeline',              css: 'loan-timeline', preScripts: ['/js/shared/mismo-parser.js'] }
+  { slug: 'loan-timeline',  view: 'calculators/loan-timeline',  title: 'Loan Timeline',              css: 'loan-timeline', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] }
 ];
 
 generalCalcs.forEach(gc => {
