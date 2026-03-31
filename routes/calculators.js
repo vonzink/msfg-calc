@@ -15,7 +15,7 @@ const generalCalcs = [
   { slug: 'va-prequal',      view: 'calculators/va-prequal',      title: 'VA Pre-Qualification Worksheet', css: 'va-prequal' },
   { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator',  noScript: true },
   { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator',       noScript: true },
-  { slug: 'buy-vs-rent',     view: 'calculators/buy-vs-rent',     title: 'Buy vs Rent Calculator',   noScript: true },
+  { slug: 'buy-vs-rent',     view: 'calculators/buy-vs-rent',     title: 'Buy vs Rent Calculator' },
   { slug: 'cash-vs-mortgage', view: 'calculators/cash-vs-mortgage', title: 'Cash vs Mortgage Comparison', noScript: true },
   { slug: 'refi',            view: 'calculators/refi',            title: 'Refinance Analysis Tool',   noScript: true },
   { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI',        noScript: true },

@@ -1,8 +1,193 @@
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>Buy vs Rent Calculator</h1>
+    <p>Compare the total cost of buying a home versus renting over time, including mortgage payments, property taxes, appreciation, and investment returns.</p>
   </div>
-  <div class="calc-page__body" style="padding: 0;">
-    <iframe src="/legacy/gen-calc/buy_vs_rent_calculator.html" style="width: 100%; min-height: 80vh; border: none; display: block;"></iframe>
+
+  <div class="calc-page__body">
+
+    <!-- Property & Purchase Details -->
+    <div class="calc-section">
+      <h2>Property &amp; Purchase Details</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="purchasePrice">Purchase Price ($)</label>
+          <input type="number" id="purchasePrice" value="0" min="0" step="1000" placeholder="Purchase price">
+        </div>
+        <div class="form-group">
+          <label for="downPercent">Down Payment (%)</label>
+          <input type="number" id="downPercent" value="0" min="0" max="100" step="0.5" placeholder="Down %">
+        </div>
+        <div class="form-group">
+          <label for="downAmount">Down Payment ($)</label>
+          <input type="number" id="downAmount" value="0" min="0" step="1000" placeholder="Down payment amount">
+        </div>
+        <div class="form-group">
+          <label for="rateBuy">Interest Rate (%)</label>
+          <input type="number" id="rateBuy" value="0" min="0" max="20" step="0.125" placeholder="Rate">
+        </div>
+        <div class="form-group">
+          <label for="termBuy">Loan Term (Years)</label>
+          <select id="termBuy">
+            <option value="10">10 Years</option>
+            <option value="15">15 Years</option>
+            <option value="20">20 Years</option>
+            <option value="25">25 Years</option>
+            <option value="30" selected>30 Years</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Costs & Appreciation -->
+    <div class="calc-section">
+      <h2>Property Costs &amp; Appreciation</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="taxRate">Property Tax Rate (%)</label>
+          <input type="number" id="taxRate" value="0" min="0" max="10" step="0.01" placeholder="Tax rate">
+        </div>
+        <div class="form-group">
+          <label for="taxAnnual">Annual Property Taxes ($)</label>
+          <input type="number" id="taxAnnual" value="0" min="0" step="100" placeholder="Annual taxes">
+        </div>
+        <div class="form-group">
+          <label for="insurance">Annual Insurance ($)</label>
+          <input type="number" id="insurance" value="0" min="0" step="100" placeholder="Annual insurance">
+        </div>
+        <div class="form-group">
+          <label for="maintenance">Annual Maintenance ($)</label>
+          <input type="number" id="maintenance" value="0" min="0" step="100" placeholder="Annual maintenance">
+        </div>
+        <div class="form-group">
+          <label for="appreciation">Home Appreciation Rate (%)</label>
+          <input type="number" id="appreciation" value="0" min="0" max="20" step="0.1" placeholder="Appreciation %">
+        </div>
+        <div class="form-group">
+          <label for="costInflation">Annual Cost Inflation (%)</label>
+          <input type="number" id="costInflation" value="0" min="0" max="20" step="0.1" placeholder="Cost inflation %">
+        </div>
+        <div class="form-group">
+          <label for="sellingCosts">Selling Costs (%)</label>
+          <input type="number" id="sellingCosts" value="0" min="0" max="20" step="0.5" placeholder="Selling costs %">
+        </div>
+      </div>
+    </div>
+
+    <!-- Rental & Investment Assumptions -->
+    <div class="calc-section">
+      <h2>Rental &amp; Investment Assumptions</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="rent">Current Monthly Rent ($)</label>
+          <input type="number" id="rent" value="0" min="0" step="50" placeholder="Monthly rent">
+        </div>
+        <div class="form-group">
+          <label for="rentIncrease">Annual Rent Increase (%)</label>
+          <input type="number" id="rentIncrease" value="0" min="0" max="20" step="0.1" placeholder="Increase %">
+        </div>
+        <div class="form-group">
+          <label for="period">Analysis Period (Years)</label>
+          <input type="number" id="period" value="0" min="1" max="40" step="1" placeholder="Years">
+        </div>
+        <div class="form-group">
+          <label for="investmentReturn">Investment Return (%)</label>
+          <input type="number" id="investmentReturn" value="0" min="0" max="30" step="0.1" placeholder="Return %">
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="calc-section">
+      <h2>Results</h2>
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-card__label">Monthly Mortgage Payment</div>
+          <div class="result-card__value" id="mortgagePay">$0</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Total Cost of Buying</div>
+          <div class="result-card__value" id="ownCost">$0</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Total Cost of Renting</div>
+          <div class="result-card__value" id="rentCost">$0</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Net Equity at Sale</div>
+          <div class="result-card__value" id="equity">$0</div>
+        </div>
+      </div>
+
+      <!-- Recommendation -->
+      <div class="result-highlight" id="recommendationCard" style="margin-top: var(--space-lg);">
+        <div class="result-highlight__label" id="recommendationText">Enter values to compare</div>
+        <div class="result-highlight__value" id="difference">$0</div>
+        <p class="text-muted text-sm" id="differenceText" style="margin-top: var(--space-xs);"></p>
+      </div>
+
+      <!-- Buying Breakdown -->
+      <div class="calc-section" style="margin-top: var(--space-lg);">
+        <h3>Buying Breakdown</h3>
+        <div class="summary-table">
+          <div class="summary-row">
+            <span class="summary-label">Down Payment</span>
+            <span class="summary-value" id="downPayment">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Mortgage Payments</span>
+            <span class="summary-value" id="mortgageTotal">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Property Taxes</span>
+            <span class="summary-value" id="taxesTotal">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Insurance</span>
+            <span class="summary-value" id="insuranceTotal">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Maintenance</span>
+            <span class="summary-value" id="maintenanceTotal">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Net Equity at Sale</span>
+            <span class="summary-value" id="equityBreakdown">-$0</span>
+          </div>
+          <div class="summary-row summary-row--total">
+            <span class="summary-label">Net Cost of Buying</span>
+            <span class="summary-value" id="netOwnBreakdown">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Renting Breakdown -->
+      <div class="calc-section" style="margin-top: var(--space-lg);">
+        <h3>Renting Breakdown</h3>
+        <div class="summary-table">
+          <div class="summary-row">
+            <span class="summary-label">Total Rent Payments</span>
+            <span class="summary-value" id="rentTotal">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Investment Growth (Down Payment)</span>
+            <span class="summary-value" id="investGrowthDisplay">-$0</span>
+          </div>
+          <div class="summary-row summary-row--total">
+            <span class="summary-label">Net Cost of Renting</span>
+            <span class="summary-value" id="netRentBreakdown">$0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('../partials/show-calculations', { calcId: 'buy-vs-rent' }) %>
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">Important Considerations</div>
+    <p><strong>Home Ownership Benefits:</strong> Beyond financial considerations, homeownership provides stability, potential tax benefits, and the ability to customize your living space.</p>
+    <p><strong>Market Factors:</strong> Real estate markets vary significantly by location and time. Home appreciation and rent increases can be unpredictable and may differ from historical averages.</p>
+    <p><strong>Selling Costs:</strong> The default 6% selling cost covers typical real estate agent commissions. Adjust based on your expected selling method.</p>
   </div>
 </div>
