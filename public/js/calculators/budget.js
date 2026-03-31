@@ -15,10 +15,11 @@
   var housingIds = ['bgPI', 'bgPropertyTax', 'bgHomeInsurance', 'bgMI', 'bgHOA', 'bgFlood', 'bgOtherHousing'];
   var livingIds = ['bgUtilities', 'bgTelecom', 'bgGroceries', 'bgTransport', 'bgInsurance', 'bgChildcare', 'bgEntertainment', 'bgOtherLiving'];
   var reserveIds = ['bgChecking', 'bgSavings', 'bgRetirement', 'bgInvestments', 'bgOtherAssets'];
+  var adjustmentIds = ['bgTaxRate', 'bgSavingsRate'];
   var loanIds = ['bgLoanAmount', 'bgRate', 'bgTermMonths', 'bgPropertyValue', 'bgCreditScore', 'bgNumBorrowers'];
   var metaIds = ['bgBorrowerName', 'bgFileNumber', 'bgPrepDate', 'bgLoanPurpose', 'bgProduct'];
 
-  var allStaticIds = [].concat(additionalIds, housingIds, livingIds, reserveIds, loanIds, metaIds);
+  var allStaticIds = [].concat(additionalIds, housingIds, livingIds, reserveIds, adjustmentIds, loanIds, metaIds);
 
   /* Computed fields */
   var computedIds = ['bgPI'];
@@ -334,30 +335,30 @@
   }
 
   /* ---- DTI status helpers ---- */
-  function setGauge(gaugeId, pct, thresholdPct) {
+  function setGauge(gaugeId, pct, guidelinePct, limitPct, maxPct) {
     var el = document.getElementById(gaugeId);
     if (!el) return;
-    var capped = Math.min(pct, 50);
-    el.style.width = (capped / 50 * 100) + '%';
+    var capped = Math.min(pct, maxPct);
+    el.style.width = (capped / maxPct * 100) + '%';
     el.className = 'bg-gauge__fill';
-    if (pct > thresholdPct + 5) el.classList.add('bg-gauge__fill--over');
-    else if (pct > thresholdPct) el.classList.add('bg-gauge__fill--warn');
+    if (pct > limitPct) el.classList.add('bg-gauge__fill--over');
+    else if (pct > guidelinePct) el.classList.add('bg-gauge__fill--warn');
   }
 
-  function setStatus(id, pct, threshold, label) {
+  function setStatus(id, pct, guideline, limit, label) {
     var el = document.getElementById(id);
     if (!el) return;
     el.className = 'bg-card__status';
     if (pct === 0) {
       el.textContent = 'Enter income & ' + label + ' data';
-    } else if (pct <= threshold) {
-      el.textContent = 'Within guidelines (\u2264' + threshold + '%)';
+    } else if (pct <= guideline) {
+      el.textContent = 'Within guideline (\u2264' + guideline + '%)';
       el.classList.add('bg-card__status--good');
-    } else if (pct <= threshold + 7) {
-      el.textContent = 'Approaching limit (' + threshold + '% guideline)';
+    } else if (pct <= limit) {
+      el.textContent = 'Above ' + guideline + '% guideline, within ' + limit + '% limit';
       el.classList.add('bg-card__status--warn');
     } else {
-      el.textContent = 'Exceeds ' + threshold + '% guideline';
+      el.textContent = 'Exceeds ' + limit + '% limit';
       el.classList.add('bg-card__status--over');
     }
   }
@@ -371,10 +372,21 @@
     var additionalTotal = sumIds(additionalIds);
     var grandTotalIncome = qualifyingIncome + additionalTotal;
 
+    /* TAX & SAVINGS ADJUSTMENTS */
+    var taxRate = v('bgTaxRate') / 100;
+    var savingsRate = v('bgSavingsRate') / 100;
+    var taxAmount = grandTotalIncome * taxRate;
+    var afterTaxIncome = grandTotalIncome - taxAmount;
+    var savingsAmount = grandTotalIncome * savingsRate;
+    var spendableIncome = afterTaxIncome - savingsAmount;
+
     document.getElementById('bgEmploymentTotal').textContent = fmt(employmentTotal);
     document.getElementById('bgTotalQualIncome').textContent = fmt(qualifyingIncome);
     document.getElementById('bgAdditionalTotal').textContent = fmt(additionalTotal);
     document.getElementById('bgGrandTotalIncome').textContent = fmt(grandTotalIncome);
+    document.getElementById('bgAfterTaxIncome').textContent = fmt(afterTaxIncome);
+    document.getElementById('bgSavingsAmount').textContent = fmt(savingsAmount);
+    document.getElementById('bgSpendableIncome').textContent = fmt(spendableIncome);
 
     /* PROPOSED HOUSING */
     var loanAmount = v('bgLoanAmount');
@@ -428,10 +440,10 @@
     document.getElementById('bgFrontDTI').textContent = frontDTI.toFixed(2) + '%';
     document.getElementById('bgBackDTI').textContent = backDTI.toFixed(2) + '%';
 
-    setGauge('bgFrontGauge', frontDTI, 28);
-    setGauge('bgBackGauge', backDTI, 36);
-    setStatus('bgFrontStatus', frontDTI, 28, 'housing');
-    setStatus('bgBackStatus', backDTI, 36, 'debt');
+    setGauge('bgFrontGauge', frontDTI, 32, 47, 65);
+    setGauge('bgBackGauge', backDTI, 47, 55, 70);
+    setStatus('bgFrontStatus', frontDTI, 32, 47, 'housing');
+    setStatus('bgBackStatus', backDTI, 47, 55, 'debt');
 
     /* RESIDUAL INCOME */
     var residualAfterDTI = qualifyingIncome - housingTotal - liabilitiesTotal;
@@ -455,10 +467,22 @@
       }
     }
 
-    /* NET CASH FLOW */
-    var netCashFlow = grandTotalIncome - grandTotalExpenses;
+    /* NET CASH FLOW (uses spendable income — after tax & savings) */
+    var netCashFlow = spendableIncome - grandTotalExpenses;
     document.getElementById('bgNetCashFlow').textContent = fmt(netCashFlow);
-    document.getElementById('bgSummaryQualIncome').textContent = fmt(qualifyingIncome);
+    document.getElementById('bgSummaryGrossIncome').textContent = fmt(grandTotalIncome);
+
+    var taxRow = document.getElementById('bgSummaryTaxRow');
+    var savingsRow = document.getElementById('bgSummarySavingsRow');
+    if (taxRow) {
+      taxRow.style.display = taxRate > 0 ? '' : 'none';
+      document.getElementById('bgSummaryTax').textContent = '-' + fmt(taxAmount);
+    }
+    if (savingsRow) {
+      savingsRow.style.display = savingsRate > 0 ? '' : 'none';
+      document.getElementById('bgSummarySavings').textContent = '-' + fmt(savingsAmount);
+    }
+
     document.getElementById('bgSummaryHousing').textContent = fmt(housingTotal);
     document.getElementById('bgSummaryDebts').textContent = fmt(liabilitiesTotal);
     document.getElementById('bgSummaryLiving').textContent = fmt(livingTotal);
@@ -484,8 +508,8 @@
     var residualValEl = document.getElementById('bgResidualIncome');
     var cashFlowValEl = document.getElementById('bgNetCashFlow');
 
-    if (frontValEl) frontValEl.style.color = frontDTI > 33 ? '#c62828' : frontDTI > 28 ? '#e65100' : '#2d6a4f';
-    if (backValEl) backValEl.style.color = backDTI > 43 ? '#c62828' : backDTI > 36 ? '#e65100' : '#2d6a4f';
+    if (frontValEl) frontValEl.style.color = frontDTI > 47 ? '#c62828' : frontDTI > 32 ? '#e65100' : '#2d6a4f';
+    if (backValEl) backValEl.style.color = backDTI > 55 ? '#c62828' : backDTI > 47 ? '#e65100' : '#2d6a4f';
     if (residualValEl) residualValEl.style.color = residualAfterDTI < 0 ? '#c62828' : '#2d6a4f';
     if (cashFlowValEl) cashFlowValEl.style.color = netCashFlow < 0 ? '#c62828' : '#2d6a4f';
 
@@ -500,6 +524,12 @@
       qualifyingIncome: qualifyingIncome,
       additionalIncome: additionalTotal,
       grandTotalIncome: grandTotalIncome,
+      taxRate: taxRate,
+      taxAmount: taxAmount,
+      afterTaxIncome: afterTaxIncome,
+      savingsRate: savingsRate,
+      savingsAmount: savingsAmount,
+      spendableIncome: spendableIncome,
       housingTotal: housingTotal,
       liabilitiesTotal: liabilitiesTotal,
       livingTotal: livingTotal,
@@ -514,6 +544,7 @@
       backDTI: backDTI,
       residualAfterDTI: residualAfterDTI,
       residualAfterLiving: residualAfterLiving,
+      netCashFlow: netCashFlow,
       totalReserves: totalReserves,
       reserveMonths: reserveMonths
     });
@@ -568,7 +599,7 @@
     html += '<div class="calc-step__values">';
     html += 'Front-End DTI = (' + fmt(d.housingTotal) + ' / ' + fmt(d.qualifyingIncome) + ') &times; 100';
     html += '<br><strong>Front-End DTI = ' + d.frontDTI.toFixed(2) + '%</strong>';
-    html += '<br><em>Conventional guideline: &le;28%, FHA: &le;31%, VA: no front-end limit</em>';
+    html += '<br><em>Guideline: &le;32%, Limit: &le;47%</em>';
     html += '</div></div>';
 
     html += '<div class="calc-step"><h4>Step 5: Back-End DTI Ratio</h4>';
@@ -576,7 +607,7 @@
     html += '<div class="calc-step__values">';
     html += 'Back-End DTI = (' + fmt(d.housingTotal) + ' + ' + fmt(d.liabilitiesTotal) + ') / ' + fmt(d.qualifyingIncome) + ' &times; 100';
     html += '<br><strong>Back-End DTI = ' + d.backDTI.toFixed(2) + '%</strong>';
-    html += '<br><em>Conventional guideline: &le;36-45%, FHA: &le;43-57%, VA: &le;41%</em>';
+    html += '<br><em>Guideline: &le;47%, Limit: &le;55%</em>';
     html += '</div></div>';
 
     html += '<div class="calc-step"><h4>Step 6: Residual Income</h4>';
@@ -595,11 +626,29 @@
     html += '<br><em>Most lenders require 2-6 months reserves for qualification</em>';
     html += '</div></div>';
 
-    html += '<div class="calc-step"><h4>Step 8: Full Budget Cash Flow</h4>';
-    html += '<div class="calc-step__formula">Net Cash Flow = All Income - Housing - Active Debts - Living Expenses</div>';
+    if (d.taxRate > 0 || d.savingsRate > 0) {
+      html += '<div class="calc-step"><h4>Step 8: Income Adjustments</h4>';
+      html += '<div class="calc-step__values">';
+      html += 'Gross Monthly Income: ' + fmt(d.grandTotalIncome);
+      if (d.taxRate > 0) {
+        html += '<br>Estimated Taxes (' + (d.taxRate * 100).toFixed(1) + '%): -' + fmt(d.taxAmount);
+        html += '<br>After-Tax Income: ' + fmt(d.afterTaxIncome);
+      }
+      if (d.savingsRate > 0) {
+        html += '<br>Savings / Emergency Fund (' + (d.savingsRate * 100).toFixed(1) + '%): -' + fmt(d.savingsAmount);
+      }
+      html += '<br><strong>Spendable Income = ' + fmt(d.spendableIncome) + '</strong>';
+      html += '</div></div>';
+    }
+
+    html += '<div class="calc-step"><h4>Step ' + (d.taxRate > 0 || d.savingsRate > 0 ? '9' : '8') + ': Full Budget Cash Flow</h4>';
+    html += '<div class="calc-step__formula">Net Cash Flow = Spendable Income - Housing - Active Debts - Living Expenses</div>';
     html += '<div class="calc-step__values">';
-    html += 'Cash Flow = ' + fmt(d.grandTotalIncome) + ' - ' + fmt(d.housingTotal) + ' - ' + fmt(d.liabilitiesTotal) + ' - ' + fmt(d.livingTotal);
-    html += '<br><strong>Net Monthly Cash Flow = ' + fmt(d.residualAfterLiving) + '</strong>';
+    html += 'Cash Flow = ' + fmt(d.spendableIncome) + ' - ' + fmt(d.housingTotal) + ' - ' + fmt(d.liabilitiesTotal) + ' - ' + fmt(d.livingTotal);
+    html += '<br><strong>Net Monthly Cash Flow = ' + fmt(d.netCashFlow) + '</strong>';
+    if (d.taxRate > 0 || d.savingsRate > 0) {
+      html += '<br><em>Spendable income accounts for taxes and savings deductions</em>';
+    }
     html += '<br><em>Note: Additional (non-application) income included in total cash flow but excluded from DTI</em>';
     html += '</div></div>';
 
@@ -826,7 +875,7 @@
       } else if (el.type === 'date') {
         el.value = '';
       } else if (el.type === 'number') {
-        el.value = id === 'bgTermMonths' ? '360' : id === 'bgNumBorrowers' ? '1' : '0';
+        el.value = id === 'bgTermMonths' ? '360' : id === 'bgNumBorrowers' ? '1' : id === 'bgTaxRate' ? '0' : id === 'bgSavingsRate' ? '0' : '0';
       } else {
         el.value = '';
       }

@@ -343,6 +343,27 @@
   color: #2d6a4f;
 }
 
+/* ---- Income Adjustments ---- */
+.bg-category--adjustments .bg-row label {
+  color: #333;
+}
+
+.bg-grand-total--net-income {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-top: 2px solid #2d6a4f;
+}
+
+.bg-card__row--deduction {
+  color: #c62828;
+}
+
+/* ---- DTI Gauge limit marker ---- */
+.bg-gauge__limit {
+  color: #c62828;
+  font-weight: 600;
+}
+
 /* ---- Subtotals & Grand Totals ---- */
 .bg-subtotal {
   display: flex;

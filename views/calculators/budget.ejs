@@ -130,8 +130,38 @@
           </div>
 
           <div class="bg-grand-total bg-grand-total--income">
-            <span>Total Monthly Income</span>
+            <span>Total Monthly Income (Gross)</span>
             <span id="bgGrandTotalIncome">$0</span>
+          </div>
+
+          <div class="bg-category bg-category--adjustments">
+            <div class="bg-category__header">
+              <span>Income Adjustments</span>
+            </div>
+            <div class="bg-category__items">
+              <div class="bg-row">
+                <label>Estimated Tax Rate</label>
+                <input type="number" id="bgTaxRate" value="0" min="0" max="60" step="0.5" class="bg-input">
+                <span class="bg-row__period">%</span>
+              </div>
+              <div class="bg-row">
+                <label>Savings / Emergency Fund</label>
+                <input type="number" id="bgSavingsRate" value="0" min="0" max="50" step="0.5" class="bg-input">
+                <span class="bg-row__period">%</span>
+              </div>
+            </div>
+            <div class="bg-subtotal">
+              <span>After-Tax Monthly Income</span>
+              <span id="bgAfterTaxIncome">$0</span>
+            </div>
+            <div class="bg-subtotal">
+              <span>Monthly Savings Allocation</span>
+              <span id="bgSavingsAmount">$0</span>
+            </div>
+            <div class="bg-grand-total bg-grand-total--net-income">
+              <span>Spendable Income (after tax &amp; savings)</span>
+              <span id="bgSpendableIncome">$0</span>
+            </div>
           </div>
         </div>
 
@@ -344,8 +374,9 @@
             </div>
             <div class="bg-gauge__labels">
               <span>0%</span>
-              <span class="bg-gauge__threshold">28%</span>
-              <span>50%</span>
+              <span class="bg-gauge__threshold">32%</span>
+              <span class="bg-gauge__limit">47%</span>
+              <span>65%</span>
             </div>
           </div>
           <div class="bg-card__status" id="bgFrontStatus">Enter income &amp; housing data</div>
@@ -362,8 +393,9 @@
             </div>
             <div class="bg-gauge__labels">
               <span>0%</span>
-              <span class="bg-gauge__threshold">36%</span>
-              <span>50%</span>
+              <span class="bg-gauge__threshold">47%</span>
+              <span class="bg-gauge__limit">55%</span>
+              <span>70%</span>
             </div>
           </div>
           <div class="bg-card__status" id="bgBackStatus">Enter income &amp; debt data</div>
@@ -391,11 +423,19 @@
         <div class="bg-card">
           <div class="bg-card__label">Monthly Cash Flow</div>
           <div class="bg-card__value" id="bgNetCashFlow">$0</div>
-          <div class="bg-card__detail">All Income &minus; All Outflows</div>
+          <div class="bg-card__detail">Spendable Income &minus; All Outflows</div>
           <div class="bg-card__breakdown">
             <div class="bg-card__row">
-              <span>Qualifying Income</span>
-              <span id="bgSummaryQualIncome">$0</span>
+              <span>Total Gross Income</span>
+              <span id="bgSummaryGrossIncome">$0</span>
+            </div>
+            <div class="bg-card__row bg-card__row--deduction" id="bgSummaryTaxRow" style="display:none">
+              <span>Est. Taxes</span>
+              <span id="bgSummaryTax">$0</span>
+            </div>
+            <div class="bg-card__row bg-card__row--deduction" id="bgSummarySavingsRow" style="display:none">
+              <span>Savings Allocation</span>
+              <span id="bgSummarySavings">$0</span>
             </div>
             <div class="bg-card__row">
               <span>Housing Payment</span>
@@ -430,7 +470,7 @@
 
     <!-- Disclaimer -->
     <div class="bg-disclaimer">
-      <p><em>DTI ratios use qualifying income only (income on the loan application). Omitted liabilities are excluded from DTI. Payoff liabilities are excluded from DTI but their balances are added to cash needed at closing. Additional household income and living expenses do not affect DTI calculations.</em></p>
+      <p><em>DTI ratios use gross qualifying income only (income on the loan application). Front-end guideline: 32%, limit: 47%. Back-end guideline: 47%, limit: 55%. Tax rate and savings allocations are for budgeting only and do not affect DTI. Omitted liabilities are excluded from DTI. Payoff liabilities are excluded from DTI but their balances are added to cash needed at closing.</em></p>
     </div>
 
   </div>
