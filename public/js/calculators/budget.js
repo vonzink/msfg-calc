@@ -889,6 +889,7 @@
     /* Workspace message listener */
     window.addEventListener('message', handleMessage);
 
+
     /* MISMO-populated field: remove glow on manual edit */
     document.querySelector('.calc-page').addEventListener('input', function (e) {
       if (e.target.classList.contains('mismo-populated')) {
@@ -897,6 +898,70 @@
     });
 
     calculate();
+
+    /* --- Self-populate from sessionStorage MISMO data (workspace fallback) ---
+       When loaded inside a workspace iframe, the parent stores MISMO data in
+       sessionStorage.  Read it directly instead of relying on cross-iframe calls,
+       which can fail due to timing or lazy-loading. */
+    trySessionPopulate();
+  }
+
+  function trySessionPopulate() {
+    /* Only attempt if we're inside an iframe (embed mode) and have no dynamic rows yet */
+    if (window === window.top) return;
+    if (incomeRows.length > 1 || liabilityRows.length > 0) return;
+
+    var stored = sessionStorage.getItem('msfg-mismo-data');
+    var storedXml = sessionStorage.getItem('msfg-mismo-xml');
+    if (!stored && !storedXml) return;
+
+    try {
+      var data = stored ? JSON.parse(stored) : null;
+
+      /* If we have parsed data, use it directly for __budget_data */
+      if (data) {
+        /* Set standard DOM fields first */
+        if (MSFG.MISMOParser) {
+          var mapFn = MSFG.MISMOParser.getCalcMap('budget');
+          if (mapFn) {
+            var mapped = mapFn(data);
+            Object.keys(mapped).forEach(function (id) {
+              if (id.indexOf('__') === 0) return;
+              var el = document.getElementById(id);
+              if (!el) return;
+              if (el.tagName === 'SELECT') {
+                for (var i = 0; i < el.options.length; i++) {
+                  if (el.options[i].value === mapped[id]) {
+                    el.selectedIndex = i;
+                    el.classList.add('mismo-populated');
+                    break;
+                  }
+                }
+              } else {
+                el.value = mapped[id];
+                el.classList.add('mismo-populated');
+              }
+              if (computedIds.indexOf(id) !== -1 && mapped[id]) {
+                overrides[id] = true;
+              }
+            });
+          }
+        }
+
+        /* Populate dynamic rows from structured data */
+        var budgetData = {
+          borrowers: data.borrowers || [],
+          liabilities: data.liabilities || [],
+          qualification: data.qualification || {},
+          existingMortgage: data.existingMortgage || null
+        };
+        if (budgetData.borrowers.length || budgetData.liabilities.length) {
+          populateMISMO(budgetData);
+        }
+      }
+    } catch (e) {
+      /* Silently ignore — sessionStorage data may be stale or malformed */
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function () {

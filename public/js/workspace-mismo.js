@@ -57,6 +57,7 @@
         sessionStorage.setItem('msfg-mismo-xml', e.target.result);
         updateMISMOUI(parsed, file.name);
         if (typeof onDataLoadedCallback === 'function') onDataLoadedCallback();
+        broadcastMISMOToIframes(e.target.result);
         MSFG.WS.showToast('MISMO data loaded — ' + parsed.borrowerName, 'success');
       } catch (err) {
         console.error('MISMO parse error:', err);
@@ -64,6 +65,20 @@
       }
     };
     reader.readAsText(file);
+  }
+
+  function broadcastMISMOToIframes(xmlString) {
+    try {
+      var iframes = document.querySelectorAll('.ws-panel__iframe');
+      iframes.forEach(function(iframe) {
+        try {
+          iframe.contentWindow.postMessage(
+            { type: 'msfg-mismo-data', xml: xmlString },
+            window.location.origin
+          );
+        } catch (e) { /* cross-origin or not ready */ }
+      });
+    } catch (e) { /* ignore */ }
   }
 
   function restoreMISMOData() {
