@@ -455,10 +455,12 @@
         var payment = num(ld, 'LiabilityMonthlyPaymentAmount');
         var remaining = num(ld, 'LiabilityRemainingTermMonthsCount');
         var payoff = txt(ld, 'LiabilityPayoffStatusIndicator') === 'true';
+        var exclusion = txt(ld, 'LiabilityExclusionIndicator') === 'true';
+        var account = txt(ld, 'LiabilityAccountIdentifier');
         var holder = '';
         var lh = qn(l, 'LIABILITY_HOLDER/NAME');
         if (lh) holder = txt(lh, 'FullName');
-        var entry = { type: type, balance: balance, payment: payment, remaining: remaining, payoff: payoff, holder: holder };
+        var entry = { type: type, balance: balance, payment: payment, remaining: remaining, payoff: payoff, exclusion: exclusion, account: account, holder: holder };
 
         if (type === 'MortgageLoan' && payoff) {
           data.existingMortgage = {

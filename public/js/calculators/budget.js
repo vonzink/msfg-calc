@@ -708,8 +708,8 @@
         type: l.type || '',
         balance: l.balance || 0,
         payment: l.payment || 0,
-        months: l.remainingMonths || 0,
-        omit: isMortgage && !isPayoff ? true : false,
+        months: l.remaining || l.remainingMonths || 0,
+        omit: l.exclusion || (isMortgage && !isPayoff) ? true : false,
         payoff: isPayoff || isMortgage ? true : false,
         account: l.account || '',
         mismo: true
