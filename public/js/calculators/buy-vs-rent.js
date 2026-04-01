@@ -8,26 +8,49 @@
   const fmt = MSFG.formatCurrency;
   const pct = MSFG.formatPercent;
 
-  /* ---- Gather inputs ---- */
-  function getState() {
-    const price = P(document.getElementById('purchasePrice').value);
-    const downPct = P(document.getElementById('downPercent').value) / 100;
-    const downAmount = P(document.getElementById('downAmount').value);
-    const rate = P(document.getElementById('rateBuy').value) / 100;
-    const term = P(document.getElementById('termBuy').value);
-    const taxRate = P(document.getElementById('taxRate').value) / 100;
-    const taxAnnual = P(document.getElementById('taxAnnual').value);
-    const ins = P(document.getElementById('insurance').value);
-    const maint = P(document.getElementById('maintenance').value);
-    const appr = P(document.getElementById('appreciation').value) / 100;
-    const costInflation = P(document.getElementById('costInflation').value) / 100;
-    const sellingPct = P(document.getElementById('sellingCosts').value) / 100;
-    const rent = P(document.getElementById('rent').value);
-    const rentInc = P(document.getElementById('rentIncrease').value) / 100;
-    const period = P(document.getElementById('period').value);
-    const investReturn = P(document.getElementById('investmentReturn').value) / 100;
+  /* ---- Toggle helper ---- */
+  function setupToggle(toggleId, inputId, priceId, pctStep, dollarStep, pctPlaceholder, dollarPlaceholder) {
+    const toggle = document.getElementById(toggleId);
+    const input = document.getElementById(inputId);
+    if (!toggle || !input) return;
 
-    return { price, downPct, downAmount, rate, term, taxRate, taxAnnual, ins, maint, appr, costInflation, sellingPct, rent, rentInc, period, investReturn };
+    toggle.addEventListener('click', function () {
+      const price = P(document.getElementById(priceId).value);
+      const currentVal = P(input.value);
+      const mode = toggle.dataset.mode;
+
+      if (mode === 'pct') {
+        // Switch to dollar mode
+        const dollarVal = price > 0 ? Math.round(price * currentVal / 100) : 0;
+        toggle.dataset.mode = 'dollar';
+        toggle.textContent = '$';
+        input.value = dollarVal || '';
+        input.step = dollarStep;
+        input.placeholder = dollarPlaceholder;
+      } else {
+        // Switch to percent mode
+        const pctVal = price > 0 ? (currentVal / price * 100) : 0;
+        toggle.dataset.mode = 'pct';
+        toggle.textContent = '%';
+        input.value = pctVal ? pctVal.toFixed(3) : '';
+        input.step = pctStep;
+        input.placeholder = pctPlaceholder;
+      }
+      input.classList.remove('is-default');
+      calculate();
+    });
+  }
+
+  function resolveToggleValue(toggleId, inputId, priceId) {
+    const toggle = document.getElementById(toggleId);
+    const val = P(document.getElementById(inputId).value);
+    const price = P(document.getElementById(priceId).value);
+    if (!toggle) return { pct: 0, dollar: 0 };
+
+    if (toggle.dataset.mode === 'pct') {
+      return { pct: val / 100, dollar: price * val / 100 };
+    }
+    return { pct: price > 0 ? val / price : 0, dollar: val };
   }
 
   /* ---- Mortgage math ---- */
@@ -45,57 +68,33 @@
     return principal * Math.pow(1 + r, paymentsMade) - pmt * ((Math.pow(1 + r, paymentsMade) - 1) / r);
   }
 
-  /* ---- Sync down payment fields ---- */
-  function syncDownFromPercent() {
-    const price = P(document.getElementById('purchasePrice').value);
-    const pctVal = P(document.getElementById('downPercent').value) / 100;
-    document.getElementById('downAmount').value = Math.round(price * pctVal);
-    document.getElementById('downAmount').classList.remove('is-default');
-    calculate();
-  }
-
-  function syncDownFromAmount() {
-    const price = P(document.getElementById('purchasePrice').value);
-    const amount = P(document.getElementById('downAmount').value);
-    if (price > 0) {
-      document.getElementById('downPercent').value = ((amount / price) * 100).toFixed(3);
-      document.getElementById('downPercent').classList.remove('is-default');
-    }
-    calculate();
-  }
-
-  /* ---- Sync tax fields ---- */
-  function syncTaxFromRate() {
-    const price = P(document.getElementById('purchasePrice').value);
-    const rate = P(document.getElementById('taxRate').value) / 100;
-    document.getElementById('taxAnnual').value = Math.round(price * rate);
-    document.getElementById('taxAnnual').classList.remove('is-default');
-    calculate();
-  }
-
-  function syncTaxFromAmount() {
-    const price = P(document.getElementById('purchasePrice').value);
-    const annual = P(document.getElementById('taxAnnual').value);
-    if (price > 0) {
-      document.getElementById('taxRate').value = ((annual / price) * 100).toFixed(3);
-      document.getElementById('taxRate').classList.remove('is-default');
-    }
-    calculate();
-  }
-
   /* ---- Main calculation ---- */
   function calculate() {
-    const s = getState();
-    if (s.price <= 0 || s.period <= 0) return;
+    const price = P(document.getElementById('purchasePrice').value);
+    const rate = P(document.getElementById('rateBuy').value) / 100;
+    const term = P(document.getElementById('termBuy').value);
+    const ins = P(document.getElementById('insurance').value);
+    const maint = P(document.getElementById('maintenance').value);
+    const appr = P(document.getElementById('appreciation').value) / 100;
+    const costInflation = P(document.getElementById('costInflation').value) / 100;
+    const sellingPct = P(document.getElementById('sellingCosts').value) / 100;
+    const rent = P(document.getElementById('rent').value);
+    const rentInc = P(document.getElementById('rentIncrease').value) / 100;
+    const period = P(document.getElementById('period').value);
+    const investReturn = P(document.getElementById('investmentReturn').value) / 100;
 
-    const down = s.downAmount > 0 ? s.downAmount : s.price * s.downPct;
-    const loan = s.price - down;
-    const nPayments = s.term * 12;
-    const analysisMonths = s.period * 12;
-    const pmt = mortgagePayment(loan, s.rate, nPayments);
+    if (price <= 0 || period <= 0) return;
 
-    // Determine base annual tax — use dollar amount if set, otherwise rate * price
-    const baseTaxAnnual = s.taxAnnual > 0 ? s.taxAnnual : s.price * s.taxRate;
+    const downResolved = resolveToggleValue('downToggle', 'downPaymentInput', 'purchasePrice');
+    const taxResolved = resolveToggleValue('taxToggle', 'taxInput', 'purchasePrice');
+
+    const down = downResolved.dollar;
+    const loan = price - down;
+    const nPayments = term * 12;
+    const analysisMonths = period * 12;
+    const pmt = mortgagePayment(loan, rate, nPayments);
+
+    const baseTaxAnnual = taxResolved.dollar;
 
     // Year-by-year ownership costs (taxes, insurance, maintenance inflate)
     let totalOwnership = down;
@@ -104,15 +103,14 @@
     let insuranceTotal = 0;
     let maintenanceTotal = 0;
 
-    for (let y = 0; y < s.period; y++) {
-      const inflationFactor = Math.pow(1 + s.costInflation, y);
-      // Property taxes rise with home appreciation
-      const homeValueYear = s.price * Math.pow(1 + s.appr, y);
-      const taxThisYear = (baseTaxAnnual > 0 && s.price > 0)
-        ? baseTaxAnnual * (homeValueYear / s.price)
+    for (let y = 0; y < period; y++) {
+      const inflationFactor = Math.pow(1 + costInflation, y);
+      const homeValueYear = price * Math.pow(1 + appr, y);
+      const taxThisYear = (baseTaxAnnual > 0 && price > 0)
+        ? baseTaxAnnual * (homeValueYear / price)
         : 0;
-      const insThisYear = s.ins * inflationFactor;
-      const maintThisYear = s.maint * inflationFactor;
+      const insThisYear = ins * inflationFactor;
+      const maintThisYear = maint * inflationFactor;
 
       const yearMortgage = pmt * 12;
       mortgageTotal += yearMortgage;
@@ -124,35 +122,32 @@
 
     // Equity at sale
     const paymentsMade = Math.min(analysisMonths, nPayments);
-    const bal = balanceAfterPayments(loan, s.rate, nPayments, paymentsMade);
-    const salePrice = s.price * Math.pow(1 + s.appr, s.period);
-    const sellingCost = salePrice * s.sellingPct;
+    const bal = balanceAfterPayments(loan, rate, nPayments, paymentsMade);
+    const salePrice = price * Math.pow(1 + appr, period);
+    const sellingCost = salePrice * sellingPct;
     const equity = salePrice - Math.max(0, bal) - sellingCost;
 
     // Renting scenario
     let totalRent = 0;
-    let currentRent = s.rent;
-    for (let y = 0; y < s.period; y++) {
+    let currentRent = rent;
+    for (let y = 0; y < period; y++) {
       totalRent += currentRent * 12;
-      currentRent *= (1 + s.rentInc);
+      currentRent *= (1 + rentInc);
     }
 
-    // Investment growth of the down payment if renting instead
-    const investValue = down * Math.pow(1 + s.investReturn, s.period);
+    const investValue = down * Math.pow(1 + investReturn, period);
     const investmentGrowth = investValue - down;
 
-    // Net costs
     const netOwn = totalOwnership - equity;
     const netRent = totalRent - investmentGrowth;
-    const diff = netRent - netOwn; // positive = buying wins
+    const diff = netRent - netOwn;
 
-    // Update DOM — results cards
+    // Update DOM
     document.getElementById('mortgagePay').textContent = fmt(pmt);
     document.getElementById('ownCost').textContent = fmt(totalOwnership);
     document.getElementById('rentCost').textContent = fmt(totalRent);
     document.getElementById('equity').textContent = fmt(equity);
 
-    // Recommendation
     const recText = document.getElementById('recommendationText');
     const diffText = document.getElementById('differenceText');
     const diffValue = document.getElementById('difference');
@@ -160,13 +155,12 @@
 
     if (diff > 0) {
       recText.textContent = 'Buying saves you';
-      diffText.textContent = 'over ' + s.period + ' years compared to renting (' + fmt(Math.abs(diff) / s.period) + '/yr)';
+      diffText.textContent = 'over ' + period + ' years compared to renting (' + fmt(Math.abs(diff) / period) + '/yr)';
     } else {
       recText.textContent = 'Renting saves you';
-      diffText.textContent = 'over ' + s.period + ' years compared to buying (' + fmt(Math.abs(diff) / s.period) + '/yr)';
+      diffText.textContent = 'over ' + period + ' years compared to buying (' + fmt(Math.abs(diff) / period) + '/yr)';
     }
 
-    // Buying breakdown
     document.getElementById('downPayment').textContent = fmt(down);
     document.getElementById('mortgageTotal').textContent = fmt(mortgageTotal);
     document.getElementById('taxesTotal').textContent = fmt(taxesTotal);
@@ -175,73 +169,65 @@
     document.getElementById('equityBreakdown').textContent = '-' + fmt(equity);
     document.getElementById('netOwnBreakdown').textContent = fmt(netOwn);
 
-    // Renting breakdown
     document.getElementById('rentTotal').textContent = fmt(totalRent);
     document.getElementById('investGrowthDisplay').textContent = '-' + fmt(investmentGrowth);
     document.getElementById('netRentBreakdown').textContent = fmt(netRent);
 
-    updateMathSteps(s, down, loan, pmt, nPayments, baseTaxAnnual, totalOwnership, mortgageTotal, taxesTotal, insuranceTotal, maintenanceTotal, salePrice, sellingCost, bal, equity, totalRent, investValue, investmentGrowth, netOwn, netRent, diff);
+    updateMathSteps(price, down, loan, pmt, rate, nPayments, period, appr, sellingPct, costInflation, rentInc, investReturn, baseTaxAnnual, totalOwnership, mortgageTotal, taxesTotal, insuranceTotal, maintenanceTotal, salePrice, sellingCost, bal, equity, totalRent, rent, investValue, investmentGrowth, netOwn, netRent, diff);
   }
 
   /* ---- Show Calculations steps ---- */
-  function updateMathSteps(s, down, loan, pmt, nPayments, baseTaxAnnual, totalOwnership, mortgageTotal, taxesTotal, insuranceTotal, maintenanceTotal, salePrice, sellingCost, bal, equity, totalRent, investValue, investmentGrowth, netOwn, netRent, diff) {
+  function updateMathSteps(price, down, loan, pmt, rate, nPayments, period, appr, sellingPct, costInflation, rentInc, investReturn, baseTaxAnnual, totalOwnership, mortgageTotal, taxesTotal, insuranceTotal, maintenanceTotal, salePrice, sellingCost, bal, equity, totalRent, rentMo, investValue, investmentGrowth, netOwn, netRent, diff) {
     const container = document.getElementById('calcSteps-buy-vs-rent');
     if (!container) return;
 
-    const r = s.rate / 12;
+    const r = rate / 12;
+    const downPctDisplay = price > 0 ? pct(down / price * 100) : '0.000%';
     let html = '';
 
-    // Step 1: Down payment & loan
     html += '<div class="calc-step"><h4>Step 1: Down Payment &amp; Loan Amount</h4>'
       + '<div class="calc-step__formula">'
-      + 'Down Payment = Purchase Price &times; Down Payment %<br>'
-      + '<span class="calc-step__values">= ' + fmt(s.price) + ' &times; ' + pct(s.downPct * 100) + ' = <strong>' + fmt(down) + '</strong></span><br>'
-      + 'Loan Amount = ' + fmt(s.price) + ' - ' + fmt(down) + ' = <strong>' + fmt(loan) + '</strong>'
+      + 'Down Payment = ' + fmt(price) + ' &times; ' + downPctDisplay + ' = <strong>' + fmt(down) + '</strong><br>'
+      + 'Loan Amount = ' + fmt(price) + ' - ' + fmt(down) + ' = <strong>' + fmt(loan) + '</strong>'
       + '</div></div>';
 
-    // Step 2: Monthly payment
     html += '<div class="calc-step"><h4>Step 2: Monthly Mortgage Payment</h4>'
       + '<div class="calc-step__formula">'
       + 'Payment = P &times; r / (1 - (1+r)<sup>-n</sup>)<br>'
-      + '<span class="calc-step__note">P = ' + fmt(loan) + ', r = ' + pct(s.rate * 100) + '/12 = ' + (r * 100).toFixed(5) + '%, n = ' + nPayments + '</span><br>'
+      + '<span class="calc-step__note">P = ' + fmt(loan) + ', r = ' + pct(rate * 100) + '/12 = ' + (r * 100).toFixed(5) + '%, n = ' + nPayments + '</span><br>'
       + '<span class="calc-step__values">= <strong>' + fmt(pmt) + '</strong>/month</span>'
       + '</div></div>';
 
-    // Step 3: Ownership costs
-    html += '<div class="calc-step"><h4>Step 3: Total Ownership Costs (' + s.period + ' Years)</h4>'
+    html += '<div class="calc-step"><h4>Step 3: Total Ownership Costs (' + period + ' Years)</h4>'
       + '<div class="calc-step__formula">'
       + 'Down Payment: ' + fmt(down) + '<br>'
-      + 'Mortgage Payments: ' + fmt(pmt) + ' &times; ' + (s.period * 12) + ' months = ' + fmt(mortgageTotal) + '<br>'
+      + 'Mortgage Payments: ' + fmt(pmt) + ' &times; ' + (period * 12) + ' months = ' + fmt(mortgageTotal) + '<br>'
       + 'Property Taxes: ' + fmt(taxesTotal) + ' <span class="calc-step__note">(increases with home appreciation)</span><br>'
-      + 'Insurance: ' + fmt(insuranceTotal) + ' <span class="calc-step__note">(inflates at ' + pct(s.costInflation * 100) + '/yr)</span><br>'
-      + 'Maintenance: ' + fmt(maintenanceTotal) + ' <span class="calc-step__note">(inflates at ' + pct(s.costInflation * 100) + '/yr)</span><br>'
+      + 'Insurance: ' + fmt(insuranceTotal) + ' <span class="calc-step__note">(inflates at ' + pct(costInflation * 100) + '/yr)</span><br>'
+      + 'Maintenance: ' + fmt(maintenanceTotal) + ' <span class="calc-step__note">(inflates at ' + pct(costInflation * 100) + '/yr)</span><br>'
       + '<span class="calc-step__values">Total = <strong>' + fmt(totalOwnership) + '</strong></span>'
       + '</div></div>';
 
-    // Step 4: Home equity at sale
     html += '<div class="calc-step"><h4>Step 4: Net Equity at Sale</h4>'
       + '<div class="calc-step__formula">'
-      + 'Home Value = ' + fmt(s.price) + ' &times; (1 + ' + pct(s.appr * 100) + ')<sup>' + s.period + '</sup> = ' + fmt(salePrice) + '<br>'
+      + 'Home Value = ' + fmt(price) + ' &times; (1 + ' + pct(appr * 100) + ')<sup>' + period + '</sup> = ' + fmt(salePrice) + '<br>'
       + 'Remaining Balance = ' + fmt(Math.max(0, bal)) + '<br>'
-      + 'Selling Costs = ' + fmt(salePrice) + ' &times; ' + pct(s.sellingPct * 100) + ' = ' + fmt(sellingCost) + '<br>'
+      + 'Selling Costs = ' + fmt(salePrice) + ' &times; ' + pct(sellingPct * 100) + ' = ' + fmt(sellingCost) + '<br>'
       + '<span class="calc-step__values">Equity = ' + fmt(salePrice) + ' - ' + fmt(Math.max(0, bal)) + ' - ' + fmt(sellingCost) + ' = <strong>' + fmt(equity) + '</strong></span>'
       + '</div></div>';
 
-    // Step 5: Renting costs
-    html += '<div class="calc-step"><h4>Step 5: Total Renting Costs (' + s.period + ' Years)</h4>'
+    html += '<div class="calc-step"><h4>Step 5: Total Renting Costs (' + period + ' Years)</h4>'
       + '<div class="calc-step__formula">'
-      + 'Starting Rent: ' + fmt(s.rent) + '/month, increasing ' + pct(s.rentInc * 100) + '/yr<br>'
+      + 'Starting Rent: ' + fmt(rentMo) + '/month, increasing ' + pct(rentInc * 100) + '/yr<br>'
       + '<span class="calc-step__values">Total Rent = <strong>' + fmt(totalRent) + '</strong></span>'
       + '</div></div>';
 
-    // Step 6: Investment growth
     html += '<div class="calc-step"><h4>Step 6: Investment Growth of Down Payment</h4>'
       + '<div class="calc-step__formula">'
-      + 'Future Value = ' + fmt(down) + ' &times; (1 + ' + pct(s.investReturn * 100) + ')<sup>' + s.period + '</sup> = ' + fmt(investValue) + '<br>'
+      + 'Future Value = ' + fmt(down) + ' &times; (1 + ' + pct(investReturn * 100) + ')<sup>' + period + '</sup> = ' + fmt(investValue) + '<br>'
       + '<span class="calc-step__values">Growth = ' + fmt(investValue) + ' - ' + fmt(down) + ' = <strong>' + fmt(investmentGrowth) + '</strong></span>'
       + '</div></div>';
 
-    // Step 7: Final comparison
     html += '<div class="calc-step highlight"><h4>Step 7: Net Cost Comparison</h4>'
       + '<div class="calc-step__formula">'
       + 'Net Cost of Buying = Total Ownership - Equity<br>'
@@ -249,7 +235,7 @@
       + 'Net Cost of Renting = Total Rent - Investment Growth<br>'
       + '<span class="calc-step__values">= ' + fmt(totalRent) + ' - ' + fmt(investmentGrowth) + ' = <strong>' + fmt(netRent) + '</strong></span><br><br>'
       + 'Difference = ' + fmt(netRent) + ' - ' + fmt(netOwn) + ' = <strong>' + fmt(diff) + '</strong><br>'
-      + '<span class="calc-step__note">' + (diff > 0 ? 'Buying is cheaper' : 'Renting is cheaper') + ' by ' + fmt(Math.abs(diff)) + ' over ' + s.period + ' years</span>'
+      + '<span class="calc-step__note">' + (diff > 0 ? 'Buying is cheaper' : 'Renting is cheaper') + ' by ' + fmt(Math.abs(diff)) + ' over ' + period + ' years</span>'
       + '</div></div>';
 
     container.innerHTML = html;
@@ -260,8 +246,12 @@
     MSFG.markDefaults('.calc-page');
     MSFG.bindDefaultClearing('.calc-page');
 
-    // Main inputs — recalculate on change
-    const inputIds = ['purchasePrice', 'rateBuy', 'termBuy',
+    // Set up toggles
+    setupToggle('downToggle', 'downPaymentInput', 'purchasePrice', '0.5', '1000', 'Down %', 'Down payment amount');
+    setupToggle('taxToggle', 'taxInput', 'purchasePrice', '0.01', '100', 'Tax rate %', 'Annual taxes');
+
+    // Main inputs
+    const inputIds = ['purchasePrice', 'downPaymentInput', 'taxInput', 'rateBuy', 'termBuy',
       'insurance', 'maintenance', 'appreciation', 'costInflation',
       'sellingCosts', 'rent', 'rentIncrease', 'period', 'investmentReturn'];
     inputIds.forEach(function (id) {
@@ -270,38 +260,6 @@
         el.addEventListener('input', calculate);
         el.addEventListener('change', calculate);
       }
-    });
-
-    // Down payment % <-> $ sync
-    const downPctEl = document.getElementById('downPercent');
-    const downAmtEl = document.getElementById('downAmount');
-    if (downPctEl) {
-      downPctEl.addEventListener('input', syncDownFromPercent);
-      downPctEl.addEventListener('change', syncDownFromPercent);
-    }
-    if (downAmtEl) {
-      downAmtEl.addEventListener('input', syncDownFromAmount);
-      downAmtEl.addEventListener('change', syncDownFromAmount);
-    }
-
-    // Tax rate <-> tax amount sync
-    const taxRateEl = document.getElementById('taxRate');
-    const taxAnnualEl = document.getElementById('taxAnnual');
-    if (taxRateEl) {
-      taxRateEl.addEventListener('input', syncTaxFromRate);
-      taxRateEl.addEventListener('change', syncTaxFromRate);
-    }
-    if (taxAnnualEl) {
-      taxAnnualEl.addEventListener('input', syncTaxFromAmount);
-      taxAnnualEl.addEventListener('change', syncTaxFromAmount);
-    }
-
-    // Purchase price changes should update synced $ fields
-    document.getElementById('purchasePrice').addEventListener('input', function () {
-      const downPctVal = P(document.getElementById('downPercent').value);
-      if (downPctVal > 0) syncDownFromPercent();
-      const taxRateVal = P(document.getElementById('taxRate').value);
-      if (taxRateVal > 0) syncTaxFromRate();
     });
 
     calculate();

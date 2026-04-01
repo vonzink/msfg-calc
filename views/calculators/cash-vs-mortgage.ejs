@@ -30,12 +30,11 @@
       <h2>Mortgage Details</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label for="downPct">Down Payment (%)</label>
-          <input type="number" id="downPct" value="0" min="0" max="100" step="0.5" placeholder="Down %">
-        </div>
-        <div class="form-group">
-          <label for="downAmt">Down Payment ($)</label>
-          <input type="number" id="downAmt" value="0" min="0" step="1000" placeholder="Down payment amount">
+          <label for="downPaymentInput">
+            Down Payment
+            <button type="button" class="unit-toggle" id="downToggle" data-mode="pct">%</button>
+          </label>
+          <input type="number" id="downPaymentInput" value="0" min="0" step="0.5" placeholder="Down %">
         </div>
         <div class="form-group">
           <label for="mortRate">Interest Rate (%)</label>
