@@ -16,7 +16,7 @@ const generalCalcs = [
   { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator',  noScript: true },
   { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator',       noScript: true },
   { slug: 'buy-vs-rent',     view: 'calculators/buy-vs-rent',     title: 'Buy vs Rent Calculator' },
-  { slug: 'cash-vs-mortgage', view: 'calculators/cash-vs-mortgage', title: 'Cash vs Mortgage Comparison', noScript: true },
+  { slug: 'cash-vs-mortgage', view: 'calculators/cash-vs-mortgage', title: 'Cash vs Mortgage Comparison' },
   { slug: 'refi',            view: 'calculators/refi',            title: 'Refinance Analysis Tool',   noScript: true },
   { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI',        noScript: true },
   { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator', noScript: true },

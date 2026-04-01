@@ -1,8 +1,173 @@
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>Cash vs Mortgage Comparison</h1>
+    <p>Compare the net cost of paying cash versus taking a mortgage. This calculator factors in property appreciation, investment returns on unused cash, and the remaining mortgage balance.</p>
   </div>
-  <div class="calc-page__body" style="padding: 0;">
-    <iframe src="/legacy/gen-calc/cashvmortcomp.html" style="width: 100%; min-height: 80vh; border: none; display: block;"></iframe>
+
+  <div class="calc-page__body">
+
+    <!-- Purchase Information -->
+    <div class="calc-section">
+      <h2>Purchase Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="priceCash">Purchase Price ($)</label>
+          <input type="number" id="priceCash" value="0" min="0" step="1000" placeholder="Purchase price">
+        </div>
+        <div class="form-group">
+          <label for="closingCash">Closing Costs - Cash ($)</label>
+          <input type="number" id="closingCash" value="0" min="0" step="100" placeholder="Cash closing costs">
+        </div>
+        <div class="form-group">
+          <label for="closingMortgage">Closing Costs - Mortgage ($)</label>
+          <input type="number" id="closingMortgage" value="0" min="0" step="100" placeholder="Mortgage closing costs">
+        </div>
+      </div>
+    </div>
+
+    <!-- Mortgage Details -->
+    <div class="calc-section">
+      <h2>Mortgage Details</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="downPct">Down Payment (%)</label>
+          <input type="number" id="downPct" value="0" min="0" max="100" step="0.5" placeholder="Down %">
+        </div>
+        <div class="form-group">
+          <label for="downAmt">Down Payment ($)</label>
+          <input type="number" id="downAmt" value="0" min="0" step="1000" placeholder="Down payment amount">
+        </div>
+        <div class="form-group">
+          <label for="mortRate">Interest Rate (%)</label>
+          <input type="number" id="mortRate" value="0" min="0" max="20" step="0.125" placeholder="Rate">
+        </div>
+        <div class="form-group">
+          <label for="mortTerm">Loan Term (Years)</label>
+          <select id="mortTerm">
+            <option value="10">10 Years</option>
+            <option value="15">15 Years</option>
+            <option value="20">20 Years</option>
+            <option value="25">25 Years</option>
+            <option value="30" selected>30 Years</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investment & Analysis -->
+    <div class="calc-section">
+      <h2>Investment &amp; Analysis Period</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="investReturn">Expected Annual Investment Return (%)</label>
+          <input type="number" id="investReturn" value="0" min="0" max="30" step="0.5" placeholder="Return %">
+        </div>
+        <div class="form-group">
+          <label for="appreciation">Annual Property Appreciation (%)</label>
+          <input type="number" id="appreciation" value="0" min="0" max="20" step="0.5" placeholder="Appreciation %">
+        </div>
+        <div class="form-group">
+          <label for="periodCash">Analysis Period (Years)</label>
+          <input type="number" id="periodCash" value="0" min="1" max="40" step="1" placeholder="Years">
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="calc-section">
+      <h2>Results</h2>
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-card__label">Net Cost of Cash Purchase</div>
+          <div class="result-card__value" id="costCash">$0</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Net Cost of Mortgage</div>
+          <div class="result-card__value" id="costMortgage">$0</div>
+        </div>
+        <div class="result-card">
+          <div class="result-card__label">Monthly Mortgage Payment</div>
+          <div class="result-card__value" id="monthlyPmt">$0</div>
+        </div>
+      </div>
+
+      <!-- Recommendation -->
+      <div class="result-highlight" id="recommendationCard" style="margin-top: var(--space-lg);">
+        <div class="result-highlight__label" id="recommendationText">Enter values to compare</div>
+        <div class="result-highlight__value" id="diffCashMort">$0</div>
+        <p class="text-muted text-sm" id="differenceText" style="margin-top: var(--space-xs);"></p>
+      </div>
+
+      <!-- Cash Breakdown -->
+      <div class="calc-section" style="margin-top: var(--space-lg);">
+        <h3>Cash Purchase Breakdown</h3>
+        <div class="summary-table">
+          <div class="summary-row">
+            <span class="summary-label">Purchase Price</span>
+            <span class="summary-value" id="cashPurchasePrice">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Closing Costs</span>
+            <span class="summary-value" id="cashClosingCosts">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Property Appreciation</span>
+            <span class="summary-value" id="cashAppreciation">-$0</span>
+          </div>
+          <div class="summary-row summary-row--total">
+            <span class="summary-label">Net Cost of Cash Purchase</span>
+            <span class="summary-value" id="cashTotal">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mortgage Breakdown -->
+      <div class="calc-section" style="margin-top: var(--space-lg);">
+        <h3>Mortgage Purchase Breakdown</h3>
+        <div class="summary-table">
+          <div class="summary-row">
+            <span class="summary-label">Down Payment</span>
+            <span class="summary-value" id="mortDownPayment">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Closing Costs</span>
+            <span class="summary-value" id="mortClosingCosts">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Mortgage Payments</span>
+            <span class="summary-value" id="mortPayments">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Investment Balance</span>
+            <span class="summary-value" id="mortInvestmentBalance">$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Remaining Mortgage Balance</span>
+            <span class="summary-value" id="mortRemainingBalance">-$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Net Investment Benefit</span>
+            <span class="summary-value" id="mortInvestmentGrowth">-$0</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Property Appreciation</span>
+            <span class="summary-value" id="mortAppreciation">-$0</span>
+          </div>
+          <div class="summary-row summary-row--total">
+            <span class="summary-label">Net Cost of Mortgage</span>
+            <span class="summary-value" id="mortTotal">$0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('../partials/show-calculations', { calcId: 'cash-vs-mortgage' }) %>
+  </div>
+
+  <div class="calc-page__footer">
+    <div class="calc-page__footer-title">How This Comparison Works</div>
+    <p><strong>Cash Scenario:</strong> You pay the full purchase price plus closing costs. Your net cost is reduced by property appreciation over the analysis period.</p>
+    <p><strong>Mortgage Scenario:</strong> You pay a down payment and closing costs, then invest the remaining cash. You make monthly mortgage payments from income. At the end, the investment balance minus the remaining mortgage balance determines your net benefit.</p>
+    <p><strong>Key Assumption:</strong> Both scenarios benefit equally from property appreciation. The comparison isolates the financing decision: is the return on invested cash greater than the cost of the mortgage?</p>
   </div>
 </div>
