@@ -50,9 +50,15 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-gray-700);
+}
+
+.form-group__label-row {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
 }
 
 .unit-toggle {
