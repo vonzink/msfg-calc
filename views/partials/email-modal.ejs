@@ -1,0 +1,34 @@
+<% /* Email modal — shared across all calculators */ %>
+<div class="email-modal-overlay" id="emailModalOverlay" style="display:none;">
+  <div class="email-modal">
+    <div class="email-modal__header">
+      <h3>Email Calculator Results</h3>
+      <button type="button" class="email-modal__close" id="emailModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="email-modal__body">
+      <div class="email-modal__field">
+        <label for="emailTo">Recipient Email</label>
+        <input type="email" id="emailTo" placeholder="client@example.com" required>
+      </div>
+      <div class="email-modal__field">
+        <label for="emailSubject">Subject</label>
+        <input type="text" id="emailSubject" placeholder="Your Mortgage Analysis" value="">
+      </div>
+      <div class="email-modal__field">
+        <label for="emailMessage">Personal Message <span class="text-muted">(optional)</span></label>
+        <textarea id="emailMessage" rows="3" placeholder="Hi, here are the results from our analysis..."></textarea>
+      </div>
+      <div class="email-modal__preview-toggle">
+        <button type="button" class="btn btn-sm btn-ghost" id="emailPreviewToggle">Preview Email</button>
+      </div>
+      <div class="email-modal__preview" id="emailPreview" style="display:none;">
+        <div class="email-modal__preview-content" id="emailPreviewContent"></div>
+      </div>
+    </div>
+    <div class="email-modal__footer">
+      <div class="email-modal__status" id="emailStatus"></div>
+      <button type="button" class="btn btn-ghost" id="emailModalCancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="emailSendBtn">Send Email</button>
+    </div>
+  </div>
+</div>

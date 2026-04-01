@@ -257,10 +257,7 @@
     <!-- ===== 6. Amortization Schedule ===== -->
     <div class="calc-section" id="scheduleSection" style="display: none;">
       <h2><span class="section-number">6</span> Amortization Schedule</h2>
-      <div class="action-bar" style="border-top: none; margin-top: 0; padding-top: 0; justify-content: flex-start; margin-bottom: var(--space-md);">
-        <button type="button" class="btn btn-sm btn-secondary" onclick="AmortCalc.exportCSV()">Export CSV</button>
-        <button type="button" class="btn btn-sm btn-secondary" onclick="window.print()">Print</button>
-      </div>
+      <%- include('../partials/calc-actions') %>
       <div class="amort-schedule-wrap">
         <table class="data-table amort-table" id="scheduleTable">
           <thead>

@@ -318,4 +318,39 @@ document.addEventListener('DOMContentLoaded', function () {
   MSFG.markDefaults('.calc-page');
   MSFG.bindDefaultClearing('.calc-page');
   calculate();
+
+    /* Register email data provider */
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const title = document.querySelector('.calc-page__header h1');
+        const sections = [];
+
+        /* Gather all form-row data as rows */
+        const formRows = [];
+        document.querySelectorAll('.form-row').forEach(function (row) {
+          const label = row.querySelector('label');
+          const input = row.querySelector('input, select');
+          if (label && input) {
+            const val = input.value;
+            if (val && val !== '0' && val !== '') {
+              formRows.push({ label: label.textContent.trim(), value: '$' + parseFloat(val || 0).toLocaleString() });
+            }
+          }
+        });
+        if (formRows.length) sections.push({ heading: 'Income Details', rows: formRows });
+
+        /* Gather total rows */
+        const totalRows = [];
+        document.querySelectorAll('.total-row').forEach(function (row) {
+          const label = row.querySelector('label');
+          const val = row.querySelector('.total-value');
+          if (label && val) {
+            totalRows.push({ label: label.textContent.trim(), value: val.textContent.trim(), isTotal: true });
+          }
+        });
+        if (totalRows.length) sections.push({ heading: 'Results', rows: totalRows });
+
+        return { title: title ? title.textContent.trim() : 'Income Calculator', sections: sections };
+      });
+    }
 });

@@ -174,11 +174,7 @@
 
     <!-- Action Bar -->
     <div class="calc-section">
-      <div class="action-bar">
-        <button type="button" class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
-        <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
-        <button type="button" class="btn btn-ghost" onclick="clearAll()">Clear All</button>
-      </div>
+      <%- include('../../partials/calc-actions') %>
     </div>
 
     <%- include('../../partials/show-calculations', { calcId: 'income-rental-1038' }) %>

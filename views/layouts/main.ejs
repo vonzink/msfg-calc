@@ -22,9 +22,11 @@
   </main>
 
   <%- include('../partials/footer') %>
+  <%- include('../partials/email-modal') %>
   <script src="/js/shared/utils<%= jsExt %>?v=<%= v %>"></script>
   <script src="/js/shared/file-upload-utils<%= jsExt %>?v=<%= v %>"></script>
   <script src="/js/shared/report<%= jsExt %>?v=<%= v %>"></script>
+  <script src="/js/shared/calc-email<%= jsExt %>?v=<%= v %>"></script>
   <%- typeof extraScripts !== 'undefined' ? extraScripts : '' %>
 </body>
 </html>

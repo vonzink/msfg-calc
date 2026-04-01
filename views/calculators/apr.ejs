@@ -151,12 +151,7 @@
         </div>
       </div>
 
-      <div class="action-bar">
-        <button type="button" class="btn btn-secondary" data-action="export-csv">Export CSV</button>
-        <button type="button" class="btn btn-secondary" data-action="print">Print</button>
-        <button type="button" class="btn btn-secondary" data-action="share-link">Share Link</button>
-        <button type="button" class="btn btn-ghost" data-action="clear-all">Clear All</button>
-      </div>
+      <%- include('../partials/calc-actions') %>
     </div>
 
     <%- include('../partials/show-calculations', { calcId: 'apr' }) %>

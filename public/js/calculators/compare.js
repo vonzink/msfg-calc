@@ -900,5 +900,32 @@
     init();
     MSFG.markDefaults('.calc-page');
     MSFG.bindDefaultClearing('.calc-page');
+
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const g = function (id) { const e = document.getElementById(id); return e ? e.textContent || e.value : ''; };
+        const sections = [];
+        for (let i = 1; i <= loanCount; i++) {
+          const label = g('cmpLabel_' + i) || ('Loan ' + i);
+          sections.push({
+            heading: label,
+            rows: [
+              { label: 'Loan Amount', value: fmt(P(g('cmpLoanAmount_' + i))) },
+              { label: 'Interest Rate', value: parseFloat(g('cmpRate_' + i) || 0).toFixed(3) + '%' },
+              { label: 'Term', value: g('cmpTerm_' + i) + ' months' },
+              { label: 'Monthly P&I', value: fmt(P(g('cmpMonthlyPI_' + i))) },
+              { label: 'Total Closing Costs', value: g('cmpTotalClosing_' + i) },
+              { label: 'Cash to Close', value: g('cmpCashToClose_' + i), isTotal: true },
+              { label: 'Total Monthly Payment', value: g('cmpTotalMonthly_' + i), isTotal: true },
+              { label: 'APR', value: parseFloat(g('cmpAPR_' + i) || 0).toFixed(3) + '%' }
+            ]
+          });
+        }
+        return {
+          title: 'Loan Comparison',
+          sections: sections
+        };
+      });
+    }
   });
 })();

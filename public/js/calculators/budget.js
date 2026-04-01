@@ -1017,5 +1017,60 @@
     init();
     MSFG.markDefaults('.calc-page');
     MSFG.bindDefaultClearing('.calc-page');
+
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const g = function (id) { const el = document.getElementById(id); return el ? el.textContent || el.value : ''; };
+        return {
+          title: 'Household Budget Analysis',
+          sections: [
+            {
+              heading: 'Borrower & Loan',
+              rows: [
+                { label: 'Borrower(s)', value: g('bgBorrowerName') || '(not entered)' },
+                { label: 'Loan Amount', value: fmt(P(g('bgLoanAmount'))) },
+                { label: 'Interest Rate', value: parseFloat(g('bgRate') || 0).toFixed(3) + '%' },
+                { label: 'Term', value: g('bgTermMonths') + ' months' }
+              ]
+            },
+            {
+              heading: 'Income',
+              rows: [
+                { label: 'Total Qualifying Income', value: g('bgTotalQualIncome') },
+                { label: 'Additional Income', value: g('bgAdditionalTotal') },
+                { label: 'Total Gross Income', value: g('bgGrandTotalIncome'), isTotal: true },
+                { label: 'After-Tax Income', value: g('bgAfterTaxIncome') },
+                { label: 'Spendable Income', value: g('bgSpendableIncome') }
+              ]
+            },
+            {
+              heading: 'Expenses',
+              rows: [
+                { label: 'Housing Payment', value: g('bgHousingTotal') },
+                { label: 'Credit Report Liabilities', value: g('bgLiabilitiesTotal') },
+                { label: 'Living Expenses', value: g('bgLivingTotal') },
+                { label: 'Total Expenses', value: g('bgGrandTotalExpenses'), isTotal: true }
+              ]
+            },
+            {
+              heading: 'DTI & Residual',
+              rows: [
+                { label: 'Front-End DTI', value: g('bgFrontDTI'), isTotal: true },
+                { label: 'Back-End DTI', value: g('bgBackDTI'), isTotal: true },
+                { label: 'Residual Income', value: g('bgResidualIncome') },
+                { label: 'Net Cash Flow', value: g('bgNetCashFlow') }
+              ]
+            },
+            {
+              heading: 'Reserves',
+              rows: [
+                { label: 'Total Reserves', value: g('bgTotalReserves') },
+                { label: 'Months of Reserves', value: g('bgReserveMonths') }
+              ]
+            }
+          ]
+        };
+      });
+    }
   });
 })();

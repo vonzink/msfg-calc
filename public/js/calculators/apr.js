@@ -279,5 +279,43 @@
     });
 
     calculate();
+
+    /* ---- Register email data provider ---- */
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const g = function (id) { const el = document.getElementById(id); return el ? el.textContent || el.value : ''; };
+        return {
+          title: 'APR Analysis',
+          sections: [
+            {
+              heading: 'Loan Details',
+              rows: [
+                { label: 'Loan Amount', value: g('loanAmount') ? MSFG.formatCurrency(MSFG.parseNum(g('loanAmount'))) : '$0' },
+                { label: 'Note Rate', value: g('noteRate') + '%' },
+                { label: 'Loan Term', value: g('loanTerm') + ' years' }
+              ]
+            },
+            {
+              heading: 'Results',
+              rows: [
+                { label: 'Annual Percentage Rate (APR)', value: g('aprResult'), isTotal: true },
+                { label: 'Monthly Payment (P&I)', value: g('monthlyPI') },
+                { label: 'Total Finance Charge', value: g('financeCharge') },
+                { label: 'Total of Payments', value: g('totalPayments') },
+                { label: 'Amount Financed', value: g('amountFinanced') }
+              ]
+            },
+            {
+              heading: 'Cost Analysis',
+              rows: [
+                { label: 'Monthly Rate Difference', value: g('monthlyRateDiff') },
+                { label: 'Total Fees in APR', value: g('totalFeeCost') },
+                { label: 'Effective Monthly Fee Cost', value: g('monthlyFeeCost') }
+              ]
+            }
+          ]
+        };
+      });
+    }
   });
 })();

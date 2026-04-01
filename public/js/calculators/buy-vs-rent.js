@@ -263,5 +263,47 @@
     });
 
     calculate();
+
+    /* ---- Register email data provider ---- */
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        return {
+          title: 'Buy vs Rent Analysis',
+          sections: [
+            {
+              heading: 'Summary',
+              rows: [
+                { label: 'Purchase Price', value: document.getElementById('purchasePrice').value ? fmt(P(document.getElementById('purchasePrice').value)) : '$0' },
+                { label: 'Monthly Mortgage Payment', value: document.getElementById('mortgagePay').textContent },
+                { label: 'Total Cost of Buying', value: document.getElementById('ownCost').textContent },
+                { label: 'Total Cost of Renting', value: document.getElementById('rentCost').textContent },
+                { label: 'Net Equity at Sale', value: document.getElementById('equity').textContent },
+                { label: 'Recommendation', value: document.getElementById('recommendationText').textContent + ' ' + document.getElementById('difference').textContent, isTotal: true }
+              ]
+            },
+            {
+              heading: 'Buying Breakdown',
+              rows: [
+                { label: 'Down Payment', value: document.getElementById('downPayment').textContent },
+                { label: 'Mortgage Payments', value: document.getElementById('mortgageTotal').textContent },
+                { label: 'Property Taxes', value: document.getElementById('taxesTotal').textContent },
+                { label: 'Insurance', value: document.getElementById('insuranceTotal').textContent },
+                { label: 'Maintenance', value: document.getElementById('maintenanceTotal').textContent },
+                { label: 'Net Equity at Sale', value: document.getElementById('equityBreakdown').textContent },
+                { label: 'Net Cost of Buying', value: document.getElementById('netOwnBreakdown').textContent, isTotal: true }
+              ]
+            },
+            {
+              heading: 'Renting Breakdown',
+              rows: [
+                { label: 'Total Rent Payments', value: document.getElementById('rentTotal').textContent },
+                { label: 'Investment Growth (Down Payment)', value: document.getElementById('investGrowthDisplay').textContent },
+                { label: 'Net Cost of Renting', value: document.getElementById('netRentBreakdown').textContent, isTotal: true }
+              ]
+            }
+          ]
+        };
+      });
+    }
   });
 })();

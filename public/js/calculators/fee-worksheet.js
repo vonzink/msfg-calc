@@ -473,5 +473,64 @@
     init();
     MSFG.markDefaults('.calc-page');
     MSFG.bindDefaultClearing('.calc-page');
+
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const g = function (id) { const el = document.getElementById(id); return el ? el.textContent || el.value : ''; };
+        return {
+          title: 'Itemized Fee Worksheet',
+          sections: [
+            {
+              heading: 'Loan Information',
+              rows: [
+                { label: 'Borrower(s)', value: g('fwBorrowerName') || '(not entered)' },
+                { label: 'File Number', value: g('fwFileNumber') || '--' },
+                { label: 'Property Value', value: fmt(v('fwPropertyValue')) },
+                { label: 'Loan Amount', value: fmt(v('fwLoanAmount')) },
+                { label: 'Interest Rate', value: v('fwRate').toFixed(3) + '%' },
+                { label: 'Term', value: v('fwTermMonths') + ' months' }
+              ]
+            },
+            {
+              heading: 'Closing Costs',
+              rows: [
+                { label: 'Origination Charges', value: g('fwOrigTotal') },
+                { label: 'Services Cannot Shop', value: g('fwCannotShopTotal') },
+                { label: 'Services Can Shop', value: g('fwCanShopTotal') },
+                { label: 'Government Fees', value: g('fwGovTotal') },
+                { label: 'Other Fees', value: g('fwOtherTotal') }
+              ]
+            },
+            {
+              heading: 'Prepaids & Escrow',
+              rows: [
+                { label: 'Prepaids Total', value: g('fwPrepaidsTotal') },
+                { label: 'Escrow Total', value: g('fwEscrowTotal') }
+              ]
+            },
+            {
+              heading: 'Funds Needed to Close',
+              rows: [
+                { label: 'Total Due from Borrower', value: fmt(v('fwTotalDue')) },
+                { label: 'Seller Credits', value: fmt(v('fwSellerCredits')) },
+                { label: 'Lender Credits', value: fmt(v('fwLenderCredits')) },
+                { label: 'Estimated Funds From You', value: g('fwFundsFromYou'), isTotal: true }
+              ]
+            },
+            {
+              heading: 'Monthly Housing Payment',
+              rows: [
+                { label: 'Principal & Interest', value: fmt(v('fwMonthlyPI')) },
+                { label: 'Hazard Insurance', value: fmt(v('fwMonthlyIns')) },
+                { label: 'Property Tax', value: fmt(v('fwMonthlyTax')) },
+                { label: 'Mortgage Insurance', value: fmt(v('fwMonthlyMI')) },
+                { label: 'HOA', value: fmt(v('fwMonthlyHOA')) },
+                { label: 'Total Monthly Payment', value: g('fwTotalMonthly'), isTotal: true }
+              ]
+            }
+          ]
+        };
+      });
+    }
   });
 })();

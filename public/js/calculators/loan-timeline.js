@@ -227,11 +227,13 @@
       saveState();
     });
 
-    // Print
-    el('ltPrintBtn').addEventListener('click', () => window.print());
+    // Print (legacy button — now handled by calc-actions partial)
+    const printBtn = el('ltPrintBtn');
+    if (printBtn) printBtn.addEventListener('click', () => window.print());
 
-    // Clear
-    el('ltClearBtn').addEventListener('click', clearAll);
+    // Clear (legacy button — removed with calc-actions partial)
+    const clearBtn = el('ltClearBtn');
+    if (clearBtn) clearBtn.addEventListener('click', clearAll);
   }
 
   function clearAll() {
@@ -1009,6 +1011,52 @@
   }
 
   // ---- Boot ----
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', function () {
+    init();
+
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const rows = [];
+        EVENT_DEFS.forEach(function (ev) {
+          const d = state.events[ev.id];
+          if (d && state.visibility[ev.id] !== false) {
+            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            rows.push({ label: ev.label, value: dateStr });
+          }
+        });
+        state.customDates.forEach(function (cd) {
+          if (cd.date) {
+            const dateStr = cd.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            rows.push({ label: cd.label, value: dateStr });
+          }
+        });
+
+        const sections = [];
+        if (rows.length > 0) {
+          sections.push({ heading: 'Timeline Milestones', rows: rows });
+        }
+
+        const borrower = el('ltBorrower') ? el('ltBorrower').textContent : '';
+        const fileNum = el('ltFileNum') ? el('ltFileNum').textContent : '';
+        const infoRows = [];
+        if (borrower && borrower !== '--') infoRows.push({ label: 'Borrower', value: borrower });
+        if (fileNum && fileNum !== '--') infoRows.push({ label: 'File #', value: fileNum });
+        infoRows.push({ label: 'Loan Purpose', value: state.loanPurpose || 'Purchase' });
+        if (infoRows.length > 0) {
+          sections.unshift({ heading: 'Loan Information', rows: infoRows });
+        }
+
+        const notes = el('ltNotes') ? el('ltNotes').value.trim() : '';
+        if (notes) {
+          sections.push({ heading: 'Notes', rows: [{ label: 'Notes', value: notes }] });
+        }
+
+        return {
+          title: 'Loan Timeline',
+          sections: sections
+        };
+      });
+    }
+  });
 
 })();

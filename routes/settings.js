@@ -231,6 +231,35 @@ router.post('/email-signature', (req, res) => {
   res.redirect('/settings?saved=1');
 });
 
+// --- SMTP Configuration ---
+
+router.post('/smtp', (req, res) => {
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
+
+  if (!config.smtp) {
+    config.smtp = { host: '', port: '587', user: '', pass: '', from: '' };
+  }
+
+  const host = (req.body.smtp_host || '').trim().slice(0, 200);
+  const port = (req.body.smtp_port || '587').toString().trim().slice(0, 5);
+  const user = (req.body.smtp_user || '').trim().slice(0, 200);
+  const pass = (req.body.smtp_pass || '').trim().slice(0, 200);
+  const from = (req.body.smtp_from || '').trim().slice(0, 200);
+
+  config.smtp.host = host;
+  config.smtp.port = port;
+  config.smtp.user = user;
+  /* Only update password if a new one was provided (not masked) */
+  if (pass && !pass.includes('••')) {
+    config.smtp.pass = pass;
+  }
+  config.smtp.from = from;
+
+  writeConfig(config);
+  res.redirect('/settings?saved=1');
+});
+
 // --- AI Configuration ---
 
 router.post('/ai', (req, res) => {

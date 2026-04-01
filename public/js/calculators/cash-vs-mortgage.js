@@ -238,5 +238,49 @@
     });
 
     calculate();
+
+    /* ---- Register email data provider ---- */
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        return {
+          title: 'Cash vs Mortgage Comparison',
+          sections: [
+            {
+              heading: 'Summary',
+              rows: [
+                { label: 'Purchase Price', value: document.getElementById('priceCash').value ? fmt(P(document.getElementById('priceCash').value)) : '$0' },
+                { label: 'Analysis Period', value: document.getElementById('periodCash').value + ' years' },
+                { label: 'Net Cost of Cash', value: document.getElementById('cashResult').textContent },
+                { label: 'Net Cost of Mortgage', value: document.getElementById('mortgageResult').textContent },
+                { label: 'Recommendation', value: document.getElementById('recommendText').textContent + ' ' + document.getElementById('savingsAmount').textContent, isTotal: true }
+              ]
+            },
+            {
+              heading: 'Cash Purchase Breakdown',
+              rows: [
+                { label: 'Purchase Price', value: document.getElementById('cashPrice').textContent },
+                { label: 'Closing Costs', value: document.getElementById('cashClosing').textContent },
+                { label: 'Property Appreciation', value: document.getElementById('cashAppreciation').textContent },
+                { label: 'Net Cost of Cash', value: document.getElementById('cashTotal').textContent, isTotal: true }
+              ]
+            },
+            {
+              heading: 'Mortgage Breakdown',
+              rows: [
+                { label: 'Down Payment', value: document.getElementById('mortDown').textContent },
+                { label: 'Closing Costs', value: document.getElementById('mortClosing').textContent },
+                { label: 'Total Mortgage Payments', value: document.getElementById('mortPayments').textContent },
+                { label: 'Monthly Payment', value: document.getElementById('monthlyPaymentDisplay').textContent },
+                { label: 'Investment Balance', value: document.getElementById('mortInvestmentBalance').textContent },
+                { label: 'Remaining Mortgage Balance', value: document.getElementById('mortRemainingBalance').textContent },
+                { label: 'Net Investment Benefit', value: document.getElementById('mortInvestmentGrowth').textContent },
+                { label: 'Property Appreciation', value: document.getElementById('mortAppreciation').textContent },
+                { label: 'Net Cost of Mortgage', value: document.getElementById('mortTotal').textContent, isTotal: true }
+              ]
+            }
+          ]
+        };
+      });
+    }
   });
 })();

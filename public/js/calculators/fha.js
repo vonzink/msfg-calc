@@ -859,6 +859,104 @@ const FhaCalc = (() => {
 
     // MISMO
     initMISMODropZone();
+
+    // Print / Email action bar
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const g = (id) => { const e = el(id); return e ? e.textContent : '\u2014'; };
+        const hasPurch = !el('fhaPurchMaxLoan') || el('fhaPurchMaxLoan').classList.contains('fha-col-hidden') ? false : true;
+        const sections = [];
+
+        // Borrower & Property
+        const borrower = txt('fhaBorrowerName');
+        const caseId = txt('fhaCaseId');
+        const propRows = [];
+        if (borrower) propRows.push({ label: 'Borrower', value: borrower });
+        if (caseId) propRows.push({ label: 'FHA Case ID', value: caseId });
+        propRows.push(
+          { label: 'Appraised Value', value: val('fhaAppraisedValue') ? fmt(val('fhaAppraisedValue')) : '\u2014' },
+          { label: 'Purchase Price', value: val('fhaPurchasePrice') ? fmt(val('fhaPurchasePrice')) : 'N/A' }
+        );
+        sections.push({ heading: 'Borrower & Property', rows: propRows });
+
+        // Current Loan
+        if (val('fhaCurrentUpb') > 0) {
+          sections.push({
+            heading: 'Current Loan',
+            rows: [
+              { label: 'Current UPB', value: fmt(val('fhaCurrentUpb')) },
+              { label: 'Current Rate', value: val('fhaCurrentRate') ? val('fhaCurrentRate') + '%' : '\u2014' },
+              { label: 'Current P&I + MIP', value: val('fhaCurrentPayment') ? fmt(val('fhaCurrentPayment')) : '\u2014' },
+              { label: 'Existing FHA', value: el('fhaIsExistingFha').checked ? 'Yes' : 'No' }
+            ]
+          });
+        }
+
+        // New Loan Parameters
+        sections.push({
+          heading: 'New Loan Parameters',
+          rows: [
+            { label: 'Interest Rate', value: val('fhaNewRate') ? val('fhaNewRate') + '%' : '\u2014' },
+            { label: 'Loan Term', value: txt('fhaNewTerm') + ' years' },
+            { label: 'Finance UFMIP', value: el('fhaFinanceUfmip').checked ? 'Yes' : 'No' }
+          ]
+        });
+
+        // Purchase column (if visible)
+        if (hasPurch) {
+          sections.push({
+            heading: 'Purchase Scenario',
+            rows: [
+              { label: 'Max Base Loan', value: g('fhaPurchMaxLoan') },
+              { label: 'Actual Base Loan', value: g('fhaPurchActualLoan') },
+              { label: 'UFMIP', value: g('fhaPurchUfmip') },
+              { label: 'Total Loan', value: g('fhaPurchTotalLoan'), isTotal: true },
+              { label: 'LTV', value: g('fhaPurchLtv') },
+              { label: 'New P&I Payment', value: g('fhaPurchPayment') },
+              { label: 'Est. Cash to Close', value: g('fhaPurchCashToClose'), isTotal: true }
+            ]
+          });
+        }
+
+        // Refi column
+        const refiLabel = el('fhaRefiTypeSelect').value === 'cashOut' ? 'Cash-Out Refi' : 'Rate/Term Refi';
+        if (g('fhaRefiMaxLoan') !== '\u2014') {
+          sections.push({
+            heading: 'FHA ' + refiLabel,
+            rows: [
+              { label: 'Max Base Loan', value: g('fhaRefiMaxLoan') },
+              { label: 'Actual Base Loan', value: g('fhaRefiActualLoan') },
+              { label: 'UFMIP', value: g('fhaRefiUfmip') },
+              { label: 'Total Loan', value: g('fhaRefiTotalLoan'), isTotal: true },
+              { label: 'LTV', value: g('fhaRefiLtv') },
+              { label: 'New P&I Payment', value: g('fhaRefiPayment') },
+              { label: 'Net Tangible Benefit', value: g('fhaRefiNtb') },
+              { label: 'Est. Cash to Close', value: g('fhaRefiCashToClose'), isTotal: true }
+            ]
+          });
+        }
+
+        // Streamline column
+        if (g('fhaSlMaxLoan') !== '\u2014') {
+          sections.push({
+            heading: 'Streamline',
+            rows: [
+              { label: 'Base Loan', value: g('fhaSlMaxLoan') },
+              { label: 'Actual Base Loan', value: g('fhaSlActualLoan') },
+              { label: 'UFMIP Refund', value: g('fhaSlUfmipRefund') },
+              { label: 'New UFMIP', value: g('fhaSlNewUfmip') },
+              { label: 'Total Loan', value: g('fhaSlTotalLoan'), isTotal: true },
+              { label: 'New P&I Payment', value: g('fhaSlPayment') },
+              { label: 'Net Tangible Benefit', value: g('fhaSlNtb') },
+              { label: 'Seasoning', value: g('fhaSlSeasoning') },
+              { label: 'Est. Cash to Close', value: g('fhaSlCashToClose'), isTotal: true }
+            ]
+          });
+        }
+
+        return { title: 'FHA Loan Analysis', sections: sections };
+      });
+    }
   });
 
   return { calculateAll };

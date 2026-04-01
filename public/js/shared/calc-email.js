@@ -1,0 +1,178 @@
+'use strict';
+
+/**
+ * Shared calculator email + print module.
+ *
+ * Each calculator registers an email-data provider via:
+ *   MSFG.CalcActions.register(getEmailData)
+ *
+ * getEmailData() should return:
+ *   { title: 'Calculator Name', sections: [ { heading, rows: [{label, value}] } ] }
+ */
+(function () {
+  'use strict';
+
+  let _getEmailData = null;
+
+  /* ---- Print ---- */
+  function handlePrint() {
+    window.print();
+  }
+
+  /* ---- Email modal ---- */
+  const overlay = document.getElementById('emailModalOverlay');
+  const closeBtn = document.getElementById('emailModalClose');
+  const cancelBtn = document.getElementById('emailModalCancel');
+  const sendBtn = document.getElementById('emailSendBtn');
+  const previewToggle = document.getElementById('emailPreviewToggle');
+  const previewWrap = document.getElementById('emailPreview');
+  const previewContent = document.getElementById('emailPreviewContent');
+  const statusEl = document.getElementById('emailStatus');
+  const toInput = document.getElementById('emailTo');
+  const subjectInput = document.getElementById('emailSubject');
+  const messageInput = document.getElementById('emailMessage');
+
+  function openModal() {
+    if (!overlay) return;
+
+    /* Pre-fill subject from page title */
+    const calcTitle = document.querySelector('.calc-page__header h1');
+    if (calcTitle && subjectInput && !subjectInput.value) {
+      subjectInput.value = calcTitle.textContent.trim() + ' — Results';
+    }
+
+    overlay.style.display = 'flex';
+    if (statusEl) statusEl.textContent = '';
+    if (previewWrap) previewWrap.style.display = 'none';
+    if (toInput) toInput.focus();
+  }
+
+  function closeModal() {
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  function buildPreviewHTML(data) {
+    if (!data || !data.sections) return '<p>No calculator data available.</p>';
+    let html = '<div style="font-family: Arial, sans-serif; font-size: 13px;">';
+    html += '<h3 style="color:#2d6a4f; margin:0 0 12px;">' + MSFG.escHtml(data.title) + '</h3>';
+    data.sections.forEach(function (sec) {
+      html += '<h4 style="color:#333; margin:12px 0 6px; border-bottom:1px solid #e0e0e0; padding-bottom:4px;">' + MSFG.escHtml(sec.heading) + '</h4>';
+      html += '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
+      sec.rows.forEach(function (row) {
+        html += '<tr><td style="padding:3px 8px 3px 0; color:#555;">' + MSFG.escHtml(row.label) + '</td>';
+        html += '<td style="padding:3px 0; font-weight:600; text-align:right;">' + MSFG.escHtml(row.value) + '</td></tr>';
+      });
+      html += '</table>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function togglePreview() {
+    if (!previewWrap) return;
+    const visible = previewWrap.style.display !== 'none';
+    if (visible) {
+      previewWrap.style.display = 'none';
+      if (previewToggle) previewToggle.textContent = 'Preview Email';
+    } else {
+      const data = _getEmailData ? _getEmailData() : null;
+      if (previewContent) previewContent.innerHTML = buildPreviewHTML(data);
+      previewWrap.style.display = 'block';
+      if (previewToggle) previewToggle.textContent = 'Hide Preview';
+    }
+  }
+
+  function setStatus(msg, type) {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.className = 'email-modal__status' + (type ? ' email-modal__status--' + type : '');
+  }
+
+  async function sendEmail() {
+    const to = toInput ? toInput.value.trim() : '';
+    const subject = subjectInput ? subjectInput.value.trim() : '';
+    const message = messageInput ? messageInput.value.trim() : '';
+
+    if (!to) {
+      setStatus('Please enter a recipient email.', 'error');
+      toInput.focus();
+      return;
+    }
+
+    if (!subject) {
+      setStatus('Please enter a subject.', 'error');
+      subjectInput.focus();
+      return;
+    }
+
+    const data = _getEmailData ? _getEmailData() : null;
+    if (!data) {
+      setStatus('No calculator data to send.', 'error');
+      return;
+    }
+
+    sendBtn.disabled = true;
+    setStatus('Sending...', '');
+
+    try {
+      const resp = await fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: to, subject: subject, message: message, calcData: data })
+      });
+      const result = await resp.json();
+
+      if (result.success) {
+        setStatus('Email sent successfully!', 'success');
+        setTimeout(closeModal, 1500);
+      } else {
+        setStatus(result.message || 'Failed to send email.', 'error');
+      }
+    } catch (err) {
+      setStatus('Network error. Please try again.', 'error');
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  /* ---- Wire up buttons ---- */
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+  if (sendBtn) sendBtn.addEventListener('click', sendEmail);
+  if (previewToggle) previewToggle.addEventListener('click', togglePreview);
+
+  /* Close on overlay click */
+  if (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeModal();
+    });
+  }
+
+  /* Close on Escape */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && overlay && overlay.style.display !== 'none') {
+      closeModal();
+    }
+  });
+
+  /* ---- Bind data-action buttons (Print + Email) ---- */
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-action="calc-print"]').forEach(function (el) {
+      el.addEventListener('click', handlePrint);
+    });
+    document.querySelectorAll('[data-action="calc-email"]').forEach(function (el) {
+      el.addEventListener('click', openModal);
+    });
+  });
+
+  /* ---- Public API ---- */
+  window.MSFG = window.MSFG || {};
+  window.MSFG.CalcActions = {
+    register: function (getEmailDataFn) {
+      _getEmailData = getEmailDataFn;
+    },
+    openEmail: openModal,
+    print: handlePrint
+  };
+
+})();

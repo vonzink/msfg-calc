@@ -174,5 +174,79 @@
 
     buildResidualTables();
     calculate();
+
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const g = function (id) { const el = document.getElementById(id); return el ? el.textContent || el.value : ''; };
+        return {
+          title: 'VA Pre-Qualification Worksheet',
+          sections: [
+            {
+              heading: 'Borrower Information',
+              rows: [
+                { label: 'Borrower Name', value: g('borrowerName') || '(not entered)' },
+                { label: 'Family Size', value: g('familySize') },
+                { label: 'Geographic Region', value: g('region') }
+              ]
+            },
+            {
+              heading: 'Loan Information',
+              rows: [
+                { label: 'Mortgage Amount', value: MSFG.formatCurrency(MSFG.parseNum(g('mortgageAmount'))) },
+                { label: 'Interest Rate', value: parseFloat(g('interestRate')).toFixed(3) + '%' },
+                { label: 'Loan Term', value: g('loanTerm') + ' years' }
+              ]
+            },
+            {
+              heading: 'Monthly Housing Expense (PITI)',
+              rows: [
+                { label: 'Principal & Interest', value: MSFG.formatCurrency(MSFG.parseNum(g('piPayment')), 0) },
+                { label: 'Property Taxes', value: MSFG.formatCurrency(MSFG.parseNum(g('propertyTaxes')), 0) },
+                { label: 'Homeowners Insurance', value: MSFG.formatCurrency(MSFG.parseNum(g('homeInsurance')), 0) },
+                { label: 'HOA Dues', value: MSFG.formatCurrency(MSFG.parseNum(g('hoaDues')), 0) },
+                { label: 'Total Housing Expense', value: g('totalHousing'), isTotal: true }
+              ]
+            },
+            {
+              heading: 'Monthly Debts & Obligations',
+              rows: [
+                { label: 'Car Payments', value: MSFG.formatCurrency(MSFG.parseNum(g('carPayments')), 0) },
+                { label: 'Revolving Accounts', value: MSFG.formatCurrency(MSFG.parseNum(g('revolvingAccounts')), 0) },
+                { label: 'Installment Loans', value: MSFG.formatCurrency(MSFG.parseNum(g('installmentLoans')), 0) },
+                { label: 'Child Care', value: MSFG.formatCurrency(MSFG.parseNum(g('childCare')), 0) },
+                { label: 'Other Debts', value: MSFG.formatCurrency(MSFG.parseNum(g('otherDebts')), 0) },
+                { label: 'Total Monthly Debts', value: g('totalDebts'), isTotal: true }
+              ]
+            },
+            {
+              heading: 'Maintenance & Utilities',
+              rows: [
+                { label: 'Square Footage', value: MSFG.formatNumber(MSFG.parseNum(g('squareFootage')), 0) + ' sq ft' },
+                { label: 'Estimated Cost', value: g('totalMaintenance'), isTotal: true }
+              ]
+            },
+            {
+              heading: 'Monthly Taxes',
+              rows: [
+                { label: 'Federal Income Tax', value: MSFG.formatCurrency(MSFG.parseNum(g('federalTax')), 0) },
+                { label: 'State Income Tax', value: MSFG.formatCurrency(MSFG.parseNum(g('stateTax')), 0) },
+                { label: 'Social Security / Medicare', value: MSFG.formatCurrency(MSFG.parseNum(g('socialSecurity')), 0) },
+                { label: 'Total Monthly Taxes', value: g('totalTaxes'), isTotal: true }
+              ]
+            },
+            {
+              heading: 'Pre-Qualification Results',
+              rows: [
+                { label: 'Gross Monthly Income', value: g('summaryIncome') },
+                { label: 'Debt-to-Income Ratio', value: g('dtiRatio'), isTotal: true },
+                { label: 'Required Residual Income', value: g('requiredResidual') },
+                { label: 'Actual Residual Income', value: g('actualResidual'), isTotal: true },
+                { label: 'Residual Status', value: g('residualStatus').replace(/[✓✗]\s*/, '') }
+              ]
+            }
+          ]
+        };
+      });
+    }
   });
 })();
