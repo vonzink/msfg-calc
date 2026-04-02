@@ -124,9 +124,9 @@
     MSFG.MISMOUI.renderIncomeRiskScore(parsedData);
     MSFG.MISMOUI.renderAttentionFlags(parsedData);
 
-    el('mismoResults').style.display = '';
-    el('mismoEmpty').style.display = 'none';
-    el('mismoActionBar').style.display = '';
+    el('mismoResults').classList.remove('u-hidden');
+    el('mismoEmpty').classList.add('u-hidden');
+    el('mismoActionBar').classList.remove('u-hidden');
   }
 
   function docToItem(doc) {
@@ -168,9 +168,9 @@
         flagsEl.innerHTML = data.complexityFlags.map(function (f) {
           return '<span class="mismo-complexity-flag">' + MSFG.escHtml(f) + '</span>';
         }).join('');
-        flagsEl.style.display = '';
+        flagsEl.classList.remove('u-hidden');
       } else {
-        flagsEl.style.display = 'none';
+        flagsEl.classList.add('u-hidden');
       }
     }
   }
@@ -404,7 +404,7 @@
 
     // Hide complexity
     const flagsEl = el('mismoComplexity');
-    if (flagsEl) flagsEl.style.display = 'none';
+    if (flagsEl) flagsEl.classList.add('u-hidden');
 
     // Clear checklists
     Object.keys(SECTION_MAP).forEach(function (key) {
@@ -416,12 +416,12 @@
     // Clear informational sections
     ['mismoEmploymentTimeline', 'mismoRiskScore', 'mismoAttentionFlags'].forEach(function (id) {
       const section = el(id);
-      if (section) { section.innerHTML = ''; section.style.display = 'none'; }
+      if (section) { section.innerHTML = ''; section.classList.add('u-hidden'); }
     });
 
-    el('mismoResults').style.display = 'none';
-    el('mismoEmpty').style.display = '';
-    el('mismoActionBar').style.display = 'none';
+    el('mismoResults').classList.add('u-hidden');
+    el('mismoEmpty').classList.remove('u-hidden');
+    el('mismoActionBar').classList.add('u-hidden');
   }
 
   /* ======================================================

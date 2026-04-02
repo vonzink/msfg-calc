@@ -475,11 +475,11 @@
     const taxRow = document.getElementById('bgSummaryTaxRow');
     const savingsRow = document.getElementById('bgSummarySavingsRow');
     if (taxRow) {
-      taxRow.style.display = taxRate > 0 ? '' : 'none';
+      taxRow.classList.toggle('u-hidden', taxRate <= 0);
       document.getElementById('bgSummaryTax').textContent = '-' + fmt(taxAmount);
     }
     if (savingsRow) {
-      savingsRow.style.display = savingsRate > 0 ? '' : 'none';
+      savingsRow.classList.toggle('u-hidden', savingsRate <= 0);
       document.getElementById('bgSummarySavings').textContent = '-' + fmt(savingsAmount);
     }
 

@@ -59,7 +59,7 @@
     });
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modalOverlay.style.display !== 'none') closeModal();
+      if (e.key === 'Escape' && !modalOverlay.classList.contains('u-hidden')) closeModal();
     });
 
     // Pagination
@@ -117,7 +117,7 @@
       return;
     }
 
-    emptyState.style.display = 'none';
+    emptyState.classList.add('u-hidden');
     tableBody.innerHTML = '';
 
     results.forEach(function (rec) {
@@ -187,10 +187,10 @@
 
   function updatePagination(total) {
     if (total <= 25 && currentPage === 1) {
-      paginationWrap.style.display = 'none';
+      paginationWrap.classList.add('u-hidden');
       return;
     }
-    paginationWrap.style.display = '';
+    paginationWrap.classList.remove('u-hidden');
     pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages + ' (' + total + ' records)';
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
@@ -201,8 +201,8 @@
   function showEmpty(msg) {
     hideLoading();
     tableBody.innerHTML = '';
-    paginationWrap.style.display = 'none';
-    emptyState.style.display = '';
+    paginationWrap.classList.add('u-hidden');
+    emptyState.classList.remove('u-hidden');
     var p = emptyState.querySelector('p');
     if (msg) {
       p.innerHTML = msg;
@@ -212,13 +212,13 @@
   }
 
   function showLoading() {
-    emptyState.style.display = 'none';
+    emptyState.classList.add('u-hidden');
     tableBody.innerHTML = '';
-    loadingState.style.display = '';
+    loadingState.classList.remove('u-hidden');
   }
 
   function hideLoading() {
-    loadingState.style.display = 'none';
+    loadingState.classList.add('u-hidden');
   }
 
   /* ---- Modal ---- */
@@ -246,13 +246,13 @@
       resetForm();
     }
 
-    modalOverlay.style.display = '';
+    modalOverlay.classList.remove('u-hidden');
     document.body.style.overflow = 'hidden';
     setTimeout(function () { document.getElementById('procFieldBorrower').focus(); }, 100);
   }
 
   function closeModal() {
-    modalOverlay.style.display = 'none';
+    modalOverlay.classList.add('u-hidden');
     document.body.style.overflow = '';
     editingId = null;
   }

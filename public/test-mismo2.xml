@@ -1,0 +1,2819 @@
+<?xml version="1.0"?>
+<MESSAGE xmlns:gse="http://www.datamodelextension.org" xmlns:ULAD="http://www.datamodelextension.org/Schema/ULAD" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" MISMOReferenceModelIdentifier="3.4.032420160128" xmlns="http://www.mismo.org/residential/2009/schemas">
+  <ABOUT_VERSIONS>
+    <ABOUT_VERSION>
+      <AboutVersionIdentifier>MISMO v3.4 Closing</AboutVersionIdentifier>
+      <CreatedDatetime>2026-03-30T15:56:58-06:00</CreatedDatetime>
+    </ABOUT_VERSION>
+  </ABOUT_VERSIONS>
+  <DEAL_SETS>
+    <DEAL_SET>
+      <DEALS>
+        <DEAL>
+          <ASSETS>
+            <ASSET SequenceNumber="1" xlink:label="ASSET_1">
+              <ASSET_DETAIL>
+                <AssetAccountIdentifier />
+                <AssetCashOrMarketValueAmount>50000</AssetCashOrMarketValueAmount>
+                <AssetType>CheckingAccount</AssetType>
+              </ASSET_DETAIL>
+              <ASSET_HOLDER>
+                <NAME>
+                  <FullName />
+                </NAME>
+              </ASSET_HOLDER>
+            </ASSET>
+            <ASSET SequenceNumber="2" xlink:label="ASSET_2">
+              <ASSET_DETAIL>
+                <AssetType>RealEstateOwned</AssetType>
+              </ASSET_DETAIL>
+              <OWNED_PROPERTY>
+                <OWNED_PROPERTY_DETAIL>
+                  <OwnedPropertyDispositionStatusType>Retain</OwnedPropertyDispositionStatusType>
+                  <OwnedPropertyLienUPBAmount>560224</OwnedPropertyLienUPBAmount>
+                  <OwnedPropertyMaintenanceExpenseAmount>0</OwnedPropertyMaintenanceExpenseAmount>
+                  <OwnedPropertyRentalIncomeNetAmount>0</OwnedPropertyRentalIncomeNetAmount>
+                  <OwnedPropertySubjectIndicator>true</OwnedPropertySubjectIndicator>
+                </OWNED_PROPERTY_DETAIL>
+                <PROPERTY>
+                  <ADDRESS>
+                    <AddressLineText>18742 East Powers Drive</AddressLineText>
+                    <CityName>Aurora</CityName>
+                    <CountryCode>US</CountryCode>
+                    <CountyCode>005</CountyCode>
+                    <CountyName>Arapahoe</CountyName>
+                    <PostalCode>80015</PostalCode>
+                    <StateCode>CO</StateCode>
+                    <StateName>Colorado</StateName>
+                  </ADDRESS>
+                  <PROPERTY_DETAIL>
+                    <PropertyCurrentUsageType>PrimaryResidence</PropertyCurrentUsageType>
+                    <PropertyEstimatedValueAmount>660000</PropertyEstimatedValueAmount>
+                    <PropertyUsageType>PrimaryResidence</PropertyUsageType>
+                  </PROPERTY_DETAIL>
+                </PROPERTY>
+              </OWNED_PROPERTY>
+            </ASSET>
+          </ASSETS>
+          <COLLATERALS>
+            <COLLATERAL>
+              <SUBJECT_PROPERTY SequenceNumber="1">
+                <ADDRESS>
+                  <AddressLineText>18742 East Powers Drive</AddressLineText>
+                  <CityName>Aurora</CityName>
+                  <CountryCode>US</CountryCode>
+                  <CountyCode>005</CountyCode>
+                  <CountyName>Arapahoe</CountyName>
+                  <PostalCode>80015</PostalCode>
+                  <StateCode>CO</StateCode>
+                  <StateName>Colorado</StateName>
+                </ADDRESS>
+                <FLOOD_DETERMINATION>
+                  <FLOOD_DETERMINATION_DETAIL>
+                    <FloodCertificationIdentifier />
+                    <FloodDeterminationLifeOfLoanIndicator>false</FloodDeterminationLifeOfLoanIndicator>
+                    <NFIPCommunityIdentifier />
+                    <NFIPCommunityName />
+                    <NFIPFloodZoneIdentifier />
+                    <NFIPMapIdentifier />
+                    <NFIPMapPanelIdentifier />
+                    <SpecialFloodHazardAreaIndicator>false</SpecialFloodHazardAreaIndicator>
+                  </FLOOD_DETERMINATION_DETAIL>
+                </FLOOD_DETERMINATION>
+                <HAZARD_INSURANCES>
+                  <HAZARD_INSURANCE>
+                    <HazardInsuranceEscrowedIndicator>true</HazardInsuranceEscrowedIndicator>
+                  </HAZARD_INSURANCE>
+                </HAZARD_INSURANCES>
+                <LOCATION_IDENTIFIER>
+                  <FIPS_INFORMATION>
+                    <FIPSCountyCode>005</FIPSCountyCode>
+                    <FIPSStateNumericCode>08</FIPSStateNumericCode>
+                  </FIPS_INFORMATION>
+                </LOCATION_IDENTIFIER>
+                <PROPERTY_DETAIL>
+                  <AttachmentType>Detached</AttachmentType>
+                  <CommunityPropertyStateIndicator>false</CommunityPropertyStateIndicator>
+                  <ConstructionMethodType>SiteBuilt</ConstructionMethodType>
+                  <ConstructionStatusType>Existing</ConstructionStatusType>
+                  <FHASecondaryResidenceIndicator>false</FHASecondaryResidenceIndicator>
+                  <FinancedUnitCount>1</FinancedUnitCount>
+                  <PropertyEstateType>FeeSimple</PropertyEstateType>
+                  <PropertyEstimatedValueAmount>675000</PropertyEstimatedValueAmount>
+                  <PropertyExistingCleanEnergyLienIndicator>false</PropertyExistingCleanEnergyLienIndicator>
+                  <PropertyFloodInsuranceIndicator>false</PropertyFloodInsuranceIndicator>
+                  <PropertyInProjectIndicator>false</PropertyInProjectIndicator>
+                  <PropertyMixedUsageIndicator>false</PropertyMixedUsageIndicator>
+                  <PropertyStructureBuiltYear>1987</PropertyStructureBuiltYear>
+                  <PropertyUsageType>PrimaryResidence</PropertyUsageType>
+                  <PUDIndicator>false</PUDIndicator>
+                </PROPERTY_DETAIL>
+                <PROPERTY_TAXES>
+                  <PROPERTY_TAX>
+                    <PROPERTY_TAX_DETAIL>
+                      <TaxEscrowedIndicator>true</TaxEscrowedIndicator>
+                    </PROPERTY_TAX_DETAIL>
+                  </PROPERTY_TAX>
+                </PROPERTY_TAXES>
+                <PROPERTY_VALUATIONS>
+                  <PROPERTY_VALUATION>
+                    <PROPERTY_VALUATION_DETAIL>
+                      <PropertyValuationMethodType>None</PropertyValuationMethodType>
+                    </PROPERTY_VALUATION_DETAIL>
+                  </PROPERTY_VALUATION>
+                </PROPERTY_VALUATIONS>
+              </SUBJECT_PROPERTY>
+            </COLLATERAL>
+          </COLLATERALS>
+          <LIABILITIES>
+            <LIABILITY SequenceNumber="1" xlink:label="LIABILITY_1">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>742058753</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>5373</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>true</LiabilityPayoffStatusIndicator>
+                <LiabilityRemainingTermMonthsCount>346</LiabilityRemainingTermMonthsCount>
+                <LiabilityType>MortgageLoan</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>560224</LiabilityUnpaidBalanceAmount>
+                <MortgageType>Conventional</MortgageType>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+                <EXTENSION>
+                  <OTHER>
+                    <ULAD:TERMS_OF_LOAN>
+                      <ULAD:LienPriorityType>FirstLien</ULAD:LienPriorityType>
+                    </ULAD:TERMS_OF_LOAN>
+                  </OTHER>
+                </EXTENSION>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>NATIONSTAR/MR COOPER</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="2" xlink:label="LIABILITY_2">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>-3499920651718683</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>true</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>26375</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Open30DayChargeAccount</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>26375</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>AMEX</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="3" xlink:label="LIABILITY_3">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>46780060</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>522</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>true</LiabilityPayoffStatusIndicator>
+                <LiabilityRemainingTermMonthsCount>46</LiabilityRemainingTermMonthsCount>
+                <LiabilityType>Installment</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>17424</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>SST/TALLY</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="4" xlink:label="LIABILITY_4">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>6493550003</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>317</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>11044</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CANVAS CU</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="5" xlink:label="LIABILITY_5">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>6493550002</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>true</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>317</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>11044</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CANVAS CU</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="6" xlink:label="LIABILITY_6">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>-3499920490008603</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>263</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>7978</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>AMEX</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="7" xlink:label="LIABILITY_7">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>1100011105657716</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>78</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>6756</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>GS BANK USA</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="8" xlink:label="LIABILITY_8">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>521307101350</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>214</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>5786</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>JPMCB CARD</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="9" xlink:label="LIABILITY_9">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>546616035228</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>185</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>5386</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CITICARDS CBNA</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="10" xlink:label="LIABILITY_10">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>414720252718</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>105</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>4179</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>JPMCB CARD</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="11" xlink:label="LIABILITY_11">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>426684180956</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>117</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>3994</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>JPMCB CARD</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="12" xlink:label="LIABILITY_12">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>464018209560</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>109</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>3566</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>JPMCB CARD</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="13" xlink:label="LIABILITY_13">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>542418125712</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>66</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>2143</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CITI</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="14" xlink:label="LIABILITY_14">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>4100390422480265</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>35</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>950</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CITI</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="15" xlink:label="LIABILITY_15">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>414709776829</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>25</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>537</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CAPITAL ONE</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="16" xlink:label="LIABILITY_16">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>25011302365</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>19</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityRemainingTermMonthsCount>6</LiabilityRemainingTermMonthsCount>
+                <LiabilityType>Installment</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>19</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>NISSN INF LT</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="17" xlink:label="LIABILITY_17">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>542418123373</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>19</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>19</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CITI</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="18" xlink:label="LIABILITY_18">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>-3499923943192043</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>791</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Open30DayChargeAccount</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>26375</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>AMEX</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="19" xlink:label="LIABILITY_19">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>601100760448</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>268</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>13382</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>DISCOVERC</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="20" xlink:label="LIABILITY_20">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>5853910003</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>116</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>true</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>3671</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CANVAS CREDIT UNION</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY SequenceNumber="21" xlink:label="LIABILITY_21">
+              <LIABILITY_DETAIL>
+                <LiabilityAccountIdentifier>5853910004</LiabilityAccountIdentifier>
+                <LiabilityExclusionIndicator>false</LiabilityExclusionIndicator>
+                <LiabilityMonthlyPaymentAmount>62</LiabilityMonthlyPaymentAmount>
+                <LiabilityPaymentIncludesTaxesInsuranceIndicator>false</LiabilityPaymentIncludesTaxesInsuranceIndicator>
+                <LiabilityPayoffStatusIndicator>false</LiabilityPayoffStatusIndicator>
+                <LiabilityType>Revolving</LiabilityType>
+                <LiabilityUnpaidBalanceAmount>1932</LiabilityUnpaidBalanceAmount>
+                <SubjectLoanResubordinationIndicator>false</SubjectLoanResubordinationIndicator>
+              </LIABILITY_DETAIL>
+              <LIABILITY_HOLDER>
+                <NAME>
+                  <FullName>CANVAS CREDIT UNION</FullName>
+                </NAME>
+              </LIABILITY_HOLDER>
+            </LIABILITY>
+            <LIABILITY_SUMMARY>
+              <TotalNonSubjectPropertyDebtsToBePaidOffAmount>21095</TotalNonSubjectPropertyDebtsToBePaidOffAmount>
+              <TotalSubjectPropertyPayoffsAndPaymentsAmount>560224</TotalSubjectPropertyPayoffsAndPaymentsAmount>
+            </LIABILITY_SUMMARY>
+          </LIABILITIES>
+          <LOANS>
+            <COMBINED_LTVS>
+              <COMBINED_LTV>
+                <CombinedLTVRatioPercent>84.089</CombinedLTVRatioPercent>
+              </COMBINED_LTV>
+            </COMBINED_LTVS>
+            <LOAN LoanRoleType="SubjectLoan" xlink:label="SubjectLoan">
+              <AMORTIZATION>
+                <AMORTIZATION_RULE>
+                  <AmortizationType>Fixed</AmortizationType>
+                  <LoanAmortizationPeriodCount>360</LoanAmortizationPeriodCount>
+                  <LoanAmortizationPeriodType>Month</LoanAmortizationPeriodType>
+                </AMORTIZATION_RULE>
+              </AMORTIZATION>
+              <CLOSING_INFORMATION>
+                <CLOSING_ADJUSTMENT_ITEMS />
+                <CLOSING_COST_FUNDS />
+                <CLOSING_INFORMATION_DETAIL>
+                  <CashFromBorrowerAtClosingAmount>19440.21</CashFromBorrowerAtClosingAmount>
+                  <DocumentOrderClassificationType>Preliminary</DocumentOrderClassificationType>
+                  <EstimatedPrepaidDaysCount>0</EstimatedPrepaidDaysCount>
+                </CLOSING_INFORMATION_DETAIL>
+                <CLOSING_INSTRUCTION>
+                  <CONDITIONS />
+                </CLOSING_INSTRUCTION>
+                <PREPAID_ITEMS>
+                  <PREPAID_ITEM>
+                    <PREPAID_ITEM_DETAIL>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <IntegratedDisclosureSectionType>Prepaids</IntegratedDisclosureSectionType>
+                      <PrepaidItemPerDiemAmount>94.78</PrepaidItemPerDiemAmount>
+                      <PrepaidItemPerDiemCalculationMethodType>365</PrepaidItemPerDiemCalculationMethodType>
+                      <PrepaidItemType>PrepaidInterest</PrepaidItemType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </PREPAID_ITEM_DETAIL>
+                    <PREPAID_ITEM_PAYMENTS />
+                  </PREPAID_ITEM>
+                </PREPAID_ITEMS>
+                <PRORATION_ITEMS />
+              </CLOSING_INFORMATION>
+              <DOCUMENT_SPECIFIC_DATA_SETS>
+                <DOCUMENT_SPECIFIC_DATA_SET SequenceNumber="1" xlink:label="URLA">
+                  <URLA>
+                    <URLA_DETAIL>
+                      <AlterationsImprovementsAndRepairsAmount>0</AlterationsImprovementsAndRepairsAmount>
+                      <ApplicationTakenMethodType>Internet</ApplicationTakenMethodType>
+                      <BorrowerRequestedLoanAmount>577533.00</BorrowerRequestedLoanAmount>
+                      <EstimatedClosingCostsAmount>15654.21</EstimatedClosingCostsAmount>
+                      <MIAndFundingFeeFinancedAmount>9933.00</MIAndFundingFeeFinancedAmount>
+                      <MIAndFundingFeeTotalAmount>9933.00</MIAndFundingFeeTotalAmount>
+                      <RefinanceIncludingDebtsToBePaidOffAmount>581319</RefinanceIncludingDebtsToBePaidOffAmount>
+                    </URLA_DETAIL>
+                    <URLA_TOTAL>
+                      <URLATotalDueFromBorrowerAtClosingAmount>19440.21</URLATotalDueFromBorrowerAtClosingAmount>
+                      <EXTENSION>
+                        <OTHER>
+                          <ULAD:URLA_TOTAL_EXTENSION>
+                            <ULAD:URLAAccountBasedAssetTotalAmount>50000</ULAD:URLAAccountBasedAssetTotalAmount>
+                            <ULAD:URLANonAccountBasedAssetTotalAmount>0</ULAD:URLANonAccountBasedAssetTotalAmount>
+                            <ULAD:URLATotalMortgageLoansAmount>577533.00</ULAD:URLATotalMortgageLoansAmount>
+                            <ULAD:URLATotalSellerCreditsAmount>0</ULAD:URLATotalSellerCreditsAmount>
+                          </ULAD:URLA_TOTAL_EXTENSION>
+                        </OTHER>
+                      </EXTENSION>
+                    </URLA_TOTAL>
+                  </URLA>
+                  <DOCUMENT_CLASSES>
+                    <DOCUMENT_CLASS>
+                      <DocumentType>LoanApplication</DocumentType>
+                    </DOCUMENT_CLASS>
+                  </DOCUMENT_CLASSES>
+                </DOCUMENT_SPECIFIC_DATA_SET>
+                <DOCUMENT_SPECIFIC_DATA_SET SequenceNumber="2" xlink:label="INTEGRATED_DISCLOSURE">
+                  <INTEGRATED_DISCLOSURE>
+                    <INTEGRATED_DISCLOSURE_DETAIL />
+                  </INTEGRATED_DISCLOSURE>
+                  <DOCUMENT_CLASSES>
+                    <DOCUMENT_CLASS>
+                      <DocumentType>LoanEstimate</DocumentType>
+                    </DOCUMENT_CLASS>
+                  </DOCUMENT_CLASSES>
+                </DOCUMENT_SPECIFIC_DATA_SET>
+                <DOCUMENT_SPECIFIC_DATA_SET SequenceNumber="3" xlink:label="INTEGRATED_DISCLOSURE">
+                  <INTEGRATED_DISCLOSURE>
+                    <CASH_TO_CLOSE_ITEMS>
+                      <CASH_TO_CLOSE_ITEM>
+                        <IntegratedDisclosureCashToCloseItemAmountChangedIndicator>false</IntegratedDisclosureCashToCloseItemAmountChangedIndicator>
+                        <IntegratedDisclosureCashToCloseItemEstimatedAmount>0</IntegratedDisclosureCashToCloseItemEstimatedAmount>
+                        <IntegratedDisclosureCashToCloseItemFinalAmount>0</IntegratedDisclosureCashToCloseItemFinalAmount>
+                        <IntegratedDisclosureCashToCloseItemType>ClosingCostsPaidBeforeClosing</IntegratedDisclosureCashToCloseItemType>
+                      </CASH_TO_CLOSE_ITEM>
+                      <CASH_TO_CLOSE_ITEM>
+                        <IntegratedDisclosureCashToCloseItemAmountChangedIndicator>true</IntegratedDisclosureCashToCloseItemAmountChangedIndicator>
+                        <IntegratedDisclosureCashToCloseItemChangeDescription>YES, See Total Loan Costs (D) and Total Other Costs (I).</IntegratedDisclosureCashToCloseItemChangeDescription>
+                        <IntegratedDisclosureCashToCloseItemEstimatedAmount>7686</IntegratedDisclosureCashToCloseItemEstimatedAmount>
+                        <IntegratedDisclosureCashToCloseItemFinalAmount>-15654.21</IntegratedDisclosureCashToCloseItemFinalAmount>
+                        <IntegratedDisclosureCashToCloseItemType>TotalClosingCosts</IntegratedDisclosureCashToCloseItemType>
+                      </CASH_TO_CLOSE_ITEM>
+                      <CASH_TO_CLOSE_ITEM>
+                        <IntegratedDisclosureCashToCloseItemFinalAmount>0</IntegratedDisclosureCashToCloseItemFinalAmount>
+                        <IntegratedDisclosureCashToCloseItemType>ClosingCostsFinanced</IntegratedDisclosureCashToCloseItemType>
+                      </CASH_TO_CLOSE_ITEM>
+                      <CASH_TO_CLOSE_ITEM>
+                        <IntegratedDisclosureCashToCloseItemEstimatedAmount>585286</IntegratedDisclosureCashToCloseItemEstimatedAmount>
+                        <IntegratedDisclosureCashToCloseItemPaymentType>ToBorrower</IntegratedDisclosureCashToCloseItemPaymentType>
+                        <IntegratedDisclosureCashToCloseItemType>CashToCloseTotal</IntegratedDisclosureCashToCloseItemType>
+                      </CASH_TO_CLOSE_ITEM>
+                      <CASH_TO_CLOSE_ITEM>
+                        <IntegratedDisclosureCashToCloseItemFinalAmount>19440.21</IntegratedDisclosureCashToCloseItemFinalAmount>
+                        <IntegratedDisclosureCashToCloseItemPaymentType>FromBorrower</IntegratedDisclosureCashToCloseItemPaymentType>
+                        <IntegratedDisclosureCashToCloseItemType>CashToCloseTotal</IntegratedDisclosureCashToCloseItemType>
+                      </CASH_TO_CLOSE_ITEM>
+                      <CASH_TO_CLOSE_ITEM>
+                        <IntegratedDisclosureCashToCloseItemAmountChangedIndicator>false</IntegratedDisclosureCashToCloseItemAmountChangedIndicator>
+                        <IntegratedDisclosureCashToCloseItemEstimatedAmount>577600</IntegratedDisclosureCashToCloseItemEstimatedAmount>
+                        <IntegratedDisclosureCashToCloseItemFinalAmount>577533.00</IntegratedDisclosureCashToCloseItemFinalAmount>
+                        <IntegratedDisclosureCashToCloseItemType>LoanAmount</IntegratedDisclosureCashToCloseItemType>
+                      </CASH_TO_CLOSE_ITEM>
+                      <CASH_TO_CLOSE_ITEM>
+                        <IntegratedDisclosureCashToCloseItemAmountChangedIndicator>false</IntegratedDisclosureCashToCloseItemAmountChangedIndicator>
+                        <IntegratedDisclosureCashToCloseItemEstimatedAmount>0</IntegratedDisclosureCashToCloseItemEstimatedAmount>
+                        <IntegratedDisclosureCashToCloseItemFinalAmount>581319</IntegratedDisclosureCashToCloseItemFinalAmount>
+                        <IntegratedDisclosureCashToCloseItemType>TotalPayoffsAndPayments</IntegratedDisclosureCashToCloseItemType>
+                      </CASH_TO_CLOSE_ITEM>
+                    </CASH_TO_CLOSE_ITEMS>
+                    <ESTIMATED_PROPERTY_COST>
+                      <ESTIMATED_PROPERTY_COST_COMPONENTS>
+                        <ESTIMATED_PROPERTY_COST_COMPONENT>
+                          <ProjectedPaymentEscrowedType>Escrowed</ProjectedPaymentEscrowedType>
+                          <ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentType>HomeownersInsurance</ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentType>
+                        </ESTIMATED_PROPERTY_COST_COMPONENT>
+                        <ESTIMATED_PROPERTY_COST_COMPONENT>
+                          <ProjectedPaymentEscrowedType>Escrowed</ProjectedPaymentEscrowedType>
+                          <ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentType>PropertyTaxes</ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentType>
+                        </ESTIMATED_PROPERTY_COST_COMPONENT>
+                        <ESTIMATED_PROPERTY_COST_COMPONENT>
+                          <ProjectedPaymentEscrowedType>NotEscrowed</ProjectedPaymentEscrowedType>
+                          <ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentType>Other</ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentType>
+                          <ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentTypeOtherDescription>HOA</ProjectedPaymentEstimatedTaxesInsuranceAssessmentComponentTypeOtherDescription>
+                        </ESTIMATED_PROPERTY_COST_COMPONENT>
+                      </ESTIMATED_PROPERTY_COST_COMPONENTS>
+                      <ESTIMATED_PROPERTY_COST_DETAIL>
+                        <ProjectedPaymentEstimatedTaxesInsuranceAssessmentTotalAmount>619.92</ProjectedPaymentEstimatedTaxesInsuranceAssessmentTotalAmount>
+                      </ESTIMATED_PROPERTY_COST_DETAIL>
+                    </ESTIMATED_PROPERTY_COST>
+                    <INTEGRATED_DISCLOSURE_DETAIL>
+                      <FirstYearTotalEscrowPaymentAmount>6323.04</FirstYearTotalEscrowPaymentAmount>
+                      <FirstYearTotalEscrowPaymentDescription>Hazard Insurance </FirstYearTotalEscrowPaymentDescription>
+                      <FirstYearTotalNonEscrowPaymentAmount>3938.16</FirstYearTotalNonEscrowPaymentAmount>
+                      <FirstYearTotalNonEscrowPaymentDescription>HOA Mortgage Insurance</FirstYearTotalNonEscrowPaymentDescription>
+                      <IntegratedDisclosureHomeEquityLoanIndicator>false</IntegratedDisclosureHomeEquityLoanIndicator>
+                      <IntegratedDisclosureLoanProductDescription>Fixed</IntegratedDisclosureLoanProductDescription>
+                    </INTEGRATED_DISCLOSURE_DETAIL>
+                    <INTEGRATED_DISCLOSURE_SECTION_SUMMARIES>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>1125</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>OriginationCharges</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>12753.45</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>ServicesBorrowerDidNotShopFor</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>0</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>ServicesBorrowerDidShopFor</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>13878.45</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>TotalLoanCosts</IntegratedDisclosureSectionType>
+                          <IntegratedDisclosureSubsectionType>LoanCostsSubtotal</IntegratedDisclosureSubsectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                        <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>Buyer</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>13878.45</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>AtClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>Buyer</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>0</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>BeforeClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                        </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>195</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>TaxesAndOtherGovernmentFees</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>0.00</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>Prepaids</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>1580.76</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>InitialEscrowPaymentAtClosing</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>0</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>OtherCosts</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>1775.76</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>TotalOtherCosts</IntegratedDisclosureSectionType>
+                          <IntegratedDisclosureSubsectionType>OtherCostsSubtotal</IntegratedDisclosureSubsectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                        <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>Buyer</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>1775.76</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>AtClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>Buyer</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>0</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>BeforeClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                        </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>15654.21</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>TotalClosingCosts</IntegratedDisclosureSectionType>
+                          <IntegratedDisclosureSubsectionType>ClosingCostsSubtotal</IntegratedDisclosureSubsectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                        <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>Buyer</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>15654.21</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>AtClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>Buyer</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>0</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>BeforeClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>ThirdParty</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>0</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>BeforeClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                        </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionType>TotalClosingCosts</IntegratedDisclosureSectionType>
+                          <IntegratedDisclosureSubsectionType>LenderCredits</IntegratedDisclosureSubsectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                        <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                          <INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                            <IntegratedDisclosureSubsectionPaidByType>Buyer</IntegratedDisclosureSubsectionPaidByType>
+                            <IntegratedDisclosureSubsectionPaymentAmount>0</IntegratedDisclosureSubsectionPaymentAmount>
+                            <IntegratedDisclosureSubsectionPaymentTimingType>AtClosing</IntegratedDisclosureSubsectionPaymentTimingType>
+                          </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENT>
+                        </INTEGRATED_DISCLOSURE_SUBSECTION_PAYMENTS>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                      <INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                        <INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                          <IntegratedDisclosureSectionTotalAmount>581319</IntegratedDisclosureSectionTotalAmount>
+                          <IntegratedDisclosureSectionType>PayoffsAndPayments</IntegratedDisclosureSectionType>
+                        </INTEGRATED_DISCLOSURE_SECTION_SUMMARY_DETAIL>
+                      </INTEGRATED_DISCLOSURE_SECTION_SUMMARY>
+                    </INTEGRATED_DISCLOSURE_SECTION_SUMMARIES>
+                    <PROJECTED_PAYMENTS>
+                      <PROJECTED_PAYMENT SequenceNumber="1">
+                        <PaymentFrequencyType>Monthly</PaymentFrequencyType>
+                        <ProjectedPaymentCalculationPeriodEndNumber>12</ProjectedPaymentCalculationPeriodEndNumber>
+                        <ProjectedPaymentCalculationPeriodStartNumber>1</ProjectedPaymentCalculationPeriodStartNumber>
+                        <ProjectedPaymentCalculationPeriodTermType>Yearly</ProjectedPaymentCalculationPeriodTermType>
+                        <ProjectedPaymentEstimatedEscrowPaymentAmount>526.92</ProjectedPaymentEstimatedEscrowPaymentAmount>
+                        <ProjectedPaymentEstimatedTotalMaximumPaymentAmount>4220.99</ProjectedPaymentEstimatedTotalMaximumPaymentAmount>
+                        <ProjectedPaymentMIPaymentAmount>235.18</ProjectedPaymentMIPaymentAmount>
+                        <ProjectedPaymentPrincipalAndInterestMaximumPaymentAmount>3458.89</ProjectedPaymentPrincipalAndInterestMaximumPaymentAmount>
+                      </PROJECTED_PAYMENT>
+                      <PROJECTED_PAYMENT SequenceNumber="2">
+                        <PaymentFrequencyType>Monthly</PaymentFrequencyType>
+                        <ProjectedPaymentCalculationPeriodEndNumber>30</ProjectedPaymentCalculationPeriodEndNumber>
+                        <ProjectedPaymentCalculationPeriodStartNumber>13</ProjectedPaymentCalculationPeriodStartNumber>
+                        <ProjectedPaymentCalculationPeriodTermType>Yearly</ProjectedPaymentCalculationPeriodTermType>
+                        <ProjectedPaymentEstimatedEscrowPaymentAmount>526.92</ProjectedPaymentEstimatedEscrowPaymentAmount>
+                        <ProjectedPaymentEstimatedTotalMaximumPaymentAmount>3985.81</ProjectedPaymentEstimatedTotalMaximumPaymentAmount>
+                        <ProjectedPaymentMIPaymentAmount>0</ProjectedPaymentMIPaymentAmount>
+                        <ProjectedPaymentPrincipalAndInterestMaximumPaymentAmount>3458.89</ProjectedPaymentPrincipalAndInterestMaximumPaymentAmount>
+                      </PROJECTED_PAYMENT>
+                    </PROJECTED_PAYMENTS>
+                  </INTEGRATED_DISCLOSURE>
+                  <DOCUMENT_CLASSES>
+                    <DOCUMENT_CLASS>
+                      <DocumentType>ClosingDisclosure</DocumentType>
+                    </DOCUMENT_CLASS>
+                  </DOCUMENT_CLASSES>
+                </DOCUMENT_SPECIFIC_DATA_SET>
+                <DOCUMENT_SPECIFIC_DATA_SET SequenceNumber="4" xlink:label="SECURITY_INSTRUMENT">
+                  <SECURITY_INSTRUMENT>
+                    <SECURITY_INSTRUMENT_DETAIL>
+                      <SecurityInstrumentVestingDescription />
+                    </SECURITY_INSTRUMENT_DETAIL>
+                  </SECURITY_INSTRUMENT>
+                  <DOCUMENT_CLASSES>
+                    <DOCUMENT_CLASS>
+                      <DocumentType>SecurityInstrument</DocumentType>
+                    </DOCUMENT_CLASS>
+                  </DOCUMENT_CLASSES>
+                </DOCUMENT_SPECIFIC_DATA_SET>
+              </DOCUMENT_SPECIFIC_DATA_SETS>
+              <DOCUMENTATIONS>
+                <DOCUMENTATION>
+                  <IncomeDocumentationLevelIdentifier IdentifierOwnerURI="http://Fanniemae.com">None</IncomeDocumentationLevelIdentifier>
+                </DOCUMENTATION>
+                <DOCUMENTATION>
+                  <AssetDocumentationLevelIdentifier IdentifierOwnerURI="http://Fanniemae.com">None</AssetDocumentationLevelIdentifier>
+                </DOCUMENTATION>
+                <DOCUMENTATION>
+                  <EmploymentDocumentationLevelIdentifier IdentifierOwnerURI="http://Fanniemae.com">None</EmploymentDocumentationLevelIdentifier>
+                </DOCUMENTATION>
+              </DOCUMENTATIONS>
+              <DOWN_PAYMENTS />
+              <ESCROW>
+                <ESCROW_DETAIL>
+                  <EscrowAccountInitialBalanceAmount>1580.76</EscrowAccountInitialBalanceAmount>
+                  <EscrowAccountMinimumBalanceAmount>1580.76</EscrowAccountMinimumBalanceAmount>
+                  <EscrowAggregateAccountingAdjustmentAmount>0</EscrowAggregateAccountingAdjustmentAmount>
+                  <EscrowCushionNumberOfMonthsCount>2</EscrowCushionNumberOfMonthsCount>
+                  <GFEDisclosedInitialEscrowBalanceAmount>0</GFEDisclosedInitialEscrowBalanceAmount>
+                  <InitialEscrowDepositIncludesAllInsuranceIndicator>true</InitialEscrowDepositIncludesAllInsuranceIndicator>
+                  <InitialEscrowDepositIncludesAllPropertyTaxesIndicator>true</InitialEscrowDepositIncludesAllPropertyTaxesIndicator>
+                  <InitialEscrowDepositIncludesOtherDescription />
+                </ESCROW_DETAIL>
+                <ESCROW_ITEMS>
+                  <ESCROW_ITEM>
+                    <ESCROW_ITEM_DETAIL>
+                      <EscrowAnnualPaymentAmount>3155.40</EscrowAnnualPaymentAmount>
+                      <EscrowCollectedNumberOfMonthsCount>3</EscrowCollectedNumberOfMonthsCount>
+                      <EscrowItemCategoryType>PropertyTaxes</EscrowItemCategoryType>
+                      <EscrowItemEstimatedTotalAmount>788.85</EscrowItemEstimatedTotalAmount>
+                      <EscrowItemType>CountyPropertyTax</EscrowItemType>
+                      <EscrowMonthlyPaymentAmount>262.95</EscrowMonthlyPaymentAmount>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <IntegratedDisclosureSectionType>InitialEscrowPaymentAtClosing</IntegratedDisclosureSectionType>
+                    </ESCROW_ITEM_DETAIL>
+                    <ESCROW_ITEM_DISBURSEMENTS />
+                    <ESCROW_ITEM_PAYMENTS>
+                      <ESCROW_ITEM_PAYMENT>
+                        <EscrowItemActualPaymentAmount>788.85</EscrowItemActualPaymentAmount>
+                        <EscrowItemPaymentPaidByType>Buyer</EscrowItemPaymentPaidByType>
+                        <EscrowItemPaymentTimingType>AtClosing</EscrowItemPaymentTimingType>
+                      </ESCROW_ITEM_PAYMENT>
+                    </ESCROW_ITEM_PAYMENTS>
+                    <ESCROW_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </ESCROW_PAID_TO>
+                  </ESCROW_ITEM>
+                  <ESCROW_ITEM>
+                    <ESCROW_ITEM_DETAIL>
+                      <EscrowAnnualPaymentAmount>3167.64</EscrowAnnualPaymentAmount>
+                      <EscrowCollectedNumberOfMonthsCount>3</EscrowCollectedNumberOfMonthsCount>
+                      <EscrowItemCategoryType>HomeownersInsurance</EscrowItemCategoryType>
+                      <EscrowItemEstimatedTotalAmount>791.91</EscrowItemEstimatedTotalAmount>
+                      <EscrowItemType>HazardInsurance</EscrowItemType>
+                      <EscrowMonthlyPaymentAmount>263.97</EscrowMonthlyPaymentAmount>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <IntegratedDisclosureSectionType>InitialEscrowPaymentAtClosing</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </ESCROW_ITEM_DETAIL>
+                    <ESCROW_ITEM_DISBURSEMENTS />
+                    <ESCROW_ITEM_PAYMENTS>
+                      <ESCROW_ITEM_PAYMENT>
+                        <EscrowItemActualPaymentAmount>791.91</EscrowItemActualPaymentAmount>
+                        <EscrowItemPaymentPaidByType>Buyer</EscrowItemPaymentPaidByType>
+                        <EscrowItemPaymentTimingType>AtClosing</EscrowItemPaymentTimingType>
+                      </ESCROW_ITEM_PAYMENT>
+                    </ESCROW_ITEM_PAYMENTS>
+                    <ESCROW_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </ESCROW_PAID_TO>
+                  </ESCROW_ITEM>
+                </ESCROW_ITEMS>
+              </ESCROW>
+              <FEE_INFORMATION>
+                <FEES>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>750</FeeActualTotalAmount>
+                      <FeeDescription>Appraisal Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>750</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Appraisal Fee">AppraisalFee</FeeType>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>750</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>false</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>100</FeeActualTotalAmount>
+                      <FeeDescription>Technology Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>100</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Technology Fee">Other</FeeType>
+                      <FeeTypeOtherDescription>Technology Fee</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>100</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>12</FeeActualTotalAmount>
+                      <FeeDescription>E-Recording Fee</FeeDescription>
+                      <FeePaidToType>ThirdPartyProvider</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>12</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="E-Recording Fee">Other</FeeType>
+                      <FeeTypeOtherDescription>E-Recording Fee</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>ServicesYouCanShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO />
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>12</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER />
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>750</FeeActualTotalAmount>
+                      <FeeDescription>Title - Lenders Coverage Premium</FeeDescription>
+                      <FeePaidToType>ThirdPartyProvider</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>750</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Title - Lenders Coverage Premium">TitleLendersCoveragePremium</FeeType>
+                      <IntegratedDisclosureSectionType>ServicesYouCanShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO />
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>750</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>false</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER />
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>25</FeeActualTotalAmount>
+                      <FeeDescription>Title - Closing Protection Letter Fee</FeeDescription>
+                      <FeePaidToType>ThirdPartyProvider</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>25</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Title - Closing Protection Letter Fee">TitleClosingProtectionLetterFee</FeeType>
+                      <IntegratedDisclosureSectionType>ServicesYouCanShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO />
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>25</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER />
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>700</FeeActualTotalAmount>
+                      <FeeDescription>Title - Settlement Fee</FeeDescription>
+                      <FeePaidToType>ThirdPartyProvider</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>700</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Title - Settlement Fee">SettlementFee</FeeType>
+                      <IntegratedDisclosureSectionType>ServicesYouCanShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO />
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>700</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER />
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>195</FeeActualTotalAmount>
+                      <FeeDescription>Recording Fee For Deed</FeeDescription>
+                      <FeePaidToType>ThirdPartyProvider</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>195</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Recording Fee For Deed">RecordingFeeForDeed</FeeType>
+                      <IntegratedDisclosureSectionType>TaxesAndOtherGovernmentFees</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO />
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>195</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER />
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>145</FeeActualTotalAmount>
+                      <FeeDescription>Credit Report Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>145</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Credit Report Fee">CreditReportFee</FeeType>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>145</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>false</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>50</FeeActualTotalAmount>
+                      <FeeDescription>Title - Tax Cert Fee</FeeDescription>
+                      <FeePaidToType>ThirdPartyProvider</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>50</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Title - Tax Cert Fee">Other</FeeType>
+                      <FeeTypeOtherDescription>Title - Tax Cert Fee</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>ServicesYouCanShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO />
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>50</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>false</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER />
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>110</FeeActualTotalAmount>
+                      <FeeDescription>Verification Of Employment Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>110</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Verification Of Employment Fee">VerificationOfEmploymentFee</FeeType>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>110</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>1125</FeeActualTotalAmount>
+                      <FeeDescription>Underwriting Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>1125</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Underwriting Fee">Other</FeeType>
+                      <FeeTypeOtherDescription>Underwriting Fee</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>OriginationCharges</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>true</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>1125</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>true</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>13.5</FeeActualTotalAmount>
+                      <FeeDescription>Flood Certification</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>13.5</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Flood Certification">Other</FeeType>
+                      <FeeTypeOtherDescription>Flood Certification</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>13.5</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>90</FeeActualTotalAmount>
+                      <FeeDescription>Tax Related Service Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>90</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Tax Related Service Fee">Other</FeeType>
+                      <FeeTypeOtherDescription>Tax Related Service Fee</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>90</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>50</FeeActualTotalAmount>
+                      <FeeDescription>Verification Of Tax Return Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>50</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="Verification Of Tax Return Fee">Other</FeeType>
+                      <FeeTypeOtherDescription>Verification Of Tax Return Fee</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>50</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>24.95</FeeActualTotalAmount>
+                      <FeeDescription>MERS Registration Fee</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>24.95</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="MERS Registration Fee">Other</FeeType>
+                      <FeeTypeOtherDescription>MERS Registration Fee</FeeTypeOtherDescription>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>24.95</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>false</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                  <FEE>
+                    <FEE_DETAIL>
+                      <BorrowerChosenProviderIndicator>false</BorrowerChosenProviderIndicator>
+                      <FeeActualTotalAmount>9933</FeeActualTotalAmount>
+                      <FeeDescription>MI Upfront Premium</FeeDescription>
+                      <FeePaidToType>Lender</FeePaidToType>
+                      <FeeSpecifiedFixedAmount>9933</FeeSpecifiedFixedAmount>
+                      <FeeSpecifiedHUD1LineNumberValue />
+                      <FeeType DisplayLabelText="MI Upfront Premium">MIUpfrontPremium</FeeType>
+                      <IntegratedDisclosureSectionType>ServicesYouCannotShopFor</IntegratedDisclosureSectionType>
+                      <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                    </FEE_DETAIL>
+                    <FEE_PAID_TO>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </FEE_PAID_TO>
+                    <FEE_PAYMENTS>
+                      <FEE_PAYMENT>
+                        <FeeActualPaymentAmount>9933</FeeActualPaymentAmount>
+                        <FeeEstimatedPaymentAmount>0</FeeEstimatedPaymentAmount>
+                        <FeePaymentPaidByType>Buyer</FeePaymentPaidByType>
+                        <FeePaymentPaidOutsideOfClosingIndicator>false</FeePaymentPaidOutsideOfClosingIndicator>
+                        <FeePaymentResponsiblePartyType>Buyer</FeePaymentResponsiblePartyType>
+                        <PaymentFinancedIndicator>true</PaymentFinancedIndicator>
+                        <PaymentIncludedInAPRIndicator>true</PaymentIncludedInAPRIndicator>
+                        <RegulationZPointsAndFeesIndicator>false</RegulationZPointsAndFeesIndicator>
+                      </FEE_PAYMENT>
+                    </FEE_PAYMENTS>
+                    <SELECTED_SERVICE_PROVIDER>
+                      <LEGAL_ENTITY>
+                        <LEGAL_ENTITY_DETAIL>
+                          <FullName>Mountain State Financial Group, LLC</FullName>
+                        </LEGAL_ENTITY_DETAIL>
+                      </LEGAL_ENTITY>
+                    </SELECTED_SERVICE_PROVIDER>
+                  </FEE>
+                </FEES>
+                <FEES_SUMMARY>
+                  <FEE_SUMMARY_DETAIL>
+                    <APRPercent>6.5480</APRPercent>
+                    <FeeSummaryTotalAmountFinancedAmount>565154.55</FeeSummaryTotalAmountFinancedAmount>
+                    <FeeSummaryTotalFinanceChargeAmount>708702.31</FeeSummaryTotalFinanceChargeAmount>
+                    <FeeSummaryTotalInterestPercent>115.6068</FeeSummaryTotalInterestPercent>
+                    <FeeSummaryTotalOfAllPaymentsAmount>1287735.31</FeeSummaryTotalOfAllPaymentsAmount>
+                  </FEE_SUMMARY_DETAIL>
+                </FEES_SUMMARY>
+              </FEE_INFORMATION>
+              <GOVERNMENT_LOAN>
+                <FHA_MIPremiumRefundAmount>0</FHA_MIPremiumRefundAmount>
+                <FHAAnnualPremiumPercent>0.500</FHAAnnualPremiumPercent>
+                <FHAAutomatedDataProcessingIdentifier />
+                <FHALoanLenderIdentifier>0071100005</FHALoanLenderIdentifier>
+                <FHALoanSponsorIdentifier />
+                <FHARefinanceOriginalExistingFHACaseIdentifier />
+                <FHAUpfrontPremiumAmount>9933.00</FHAUpfrontPremiumAmount>
+                <FHAUpfrontPremiumPercent>1.750</FHAUpfrontPremiumPercent>
+                <GovernmentRefinanceType>Other</GovernmentRefinanceType>
+                <GovernmentRefinanceTypeOtherDescription />
+                <SectionOfActType>203B</SectionOfActType>
+              </GOVERNMENT_LOAN>
+              <HIGH_COST_MORTGAGES>
+                <HIGH_COST_MORTGAGE>
+                  <RegulationZExcludedBonaFideDiscountPointsIndicator>false</RegulationZExcludedBonaFideDiscountPointsIndicator>
+                  <RegulationZTotalAffiliateFeesAmount>0</RegulationZTotalAffiliateFeesAmount>
+                  <RegulationZTotalLoanAmount>565154.55</RegulationZTotalLoanAmount>
+                  <RegulationZTotalPointsAndFeesAmount>1125</RegulationZTotalPointsAndFeesAmount>
+                </HIGH_COST_MORTGAGE>
+              </HIGH_COST_MORTGAGES>
+              <HMDA_LOAN>
+                <HMDA_LOAN_DETAIL>
+                  <HMDA_HOEPALoanStatusIndicator>false</HMDA_HOEPALoanStatusIndicator>
+                  <HMDAPurchaserType>NotApplicable</HMDAPurchaserType>
+                  <HMDAPurposeOfLoanType>Refinancing</HMDAPurposeOfLoanType>
+                </HMDA_LOAN_DETAIL>
+              </HMDA_LOAN>
+              <HOUSING_EXPENSES>
+                <HOUSING_EXPENSE>
+                  <HousingExpensePaymentAmount>3458.89</HousingExpensePaymentAmount>
+                  <HousingExpenseTimingType>Proposed</HousingExpenseTimingType>
+                  <HousingExpenseType>FirstMortgagePrincipalAndInterest</HousingExpenseType>
+                </HOUSING_EXPENSE>
+                <HOUSING_EXPENSE>
+                  <HousingExpensePaymentAmount>263.97</HousingExpensePaymentAmount>
+                  <HousingExpenseTimingType>Proposed</HousingExpenseTimingType>
+                  <HousingExpenseType>HomeownersInsurance</HousingExpenseType>
+                </HOUSING_EXPENSE>
+                <HOUSING_EXPENSE>
+                  <HousingExpensePaymentAmount>235.18</HousingExpensePaymentAmount>
+                  <HousingExpenseTimingType>Proposed</HousingExpenseTimingType>
+                  <HousingExpenseType>MIPremium</HousingExpenseType>
+                </HOUSING_EXPENSE>
+                <HOUSING_EXPENSE>
+                  <HousingExpensePaymentAmount>262.95</HousingExpensePaymentAmount>
+                  <HousingExpenseTimingType>Proposed</HousingExpenseTimingType>
+                  <HousingExpenseType>RealEstateTax</HousingExpenseType>
+                </HOUSING_EXPENSE>
+                <HOUSING_EXPENSE>
+                  <HousingExpensePaymentAmount>93</HousingExpensePaymentAmount>
+                  <HousingExpenseTimingType>Proposed</HousingExpenseTimingType>
+                  <HousingExpenseType>HomeownersAssociationDuesAndCondominiumFees</HousingExpenseType>
+                </HOUSING_EXPENSE>
+              </HOUSING_EXPENSES>
+              <INTEREST_CALCULATION>
+                <INTEREST_CALCULATION_RULES>
+                  <INTEREST_CALCULATION_RULE>
+                    <InterestCalculationBasisDaysInYearCountType>365</InterestCalculationBasisDaysInYearCountType>
+                    <InterestCalculationPeriodType>Month</InterestCalculationPeriodType>
+                    <InterestCalculationType>Simple</InterestCalculationType>
+                  </INTEREST_CALCULATION_RULE>
+                </INTEREST_CALCULATION_RULES>
+              </INTEREST_CALCULATION>
+              <LATE_CHARGE>
+                <LATE_CHARGE_RULE>
+                  <LateChargeGracePeriodDaysCount>15</LateChargeGracePeriodDaysCount>
+                  <LateChargeRatePercent>4.0000</LateChargeRatePercent>
+                  <LateChargeType>PercentOfPrincipalAndInterest</LateChargeType>
+                </LATE_CHARGE_RULE>
+              </LATE_CHARGE>
+              <LOAN_DETAIL>
+                <AssumabilityIndicator>true</AssumabilityIndicator>
+                <BalloonIndicator>false</BalloonIndicator>
+                <BelowMarketSubordinateFinancingIndicator>false</BelowMarketSubordinateFinancingIndicator>
+                <BorrowerCount>2</BorrowerCount>
+                <BuydownTemporarySubsidyFundingIndicator>false</BuydownTemporarySubsidyFundingIndicator>
+                <ConstructionLoanIndicator>false</ConstructionLoanIndicator>
+                <ConversionOfContractForDeedIndicator>false</ConversionOfContractForDeedIndicator>
+                <ConvertibleIndicator>false</ConvertibleIndicator>
+                <EnergyRelatedImprovementsIndicator>false</EnergyRelatedImprovementsIndicator>
+                <EscrowAccountLenderRequirementType>EscrowsRequiredByLender</EscrowAccountLenderRequirementType>
+                <EscrowIndicator>true</EscrowIndicator>
+                <HELOCIndicator>false</HELOCIndicator>
+                <InterestOnlyIndicator>false</InterestOnlyIndicator>
+                <LoanAffordableIndicator>false</LoanAffordableIndicator>
+                <MICoverageExistsIndicator>true</MICoverageExistsIndicator>
+                <MIRequiredIndicator>true</MIRequiredIndicator>
+                <MortgageModificationIndicator>false</MortgageModificationIndicator>
+                <NegativeAmortizationIndicator>false</NegativeAmortizationIndicator>
+                <OpenEndCreditIndicator>false</OpenEndCreditIndicator>
+                <PrepaymentPenaltyIndicator>false</PrepaymentPenaltyIndicator>
+                <QualifiedMortgageIndicator>true</QualifiedMortgageIndicator>
+                <RelocationLoanIndicator>false</RelocationLoanIndicator>
+                <RenovationLoanIndicator>false</RenovationLoanIndicator>
+                <ReverseMortgageIndicator>false</ReverseMortgageIndicator>
+                <TotalMortgagedPropertiesCount>1</TotalMortgagedPropertiesCount>
+              </LOAN_DETAIL>
+              <LOAN_IDENTIFIERS>
+                <LOAN_IDENTIFIER>
+                  <LoanIdentifier>74041772</LoanIdentifier>
+                  <LoanIdentifierType>LenderLoan</LoanIdentifierType>
+                </LOAN_IDENTIFIER>
+                <LOAN_IDENTIFIER>
+                  <LoanIdentifier>6539c272-78fa-4cdb-a8c9-ac7308b8d875</LoanIdentifier>
+                  <LoanIdentifierType>Other</LoanIdentifierType>
+                  <LoanIdentifierTypeOtherDescription>LendingPadUniqueLoanNumber</LoanIdentifierTypeOtherDescription>
+                </LOAN_IDENTIFIER>
+                <LOAN_IDENTIFIER>
+                  <LoanIdentifier>6539c272-78fa-4cdb-a8c9-ac7308b8d875</LoanIdentifier>
+                  <LoanIdentifierType>Other</LoanIdentifierType>
+                  <LoanIdentifierTypeOtherDescription>ReferenceNumber</LoanIdentifierTypeOtherDescription>
+                </LOAN_IDENTIFIER>
+                <LOAN_IDENTIFIER>
+                  <LoanIdentifier />
+                  <LoanIdentifierType>AgencyCase</LoanIdentifierType>
+                </LOAN_IDENTIFIER>
+                <LOAN_IDENTIFIER>
+                  <LoanIdentifier>101572910000086110</LoanIdentifier>
+                  <LoanIdentifierType>MERS_MIN</LoanIdentifierType>
+                </LOAN_IDENTIFIER>
+              </LOAN_IDENTIFIERS>
+              <LOAN_LEVEL_CREDIT>
+                <CREDIT_SCORE_PROVIDER>
+                  <CREDIT_SCORE_PROVIDER_DETAIL>
+                    <CreditScoreProviderName>Advantage Credit Inc</CreditScoreProviderName>
+                  </CREDIT_SCORE_PROVIDER_DETAIL>
+                </CREDIT_SCORE_PROVIDER>
+                <LOAN_LEVEL_CREDIT_DETAIL xlink:label="LOAN_LEVEL_CREDIT_DETAIL_01">
+                  <CreditReferenceType>MortgageCreditOnly</CreditReferenceType>
+                  <CreditScoreModelNameType>EquifaxBeacon</CreditScoreModelNameType>
+                  <LoanLevelCreditScoreSelectionMethodType>MiddleOrLowerThenLowest</LoanLevelCreditScoreSelectionMethodType>
+                  <LoanLevelCreditScoreValue>709</LoanLevelCreditScoreValue>
+                </LOAN_LEVEL_CREDIT_DETAIL>
+              </LOAN_LEVEL_CREDIT>
+              <LOAN_PRODUCT>
+                <LOAN_PRODUCT_DETAIL>
+                  <DiscountPointsTotalAmount>0</DiscountPointsTotalAmount>
+                  <ProductIdentifier>AF30F</ProductIdentifier>
+                  <ProductName>FHA 30 Year Fixed</ProductName>
+                  <ProductProviderType>Lender</ProductProviderType>
+                </LOAN_PRODUCT_DETAIL>
+                <LOCKS />
+              </LOAN_PRODUCT>
+              <LOAN_STATE>
+                <LoanStateType>AtClosing</LoanStateType>
+              </LOAN_STATE>
+              <LTV>
+                <BaseLTVRatioPercent>84.089</BaseLTVRatioPercent>
+                <LTVRatioPercent>84.089</LTVRatioPercent>
+              </LTV>
+              <MATURITY>
+                <MATURITY_RULE>
+                  <LoanMaturityPeriodCount>360</LoanMaturityPeriodCount>
+                  <LoanMaturityPeriodType>Month</LoanMaturityPeriodType>
+                </MATURITY_RULE>
+              </MATURITY>
+              <MI_DATA>
+                <MI_DATA_DETAIL>
+                  <FeePaidToType>ThirdPartyProvider</FeePaidToType>
+                  <MICushionNumberOfMonthsCount>0</MICushionNumberOfMonthsCount>
+                  <MIDurationType>PeriodicMonthly</MIDurationType>
+                  <MIEscrowedIndicator>false</MIEscrowedIndicator>
+                  <MIInitialPremiumAtClosingType>Deferred</MIInitialPremiumAtClosingType>
+                  <MIPremiumFinancedAmount>9933.00</MIPremiumFinancedAmount>
+                  <MIPremiumFinancedIndicator>true</MIPremiumFinancedIndicator>
+                  <MIPremiumPaymentType>Escrowed</MIPremiumPaymentType>
+                  <MIPremiumRefundableType>NotRefundable</MIPremiumRefundableType>
+                  <MIPremiumSourceType>Borrower</MIPremiumSourceType>
+                  <MISourceType>FHA</MISourceType>
+                </MI_DATA_DETAIL>
+                <MI_PREMIUMS>
+                  <MI_PREMIUM>
+                    <MI_PREMIUM_DETAIL>
+                      <MIPremiumPeriodType>Upfront</MIPremiumPeriodType>
+                      <MIPremiumRateDurationMonthsCount>0</MIPremiumRateDurationMonthsCount>
+                      <MIPremiumRatePercent>1.750</MIPremiumRatePercent>
+                    </MI_PREMIUM_DETAIL>
+                  </MI_PREMIUM>
+                </MI_PREMIUMS>
+              </MI_DATA>
+              <ORIGINATION_SYSTEMS>
+                <ORIGINATION_SYSTEM>
+                  <LoanOriginationSystemLoanIdentifier>6539c272-78fa-4cdb-a8c9-ac7308b8d875</LoanOriginationSystemLoanIdentifier>
+                  <LoanOriginationSystemName>LendingPad</LoanOriginationSystemName>
+                </ORIGINATION_SYSTEM>
+              </ORIGINATION_SYSTEMS>
+              <PAYMENT />
+              <PURCHASE_CREDITS />
+              <QUALIFICATION>
+                <BorrowerReservesMonthlyPaymentCount>0</BorrowerReservesMonthlyPaymentCount>
+                <HousingExpenseRatioPercent>33.9230</HousingExpenseRatioPercent>
+                <TotalDebtExpenseRatioPercent>54.9420</TotalDebtExpenseRatioPercent>
+                <TotalLiabilitiesMonthlyPaymentAmount>6986.99</TotalLiabilitiesMonthlyPaymentAmount>
+                <TotalMonthlyIncomeAmount>12717</TotalMonthlyIncomeAmount>
+                <TotalMonthlyProposedHousingExpenseAmount>4313.99</TotalMonthlyProposedHousingExpenseAmount>
+              </QUALIFICATION>
+              <QUALIFIED_MORTGAGE>
+                <QUALIFIED_MORTGAGE_DETAIL>
+                  <AbilityToRepayMethodType>QualifiedMortgage</AbilityToRepayMethodType>
+                  <QualifiedMortgageHighestRateDebtExpenseRatioPercent>54.942</QualifiedMortgageHighestRateDebtExpenseRatioPercent>
+                  <QualifiedMortgageType>Standard</QualifiedMortgageType>
+                </QUALIFIED_MORTGAGE_DETAIL>
+              </QUALIFIED_MORTGAGE>
+              <REFINANCE>
+                <RefinanceCashOutDeterminationType>LimitedCashOut</RefinanceCashOutDeterminationType>
+                <RefinanceSameLenderIndicator>false</RefinanceSameLenderIndicator>
+              </REFINANCE>
+              <TERMS_OF_LOAN>
+                <BaseLoanAmount>567600</BaseLoanAmount>
+                <LienPriorityType>FirstLien</LienPriorityType>
+                <LoanPurposeType>Refinance</LoanPurposeType>
+                <MortgageType>FHA</MortgageType>
+                <NoteAmount>577533.00</NoteAmount>
+                <NoteCityName>Aurora</NoteCityName>
+                <NoteRatePercent>5.990</NoteRatePercent>
+                <NoteStateName>CO</NoteStateName>
+              </TERMS_OF_LOAN>
+              <UNDERWRITING>
+                <AUTOMATED_UNDERWRITINGS>
+                  <AUTOMATED_UNDERWRITING>
+                    <AutomatedUnderwritingCaseIdentifier>1718785128</AutomatedUnderwritingCaseIdentifier>
+                    <AutomatedUnderwritingSystemType>DesktopUnderwriter</AutomatedUnderwritingSystemType>
+                    <DesktopUnderwriterRecommendationType>ApproveIneligible</DesktopUnderwriterRecommendationType>
+                  </AUTOMATED_UNDERWRITING>
+                </AUTOMATED_UNDERWRITINGS>
+                <UNDERWRITING_DETAIL>
+                  <LoanManualUnderwritingIndicator>false</LoanManualUnderwritingIndicator>
+                </UNDERWRITING_DETAIL>
+              </UNDERWRITING>
+            </LOAN>
+          </LOANS>
+          <PARTIES>
+            <PARTY>
+              <INDIVIDUAL>
+                <ALIASES>
+                  <ALIAS>
+                    <ALIAS_DETAIL>
+                      <AliasType>AlsoKnownAs</AliasType>
+                    </ALIAS_DETAIL>
+                    <NAME>
+                      <FirstName>ANAA</FirstName>
+                      <LastName>BOUSHI</LastName>
+                    </NAME>
+                  </ALIAS>
+                </ALIASES>
+                <CONTACT_POINTS>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_EMAIL>
+                      <ContactPointEmailValue>anas_boushi@yahoo.com</ContactPointEmailValue>
+                    </CONTACT_POINT_EMAIL>
+                    <CONTACT_POINT_DETAIL />
+                  </CONTACT_POINT>
+                </CONTACT_POINTS>
+                <NAME>
+                  <FirstName>Anas</FirstName>
+                  <LastName>Boushi</LastName>
+                </NAME>
+              </INDIVIDUAL>
+              <ROLES>
+                <ROLE SequenceNumber="1" xlink:label="BORROWER_1">
+                  <BORROWER>
+                    <BORROWER_DETAIL>
+                      <BorrowerAgeAtApplicationYearsCount>35</BorrowerAgeAtApplicationYearsCount>
+                      <BorrowerBankruptcyIndicator>false</BorrowerBankruptcyIndicator>
+                      <BorrowerBirthDate>1991-01-01</BorrowerBirthDate>
+                      <BorrowerClassificationType>Primary</BorrowerClassificationType>
+                      <BorrowerMailToAddressSameAsPropertyIndicator>false</BorrowerMailToAddressSameAsPropertyIndicator>
+                      <BorrowerQualifyingIncomeAmount>9232</BorrowerQualifyingIncomeAmount>
+                      <BorrowerTotalMortgagedPropertiesCount>0</BorrowerTotalMortgagedPropertiesCount>
+                      <CommunityPropertyStateResidentIndicator>false</CommunityPropertyStateResidentIndicator>
+                      <DependentCount>0</DependentCount>
+                      <JointAssetLiabilityReportingType>Jointly</JointAssetLiabilityReportingType>
+                      <MaritalStatusType>Married</MaritalStatusType>
+                      <SchoolingYearsCount>0</SchoolingYearsCount>
+                      <SelfDeclaredMilitaryServiceIndicator>false</SelfDeclaredMilitaryServiceIndicator>
+                    </BORROWER_DETAIL>
+                    <CREDIT_SCORES>
+                      <CREDIT_SCORE SequenceNumber="1">
+                        <CREDIT_SCORE_DETAIL>
+                          <CreditReportIdentifier>26136844</CreditReportIdentifier>
+                          <CreditReportType>Merge</CreditReportType>
+                          <CreditRepositorySourceIndicator>true</CreditRepositorySourceIndicator>
+                          <CreditRepositorySourceType>Experian</CreditRepositorySourceType>
+                          <CreditScoreCategoryType>FICO</CreditScoreCategoryType>
+                          <CreditScoreDate>2026-02-25</CreditScoreDate>
+                          <CreditScoreModelNameType>ExperianFairIsaac</CreditScoreModelNameType>
+                          <CreditScoreRankPercentileValue>42</CreditScoreRankPercentileValue>
+                          <CreditScoreValue>724</CreditScoreValue>
+                        </CREDIT_SCORE_DETAIL>
+                        <CREDIT_SCORE_FACTORS>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="1">
+                            <CreditScoreFactorCode>10</CreditScoreFactorCode>
+                            <CreditScoreFactorText>RATIO OF BALANCE TO LIMIT ON BANK REVOLVING OR OTHER REV ACCTS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="2">
+                            <CreditScoreFactorCode>01</CreditScoreFactorCode>
+                            <CreditScoreFactorText>AMOUNT OWED ON ACCOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="3">
+                            <CreditScoreFactorCode>12</CreditScoreFactorCode>
+                            <CreditScoreFactorText>LENGTH OF TIME REVOLVING ACCOUNTS HAVE BEEN ESTABLISHED</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                        </CREDIT_SCORE_FACTORS>
+                        <CREDIT_SCORE_PROVIDER>
+                          <CREDIT_SCORE_PROVIDER_DETAIL>
+                            <CreditScoreProviderName>Advantage Credit Inc</CreditScoreProviderName>
+                          </CREDIT_SCORE_PROVIDER_DETAIL>
+                        </CREDIT_SCORE_PROVIDER>
+                      </CREDIT_SCORE>
+                      <CREDIT_SCORE SequenceNumber="2">
+                        <CREDIT_SCORE_DETAIL>
+                          <CreditReportIdentifier>26136844</CreditReportIdentifier>
+                          <CreditReportType>Merge</CreditReportType>
+                          <CreditRepositorySourceIndicator>true</CreditRepositorySourceIndicator>
+                          <CreditRepositorySourceType>TransUnion</CreditRepositorySourceType>
+                          <CreditScoreCategoryType>FICO</CreditScoreCategoryType>
+                          <CreditScoreDate>2026-02-25</CreditScoreDate>
+                          <CreditScoreModelNameType>FICORiskScoreClassic04</CreditScoreModelNameType>
+                          <CreditScoreRankPercentileValue>37</CreditScoreRankPercentileValue>
+                          <CreditScoreValue>699</CreditScoreValue>
+                        </CREDIT_SCORE_DETAIL>
+                        <CREDIT_SCORE_FACTORS>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="1">
+                            <CreditScoreFactorCode>010</CreditScoreFactorCode>
+                            <CreditScoreFactorText>PROPORTION OF BALANCES TO CREDIT LIMITS IS TOO HIGH ON BANK REVOLVING OR OTHER REVOLVING ACCOUNTS</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="2">
+                            <CreditScoreFactorCode>011</CreditScoreFactorCode>
+                            <CreditScoreFactorText>AMOUNT OWED ON REVOLVING ACCOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="3">
+                            <CreditScoreFactorCode>006</CreditScoreFactorCode>
+                            <CreditScoreFactorText>TOO MANY CONSUMER FINANCE COMPANY ACCOUNTS</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="4">
+                            <CreditScoreFactorCode>003</CreditScoreFactorCode>
+                            <CreditScoreFactorText>PROPORTION OF LOAN BALANCES TO LOAN AMOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                        </CREDIT_SCORE_FACTORS>
+                        <CREDIT_SCORE_PROVIDER>
+                          <CREDIT_SCORE_PROVIDER_DETAIL>
+                            <CreditScoreProviderName>Advantage Credit Inc</CreditScoreProviderName>
+                          </CREDIT_SCORE_PROVIDER_DETAIL>
+                        </CREDIT_SCORE_PROVIDER>
+                      </CREDIT_SCORE>
+                      <CREDIT_SCORE SequenceNumber="3">
+                        <CREDIT_SCORE_DETAIL>
+                          <CreditReportIdentifier>26136844</CreditReportIdentifier>
+                          <CreditReportType>Merge</CreditReportType>
+                          <CreditRepositorySourceIndicator>true</CreditRepositorySourceIndicator>
+                          <CreditRepositorySourceType>Equifax</CreditRepositorySourceType>
+                          <CreditScoreCategoryType>FICO</CreditScoreCategoryType>
+                          <CreditScoreDate>2026-02-25</CreditScoreDate>
+                          <CreditScoreModelNameType>EquifaxBeacon5.0</CreditScoreModelNameType>
+                          <CreditScoreRankPercentileValue>40</CreditScoreRankPercentileValue>
+                          <CreditScoreValue>709</CreditScoreValue>
+                        </CREDIT_SCORE_DETAIL>
+                        <CREDIT_SCORE_FACTORS>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="1">
+                            <CreditScoreFactorCode>00023</CreditScoreFactorCode>
+                            <CreditScoreFactorText>NUMBER OF BANK/NATIONAL REVOLVING ACCOUNTS WITH BALANCES</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="2">
+                            <CreditScoreFactorCode>00010</CreditScoreFactorCode>
+                            <CreditScoreFactorText>RATIO OF BALANCE TO LIMIT ON BANK REVOLVING OR OTHER REV ACCTS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="3">
+                            <CreditScoreFactorCode>00011</CreditScoreFactorCode>
+                            <CreditScoreFactorText>AMOUNT OWED ON REVOLVING ACCOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="4">
+                            <CreditScoreFactorCode>00033</CreditScoreFactorCode>
+                            <CreditScoreFactorText>PROPORTION OF LOAN BALANCES TO LOAN AMOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                        </CREDIT_SCORE_FACTORS>
+                        <CREDIT_SCORE_PROVIDER>
+                          <CREDIT_SCORE_PROVIDER_DETAIL>
+                            <CreditScoreProviderName>Advantage Credit Inc</CreditScoreProviderName>
+                          </CREDIT_SCORE_PROVIDER_DETAIL>
+                        </CREDIT_SCORE_PROVIDER>
+                      </CREDIT_SCORE>
+                    </CREDIT_SCORES>
+                    <CURRENT_INCOME>
+                      <CURRENT_INCOME_ITEMS>
+                        <CURRENT_INCOME_ITEM SequenceNumber="1" xlink:label="CURRENT_INCOME_ITEM_1">
+                          <CURRENT_INCOME_ITEM_DETAIL>
+                            <CurrentIncomeMonthlyTotalAmount>9232</CurrentIncomeMonthlyTotalAmount>
+                            <EmploymentIncomeIndicator>true</EmploymentIncomeIndicator>
+                            <IncomeType>Base</IncomeType>
+                          </CURRENT_INCOME_ITEM_DETAIL>
+                        </CURRENT_INCOME_ITEM>
+                      </CURRENT_INCOME_ITEMS>
+                    </CURRENT_INCOME>
+                    <DECLARATION>
+                      <DECLARATION_DETAIL>
+                        <BankruptcyIndicator>false</BankruptcyIndicator>
+                        <CitizenshipResidencyType>USCitizen</CitizenshipResidencyType>
+                        <FHASecondaryResidenceIndicator>false</FHASecondaryResidenceIndicator>
+                        <HomeownerPastThreeYearsType>Yes</HomeownerPastThreeYearsType>
+                        <IntentToOccupyType>Yes</IntentToOccupyType>
+                        <OutstandingJudgmentsIndicator>false</OutstandingJudgmentsIndicator>
+                        <PartyToLawsuitIndicator>false</PartyToLawsuitIndicator>
+                        <PresentlyDelinquentIndicator>false</PresentlyDelinquentIndicator>
+                        <PriorPropertyDeedInLieuConveyedIndicator>false</PriorPropertyDeedInLieuConveyedIndicator>
+                        <PriorPropertyForeclosureCompletedIndicator>false</PriorPropertyForeclosureCompletedIndicator>
+                        <PriorPropertyShortSaleCompletedIndicator>false</PriorPropertyShortSaleCompletedIndicator>
+                        <PriorPropertyTitleType>Sole</PriorPropertyTitleType>
+                        <PriorPropertyUsageType>PrimaryResidence</PriorPropertyUsageType>
+                        <PropertyProposedCleanEnergyLienIndicator>false</PropertyProposedCleanEnergyLienIndicator>
+                        <UndisclosedBorrowedFundsIndicator>false</UndisclosedBorrowedFundsIndicator>
+                        <UndisclosedComakerOfNoteIndicator>false</UndisclosedComakerOfNoteIndicator>
+                        <UndisclosedCreditApplicationIndicator>false</UndisclosedCreditApplicationIndicator>
+                        <UndisclosedMortgageApplicationIndicator>false</UndisclosedMortgageApplicationIndicator>
+                        <EXTENSION>
+                          <OTHER>
+                            <ULAD:DECLARATION_DETAIL_EXTENSION>
+                              <ULAD:SpecialBorrowerSellerRelationshipIndicator>false</ULAD:SpecialBorrowerSellerRelationshipIndicator>
+                            </ULAD:DECLARATION_DETAIL_EXTENSION>
+                          </OTHER>
+                        </EXTENSION>
+                      </DECLARATION_DETAIL>
+                      <DECLARATION_EXPLANATIONS />
+                    </DECLARATION>
+                    <DEPENDENTS />
+                    <EMPLOYERS>
+                      <EMPLOYER SequenceNumber="1" xlink:label="EMPLOYER_1">
+                        <LEGAL_ENTITY>
+                          <CONTACTS>
+                            <CONTACT>
+                              <CONTACT_POINTS>
+                                <CONTACT_POINT>
+                                  <CONTACT_POINT_TELEPHONE>
+                                    <ContactPointTelephoneValue>7207136067</ContactPointTelephoneValue>
+                                  </CONTACT_POINT_TELEPHONE>
+                                  <CONTACT_POINT_DETAIL>
+                                    <ContactPointRoleType>Mobile</ContactPointRoleType>
+                                  </CONTACT_POINT_DETAIL>
+                                </CONTACT_POINT>
+                              </CONTACT_POINTS>
+                            </CONTACT>
+                          </CONTACTS>
+                          <LEGAL_ENTITY_DETAIL>
+                            <FullName>HM Holdings LLC</FullName>
+                          </LEGAL_ENTITY_DETAIL>
+                        </LEGAL_ENTITY>
+                        <ADDRESS>
+                          <AddressLineText>8281 S University Blvd</AddressLineText>
+                          <CityName>Littleton</CityName>
+                          <CountryCode>US</CountryCode>
+                          <PostalCode>80122</PostalCode>
+                          <StateCode>CO</StateCode>
+                        </ADDRESS>
+                        <EMPLOYMENT>
+                          <EmploymentBorrowerSelfEmployedIndicator>false</EmploymentBorrowerSelfEmployedIndicator>
+                          <EmploymentClassificationType>Primary</EmploymentClassificationType>
+                          <EmploymentPositionDescription>Design consultant</EmploymentPositionDescription>
+                          <EmploymentStartDate>2024-11-01</EmploymentStartDate>
+                          <EmploymentStatusType>Current</EmploymentStatusType>
+                          <EmploymentTimeInLineOfWorkMonthsCount>24</EmploymentTimeInLineOfWorkMonthsCount>
+                        </EMPLOYMENT>
+                      </EMPLOYER>
+                      <EMPLOYER SequenceNumber="2">
+                        <LEGAL_ENTITY>
+                          <LEGAL_ENTITY_DETAIL>
+                            <FullName>Other</FullName>
+                          </LEGAL_ENTITY_DETAIL>
+                        </LEGAL_ENTITY>
+                        <EMPLOYMENT>
+                          <EmploymentBorrowerSelfEmployedIndicator>false</EmploymentBorrowerSelfEmployedIndicator>
+                          <EmploymentEndDate>2021-11-01</EmploymentEndDate>
+                          <EmploymentMonthlyIncomeAmount>0</EmploymentMonthlyIncomeAmount>
+                          <EmploymentPositionDescription>American furniture warehouse</EmploymentPositionDescription>
+                          <EmploymentStartDate>2016-03-01</EmploymentStartDate>
+                          <EmploymentStatusType>Previous</EmploymentStatusType>
+                          <EmploymentTimeInLineOfWorkMonthsCount>0</EmploymentTimeInLineOfWorkMonthsCount>
+                        </EMPLOYMENT>
+                      </EMPLOYER>
+                    </EMPLOYERS>
+                    <GOVERNMENT_BORROWER>
+                      <CAIVRSIdentifier />
+                    </GOVERNMENT_BORROWER>
+                    <GOVERNMENT_MONITORING>
+                      <GOVERNMENT_MONITORING_DETAIL>
+                        <HMDAEthnicityRefusalIndicator>false</HMDAEthnicityRefusalIndicator>
+                        <HMDAGenderRefusalIndicator>false</HMDAGenderRefusalIndicator>
+                        <HMDARaceRefusalIndicator>false</HMDARaceRefusalIndicator>
+                        <EXTENSION>
+                          <OTHER>
+                            <ULAD:GOVERNMENT_MONITORING_DETAIL_EXTENSION>
+                              <ULAD:ApplicationTakenMethodType>Internet</ULAD:ApplicationTakenMethodType>
+                              <ULAD:HMDAGenderType>Male</ULAD:HMDAGenderType>
+                            </ULAD:GOVERNMENT_MONITORING_DETAIL_EXTENSION>
+                          </OTHER>
+                        </EXTENSION>
+                      </GOVERNMENT_MONITORING_DETAIL>
+                      <HMDA_RACES>
+                        <HMDA_RACE>
+                          <HMDA_RACE_DETAIL>
+                            <HMDARaceType>White</HMDARaceType>
+                          </HMDA_RACE_DETAIL>
+                        </HMDA_RACE>
+                      </HMDA_RACES>
+                      <EXTENSION>
+                        <OTHER>
+                          <ULAD:GOVERNMENT_MONITORING_EXTENSION>
+                            <ULAD:HMDA_ETHNICITIES>
+                              <ULAD:HMDA_ETHNICITY>
+                                <ULAD:HMDAEthnicityType>NotHispanicOrLatino</ULAD:HMDAEthnicityType>
+                              </ULAD:HMDA_ETHNICITY>
+                            </ULAD:HMDA_ETHNICITIES>
+                          </ULAD:GOVERNMENT_MONITORING_EXTENSION>
+                        </OTHER>
+                      </EXTENSION>
+                    </GOVERNMENT_MONITORING>
+                    <MILITARY_SERVICES />
+                    <RESIDENCES>
+                      <RESIDENCE>
+                        <ADDRESS>
+                          <AddressLineText>18742 East Powers Drive</AddressLineText>
+                          <CityName>Englewood</CityName>
+                          <CountryCode>US</CountryCode>
+                          <PostalCode>80111</PostalCode>
+                          <StateCode>CO</StateCode>
+                        </ADDRESS>
+                        <RESIDENCE_DETAIL>
+                          <BorrowerResidencyBasisType>Own</BorrowerResidencyBasisType>
+                          <BorrowerResidencyDurationMonthsCount>18</BorrowerResidencyDurationMonthsCount>
+                          <BorrowerResidencyType>Current</BorrowerResidencyType>
+                        </RESIDENCE_DETAIL>
+                      </RESIDENCE>
+                      <RESIDENCE>
+                        <ADDRESS>
+                          <AddressLineText>5285 South Picadilly Way</AddressLineText>
+                          <CityName>Aurora</CityName>
+                          <CountryCode>US</CountryCode>
+                          <PostalCode>80015</PostalCode>
+                          <StateCode>CO</StateCode>
+                        </ADDRESS>
+                        <RESIDENCE_DETAIL>
+                          <BorrowerResidencyBasisType>Unknown</BorrowerResidencyBasisType>
+                          <BorrowerResidencyDurationMonthsCount>54</BorrowerResidencyDurationMonthsCount>
+                          <BorrowerResidencyType>Prior</BorrowerResidencyType>
+                        </RESIDENCE_DETAIL>
+                      </RESIDENCE>
+                    </RESIDENCES>
+                  </BORROWER>
+                  <ROLE_DETAIL>
+                    <PartyRoleType>Borrower</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+              <TAXPAYER_IDENTIFIERS>
+                <TAXPAYER_IDENTIFIER>
+                  <TaxpayerIdentifierType>SocialSecurityNumber</TaxpayerIdentifierType>
+                  <TaxpayerIdentifierValue>008810204</TaxpayerIdentifierValue>
+                </TAXPAYER_IDENTIFIER>
+              </TAXPAYER_IDENTIFIERS>
+            </PARTY>
+            <PARTY>
+              <INDIVIDUAL>
+                <ALIASES>
+                  <ALIAS>
+                    <ALIAS_DETAIL>
+                      <AliasType>AlsoKnownAs</AliasType>
+                    </ALIAS_DETAIL>
+                    <NAME>
+                      <FirstName>SHAHD TAWFIQ</FirstName>
+                      <LastName>ALSOUS</LastName>
+                    </NAME>
+                  </ALIAS>
+                  <ALIAS>
+                    <ALIAS_DETAIL>
+                      <AliasType>AlsoKnownAs</AliasType>
+                    </ALIAS_DETAIL>
+                    <NAME>
+                      <FirstName> TAWFIQ</FirstName>
+                    </NAME>
+                  </ALIAS>
+                  <ALIAS>
+                    <ALIAS_DETAIL>
+                      <AliasType>AlsoKnownAs</AliasType>
+                    </ALIAS_DETAIL>
+                    <NAME>
+                      <FirstName>SHAHD</FirstName>
+                    </NAME>
+                  </ALIAS>
+                  <ALIAS>
+                    <ALIAS_DETAIL>
+                      <AliasType>AlsoKnownAs</AliasType>
+                    </ALIAS_DETAIL>
+                    <NAME>
+                      <FirstName>M</FirstName>
+                    </NAME>
+                  </ALIAS>
+                  <ALIAS>
+                    <ALIAS_DETAIL>
+                      <AliasType>AlsoKnownAs</AliasType>
+                    </ALIAS_DETAIL>
+                    <NAME>
+                      <FirstName>SHAHD M</FirstName>
+                      <LastName>TAWFIQ</LastName>
+                    </NAME>
+                  </ALIAS>
+                </ALIASES>
+                <CONTACT_POINTS>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_EMAIL>
+                      <ContactPointEmailValue>Shahdboushi@yahoo.com</ContactPointEmailValue>
+                    </CONTACT_POINT_EMAIL>
+                    <CONTACT_POINT_DETAIL />
+                  </CONTACT_POINT>
+                </CONTACT_POINTS>
+                <NAME>
+                  <FirstName>Shahd</FirstName>
+                  <LastName>Al Sous</LastName>
+                </NAME>
+              </INDIVIDUAL>
+              <ROLES>
+                <ROLE SequenceNumber="2" xlink:label="BORROWER_2">
+                  <BORROWER>
+                    <BORROWER_DETAIL>
+                      <BorrowerAgeAtApplicationYearsCount>32</BorrowerAgeAtApplicationYearsCount>
+                      <BorrowerBankruptcyIndicator>false</BorrowerBankruptcyIndicator>
+                      <BorrowerBirthDate>1993-08-15</BorrowerBirthDate>
+                      <BorrowerClassificationType>Secondary</BorrowerClassificationType>
+                      <BorrowerMailToAddressSameAsPropertyIndicator>false</BorrowerMailToAddressSameAsPropertyIndicator>
+                      <BorrowerQualifyingIncomeAmount>3485</BorrowerQualifyingIncomeAmount>
+                      <BorrowerTotalMortgagedPropertiesCount>0</BorrowerTotalMortgagedPropertiesCount>
+                      <CommunityPropertyStateResidentIndicator>false</CommunityPropertyStateResidentIndicator>
+                      <DependentCount>0</DependentCount>
+                      <JointAssetLiabilityReportingType>Jointly</JointAssetLiabilityReportingType>
+                      <MaritalStatusType>Married</MaritalStatusType>
+                      <SchoolingYearsCount>0</SchoolingYearsCount>
+                      <SelfDeclaredMilitaryServiceIndicator>false</SelfDeclaredMilitaryServiceIndicator>
+                    </BORROWER_DETAIL>
+                    <CREDIT_SCORES>
+                      <CREDIT_SCORE SequenceNumber="1">
+                        <CREDIT_SCORE_DETAIL>
+                          <CreditReportIdentifier>26136844</CreditReportIdentifier>
+                          <CreditReportType>Merge</CreditReportType>
+                          <CreditRepositorySourceIndicator>true</CreditRepositorySourceIndicator>
+                          <CreditRepositorySourceType>Experian</CreditRepositorySourceType>
+                          <CreditScoreCategoryType>FICO</CreditScoreCategoryType>
+                          <CreditScoreDate>2026-02-25</CreditScoreDate>
+                          <CreditScoreModelNameType>ExperianFairIsaac</CreditScoreModelNameType>
+                          <CreditScoreRankPercentileValue>42</CreditScoreRankPercentileValue>
+                          <CreditScoreValue>724</CreditScoreValue>
+                        </CREDIT_SCORE_DETAIL>
+                        <CREDIT_SCORE_FACTORS>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="1">
+                            <CreditScoreFactorCode>10</CreditScoreFactorCode>
+                            <CreditScoreFactorText>RATIO OF BALANCE TO LIMIT ON BANK REVOLVING OR OTHER REV ACCTS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="2">
+                            <CreditScoreFactorCode>01</CreditScoreFactorCode>
+                            <CreditScoreFactorText>AMOUNT OWED ON ACCOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="3">
+                            <CreditScoreFactorCode>12</CreditScoreFactorCode>
+                            <CreditScoreFactorText>LENGTH OF TIME REVOLVING ACCOUNTS HAVE BEEN ESTABLISHED</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                        </CREDIT_SCORE_FACTORS>
+                        <CREDIT_SCORE_PROVIDER>
+                          <CREDIT_SCORE_PROVIDER_DETAIL>
+                            <CreditScoreProviderName>Advantage Credit Inc</CreditScoreProviderName>
+                          </CREDIT_SCORE_PROVIDER_DETAIL>
+                        </CREDIT_SCORE_PROVIDER>
+                      </CREDIT_SCORE>
+                      <CREDIT_SCORE SequenceNumber="2">
+                        <CREDIT_SCORE_DETAIL>
+                          <CreditReportIdentifier>26136844</CreditReportIdentifier>
+                          <CreditReportType>Merge</CreditReportType>
+                          <CreditRepositorySourceIndicator>true</CreditRepositorySourceIndicator>
+                          <CreditRepositorySourceType>TransUnion</CreditRepositorySourceType>
+                          <CreditScoreCategoryType>FICO</CreditScoreCategoryType>
+                          <CreditScoreDate>2026-02-25</CreditScoreDate>
+                          <CreditScoreModelNameType>FICORiskScoreClassic04</CreditScoreModelNameType>
+                          <CreditScoreRankPercentileValue>46</CreditScoreRankPercentileValue>
+                          <CreditScoreValue>730</CreditScoreValue>
+                        </CREDIT_SCORE_DETAIL>
+                        <CREDIT_SCORE_FACTORS>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="1">
+                            <CreditScoreFactorCode>010</CreditScoreFactorCode>
+                            <CreditScoreFactorText>PROPORTION OF BALANCES TO CREDIT LIMITS IS TOO HIGH ON BANK REVOLVING OR OTHER REVOLVING ACCOUNTS</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="2">
+                            <CreditScoreFactorCode>011</CreditScoreFactorCode>
+                            <CreditScoreFactorText>AMOUNT OWED ON REVOLVING ACCOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="3">
+                            <CreditScoreFactorCode>006</CreditScoreFactorCode>
+                            <CreditScoreFactorText>TOO MANY CONSUMER FINANCE COMPANY ACCOUNTS</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="4">
+                            <CreditScoreFactorCode>014</CreditScoreFactorCode>
+                            <CreditScoreFactorText>LENGTH OF TIME ACCOUNTS HAVE BEEN ESTABLISHED</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                        </CREDIT_SCORE_FACTORS>
+                        <CREDIT_SCORE_PROVIDER>
+                          <CREDIT_SCORE_PROVIDER_DETAIL>
+                            <CreditScoreProviderName>Advantage Credit Inc</CreditScoreProviderName>
+                          </CREDIT_SCORE_PROVIDER_DETAIL>
+                        </CREDIT_SCORE_PROVIDER>
+                      </CREDIT_SCORE>
+                      <CREDIT_SCORE SequenceNumber="3">
+                        <CREDIT_SCORE_DETAIL>
+                          <CreditReportIdentifier>26136844</CreditReportIdentifier>
+                          <CreditReportType>Merge</CreditReportType>
+                          <CreditRepositorySourceIndicator>true</CreditRepositorySourceIndicator>
+                          <CreditRepositorySourceType>Equifax</CreditRepositorySourceType>
+                          <CreditScoreCategoryType>FICO</CreditScoreCategoryType>
+                          <CreditScoreDate>2026-02-25</CreditScoreDate>
+                          <CreditScoreModelNameType>EquifaxBeacon5.0</CreditScoreModelNameType>
+                          <CreditScoreRankPercentileValue>40</CreditScoreRankPercentileValue>
+                          <CreditScoreValue>709</CreditScoreValue>
+                        </CREDIT_SCORE_DETAIL>
+                        <CREDIT_SCORE_FACTORS>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="1">
+                            <CreditScoreFactorCode>00010</CreditScoreFactorCode>
+                            <CreditScoreFactorText>RATIO OF BALANCE TO LIMIT ON BANK REVOLVING OR OTHER REV ACCTS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="2">
+                            <CreditScoreFactorCode>00023</CreditScoreFactorCode>
+                            <CreditScoreFactorText>NUMBER OF BANK/NATIONAL REVOLVING ACCOUNTS WITH BALANCES</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="3">
+                            <CreditScoreFactorCode>00011</CreditScoreFactorCode>
+                            <CreditScoreFactorText>AMOUNT OWED ON REVOLVING ACCOUNTS IS TOO HIGH</CreditScoreFactorText>
+                          </CREDIT_SCORE_FACTOR>
+                          <CREDIT_SCORE_FACTOR SequenceNumber="4">
+                            <CreditScoreFactorCode>00000</CreditScoreFactorCode>
+                            <CreditScoreFactorText />
+                          </CREDIT_SCORE_FACTOR>
+                        </CREDIT_SCORE_FACTORS>
+                        <CREDIT_SCORE_PROVIDER>
+                          <CREDIT_SCORE_PROVIDER_DETAIL>
+                            <CreditScoreProviderName>Advantage Credit Inc</CreditScoreProviderName>
+                          </CREDIT_SCORE_PROVIDER_DETAIL>
+                        </CREDIT_SCORE_PROVIDER>
+                      </CREDIT_SCORE>
+                    </CREDIT_SCORES>
+                    <CURRENT_INCOME>
+                      <CURRENT_INCOME_ITEMS>
+                        <CURRENT_INCOME_ITEM SequenceNumber="2" xlink:label="CURRENT_INCOME_ITEM_2">
+                          <CURRENT_INCOME_ITEM_DETAIL>
+                            <CurrentIncomeMonthlyTotalAmount>3485</CurrentIncomeMonthlyTotalAmount>
+                            <EmploymentIncomeIndicator>true</EmploymentIncomeIndicator>
+                            <IncomeType>Base</IncomeType>
+                          </CURRENT_INCOME_ITEM_DETAIL>
+                        </CURRENT_INCOME_ITEM>
+                      </CURRENT_INCOME_ITEMS>
+                    </CURRENT_INCOME>
+                    <DECLARATION>
+                      <DECLARATION_DETAIL>
+                        <BankruptcyIndicator>false</BankruptcyIndicator>
+                        <CitizenshipResidencyType>USCitizen</CitizenshipResidencyType>
+                        <FHASecondaryResidenceIndicator>false</FHASecondaryResidenceIndicator>
+                        <HomeownerPastThreeYearsType>Yes</HomeownerPastThreeYearsType>
+                        <IntentToOccupyType>Yes</IntentToOccupyType>
+                        <OutstandingJudgmentsIndicator>false</OutstandingJudgmentsIndicator>
+                        <PartyToLawsuitIndicator>false</PartyToLawsuitIndicator>
+                        <PresentlyDelinquentIndicator>false</PresentlyDelinquentIndicator>
+                        <PriorPropertyDeedInLieuConveyedIndicator>false</PriorPropertyDeedInLieuConveyedIndicator>
+                        <PriorPropertyForeclosureCompletedIndicator>false</PriorPropertyForeclosureCompletedIndicator>
+                        <PriorPropertyShortSaleCompletedIndicator>false</PriorPropertyShortSaleCompletedIndicator>
+                        <PriorPropertyTitleType>Sole</PriorPropertyTitleType>
+                        <PriorPropertyUsageType>PrimaryResidence</PriorPropertyUsageType>
+                        <PropertyProposedCleanEnergyLienIndicator>false</PropertyProposedCleanEnergyLienIndicator>
+                        <UndisclosedBorrowedFundsIndicator>false</UndisclosedBorrowedFundsIndicator>
+                        <UndisclosedComakerOfNoteIndicator>false</UndisclosedComakerOfNoteIndicator>
+                        <UndisclosedCreditApplicationIndicator>false</UndisclosedCreditApplicationIndicator>
+                        <UndisclosedMortgageApplicationIndicator>false</UndisclosedMortgageApplicationIndicator>
+                        <EXTENSION>
+                          <OTHER>
+                            <ULAD:DECLARATION_DETAIL_EXTENSION>
+                              <ULAD:SpecialBorrowerSellerRelationshipIndicator>false</ULAD:SpecialBorrowerSellerRelationshipIndicator>
+                            </ULAD:DECLARATION_DETAIL_EXTENSION>
+                          </OTHER>
+                        </EXTENSION>
+                      </DECLARATION_DETAIL>
+                      <DECLARATION_EXPLANATIONS />
+                    </DECLARATION>
+                    <DEPENDENTS />
+                    <EMPLOYERS>
+                      <EMPLOYER SequenceNumber="3" xlink:label="EMPLOYER_3">
+                        <LEGAL_ENTITY>
+                          <CONTACTS>
+                            <CONTACT>
+                              <CONTACT_POINTS>
+                                <CONTACT_POINT>
+                                  <CONTACT_POINT_TELEPHONE>
+                                    <ContactPointTelephoneValue>3037954400</ContactPointTelephoneValue>
+                                  </CONTACT_POINT_TELEPHONE>
+                                  <CONTACT_POINT_DETAIL>
+                                    <ContactPointRoleType>Mobile</ContactPointRoleType>
+                                  </CONTACT_POINT_DETAIL>
+                                </CONTACT_POINT>
+                              </CONTACT_POINTS>
+                            </CONTACT>
+                          </CONTACTS>
+                          <LEGAL_ENTITY_DETAIL>
+                            <FullName>Arapahoe county</FullName>
+                          </LEGAL_ENTITY_DETAIL>
+                        </LEGAL_ENTITY>
+                        <ADDRESS>
+                          <AddressLineText>14980 E Alameda Drive</AddressLineText>
+                          <CityName>Aurora</CityName>
+                          <CountryCode>US</CountryCode>
+                          <PostalCode>80012</PostalCode>
+                          <StateCode>CO</StateCode>
+                        </ADDRESS>
+                        <EMPLOYMENT>
+                          <EmploymentBorrowerSelfEmployedIndicator>false</EmploymentBorrowerSelfEmployedIndicator>
+                          <EmploymentClassificationType>Primary</EmploymentClassificationType>
+                          <EmploymentPositionDescription>Program specialist/ human services</EmploymentPositionDescription>
+                          <EmploymentStartDate>2022-02-01</EmploymentStartDate>
+                          <EmploymentStatusType>Current</EmploymentStatusType>
+                          <EmploymentTimeInLineOfWorkMonthsCount>12</EmploymentTimeInLineOfWorkMonthsCount>
+                        </EMPLOYMENT>
+                      </EMPLOYER>
+                      <EMPLOYER SequenceNumber="4">
+                        <LEGAL_ENTITY>
+                          <LEGAL_ENTITY_DETAIL>
+                            <FullName>Other</FullName>
+                          </LEGAL_ENTITY_DETAIL>
+                        </LEGAL_ENTITY>
+                        <EMPLOYMENT>
+                          <EmploymentBorrowerSelfEmployedIndicator>false</EmploymentBorrowerSelfEmployedIndicator>
+                          <EmploymentEndDate>2021-03-01</EmploymentEndDate>
+                          <EmploymentMonthlyIncomeAmount>0</EmploymentMonthlyIncomeAmount>
+                          <EmploymentPositionDescription>American furniture warehouse</EmploymentPositionDescription>
+                          <EmploymentStartDate>2019-09-01</EmploymentStartDate>
+                          <EmploymentStatusType>Previous</EmploymentStatusType>
+                          <EmploymentTimeInLineOfWorkMonthsCount>0</EmploymentTimeInLineOfWorkMonthsCount>
+                        </EMPLOYMENT>
+                      </EMPLOYER>
+                    </EMPLOYERS>
+                    <GOVERNMENT_BORROWER>
+                      <CAIVRSIdentifier />
+                    </GOVERNMENT_BORROWER>
+                    <GOVERNMENT_MONITORING>
+                      <GOVERNMENT_MONITORING_DETAIL>
+                        <HMDAEthnicityRefusalIndicator>false</HMDAEthnicityRefusalIndicator>
+                        <HMDAGenderRefusalIndicator>false</HMDAGenderRefusalIndicator>
+                        <HMDARaceRefusalIndicator>false</HMDARaceRefusalIndicator>
+                        <EXTENSION>
+                          <OTHER>
+                            <ULAD:GOVERNMENT_MONITORING_DETAIL_EXTENSION>
+                              <ULAD:ApplicationTakenMethodType>Internet</ULAD:ApplicationTakenMethodType>
+                            </ULAD:GOVERNMENT_MONITORING_DETAIL_EXTENSION>
+                          </OTHER>
+                        </EXTENSION>
+                      </GOVERNMENT_MONITORING_DETAIL>
+                      <HMDA_RACES>
+                        <HMDA_RACE>
+                          <HMDA_RACE_DETAIL>
+                            <HMDARaceType>White</HMDARaceType>
+                          </HMDA_RACE_DETAIL>
+                        </HMDA_RACE>
+                      </HMDA_RACES>
+                      <EXTENSION>
+                        <OTHER>
+                          <ULAD:GOVERNMENT_MONITORING_EXTENSION>
+                            <ULAD:HMDA_ETHNICITIES>
+                              <ULAD:HMDA_ETHNICITY>
+                                <ULAD:HMDAEthnicityType>NotHispanicOrLatino</ULAD:HMDAEthnicityType>
+                              </ULAD:HMDA_ETHNICITY>
+                            </ULAD:HMDA_ETHNICITIES>
+                          </ULAD:GOVERNMENT_MONITORING_EXTENSION>
+                        </OTHER>
+                      </EXTENSION>
+                    </GOVERNMENT_MONITORING>
+                    <MILITARY_SERVICES />
+                    <RESIDENCES>
+                      <RESIDENCE>
+                        <ADDRESS>
+                          <AddressLineText>18742 East Powers Drive</AddressLineText>
+                          <CityName>Englewood</CityName>
+                          <CountryCode>US</CountryCode>
+                          <PostalCode>80111</PostalCode>
+                          <StateCode>CO</StateCode>
+                        </ADDRESS>
+                        <RESIDENCE_DETAIL>
+                          <BorrowerResidencyBasisType>Own</BorrowerResidencyBasisType>
+                          <BorrowerResidencyDurationMonthsCount>18</BorrowerResidencyDurationMonthsCount>
+                          <BorrowerResidencyType>Current</BorrowerResidencyType>
+                        </RESIDENCE_DETAIL>
+                      </RESIDENCE>
+                      <RESIDENCE>
+                        <ADDRESS>
+                          <AddressLineText>5285 South Picadilly Way</AddressLineText>
+                          <CityName>Aurora</CityName>
+                          <CountryCode>US</CountryCode>
+                          <PostalCode>80015</PostalCode>
+                          <StateCode>CO</StateCode>
+                        </ADDRESS>
+                        <RESIDENCE_DETAIL>
+                          <BorrowerResidencyBasisType>Unknown</BorrowerResidencyBasisType>
+                          <BorrowerResidencyDurationMonthsCount>54</BorrowerResidencyDurationMonthsCount>
+                          <BorrowerResidencyType>Prior</BorrowerResidencyType>
+                        </RESIDENCE_DETAIL>
+                      </RESIDENCE>
+                    </RESIDENCES>
+                  </BORROWER>
+                  <ROLE_DETAIL>
+                    <PartyRoleType>Borrower</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+              <TAXPAYER_IDENTIFIERS>
+                <TAXPAYER_IDENTIFIER>
+                  <TaxpayerIdentifierType>SocialSecurityNumber</TaxpayerIdentifierType>
+                  <TaxpayerIdentifierValue>867842567</TaxpayerIdentifierValue>
+                </TAXPAYER_IDENTIFIER>
+              </TAXPAYER_IDENTIFIERS>
+            </PARTY>
+            <PARTY SequenceNumber="3">
+              <INDIVIDUAL>
+                <NAME>
+                  <FullName>Anas Boushi, Shahd Al Sous</FullName>
+                  <LastName>NA</LastName>
+                </NAME>
+              </INDIVIDUAL>
+              <ROLES>
+                <ROLE SequenceNumber="3" xlink:label="PROPERTY_OWNER_1">
+                  <PROPERTY_OWNER>
+                    <PropertyOwnerStatusType>Proposed</PropertyOwnerStatusType>
+                  </PROPERTY_OWNER>
+                  <ROLE_DETAIL>
+                    <PartyRoleType>PropertyOwner</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+            <PARTY SequenceNumber="4">
+              <LEGAL_ENTITY>
+                <CONTACTS>
+                  <CONTACT>
+                    <CONTACT_POINTS>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_TELEPHONE>
+                          <ContactPointTelephoneValue>3038102875</ContactPointTelephoneValue>
+                        </CONTACT_POINT_TELEPHONE>
+                        <CONTACT_POINT_DETAIL>
+                          <ContactPointRoleType>Mobile</ContactPointRoleType>
+                        </CONTACT_POINT_DETAIL>
+                      </CONTACT_POINT>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_EMAIL>
+                          <ContactPointEmailValue>joshua.sourial@msfg.us</ContactPointEmailValue>
+                        </CONTACT_POINT_EMAIL>
+                        <CONTACT_POINT_DETAIL />
+                      </CONTACT_POINT>
+                    </CONTACT_POINTS>
+                    <NAME>
+                      <FullName>Josh Sourial</FullName>
+                    </NAME>
+                  </CONTACT>
+                </CONTACTS>
+                <LEGAL_ENTITY_DETAIL>
+                  <FullName>Mountain State Financial Group, LLC</FullName>
+                </LEGAL_ENTITY_DETAIL>
+              </LEGAL_ENTITY>
+              <ADDRESSES>
+                <ADDRESS>
+                  <AddressLineText>9035 Wadsworth Pkwy, Ste 3400</AddressLineText>
+                  <CityName>Westminster</CityName>
+                  <CountryCode>US</CountryCode>
+                  <PostalCode>80021</PostalCode>
+                  <StateCode>CO</StateCode>
+                </ADDRESS>
+              </ADDRESSES>
+              <ROLES>
+                <ROLE xlink:label="PARTY4_ROLE1">
+                  <LOAN_ORIGINATOR>
+                    <LoanOriginatorType>Broker</LoanOriginatorType>
+                  </LOAN_ORIGINATOR>
+                  <LICENSES>
+                    <LICENSE>
+                      <LICENSE_DETAIL>
+                        <LicenseAuthorityLevelType>PublicFederal</LicenseAuthorityLevelType>
+                        <LicenseIdentifier>1314257</LicenseIdentifier>
+                        <LicenseIssuingAuthorityName>NationwideMortgageLicensingSystemAndRegistry</LicenseIssuingAuthorityName>
+                      </LICENSE_DETAIL>
+                    </LICENSE>
+                    <LICENSE>
+                      <LICENSE_DETAIL>
+                        <LicenseAuthorityLevelType>PublicState</LicenseAuthorityLevelType>
+                        <LicenseIdentifier>None</LicenseIdentifier>
+                        <LicenseIssuingAuthorityStateCode>CO</LicenseIssuingAuthorityStateCode>
+                      </LICENSE_DETAIL>
+                    </LICENSE>
+                  </LICENSES>
+                  <ROLE_DETAIL>
+                    <PartyRoleType>LoanOriginationCompany</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+            <PARTY SequenceNumber="5">
+              <INDIVIDUAL>
+                <CONTACT_POINTS>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_TELEPHONE>
+                      <ContactPointTelephoneValue>3038102875</ContactPointTelephoneValue>
+                    </CONTACT_POINT_TELEPHONE>
+                    <CONTACT_POINT_DETAIL>
+                      <ContactPointRoleType>Mobile</ContactPointRoleType>
+                    </CONTACT_POINT_DETAIL>
+                  </CONTACT_POINT>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_EMAIL>
+                      <ContactPointEmailValue>joshua.sourial@msfg.us</ContactPointEmailValue>
+                    </CONTACT_POINT_EMAIL>
+                    <CONTACT_POINT_DETAIL />
+                  </CONTACT_POINT>
+                </CONTACT_POINTS>
+                <NAME>
+                  <FirstName>Josh</FirstName>
+                  <FullName>Josh Sourial</FullName>
+                  <LastName>Sourial</LastName>
+                </NAME>
+              </INDIVIDUAL>
+              <ADDRESSES>
+                <ADDRESS>
+                  <AddressLineText>9035 Wadsworth Pkwy, Ste 3400</AddressLineText>
+                  <CityName>Westminster</CityName>
+                  <CountryCode>US</CountryCode>
+                  <PostalCode>80021</PostalCode>
+                  <StateCode>CO</StateCode>
+                </ADDRESS>
+              </ADDRESSES>
+              <ROLES>
+                <ROLE xlink:label="PARTY5_ROLE1">
+                  <LOAN_ORIGINATOR>
+                    <LoanOriginatorType>Broker</LoanOriginatorType>
+                  </LOAN_ORIGINATOR>
+                  <LICENSES>
+                    <LICENSE>
+                      <LICENSE_DETAIL>
+                        <LicenseAuthorityLevelType>PublicFederal</LicenseAuthorityLevelType>
+                        <LicenseIdentifier>853931</LicenseIdentifier>
+                        <LicenseIssuingAuthorityName>NationwideMortgageLicensingSystemAndRegistry</LicenseIssuingAuthorityName>
+                      </LICENSE_DETAIL>
+                    </LICENSE>
+                    <LICENSE>
+                      <LICENSE_DETAIL>
+                        <LicenseAuthorityLevelType>PublicState</LicenseAuthorityLevelType>
+                        <LicenseIdentifier>100512217</LicenseIdentifier>
+                        <LicenseIssuingAuthorityStateCode>CO</LicenseIssuingAuthorityStateCode>
+                      </LICENSE_DETAIL>
+                    </LICENSE>
+                  </LICENSES>
+                  <ROLE_DETAIL>
+                    <PartyRoleType>LoanOriginator</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+            <PARTY SequenceNumber="6">
+              <LEGAL_ENTITY>
+                <CONTACTS>
+                  <CONTACT>
+                    <CONTACT_POINTS>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_TELEPHONE>
+                          <ContactPointTelephoneValue>3033240098</ContactPointTelephoneValue>
+                        </CONTACT_POINT_TELEPHONE>
+                        <CONTACT_POINT_DETAIL>
+                          <ContactPointRoleType>Work</ContactPointRoleType>
+                        </CONTACT_POINT_DETAIL>
+                      </CONTACT_POINT>
+                    </CONTACT_POINTS>
+                    <NAME>
+                      <FullName>Ralph C Hartwig</FullName>
+                    </NAME>
+                  </CONTACT>
+                </CONTACTS>
+                <LEGAL_ENTITY_DETAIL>
+                  <FullName>Keystone Funding, Inc.</FullName>
+                </LEGAL_ENTITY_DETAIL>
+              </LEGAL_ENTITY>
+              <ADDRESSES>
+                <ADDRESS>
+                  <AddressLineText>519 South Red Haven Lane</AddressLineText>
+                  <CityName>Dover</CityName>
+                  <CountryCode>US</CountryCode>
+                  <PostalCode>19901</PostalCode>
+                  <StateCode>DE</StateCode>
+                </ADDRESS>
+              </ADDRESSES>
+              <ROLES>
+                <ROLE xlink:label="PARTY6_ROLE1">
+                  <LICENSES />
+                  <ROLE_DETAIL>
+                    <PartyRoleType>Lender</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+            <PARTY SequenceNumber="7">
+              <INDIVIDUAL>
+                <CONTACT_POINTS>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_TELEPHONE>
+                      <ContactPointTelephoneValue>3033240098</ContactPointTelephoneValue>
+                    </CONTACT_POINT_TELEPHONE>
+                    <CONTACT_POINT_DETAIL>
+                      <ContactPointRoleType>Work</ContactPointRoleType>
+                    </CONTACT_POINT_DETAIL>
+                  </CONTACT_POINT>
+                </CONTACT_POINTS>
+                <NAME>
+                  <FirstName>Ralph C</FirstName>
+                  <FullName>Ralph C Hartwig</FullName>
+                  <LastName>Hartwig</LastName>
+                </NAME>
+              </INDIVIDUAL>
+              <ADDRESSES>
+                <ADDRESS>
+                  <AddressLineText>519 South Red Haven Lane</AddressLineText>
+                  <CityName>Dover</CityName>
+                  <CountryCode>US</CountryCode>
+                  <PostalCode>19901</PostalCode>
+                  <StateCode>DE</StateCode>
+                </ADDRESS>
+              </ADDRESSES>
+              <ROLES>
+                <ROLE xlink:label="PARTY7_ROLE1">
+                  <LICENSES />
+                  <ROLE_DETAIL>
+                    <PartyRoleType>AuthorizedRepresentative</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+            <PARTY SequenceNumber="8">
+              <LEGAL_ENTITY>
+                <CONTACTS>
+                  <CONTACT>
+                    <CONTACT_POINTS>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_TELEPHONE>
+                          <ContactPointTelephoneValue>3033240098</ContactPointTelephoneValue>
+                        </CONTACT_POINT_TELEPHONE>
+                        <CONTACT_POINT_DETAIL>
+                          <ContactPointRoleType>Work</ContactPointRoleType>
+                        </CONTACT_POINT_DETAIL>
+                      </CONTACT_POINT>
+                    </CONTACT_POINTS>
+                    <NAME>
+                      <FullName>Ralph C Hartwig</FullName>
+                    </NAME>
+                  </CONTACT>
+                </CONTACTS>
+                <LEGAL_ENTITY_DETAIL>
+                  <FullName>Keystone Funding, Inc.</FullName>
+                </LEGAL_ENTITY_DETAIL>
+              </LEGAL_ENTITY>
+              <ADDRESSES>
+                <ADDRESS>
+                  <AddressLineText>519 South Red Haven Lane</AddressLineText>
+                  <CityName>Dover</CityName>
+                  <CountryCode>US</CountryCode>
+                  <PostalCode>19901</PostalCode>
+                  <StateCode>DE</StateCode>
+                </ADDRESS>
+              </ADDRESSES>
+              <ROLES>
+                <ROLE xlink:label="PARTY8_ROLE1">
+                  <LICENSES />
+                  <ROLE_DETAIL>
+                    <PartyRoleType>LenderBranch</PartyRoleType>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+            <PARTY SequenceNumber="9">
+              <LEGAL_ENTITY>
+                <CONTACTS>
+                  <CONTACT>
+                    <CONTACT_POINTS>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_TELEPHONE>
+                          <ContactPointTelephoneValue>3036707993</ContactPointTelephoneValue>
+                        </CONTACT_POINT_TELEPHONE>
+                        <CONTACT_POINT_DETAIL>
+                          <ContactPointRoleType>Work</ContactPointRoleType>
+                        </CONTACT_POINT_DETAIL>
+                      </CONTACT_POINT>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_TELEPHONE>
+                          <ContactPointTelephoneValue>8006707993</ContactPointTelephoneValue>
+                        </CONTACT_POINT_TELEPHONE>
+                        <CONTACT_POINT_DETAIL>
+                          <ContactPointRoleType>Work</ContactPointRoleType>
+                        </CONTACT_POINT_DETAIL>
+                      </CONTACT_POINT>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_TELEPHONE>
+                          <ContactPointFaxValue>8006708067</ContactPointFaxValue>
+                        </CONTACT_POINT_TELEPHONE>
+                        <CONTACT_POINT_DETAIL />
+                      </CONTACT_POINT>
+                      <CONTACT_POINT>
+                        <CONTACT_POINT_EMAIL>
+                          <ContactPointEmailValue>tracy@advcredit.com</ContactPointEmailValue>
+                        </CONTACT_POINT_EMAIL>
+                        <CONTACT_POINT_DETAIL />
+                      </CONTACT_POINT>
+                    </CONTACT_POINTS>
+                    <NAME>
+                      <FullName>Advantage Credit</FullName>
+                    </NAME>
+                  </CONTACT>
+                </CONTACTS>
+                <LEGAL_ENTITY_DETAIL>
+                  <FullName>Advantage Credit Inc</FullName>
+                </LEGAL_ENTITY_DETAIL>
+              </LEGAL_ENTITY>
+              <ADDRESSES>
+                <ADDRESS>
+                  <AddressLineText>32065 Castle Court, Suite 300</AddressLineText>
+                  <CityName>Evergreen</CityName>
+                  <CountryCode>US</CountryCode>
+                  <PostalCode>80439</PostalCode>
+                  <StateCode>CO</StateCode>
+                </ADDRESS>
+              </ADDRESSES>
+              <ROLES>
+                <ROLE xlink:label="PARTY9_ROLE1">
+                  <LICENSES>
+                    <LICENSE>
+                      <LICENSE_DETAIL>
+                        <LicenseAuthorityLevelType>PublicState</LicenseAuthorityLevelType>
+                        <LicenseIdentifier>
+                        </LicenseIdentifier>
+                        <LicenseIssuingAuthorityStateCode>CO</LicenseIssuingAuthorityStateCode>
+                      </LICENSE_DETAIL>
+                    </LICENSE>
+                  </LICENSES>
+                  <ROLE_DETAIL>
+                    <PartyRoleType>Other</PartyRoleType>
+                    <PartyRoleTypeOtherDescription>Credit Report Vendor</PartyRoleTypeOtherDescription>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+            <PARTY SequenceNumber="10">
+              <INDIVIDUAL>
+                <CONTACT_POINTS>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_TELEPHONE>
+                      <ContactPointTelephoneValue>3036707993</ContactPointTelephoneValue>
+                    </CONTACT_POINT_TELEPHONE>
+                    <CONTACT_POINT_DETAIL>
+                      <ContactPointRoleType>Work</ContactPointRoleType>
+                    </CONTACT_POINT_DETAIL>
+                  </CONTACT_POINT>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_TELEPHONE>
+                      <ContactPointTelephoneValue>8006707993</ContactPointTelephoneValue>
+                    </CONTACT_POINT_TELEPHONE>
+                    <CONTACT_POINT_DETAIL>
+                      <ContactPointRoleType>Work</ContactPointRoleType>
+                    </CONTACT_POINT_DETAIL>
+                  </CONTACT_POINT>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_TELEPHONE>
+                      <ContactPointFaxValue>8006708067</ContactPointFaxValue>
+                    </CONTACT_POINT_TELEPHONE>
+                    <CONTACT_POINT_DETAIL />
+                  </CONTACT_POINT>
+                  <CONTACT_POINT>
+                    <CONTACT_POINT_EMAIL>
+                      <ContactPointEmailValue>tracy@advcredit.com</ContactPointEmailValue>
+                    </CONTACT_POINT_EMAIL>
+                    <CONTACT_POINT_DETAIL />
+                  </CONTACT_POINT>
+                </CONTACT_POINTS>
+                <NAME>
+                  <FirstName>Advantage</FirstName>
+                  <FullName>Advantage Credit</FullName>
+                  <LastName>Credit</LastName>
+                </NAME>
+              </INDIVIDUAL>
+              <ADDRESSES>
+                <ADDRESS>
+                  <AddressLineText>32065 Castle Court, Suite 300</AddressLineText>
+                  <CityName>Evergreen</CityName>
+                  <CountryCode>US</CountryCode>
+                  <PostalCode>80439</PostalCode>
+                  <StateCode>CO</StateCode>
+                </ADDRESS>
+              </ADDRESSES>
+              <ROLES>
+                <ROLE xlink:label="PARTY10_ROLE1">
+                  <LICENSES />
+                  <ROLE_DETAIL>
+                    <PartyRoleType>Other</PartyRoleType>
+                    <PartyRoleTypeOtherDescription>Credit Report Vendor</PartyRoleTypeOtherDescription>
+                  </ROLE_DETAIL>
+                </ROLE>
+              </ROLES>
+            </PARTY>
+          </PARTIES>
+          <RELATIONSHIPS>
+            <RELATIONSHIP SequenceNumber="1" xlink:arcrole="urn:fdc:mismo.org:2009:residential/ASSET_IsAssociatedWith_LIABILITY" xlink:from="ASSET_2" xlink:to="LIABILITY_1" />
+            <RELATIONSHIP SequenceNumber="2" xlink:arcrole="urn:fdc:mismo.org:2009:residential/ASSET_IsAssociatedWith_ROLE" xlink:from="ASSET_1" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="3" xlink:arcrole="urn:fdc:mismo.org:2009:residential/ASSET_IsAssociatedWith_ROLE" xlink:from="ASSET_2" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="4" xlink:arcrole="urn:fdc:mismo.org:2009:residential/CURRENT_INCOME_ITEM_IsAssociatedWith_EMPLOYER" xlink:from="CURRENT_INCOME_ITEM_1" xlink:to="EMPLOYER_1" />
+            <RELATIONSHIP SequenceNumber="5" xlink:arcrole="urn:fdc:mismo.org:2009:residential/CURRENT_INCOME_ITEM_IsAssociatedWith_EMPLOYER" xlink:from="CURRENT_INCOME_ITEM_2" xlink:to="EMPLOYER_3" />
+            <RELATIONSHIP SequenceNumber="6" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_1" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="7" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_2" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="8" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_3" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="9" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_4" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="10" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_5" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="11" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_6" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="12" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_7" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="13" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_8" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="14" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_9" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="15" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_10" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="16" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_11" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="17" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_12" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="18" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_13" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="19" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_14" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="20" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_15" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="21" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_16" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="22" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_17" xlink:to="BORROWER_1" />
+            <RELATIONSHIP SequenceNumber="23" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_18" xlink:to="BORROWER_2" />
+            <RELATIONSHIP SequenceNumber="24" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_19" xlink:to="BORROWER_2" />
+            <RELATIONSHIP SequenceNumber="25" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_20" xlink:to="BORROWER_2" />
+            <RELATIONSHIP SequenceNumber="26" xlink:arcrole="urn:fdc:mismo.org:2009:residential/LIABILITY_IsAssociatedWith_ROLE" xlink:from="LIABILITY_21" xlink:to="BORROWER_2" />
+            <RELATIONSHIP SequenceNumber="27" xlink:arcrole="urn:fdc:mismo.org:2009:residential/ROLE_IsEmployedBy_ROLE" xlink:from="PARTY5_ROLE1" xlink:to="PARTY4_ROLE1" />
+            <RELATIONSHIP SequenceNumber="28" xlink:arcrole="urn:fdc:mismo.org:2009:residential/ROLE_IsEmployedBy_ROLE" xlink:from="PARTY7_ROLE1" xlink:to="PARTY6_ROLE1" />
+            <RELATIONSHIP SequenceNumber="29" xlink:arcrole="urn:fdc:mismo.org:2009:residential/ROLE_IsEmployedBy_ROLE" xlink:from="PARTY10_ROLE1" xlink:to="PARTY9_ROLE1" />
+            <RELATIONSHIP SequenceNumber="30" xlink:arcrole="urn:fdc:mismo.org:2009:residential/ROLE_SharesJointCreditReportWith_ROLE" xlink:from="BORROWER_2" xlink:to="BORROWER_1" />
+          </RELATIONSHIPS>
+        </DEAL>
+      </DEALS>
+    </DEAL_SET>
+  </DEAL_SETS>
+</MESSAGE>

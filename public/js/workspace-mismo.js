@@ -100,8 +100,8 @@
     const metaEl = document.getElementById('mismoMeta');
 
     dropZone.classList.add('has-data');
-    inner.style.display = 'none';
-    active.style.display = 'flex';
+    inner.classList.add('u-hidden');
+    active.classList.remove('u-hidden');
     borrowerEl.textContent = data.borrowerName || 'Borrower';
 
     const parts = [];
@@ -124,8 +124,8 @@
     const active = document.getElementById('mismoActive');
 
     dropZone.classList.remove('has-data');
-    inner.style.display = 'flex';
-    active.style.display = 'none';
+    inner.classList.remove('u-hidden');
+    active.classList.add('u-hidden');
 
     MSFG.WS.showToast('MISMO data cleared', 'success');
   }

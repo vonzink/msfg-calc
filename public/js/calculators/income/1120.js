@@ -84,7 +84,7 @@ function calculate() {
   // Show/hide ownership warning
   var warningEl = document.getElementById('ownershipWarning');
   if (warningEl) {
-    warningEl.style.display = ownership < 1 ? 'block' : 'none';
+    warningEl.classList.toggle('u-hidden', ownership >= 1);
   }
 
   // Sum add-back items

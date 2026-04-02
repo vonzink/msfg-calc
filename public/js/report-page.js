@@ -202,14 +202,14 @@
       itemsContainer.innerHTML = '';
 
       if (items.length === 0) {
-        emptyState.style.display = '';
-        actionsBar.style.display = 'none';
+        emptyState.classList.remove('u-hidden');
+        actionsBar.classList.add('u-hidden');
         countEl.textContent = '';
         return;
       }
 
-      emptyState.style.display = 'none';
-      actionsBar.style.display = 'flex';
+      emptyState.classList.add('u-hidden');
+      actionsBar.classList.remove('u-hidden');
       countEl.textContent = '(' + items.length + ' item' + (items.length !== 1 ? 's' : '') + ')';
 
       var incomeItems = [];

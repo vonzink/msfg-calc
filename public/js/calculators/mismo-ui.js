@@ -140,7 +140,7 @@
     });
 
     container.innerHTML = html;
-    container.style.display = '';
+    container.classList.remove('u-hidden');
   }
 
   /* ---- Income Stability Risk Score ---- */
@@ -354,7 +354,7 @@
     });
 
     container.innerHTML = html;
-    container.style.display = '';
+    container.classList.remove('u-hidden');
   }
 
   /* ---- Underwriter Attention Flags ---- */
@@ -623,7 +623,7 @@
     if (flags.length === 0) {
       container.innerHTML = '<h3>Underwriter Attention Flags <span class="mismo-info-label">Informational</span></h3>' +
                             '<p style="color:var(--text-muted,#999);font-style:italic;font-size:0.85rem">No attention flags detected.</p>';
-      container.style.display = '';
+      container.classList.remove('u-hidden');
       return;
     }
 
@@ -656,7 +656,7 @@
     });
 
     container.innerHTML = html;
-    container.style.display = '';
+    container.classList.remove('u-hidden');
   }
 
   function renderFlagCard(flag) {

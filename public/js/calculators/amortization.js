@@ -224,8 +224,8 @@ const AmortCalc = (() => {
     // Extra payments section toggle
     dom.extraPaymentToggle.addEventListener('click', () => {
       const section = dom.extraPaymentSection;
-      const isOpen = section.style.display !== 'none';
-      section.style.display = isOpen ? 'none' : '';
+      const isOpen = !section.classList.contains('u-hidden');
+      section.classList.toggle('u-hidden', isOpen);
       dom.extraPaymentToggle.classList.toggle('open', !isOpen);
     });
 
@@ -307,8 +307,8 @@ const AmortCalc = (() => {
         updateRefiSliderFill();
         updateRefiEquityDisplay();
       }
-      dom.purchaseFields.style.display = 'none';
-      dom.refiFields.style.display = '';
+      dom.purchaseFields.classList.add('u-hidden');
+      dom.refiFields.classList.remove('u-hidden');
     } else {
       // Carry values: Refi → Purchase
       if (prevMode === 'refinance') {
@@ -322,8 +322,8 @@ const AmortCalc = (() => {
         updateSliderFill();
         updateLoanAmountDisplay();
       }
-      dom.purchaseFields.style.display = '';
-      dom.refiFields.style.display = 'none';
+      dom.purchaseFields.classList.remove('u-hidden');
+      dom.refiFields.classList.add('u-hidden');
     }
 
     updateLTVDisplay();
@@ -596,15 +596,15 @@ const AmortCalc = (() => {
   };
 
   const hideResults = () => {
-    dom.resultsSection.style.display = 'none';
-    dom.chartSection.style.display = 'none';
-    dom.scheduleSection.style.display = 'none';
+    dom.resultsSection.classList.add('u-hidden');
+    dom.chartSection.classList.add('u-hidden');
+    dom.scheduleSection.classList.add('u-hidden');
   };
 
   const showResults = () => {
-    dom.resultsSection.style.display = '';
-    dom.chartSection.style.display = '';
-    dom.scheduleSection.style.display = '';
+    dom.resultsSection.classList.remove('u-hidden');
+    dom.chartSection.classList.remove('u-hidden');
+    dom.scheduleSection.classList.remove('u-hidden');
   };
 
   /* ---------- Update Results ---------- */
@@ -665,9 +665,9 @@ const AmortCalc = (() => {
       if (yearsSaved > 0) timeStr += `${yearsSaved} yr`;
       if (remainMonths > 0) timeStr += `${yearsSaved > 0 ? ' ' : ''}${remainMonths} mo`;
       dom.resultTimeSaved.textContent = timeStr || '--';
-      dom.extraSavingsRow.style.display = '';
+      dom.extraSavingsRow.classList.remove('u-hidden');
     } else {
-      dom.extraSavingsRow.style.display = 'none';
+      dom.extraSavingsRow.classList.add('u-hidden');
     }
   };
 
@@ -825,7 +825,7 @@ const AmortCalc = (() => {
         const tr = document.createElement('tr');
         tr.className = 'amort-month-row';
         tr.dataset.year = yearNum;
-        tr.style.display = 'none';
+        tr.classList.add('u-hidden');
         tr.innerHTML =
           `<td>${row.paymentNum}</td>` +
           `<td>${row.date}</td>` +
@@ -842,10 +842,10 @@ const AmortCalc = (() => {
   const toggleYearRows = (yearNum) => {
     const monthRows = dom.scheduleBody.querySelectorAll(`.amort-month-row[data-year="${yearNum}"]`);
     const yearHeader = dom.scheduleBody.querySelector(`.amort-year-header[data-year="${yearNum}"]`);
-    const isOpen = monthRows[0] && monthRows[0].style.display !== 'none';
+    const isOpen = monthRows[0] && !monthRows[0].classList.contains('u-hidden');
 
     monthRows.forEach(row => {
-      row.style.display = isOpen ? 'none' : '';
+      row.classList.toggle('u-hidden', isOpen);
     });
     yearHeader.classList.toggle('open', !isOpen);
   };

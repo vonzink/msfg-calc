@@ -207,7 +207,7 @@
     html += '</div>';
 
     letterEl.innerHTML = html;
-    resultsEl.style.display = '';
+    resultsEl.classList.remove('u-hidden');
     resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -218,7 +218,7 @@
       inputs[i].value = '';
     }
     el('laBody').value = DEFAULT_BODY;
-    el('laResults').style.display = 'none';
+    el('laResults').classList.add('u-hidden');
     // Uncheck all attachment checkboxes
     var checks = document.querySelectorAll('#laAttachList input[type="checkbox"]');
     for (var j = 0; j < checks.length; j++) {

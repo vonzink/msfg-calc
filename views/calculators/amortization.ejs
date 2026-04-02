@@ -54,7 +54,7 @@
       </div>
 
       <!-- ===== Refinance Fields ===== -->
-      <div id="refiFields" style="display: none;">
+      <div id="refiFields" class="u-hidden">
         <!-- Loan Amount with Range Slider (master) -->
         <div class="form-group u-mb-md">
           <label for="refiLoanAmount">Loan Amount</label>
@@ -169,7 +169,7 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
       </h2>
-      <div id="extraPaymentSection" style="display: none;">
+      <div id="extraPaymentSection" class="u-hidden">
         <div class="form-grid u-grid-2col">
           <div class="form-group">
             <label for="extraPayment">Extra Payment Amount ($)</label>
@@ -197,7 +197,7 @@
     </div>
 
     <!-- ===== 4. Results Summary ===== -->
-    <div class="calc-section" id="resultsSection" style="display: none;">
+    <div class="calc-section u-hidden" id="resultsSection">
       <h2><span class="section-number">4</span> Results</h2>
 
       <div class="result-highlight">
@@ -234,7 +234,7 @@
       </div>
 
       <!-- Extra payment savings (shown only when extras apply) -->
-      <div id="extraSavingsRow" class="amort-savings-row" style="display: none;">
+      <div id="extraSavingsRow" class="amort-savings-row u-hidden">
         <div class="amort-savings-item">
           <span class="amort-savings-label">Interest Saved</span>
           <span class="amort-savings-value success" id="resultInterestSaved">$0</span>
@@ -247,7 +247,7 @@
     </div>
 
     <!-- ===== 5. Amortization Chart ===== -->
-    <div class="calc-section" id="chartSection" style="display: none;">
+    <div class="calc-section u-hidden" id="chartSection">
       <h2><span class="section-number">5</span> Amortization Chart</h2>
       <div class="amort-chart-wrap">
         <canvas id="amortChart"></canvas>
@@ -255,7 +255,7 @@
     </div>
 
     <!-- ===== 6. Amortization Schedule ===== -->
-    <div class="calc-section" id="scheduleSection" style="display: none;">
+    <div class="calc-section u-hidden" id="scheduleSection">
       <h2><span class="section-number">6</span> Amortization Schedule</h2>
       <%- include('../partials/calc-actions') %>
       <div class="amort-schedule-wrap">

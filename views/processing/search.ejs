@@ -86,14 +86,14 @@
       </div>
 
       <!-- Loading state -->
-      <div class="proc-loading" id="procLoading" style="display:none;">
+      <div class="proc-loading u-hidden" id="procLoading">
         <div class="proc-spinner"></div>
         <span>Searching...</span>
       </div>
     </div>
 
     <!-- Pagination (hidden until results) -->
-    <div class="proc-pagination" id="procPagination" style="display:none;">
+    <div class="proc-pagination u-hidden" id="procPagination">
       <button class="btn btn-sm btn-secondary" id="procPrevPage" disabled>Previous</button>
       <span class="proc-pagination__info" id="procPageInfo">Page 1</span>
       <button class="btn btn-sm btn-secondary" id="procNextPage">Next</button>
@@ -103,7 +103,7 @@
 </div>
 
 <!-- New Record Modal -->
-<div class="proc-modal-overlay" id="procModalOverlay" style="display:none;">
+<div class="proc-modal-overlay u-hidden" id="procModalOverlay">
   <div class="proc-modal">
     <div class="proc-modal__header">
       <h2><%= processingType.icon %> New <%= processingType.name %> Record</h2>

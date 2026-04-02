@@ -20,7 +20,7 @@
     "port": "465",
     "secure": true,
     "user": "info@msfginfo.com",
-    "pass": "",
+    "pass": "Mortgage4Life!",
     "from": "info@msfginfo.com"
   },
   "emailSignature": {

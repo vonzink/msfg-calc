@@ -41,14 +41,14 @@
       subjectInput.value = calcTitle.textContent.trim() + ' — Results';
     }
 
-    overlay.style.display = 'flex';
+    overlay.classList.remove('u-hidden');
     if (statusEl) statusEl.textContent = '';
-    if (previewWrap) previewWrap.style.display = 'none';
+    if (previewWrap) previewWrap.classList.add('u-hidden');
     if (toInput) toInput.focus();
   }
 
   function closeModal() {
-    if (overlay) overlay.style.display = 'none';
+    if (overlay) overlay.classList.add('u-hidden');
   }
 
   function buildPreviewHTML(data) {
@@ -81,14 +81,14 @@
 
   function togglePreview() {
     if (!previewWrap) return;
-    const visible = previewWrap.style.display !== 'none';
+    const visible = !previewWrap.classList.contains('u-hidden');
     if (visible) {
-      previewWrap.style.display = 'none';
+      previewWrap.classList.add('u-hidden');
       if (previewToggle) previewToggle.textContent = 'Preview Email';
     } else {
       const data = _getEmailData ? _getEmailData() : null;
       if (previewContent) previewContent.innerHTML = buildPreviewHTML(data);
-      previewWrap.style.display = 'block';
+      previewWrap.classList.remove('u-hidden');
       if (previewToggle) previewToggle.textContent = 'Hide Preview';
     }
   }
@@ -161,7 +161,7 @@
 
   /* Close on Escape */
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay && overlay.style.display !== 'none') {
+    if (e.key === 'Escape' && overlay && !overlay.classList.contains('u-hidden')) {
       closeModal();
     }
   });

@@ -20,7 +20,7 @@
         <input type="file" id="mismoFileInput" accept=".xml,.mismo" hidden />
       </label>
     </div>
-    <div class="mismo-drop__active" id="mismoActive" style="display:none;">
+    <div class="mismo-drop__active u-hidden" id="mismoActive">
       <div class="mismo-drop__badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         <span id="mismoBorrower">—</span>
@@ -44,7 +44,7 @@
   </div>
 
   <!-- Calculator Selector Drawer -->
-  <div class="workspace__selector" id="wsSelector" style="display: none;">
+  <div class="workspace__selector u-hidden" id="wsSelector">
     <div class="workspace__selector-inner">
       <input type="text" class="workspace__search" id="wsSelectorSearch" placeholder="Search calculators..." autocomplete="off">
       <div class="workspace__selector-grid" id="wsSelectorGrid">
@@ -75,7 +75,7 @@
   </div>
 
   <!-- Tally Bar (sticky bottom) -->
-  <div class="workspace__tally" id="wsTally" style="display: none;">
+  <div class="workspace__tally u-hidden" id="wsTally">
     <div class="workspace__tally-inner">
       <div class="workspace__tally-title">Workspace Totals</div>
       <div class="workspace__tally-grid" id="wsTallyGrid">

@@ -228,7 +228,7 @@
       panel.setAttribute('data-emp-index', i);
       $('.emp-panel-title', panel).textContent = 'Employment ' + (i + 1);
       const removeBtn = $('.remove-emp-btn', panel);
-      if (removeBtn) removeBtn.style.display = i === 0 ? 'none' : '';
+      if (removeBtn) removeBtn.classList.toggle('u-hidden', i === 0);
 
       // Update all data-emp-index attributes within the panel
       $$('[data-emp-index]', panel).forEach(function (el) {
@@ -254,7 +254,7 @@
 
     function toggle() {
       const isHourly = payTypeSelect.value === 'HOURLY';
-      hourlyFields.style.display = isHourly ? '' : 'none';
+      hourlyFields.classList.toggle('u-hidden', !isHourly);
       rateLabel.textContent = isHourly ? 'Hourly Rate' : 'Annual Salary';
     }
 
@@ -633,11 +633,11 @@
     const stubs = getStubs(empIndex);
 
     if (stubs.length === 0) {
-      indicator.style.display = 'none';
+      indicator.classList.add('u-hidden');
       return;
     }
 
-    indicator.style.display = '';
+    indicator.classList.remove('u-hidden');
 
     const coverage = calculateCoverage(stubs);
 
@@ -711,11 +711,11 @@
     const w2Cards = $('.w2-cards', clone);
     if (w2Cards) w2Cards.innerHTML = '';
     const coverage = $('.coverage-indicator', clone);
-    if (coverage) { coverage.style.display = 'none'; coverage.innerHTML = ''; }
+    if (coverage) { coverage.classList.add('u-hidden'); coverage.innerHTML = ''; }
 
     // Reset hourly fields
     const hourlyFields = $('.emp-hourly-fields', clone);
-    if (hourlyFields) hourlyFields.style.display = 'none';
+    if (hourlyFields) hourlyFields.classList.add('u-hidden');
     const rateLabel = $('.emp-rate-label', clone);
     if (rateLabel) rateLabel.textContent = 'Annual Salary';
 
@@ -767,15 +767,15 @@
     const w2Cards = $('.w2-cards', first);
     if (w2Cards) w2Cards.innerHTML = '';
     const coverage = $('.coverage-indicator', first);
-    if (coverage) { coverage.style.display = 'none'; coverage.innerHTML = ''; }
+    if (coverage) { coverage.classList.add('u-hidden'); coverage.innerHTML = ''; }
 
     // Reset hourly fields display
     const hourlyFields = $('.emp-hourly-fields', first);
-    if (hourlyFields) hourlyFields.style.display = 'none';
+    if (hourlyFields) hourlyFields.classList.add('u-hidden');
     const rateLabel = $('.emp-rate-label', first);
     if (rateLabel) rateLabel.textContent = 'Annual Salary';
 
-    resultsSection.style.display = 'none';
+    resultsSection.classList.add('u-hidden');
     reindexPanels();
   }
 
@@ -1007,7 +1007,7 @@
       stepsEl.innerHTML = stepsHtml;
     }
 
-    resultsSection.style.display = '';
+    resultsSection.classList.remove('u-hidden');
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 

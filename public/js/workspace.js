@@ -44,7 +44,7 @@
 
     // Toggle selector
     document.getElementById('wsToggleSelector').addEventListener('click', () => {
-      selectorDrawer.style.display = selectorDrawer.style.display === 'none' ? 'block' : 'none';
+      selectorDrawer.classList.toggle('u-hidden');
     });
 
     // Selector search
@@ -263,8 +263,8 @@
   function updateState() {
     const count = activePanels.length;
     countBadge.textContent = count + ' active';
-    emptyState.style.display = count === 0 ? 'block' : 'none';
-    tallyBar.style.display = count > 0 ? 'block' : 'none';
+    emptyState.classList.toggle('u-hidden', count !== 0);
+    tallyBar.classList.toggle('u-hidden', count === 0);
     savePanels();
     updateTally();
   }

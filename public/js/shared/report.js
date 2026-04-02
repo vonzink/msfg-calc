@@ -324,7 +324,7 @@
       if (!badge) return;
       dbCount().then(function(count) {
         badge.textContent = count;
-        badge.style.display = count > 0 ? 'flex' : 'none';
+        badge.classList.toggle('u-hidden', count === 0);
       });
     },
 

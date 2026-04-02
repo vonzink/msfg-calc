@@ -255,7 +255,7 @@
 
     state.loanPurpose = 'Purchase';
     el('ltLoanPurpose').value = 'Purchase';
-    el('ltLoanInfo').style.display = 'none';
+    el('ltLoanInfo').classList.add('u-hidden');
     const dropZone = el('ltMismoDrop');
     dropZone.classList.remove('loaded');
     dropZone.innerHTML = 'Drop a MISMO XML file here to auto-populate dates, or <strong>click to browse</strong>';
@@ -350,12 +350,12 @@
       popupDate.value = dateStr || '';
       popupLabel.value = '';
       popupCategory.value = 'milestone';
-      overlay.style.display = 'flex';
+      overlay.classList.remove('u-hidden');
       setTimeout(() => popupLabel.focus(), 50);
     }
 
     function closePopup() {
-      overlay.style.display = 'none';
+      overlay.classList.add('u-hidden');
     }
 
     function addFromPopup() {
@@ -592,7 +592,7 @@
     }
 
     // Show loan info bar
-    el('ltLoanInfo').style.display = 'flex';
+    el('ltLoanInfo').classList.remove('u-hidden');
     state.mismoLoaded = true;
 
     // Derive funding and center calendar
@@ -970,7 +970,7 @@
       // Restore loan info bar
       if (data.mismoLoaded) {
         state.mismoLoaded = true;
-        el('ltLoanInfo').style.display = 'flex';
+        el('ltLoanInfo').classList.remove('u-hidden');
         if (data.loanInfo) {
           if (data.loanInfo.borrower && data.loanInfo.borrower !== '--') el('ltBorrower').textContent = data.loanInfo.borrower;
           if (data.loanInfo.fileNum && data.loanInfo.fileNum !== '--') el('ltFileNum').textContent = data.loanInfo.fileNum;

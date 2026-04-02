@@ -4,7 +4,7 @@
    ===================================================== */
 
 /* ---- Utility classes ---- */
-.u-hidden         { display: none; }
+.u-hidden         { display: none !important; }
 .u-grid-2col      { grid-template-columns: 1fr 1fr; }
 .u-grid-3col      { grid-template-columns: repeat(3, 1fr); }
 .u-grid-4col      { grid-template-columns: repeat(4, 1fr); }

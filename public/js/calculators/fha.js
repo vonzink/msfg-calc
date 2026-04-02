@@ -386,7 +386,7 @@ const FhaCalc = (() => {
      Render Comparison Results
      =========================================================== */
   function renderComparison(purchase, refi, streamline, notes) {
-    el('fhaResultsSection').style.display = '';
+    el('fhaResultsSection').classList.remove('u-hidden');
 
     // Column visibility
     const showPurch = !!purchase;
@@ -836,7 +836,7 @@ const FhaCalc = (() => {
 
     // Refi type dropdown triggers recalc
     el('fhaRefiTypeSelect').addEventListener('change', () => {
-      if (el('fhaResultsSection').style.display !== 'none') calculateAll();
+      if (!el('fhaResultsSection').classList.contains('u-hidden')) calculateAll();
     });
 
     // Seasoning validation on date changes

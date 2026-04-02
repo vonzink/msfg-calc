@@ -66,7 +66,7 @@
     document.getElementById('totalUpfrontCosts').textContent = fmt(totalUpfront);
     document.getElementById('monthlyFeeCost').textContent = fmt(monthlyFee) + '/mo';
 
-    document.getElementById('aprWarning').style.display = aprSpread > 0.5 ? 'block' : 'none';
+    document.getElementById('aprWarning').classList.toggle('u-hidden', aprSpread <= 0.5);
 
     updateMathSteps(s, principal, monthlyPmt, pointsAmt, amtFinanced, n, totalPmts, finChg, apr);
     updateURL(s);
@@ -116,8 +116,8 @@
   function toggleFeeBreakdown(type) {
     const el = document.getElementById(type + 'FeeBreakdown');
     const txt = document.getElementById(type + 'ToggleText');
-    if (el.style.display === 'none') { el.style.display = 'block'; txt.textContent = 'Hide Fee Breakdown'; }
-    else { el.style.display = 'none'; txt.textContent = 'Show Fee Breakdown'; }
+    const isHidden = el.classList.toggle('u-hidden');
+    txt.textContent = isHidden ? 'Show Fee Breakdown' : 'Hide Fee Breakdown';
   }
 
   function updateFinancedFees() {

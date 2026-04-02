@@ -139,8 +139,8 @@
   function toggleRefTables() {
     const el = document.getElementById('refTables');
     const btn = document.getElementById('refTableToggle');
-    if (el.style.display === 'none') { el.style.display = 'block'; btn.textContent = 'Hide Reference Tables'; }
-    else { el.style.display = 'none'; btn.textContent = 'Show Reference Tables'; }
+    const isHidden = el.classList.toggle('u-hidden');
+    btn.textContent = isHidden ? 'Show Reference Tables' : 'Hide Reference Tables';
   }
 
   document.addEventListener('DOMContentLoaded', function() {
