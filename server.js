@@ -49,6 +49,7 @@ app.use(helmet({
       scriptSrcAttr: ["'none'"],
       styleSrc: [
         "'self'",
+        "'unsafe-inline'",
         "https://fonts.googleapis.com"
       ],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
