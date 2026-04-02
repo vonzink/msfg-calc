@@ -110,3 +110,17 @@
   .residual-tables-container { grid-template-columns: 1fr; }
   .region-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* --- Print styles --- */
+@media print {
+  .residual-tables-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .result-card,
+  .result-highlight {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

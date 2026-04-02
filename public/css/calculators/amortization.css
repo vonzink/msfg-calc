@@ -555,4 +555,17 @@
   .amort-table td { padding: 0.15rem 0.3rem; }
   .amort-year-header td { font-size: 7.5pt; padding: 0.2rem 0.3rem; }
   .amort-month-row td { font-size: 7pt; }
+
+  /* Page-break control */
+  .amort-year-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .results-grid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }

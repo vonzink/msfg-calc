@@ -89,3 +89,19 @@
   outline: none;
   border-color: var(--brand-accent);
 }
+
+/* --- Print styles --- */
+@media print {
+  .fee-item input {
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    font-weight: 600;
+  }
+
+  .result-card,
+  .result-highlight {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

@@ -402,4 +402,15 @@ tr[data-row="notes"] td:first-child {
     padding: 0;
     font-size: 0.8rem;
   }
+
+  /* Page-break control */
+  .cmp-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .cmp-section-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
 }

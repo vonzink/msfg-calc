@@ -371,3 +371,38 @@
   color: var(--brand-primary);
   font-weight: 600;
 }
+
+/* --- Print styles (shared by all income calculators) --- */
+@media print {
+  .upload-zone,
+  .action-bar { display: none !important; }
+
+  .income-form input,
+  .income-form select {
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    font-weight: 600;
+    box-shadow: none !important;
+  }
+
+  /* Keep each form section together on a page */
+  .calc-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Results and totals should not split */
+  .result-card,
+  .result-highlight,
+  .total-row {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Math breakdown sections stay together */
+  .math-step {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

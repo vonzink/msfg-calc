@@ -483,3 +483,29 @@
   color: #f59e0b;
   font-weight: 400;
 }
+
+/* --- Print styles --- */
+@media print {
+  .upload-zone,
+  .action-bar { display: none !important; }
+
+  .vi-form input,
+  .vi-form select {
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    font-weight: 600;
+  }
+
+  .calc-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .result-card,
+  .result-highlight,
+  .coverage-indicator {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

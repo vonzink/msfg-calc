@@ -356,4 +356,15 @@
 
   .fha-results-wrap { overflow: visible; }
   .fha-results-table { min-width: 0; }
+
+  /* Page-break control */
+  .fha-collapsible {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .fha-results-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
