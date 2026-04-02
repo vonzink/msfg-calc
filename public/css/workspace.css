@@ -416,13 +416,9 @@
 
 /* Tally bar */
 .workspace__tally {
-  position: sticky;
-  bottom: 0;
   background: var(--color-gray-900);
   color: var(--color-white);
   border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
-  z-index: 100;
 }
 
 .workspace__tally-inner {
