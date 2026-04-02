@@ -347,12 +347,13 @@
 
       /* -- Cover page -- */
       if (logoData) {
-        content.push({ image: logoData, width: 180, margin: [0, 20, 0, 12] });
+        content.push({ image: logoData, width: 180, margin: [0, 40, 0, 16] });
       }
-      content.push({ text: 'Session Report', style: 'title', margin: [0, 0, 0, 4] });
-      content.push({ text: COMPANY, style: 'companyName' });
-      content.push({ text: 'Generated ' + new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), style: 'subtitle', margin: [0, 4, 0, 20] });
-      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#2d6a4f' }], margin: [0, 0, 0, 16] });
+      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 3, lineColor: '#2d6a4f' }], margin: [0, 0, 0, 12] });
+      content.push({ text: 'Session Report', style: 'title', margin: [0, 0, 0, 6] });
+      content.push({ text: COMPANY, style: 'companyName', margin: [0, 0, 0, 4] });
+      content.push({ text: 'Generated ' + new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), style: 'subtitle', margin: [0, 0, 0, 24] });
+      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#40916c' }], margin: [0, 0, 0, 16] });
 
       if (items.length > 1) {
         content.push({ text: 'Contents', style: 'tocTitle', margin: [0, 8, 0, 6] });
@@ -365,18 +366,40 @@
         }
       }
 
+      /* -- Helper: branded page header for each calc -- */
+      function pdfPageHeader(name, icon) {
+        var header = [];
+        header.push({ text: '', pageBreak: 'before' });
+        if (logoData) {
+          header.push({
+            table: {
+              widths: ['auto', '*'],
+              body: [[
+                { image: logoData, width: 100, margin: [0, 2, 0, 2] },
+                { text: icon + '  ' + name, style: 'calcTitle', alignment: 'right', margin: [0, 6, 0, 0] }
+              ]]
+            },
+            layout: {
+              hLineWidth: function(i, node) { return i === node.table.body.length ? 2 : 0; },
+              vLineWidth: function() { return 0; },
+              hLineColor: function() { return '#2d6a4f'; },
+              paddingLeft: function() { return 0; },
+              paddingRight: function() { return 0; },
+              paddingTop: function() { return 4; },
+              paddingBottom: function() { return 6; }
+            },
+            margin: [0, 0, 0, 12]
+          });
+        } else {
+          header.push({ text: icon + '  ' + name, style: 'calcTitle', margin: [0, 0, 0, 4] });
+          header.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#2d6a4f' }], margin: [0, 0, 0, 12] });
+        }
+        return header;
+      }
+
       /* -- General / Government pages (one per calc) -- */
       otherItems.forEach(function(item) {
-        content.push({ text: '', pageBreak: 'before' });
-        if (logoData) {
-          content.push({ columns: [
-            { image: logoData, width: 120 },
-            { text: item.icon + '  ' + item.name, style: 'calcTitle', alignment: 'right', margin: [0, 10, 0, 0] }
-          ], margin: [0, 0, 0, 6] });
-        } else {
-          content.push({ text: item.icon + '  ' + item.name, style: 'calcTitle' });
-        }
-        content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 2, 0, 10] });
+        pdfPageHeader(item.name, item.icon).forEach(function(n) { content.push(n); });
 
         if (item.version === 2 && item.data && item.slug && MSFG.ReportTemplates) {
           var pc = MSFG.ReportTemplates.pdfContent(item.slug, item.data);
@@ -394,16 +417,7 @@
 
       /* -- Income consolidated page(s) -- */
       if (incomeItems.length > 0) {
-        content.push({ text: '', pageBreak: 'before' });
-        if (logoData) {
-          content.push({ columns: [
-            { image: logoData, width: 120 },
-            { text: 'Income Analysis', style: 'calcTitle', alignment: 'right', margin: [0, 10, 0, 0] }
-          ], margin: [0, 0, 0, 6] });
-        } else {
-          content.push({ text: 'Income Analysis', style: 'calcTitle' });
-        }
-        content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 2, 0, 8] });
+        pdfPageHeader('Income Analysis', '\uD83D\uDCDD').forEach(function(n) { content.push(n); });
 
         var combinedMonthly = 0;
         incomeItems.forEach(function(item, idx) {
@@ -436,27 +450,29 @@
         pageMargins: [40, 40, 40, 50],
         content: content,
         styles: {
-          title: { fontSize: 24, bold: true, color: '#1a1a1a' },
+          title: { fontSize: 26, bold: true, color: '#1b4332' },
           companyName: { fontSize: 12, color: '#2d6a4f', bold: true },
-          subtitle: { fontSize: 10, color: '#888888' },
-          tocTitle: { fontSize: 14, bold: true, color: '#333333' },
-          tocItem: { fontSize: 10, color: '#555555' },
-          calcTitle: { fontSize: 16, bold: true, color: '#1a1a1a' },
+          subtitle: { fontSize: 10, color: '#6c757d' },
+          tocTitle: { fontSize: 14, bold: true, color: '#1b4332' },
+          tocItem: { fontSize: 10, color: '#495057' },
+          calcTitle: { fontSize: 16, bold: true, color: '#1b4332' },
           calcDate: { fontSize: 9, color: '#999999' },
-          sectionTitle: { fontSize: 12, bold: true, color: '#333333' },
-          incomeSubTitle: { fontSize: 11, bold: true, color: '#444444' },
-          tableHeader: { bold: true, fontSize: 9, color: '#666666', fillColor: '#f8f9fa' }
+          sectionTitle: { fontSize: 11, bold: true, color: '#1b4332' },
+          incomeSubTitle: { fontSize: 11, bold: true, color: '#2d6a4f' },
+          tableHeader: { bold: true, fontSize: 8, color: '#ffffff', fillColor: '#2d6a4f' }
         },
-        defaultStyle: { fontSize: 10, color: '#333333' },
+        defaultStyle: { fontSize: 9.5, color: '#333333' },
         footer: function(pg, total) {
-          var footerContent = [
-            { columns: [
-              { text: 'Equal Housing Lender', fontSize: 7, color: '#bbbbbb', margin: [40, 0, 0, 0] },
-              { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 7, color: '#bbbbbb', margin: [0, 0, 40, 0] }
-            ] },
-            { text: COMPANY, fontSize: 7, color: '#bbbbbb', margin: [40, 2, 0, 0] }
-          ];
-          return { stack: footerContent, margin: [0, 10, 0, 0] };
+          return {
+            stack: [
+              { canvas: [{ type: 'line', x1: 40, y1: 0, x2: 572, y2: 0, lineWidth: 0.5, lineColor: '#2d6a4f' }] },
+              { columns: [
+                { text: COMPANY, fontSize: 7, color: '#6c757d', margin: [40, 4, 0, 0] },
+                { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 7, color: '#6c757d', margin: [0, 4, 40, 0] }
+              ] }
+            ],
+            margin: [0, 6, 0, 0]
+          };
         }
       };
 

@@ -1,10 +1,6 @@
-/* Print styles — letter-size page layout for all calculators */
-
-/* Page setup — letter size with comfortable margins */
-@page {
-  size: letter portrait;
-  margin: 0.5in 0.6in;
-}
+/* Print styles — letter-size page layout for calculators
+   NOTE: Report page (/report) has its own @page + @media print in report.css.
+   These rules target calculator pages (.calc-page) specifically. */
 
 @media print {
 

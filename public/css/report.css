@@ -543,32 +543,50 @@
 
 
 /* =====================================================
-   Print Styles — one page per calculator, consolidated income
+   Print Styles — letter-size, one page per calculator
    ===================================================== */
+@page {
+  size: letter portrait;
+  margin: 0.5in 0.6in;
+}
+
 @media print {
+
+  /* ---- Hide chrome ---- */
   .site-header,
   .site-footer,
   .report-page__actions,
+  .report-page__header,
   .report-item__remove,
   .report-item__remove--all,
   .report-page__header-count,
-  .report-item__drag-handle {
+  .report-item__drag-handle,
+  .email-modal-overlay {
     display: none !important;
   }
 
-  .report-page { max-width: 100%; padding: 0; }
-  .report-page__header { margin-bottom: 0.5rem; }
-  .report-page__header h1 { font-size: 1.2rem; }
-  .site-main { padding: 0 !important; }
+  /* ---- Global resets ---- */
+  * { box-shadow: none !important; }
 
+  html, body {
+    font-size: 9pt;
+    line-height: 1.35;
+    margin: 0;
+    padding: 0;
+  }
+
+  .report-page { max-width: 100%; padding: 0; margin: 0; }
+  .site-main { padding: 0 !important; min-height: auto !important; }
   .report-items { gap: 0; }
 
-  /* Each non-income card on its own page */
+  /* ---- Card layout per page ---- */
   .report-item {
-    box-shadow: none;
     border: none;
-    border-top: 3px solid var(--brand-primary, #2d6a4f);
+    border-top: 3px solid #2d6a4f;
+    border-radius: 0;
     margin: 0;
+    padding: 0;
+    overflow: visible;
     page-break-after: always;
     break-after: page;
   }
@@ -577,23 +595,114 @@
     break-after: auto;
   }
 
-  /* Preserve color backgrounds in print */
-  .rpt-brand-bar,
-  .rpt-table thead th,
-  .rpt-table tbody tr:nth-child(even),
-  .rpt-grand-total,
-  .rpt-subtotal,
-  .rpt-income-combined,
-  .rpt-section-title,
-  .rpt-recommendation,
-  .rpt-params,
-  .rpt-income-block-title,
-  .rpt-cmp-best {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  .report-item:hover {
+    transform: none;
   }
 
-  /* Income group: avoid unnecessary page breaks within */
+  /* Hide the drag/meta header — branded header in body replaces it */
+  .report-item__header {
+    display: none !important;
+  }
+
+  .report-item__body {
+    padding: 0;
+  }
+
+  /* ---- Branded header (gradient bar) ---- */
+  .rpt-brand-bar {
+    padding: 0.6rem 0.85rem;
+    margin-bottom: 0.75rem;
+    border-radius: 6px;
+  }
+  .rpt-brand-logo { height: 28px; padding: 3px 8px; }
+  .rpt-brand-calc { font-size: 8pt; }
+
+  /* ---- Sections ---- */
+  .rpt-section {
+    margin-bottom: 0.5rem;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .rpt-section-title {
+    font-size: 7.5pt;
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 0.35rem;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* ---- Tables ---- */
+  .rpt-table { font-size: 8pt; }
+  .rpt-table thead th {
+    font-size: 6.5pt;
+    padding: 0.3rem 0.45rem;
+  }
+  .rpt-table tbody td {
+    padding: 0.25rem 0.45rem;
+  }
+  .rpt-table tbody tr:hover { background: none; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+
+  /* ---- Parameters ---- */
+  .rpt-params {
+    padding: 0.45rem 0.6rem;
+    gap: 0.3rem 0.5rem;
+    margin-bottom: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  .rpt-param {
+    font-size: 7.5pt;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+  }
+  .rpt-param span:first-child { font-size: 7pt; }
+
+  /* ---- Totals ---- */
+  .rpt-subtotal {
+    font-size: 8pt;
+    padding: 0.3rem 0.5rem;
+  }
+  .rpt-grand-total {
+    font-size: 9.5pt;
+    padding: 0.5rem 0.65rem;
+    margin-top: 0.35rem;
+  }
+
+  /* ---- Comparisons ---- */
+  .rpt-comparison { gap: 0.75rem; }
+  .rpt-compare-col h4 {
+    font-size: 7.5pt;
+    padding: 0.3rem 0.6rem;
+  }
+
+  /* ---- Recommendations ---- */
+  .rpt-recommendation {
+    padding: 0.5rem 0.75rem;
+    font-size: 8pt;
+    margin-top: 0.35rem;
+  }
+  .rpt-recommendation::before { display: none; }
+  .rpt-difference {
+    font-size: 8pt;
+    padding: 0.25rem 0.65rem;
+  }
+
+  /* ---- Fee worksheet ---- */
+  .rpt-fw-columns { gap: 0.5rem; }
+  .rpt-table--compact thead th { font-size: 7pt; padding: 0.2rem 0.35rem; }
+  .rpt-table--compact tbody td { font-size: 7pt; padding: 0.15rem 0.35rem; }
+
+  /* ---- Loan comparison table ---- */
+  .rpt-cmp-table thead th { min-width: 70px; font-size: 6.5pt; }
+  .rpt-cmp-table thead th:first-child { min-width: 120px; }
+
+  /* ---- Footer ---- */
+  .rpt-brand-footer-divider { margin: 0.75rem 0 0.35rem; }
+  .rpt-brand-footer { font-size: 7pt; }
+  .rpt-brand-ehl-img { height: 22px; }
+
+  /* ---- Income group ---- */
   .report-item--income-group {
     page-break-after: always;
     break-after: page;
@@ -603,27 +712,43 @@
     break-after: auto;
   }
 
-  .report-item__header {
-    background: none;
-    border-bottom: none;
-    padding: 0.25rem 0;
-    font-size: 0.8rem;
-    color: #999;
+  .rpt-income-block { margin-bottom: 0.5rem; padding-bottom: 0.35rem; }
+  .rpt-income-block-title { font-size: 8.5pt; padding: 0.25rem 0.5rem; }
+  .rpt-income-block .rpt-table { font-size: 7.5pt; }
+  .rpt-income-block .rpt-table thead th { font-size: 6.5pt; padding: 0.2rem 0.3rem; }
+  .rpt-income-block .rpt-table tbody td { padding: 0.2rem 0.3rem; }
+  .rpt-income-block .rpt-section { margin-bottom: 0.35rem; }
+  .rpt-income-block .rpt-section-title { font-size: 7pt; padding: 0.2rem 0.5rem; }
+  .rpt-income-block .rpt-subtotal { padding: 0.2rem 0.35rem; font-size: 7.5pt; }
+  .rpt-income-block .rpt-grand-total { padding: 0.3rem 0.45rem; font-size: 8pt; }
+
+  .rpt-income-combined {
+    font-size: 10pt;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
   }
 
-  .report-item__body { padding: 0.5rem 0; }
-  .rpt-brand-logo { height: 32px; }
-  .rpt-brand-bar { margin-bottom: 0.75rem; padding: 0.75rem 1rem; }
-  .rpt-brand-footer { margin-top: 0.75rem; }
-  .rpt-brand-footer-divider { margin: 1rem 0 0.5rem; }
-
-  .rpt-section { margin-bottom: 0.75rem; }
-  .rpt-grand-total { margin-top: 0.5rem; }
-  .rpt-params { padding: 0.5rem 0.75rem; }
-
-  /* Disable hover transforms in print */
-  .report-item:hover {
-    transform: none;
-    box-shadow: none;
+  /* ---- Preserve backgrounds in print ---- */
+  .rpt-brand-bar,
+  .rpt-table thead th,
+  .rpt-table tbody tr:nth-child(even),
+  .rpt-grand-total,
+  .rpt-subtotal,
+  .rpt-income-combined,
+  .rpt-section-title,
+  .rpt-recommendation,
+  .rpt-params,
+  .rpt-param,
+  .rpt-income-block-title,
+  .rpt-cmp-best,
+  .rpt-difference,
+  .rpt-brand-footer-divider,
+  .rpt-compare-col h4 {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
+
+  /* ---- Orphan/widow control ---- */
+  p, li, tr { orphans: 3; widows: 3; }
+  h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
 }
