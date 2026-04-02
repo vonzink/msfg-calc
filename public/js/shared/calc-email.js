@@ -41,6 +41,7 @@
       subjectInput.value = calcTitle.textContent.trim() + ' — Results';
     }
 
+    window.scrollTo(0, 0);
     overlay.classList.remove('u-hidden');
     if (statusEl) statusEl.textContent = '';
     if (previewWrap) previewWrap.classList.add('u-hidden');
