@@ -748,6 +748,7 @@ body.embed-mode {
     padding: 0;
     max-width: 100%;
     width: 100%;
+    overflow: hidden;
   }
 
   .calc-page__header {
@@ -818,7 +819,7 @@ body.embed-mode {
 
   /* ---- Forms: compact inline display ---- */
   .form-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.15rem 0.5rem;
   }
 

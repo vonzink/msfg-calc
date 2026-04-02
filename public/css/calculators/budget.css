@@ -586,13 +586,32 @@
   .action-bar,
   .bg-disclaimer { display: none; }
 
-  .bg-columns { grid-template-columns: 1fr 1fr; }
+  /* Stack columns vertically to fit letter width */
+  .bg-columns { grid-template-columns: 1fr; gap: 0.5rem; }
 
-  .bg-results__cards { grid-template-columns: repeat(4, 1fr); }
+  /* Two result cards per row instead of 4 */
+  .bg-results__cards { grid-template-columns: repeat(2, 1fr); gap: 0.35rem; }
 
   .bg-card {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* Compact sections for print */
+  .bg-section { margin-bottom: 0.35rem; }
+  .bg-section__header { padding: 0.35rem 0.5rem; }
+  .bg-section__header h2 { font-size: 0.9rem; }
+
+  .bg-row { padding: 0.15rem 0; gap: 0.25rem; }
+  .bg-row label { font-size: 8pt; }
+
+  .bg-input {
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    font-weight: 600;
+    font-size: 8pt;
+    width: 80px;
   }
 
   .bg-liab-row--omitted { opacity: 0.5; }
