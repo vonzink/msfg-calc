@@ -65,10 +65,7 @@
     if (!a || !b) return false;
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   }
-  function daysBetween(a, b) {
-    if (!a || !b) return null;
-    return Math.round((b - a) / (1000 * 60 * 60 * 24));
-  }
+  const daysBetween = MSFG.daysBetween;
 
   /** Add N business days (skip weekends) */
   function addBusinessDays(date, n) {

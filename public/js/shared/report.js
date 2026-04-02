@@ -13,12 +13,12 @@
 (function() {
   'use strict';
 
-  var DB_NAME = 'msfg-report';
-  var STORE_NAME = 'items';
-  var DB_VERSION = 1;
-  var MAX_ITEMS = 30;
-  var _db = null;
-  var _ready = null;
+  const DB_NAME = 'msfg-report';
+  const STORE_NAME = 'items';
+  const DB_VERSION = 1;
+  const MAX_ITEMS = 30;
+  let _db = null;
+  let _ready = null;
 
   window.MSFG = window.MSFG || {};
 
@@ -26,9 +26,9 @@
   function openDB() {
     if (_ready) return _ready;
     _ready = new Promise(function(resolve, reject) {
-      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
       req.onupgradeneeded = function(e) {
-        var db = e.target.result;
+        const db = e.target.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         }
@@ -48,14 +48,14 @@
   function dbGetAll() {
     return openDB().then(function(db) {
       return new Promise(function(resolve, reject) {
-        var tx = db.transaction(STORE_NAME, 'readonly');
-        var store = tx.objectStore(STORE_NAME);
-        var req = store.getAll();
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
         req.onsuccess = function() {
-          var items = req.result || [];
+          const items = req.result || [];
           items.sort(function(a, b) {
-            var aOrd = typeof a.order === 'number' ? a.order : Infinity;
-            var bOrd = typeof b.order === 'number' ? b.order : Infinity;
+            const aOrd = typeof a.order === 'number' ? a.order : Infinity;
+            const bOrd = typeof b.order === 'number' ? b.order : Infinity;
             if (aOrd !== bOrd) return aOrd - bOrd;
             return new Date(a.timestamp) - new Date(b.timestamp);
           });
@@ -69,8 +69,8 @@
   function dbPut(item) {
     return openDB().then(function(db) {
       return new Promise(function(resolve, reject) {
-        var tx = db.transaction(STORE_NAME, 'readwrite');
-        var store = tx.objectStore(STORE_NAME);
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
         store.put(item);
         tx.oncomplete = function() { resolve(true); };
         tx.onerror = function() { reject(tx.error); };
@@ -81,8 +81,8 @@
   function dbDelete(id) {
     return openDB().then(function(db) {
       return new Promise(function(resolve, reject) {
-        var tx = db.transaction(STORE_NAME, 'readwrite');
-        var store = tx.objectStore(STORE_NAME);
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
         store.delete(id);
         tx.oncomplete = function() { resolve(); };
         tx.onerror = function() { reject(tx.error); };
@@ -93,8 +93,8 @@
   function dbClear() {
     return openDB().then(function(db) {
       return new Promise(function(resolve, reject) {
-        var tx = db.transaction(STORE_NAME, 'readwrite');
-        var store = tx.objectStore(STORE_NAME);
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
         store.clear();
         tx.oncomplete = function() { resolve(); };
         tx.onerror = function() { reject(tx.error); };
@@ -105,9 +105,9 @@
   function dbCount() {
     return openDB().then(function(db) {
       return new Promise(function(resolve, reject) {
-        var tx = db.transaction(STORE_NAME, 'readonly');
-        var store = tx.objectStore(STORE_NAME);
-        var req = store.count();
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.count();
         req.onsuccess = function() { resolve(req.result); };
         req.onerror = function() { reject(req.error); };
       });
@@ -117,8 +117,8 @@
   function enforceMax() {
     return dbGetAll().then(function(items) {
       if (items.length <= MAX_ITEMS) return;
-      var toRemove = items.slice(0, items.length - MAX_ITEMS);
-      var promises = toRemove.map(function(item) { return dbDelete(item.id); });
+      const toRemove = items.slice(0, items.length - MAX_ITEMS);
+      const promises = toRemove.map(function(item) { return dbDelete(item.id); });
       return Promise.all(promises);
     });
   }
@@ -129,8 +129,8 @@
 
   /* ---- Shared toast notification ---- */
   function showToast(message, type) {
-    var hasToastCSS = !!document.querySelector('link[href*="components.css"]');
-    var toast = document.createElement('div');
+    const hasToastCSS = !!document.querySelector('link[href*="components.css"]');
+    const toast = document.createElement('div');
 
     if (hasToastCSS) {
       toast.className = 'report-toast report-toast--' + (type || 'success');
@@ -161,10 +161,10 @@
 
   /* ---- Resolve the deepest calculator document from a base document ---- */
   function resolveCalcDocument(baseDoc) {
-    var iframe = baseDoc.querySelector('.calc-page__body iframe') || baseDoc.querySelector('iframe');
+    const iframe = baseDoc.querySelector('.calc-page__body iframe') || baseDoc.querySelector('iframe');
     if (iframe) {
       try {
-        var nested = iframe.contentDocument || iframe.contentWindow.document;
+        const nested = iframe.contentDocument || iframe.contentWindow.document;
         if (nested && nested.body) return nested;
       } catch (e) { /* cross-origin */ }
     }
@@ -172,12 +172,12 @@
   }
 
   /* ---- Lazy-load report templates on first capture ---- */
-  var _templatesLoaded = false;
-  var _templatesPromise = null;
+  let _templatesLoaded = false;
+  let _templatesPromise = null;
 
   function loadScript(src) {
     return new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
+      const s = document.createElement('script');
       s.src = src;
       s.onload = resolve;
       s.onerror = function() { reject(new Error('Failed to load ' + src)); };
@@ -192,18 +192,18 @@
     }
     if (_templatesPromise) return _templatesPromise;
 
-    var ver = '';
-    var main = document.querySelector('.site-main');
+    let ver = '';
+    const main = document.querySelector('.site-main');
     if (main && main.dataset.ver) ver = '?v=' + main.dataset.ver;
-    var ext = (main && main.dataset.jsExt) || '.js';
+    const ext = (main && main.dataset.jsExt) || '.js';
 
     // Detect base path prefix from the report.js script tag already on the page.
     // On dashboard.msfgco.com, nginx rewrites paths to /calc/js/..., so we need
     // to use the same prefix for dynamically loaded scripts.
-    var basePath = '';
-    var reportScript = document.querySelector('script[src*="report"]');
+    let basePath = '';
+    const reportScript = document.querySelector('script[src*="report"]');
     if (reportScript && reportScript.src) {
-      var match = reportScript.src.match(/^https?:\/\/[^/]+(\/.*?)\/js\/shared\/report/);
+      const match = reportScript.src.match(/^https?:\/\/[^/]+(\/.*?)\/js\/shared\/report/);
       if (match && match[1]) basePath = match[1];
     }
 
@@ -216,6 +216,9 @@
         loadScript(basePath + '/js/shared/report-templates/general-simple' + ext + ver),
         loadScript(basePath + '/js/shared/report-templates/government' + ext + ver),
         loadScript(basePath + '/js/shared/report-templates/tools' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/tools-compare' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/tools-pricing' + ext + ver),
+        loadScript(basePath + '/js/shared/report-templates/tools-timeline' + ext + ver),
         loadScript(basePath + '/js/shared/report-templates/mismo' + ext + ver)
       ]);
     }).then(function() {
@@ -233,16 +236,16 @@
     },
 
     addItem: function(item) {
-      var self = this;
+      const self = this;
       return dbGetAll().then(function(items) {
-        var maxOrder = 0;
+        let maxOrder = 0;
         items.forEach(function(it) {
           if (typeof it.order === 'number' && it.order > maxOrder) maxOrder = it.order;
         });
 
-        var isCoverLetter = (item.slug === 'loan-analysis');
-        var newOrder;
-        var bumpPromises = [];
+        const isCoverLetter = (item.slug === 'loan-analysis');
+        let newOrder;
+        const bumpPromises = [];
 
         if (isCoverLetter) {
           // Cover letter always goes to position 0 (first)
@@ -260,7 +263,7 @@
           newOrder = maxOrder + 1;
         }
 
-        var newItem = {
+        const newItem = {
           id: generateId(),
           name: item.name || 'Calculator',
           icon: item.icon || '',
@@ -284,14 +287,14 @@
     },
 
     removeItem: function(id) {
-      var self = this;
+      const self = this;
       return dbDelete(id).then(function() {
         self._updateBadge();
       });
     },
 
     clear: function() {
-      var self = this;
+      const self = this;
       return dbClear().then(function() {
         self._updateBadge();
       });
@@ -303,9 +306,9 @@
 
     reorderItems: function(orderedIds) {
       return dbGetAll().then(function(items) {
-        var byId = {};
+        const byId = {};
         items.forEach(function(item) { byId[item.id] = item; });
-        var promises = [];
+        const promises = [];
         orderedIds.forEach(function(id, idx) {
           if (byId[id]) {
             byId[id].order = idx + 1;
@@ -317,7 +320,7 @@
     },
 
     _updateBadge: function() {
-      var badge = document.getElementById('reportBadge');
+      const badge = document.getElementById('reportBadge');
       if (!badge) return;
       dbCount().then(function(count) {
         badge.textContent = count;
@@ -335,7 +338,7 @@
      * @param {Document} baseDoc - document containing the calculator (page doc or iframe doc)
      */
     captureStructured: function(slug, calcName, calcIcon, baseDoc) {
-      var self = this;
+      const self = this;
 
       return loadTemplates().then(function() {
         if (!MSFG.ReportTemplates || !MSFG.ReportTemplates.extractors[slug]) {
@@ -343,8 +346,8 @@
           return Promise.reject(new Error('No extractor for: ' + slug));
         }
 
-        var calcDoc = resolveCalcDocument(baseDoc);
-        var data = MSFG.ReportTemplates.extract(slug, calcDoc);
+        const calcDoc = resolveCalcDocument(baseDoc);
+        const data = MSFG.ReportTemplates.extract(slug, calcDoc);
 
         if (!data) {
           showToast('Could not extract data', 'error');
@@ -370,8 +373,8 @@
      * Capture from the current standalone page.
      */
     captureCurrentCalculator: function(calcName, calcIcon) {
-      var self = this;
-      var slug = window.__calcSlug || '';
+      const self = this;
+      const slug = window.__calcSlug || '';
 
       if (!slug) {
         showToast('No report template available', 'error');
@@ -389,7 +392,7 @@
   };
 
   /* ---- SVG icons ---- */
-  var SVG_ADD =
+  const SVG_ADD =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
       '<polyline points="14 2 14 8 20 8"/>' +
@@ -397,12 +400,12 @@
       '<line x1="9" y1="15" x2="15" y2="15"/>' +
     '</svg>';
 
-  var SVG_CHECK =
+  const SVG_CHECK =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">' +
       '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' +
     '</svg>';
 
-  var SVG_SPINNER =
+  const SVG_SPINNER =
     '<svg class="report-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">' +
       '<circle cx="12" cy="12" r="10" stroke-dasharray="31.4 31.4" stroke-dashoffset="0"/>' +
     '</svg>';
@@ -448,34 +451,34 @@
     if (window.location.search.indexOf('embed=1') !== -1) return;
     if (window.top !== window && !document.querySelector('.calc-page__header')) return;
 
-    var calcHeader = document.querySelector('.calc-page__header');
+    const calcHeader = document.querySelector('.calc-page__header');
 
     if (calcHeader) {
-      var h1 = calcHeader.querySelector('h1');
-      var calcName = h1 ? h1.textContent.trim() : document.title;
-      var calcIcon = (typeof window.__calcIcon !== 'undefined') ? window.__calcIcon : '';
+      const h1 = calcHeader.querySelector('h1');
+      const calcName = h1 ? h1.textContent.trim() : document.title;
+      const calcIcon = (typeof window.__calcIcon !== 'undefined') ? window.__calcIcon : '';
 
-      var btn = document.createElement('button');
+      const btn = document.createElement('button');
       btn.className = 'report-add-btn';
       btn.title = 'Add to Report';
-      var defaultContent = SVG_ADD;
+      const defaultContent = SVG_ADD;
       btn.innerHTML = defaultContent;
 
       btn.addEventListener('click', function() {
         handleReportClick(btn, calcName, calcIcon, defaultContent, false);
       });
 
-      var headerWrapper = document.createElement('div');
+      const headerWrapper = document.createElement('div');
       headerWrapper.className = 'calc-page__header-actions';
       headerWrapper.appendChild(btn);
       calcHeader.appendChild(headerWrapper);
 
     } else if (window.top === window && !document.querySelector('.workspace') && window.__calcSlug) {
-      var name = document.title.replace(/\s*[-|].*$/, '').trim() || 'Tool';
-      var iconMeta = document.querySelector('meta[name="calc-icon"]');
-      var icon = iconMeta ? iconMeta.getAttribute('content') : '';
+      const name = document.title.replace(/\s*[-|].*$/, '').trim() || 'Tool';
+      const iconMeta = document.querySelector('meta[name="calc-icon"]');
+      const icon = iconMeta ? iconMeta.getAttribute('content') : '';
 
-      var sBtn = document.createElement('button');
+      const sBtn = document.createElement('button');
       sBtn.id = 'reportAddBtnStandalone';
       sBtn.title = 'Add to Report';
       sBtn.style.cssText =
@@ -483,7 +486,7 @@
         'padding:10px 18px;background:#2d6a4f;color:#fff;border:none;border-radius:10px;' +
         'font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);' +
         'z-index:9999;transition:all .2s ease;font-family:Inter,system-ui,sans-serif;';
-      var sDefault = SVG_ADD.replace('width="16"', 'width="14"').replace('height="16"', 'height="14"') + ' Add to Report';
+      const sDefault = SVG_ADD.replace('width="16"', 'width="14"').replace('height="16"', 'height="14"') + ' Add to Report';
       sBtn.innerHTML = sDefault;
 
       sBtn.addEventListener('mouseenter', function() { sBtn.style.background = '#245a40'; });

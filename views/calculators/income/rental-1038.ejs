@@ -9,7 +9,7 @@
     <!-- Upload Zone -->
     <div class="calc-section">
       <h2>Upload Schedule E</h2>
-      <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Upload IRS Schedule E (Form 1040) to auto-fill Method A fields. Supports PNG, JPG, WebP, or PDF.</p>
+      <p class="text-muted text-sm u-mb-sm">Upload IRS Schedule E (Form 1040) to auto-fill Method A fields. Supports PNG, JPG, WebP, or PDF.</p>
 
       <div class="upload-zone" data-upload-type="income-rental-1038">
         <div class="upload-zone__icon">
@@ -19,7 +19,7 @@
           <strong>Upload Schedule E</strong>
           <span>Drop or click to upload a Schedule E image or PDF</span>
         </div>
-        <input type="file" class="upload-zone__input" accept="image/*,application/pdf" style="display: none;">
+        <input type="file" class="upload-zone__input u-hidden" accept="image/*,application/pdf">
         <div class="upload-zone__status"></div>
       </div>
 
@@ -61,7 +61,7 @@
 
       <div class="calc-section">
         <h2><span class="step-label">Step 1</span> Months in Service</h2>
-        <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Number of months the property was rented during the tax year (from Schedule E fair rental days).</p>
+        <p class="text-muted text-sm u-mb-sm">Number of months the property was rented during the tax year (from Schedule E fair rental days).</p>
         <div class="input-row">
           <label for="methodA_months">Months in service</label>
           <input type="number" id="methodA_months" value="12" min="1" max="12" step="1" oninput="calculate()">
@@ -70,7 +70,7 @@
 
       <div class="calc-section">
         <h2><span class="step-label">Step 2</span> Schedule E Income &amp; Adjustments</h2>
-        <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Enter amounts from Schedule E. Green rows are added back; red rows are subtracted.</p>
+        <p class="text-muted text-sm u-mb-sm">Enter amounts from Schedule E. Green rows are added back; red rows are subtracted.</p>
 
         <div class="input-row add-row">
           <label for="methodA_rents">A1. Total rents received</label>
@@ -120,14 +120,14 @@
 
       <div class="calc-section">
         <h2><span class="step-label">Step 3</span> Proposed PITIA</h2>
-        <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Subtract the proposed Principal, Interest, Taxes, Insurance &amp; Association dues for the subject property.</p>
+        <p class="text-muted text-sm u-mb-sm">Subtract the proposed Principal, Interest, Taxes, Insurance &amp; Association dues for the subject property.</p>
 
         <div class="input-row subtract-row">
           <label for="methodA_pitia">A10. Proposed PITIA</label>
           <input type="number" id="methodA_pitia" value="0" oninput="calculate()">
         </div>
 
-        <div class="result-highlight" style="margin-top: var(--space-md);">
+        <div class="result-highlight u-mt-md">
           <div class="result-highlight__label">Net Rental Income (Method A)</div>
           <div class="result-highlight__value" id="methodA_result">$0.00</div>
         </div>
@@ -142,7 +142,7 @@
 
       <div class="calc-section">
         <h2><span class="step-label">Step 1</span> Gross Monthly Rent</h2>
-        <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Enter the gross monthly rental income from the lease agreement or Form 1007/1025.</p>
+        <p class="text-muted text-sm u-mb-sm">Enter the gross monthly rental income from the lease agreement or Form 1007/1025.</p>
 
         <div class="input-row add-row">
           <label for="methodB_grossrent">B1. Gross monthly rent</label>
@@ -157,14 +157,14 @@
 
       <div class="calc-section">
         <h2><span class="step-label">Step 2</span> Proposed PITIA</h2>
-        <p class="text-muted text-sm" style="margin-bottom: var(--space-sm);">Subtract the proposed Principal, Interest, Taxes, Insurance &amp; Association dues for the subject property.</p>
+        <p class="text-muted text-sm u-mb-sm">Subtract the proposed Principal, Interest, Taxes, Insurance &amp; Association dues for the subject property.</p>
 
         <div class="input-row subtract-row">
           <label for="methodB_pitia">B3. Proposed PITIA</label>
           <input type="number" id="methodB_pitia" value="0" oninput="calculate()">
         </div>
 
-        <div class="result-highlight" style="margin-top: var(--space-md);">
+        <div class="result-highlight u-mt-md">
           <div class="result-highlight__label">Net Rental Income (Method B)</div>
           <div class="result-highlight__value" id="methodB_result">$0.00</div>
         </div>

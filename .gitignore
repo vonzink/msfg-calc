@@ -6,3 +6,4 @@ db/*.db
 db/*.db-wal
 db/*.db-shm
 public/js/**/*.min.js
+config/site.json

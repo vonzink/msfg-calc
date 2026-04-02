@@ -27,7 +27,7 @@
               <strong>Upload Paystubs</strong>
               <span>Drop or click to upload paystub images/PDFs. Upload 2&ndash;3 stubs for 30-day coverage.</span>
             </div>
-            <input type="file" class="upload-zone__input" accept="image/*,application/pdf" style="display: none;">
+            <input type="file" class="upload-zone__input u-hidden" accept="image/*,application/pdf">
             <div class="upload-zone__status"></div>
           </div>
 
@@ -52,7 +52,7 @@
             </div>
           </div>
 
-          <div class="form-grid" style="margin-top: var(--space-md);">
+          <div class="form-grid u-mt-md">
             <div class="form-group">
               <label>Pay Type
                 <span class="help-icon" data-help="Salary: fixed annual amount. Hourly: paid per hour worked.">?</span>
@@ -92,7 +92,7 @@
                 <input type="number" class="emp-hours-per-week" step="0.5" placeholder="40">
               </div>
               <div class="form-group" style="justify-content: center;">
-                <label class="form-check" style="margin-top: var(--space-md);">
+                <label class="form-check u-mt-md">
                   <input type="checkbox" class="emp-hours-fluctuate">
                   Hours fluctuate (treat base as variable)
                 </label>
@@ -100,13 +100,13 @@
             </div>
           </div>
 
-          <div class="form-grid" style="margin-top: var(--space-md);">
+          <div class="form-grid u-mt-md">
             <div class="form-group">
               <label>Employment Start Date</label>
               <input type="date" class="emp-start-date">
             </div>
             <div class="form-group" style="justify-content: center;">
-              <label class="form-check" style="margin-top: var(--space-md);">
+              <label class="form-check u-mt-md">
                 <input type="checkbox" class="emp-comp-change">
                 Recent comp/role change
               </label>
@@ -134,7 +134,7 @@
             </div>
           </div>
 
-          <div class="form-grid" style="margin-top: var(--space-md);">
+          <div class="form-grid u-mt-md">
             <div class="form-group">
               <label>YTD Base
                 <span class="help-icon" data-help="Year-to-date base/regular earnings from paystub.">?</span>
@@ -155,7 +155,7 @@
             </div>
           </div>
 
-          <div class="form-grid" style="margin-top: var(--space-md);">
+          <div class="form-grid u-mt-md">
             <div class="form-group">
               <label>YTD Commission
                 <span class="help-icon" data-help="Year-to-date commission earnings. 2 years recommended; 12-24 months possible with positive factors (B3-3.1-04).">?</span>
@@ -187,14 +187,14 @@
               <strong>Upload W-2</strong>
               <span>Drop or click to upload a W-2 image/PDF to auto-fill prior year earnings</span>
             </div>
-            <input type="file" class="upload-zone__input" accept="image/*,application/pdf" style="display: none;">
+            <input type="file" class="upload-zone__input u-hidden" accept="image/*,application/pdf">
             <div class="upload-zone__status"></div>
           </div>
 
           <!-- W-2 cards (JS-rendered) -->
           <div class="w2-cards" data-emp-index="0"></div>
 
-          <table class="data-table" style="margin-top: var(--space-md);">
+          <table class="data-table u-mt-md">
             <thead>
               <tr>
                 <th>Year</th>
@@ -260,7 +260,7 @@
           </div>
         </div>
 
-        <div class="result-highlight" style="margin-top: var(--space-lg);">
+        <div class="result-highlight u-mt-lg">
           <div class="result-highlight__label">Qualifying Monthly Income</div>
           <div class="result-highlight__value" id="resultQualifyingIncome">--</div>
         </div>

@@ -1,0 +1,34 @@
+{
+  "siteName": "MSFG Calculator Suite",
+  "companyName": "Mountain State Financial Group LLC",
+  "nmls": "1314257",
+  "equalHousingLogo": "https://msfg-media.s3.us-west-2.amazonaws.com/Assets/LOGOS/EQUAL+HOUSING+LENDER.png",
+  "logo": {
+    "src": "/images/msfg-logo.png",
+    "alt": "MSFG Home Loans",
+    "width": 250,
+    "height": "auto"
+  },
+  "favicon": "/images/favicon-32x32.png",
+  "domain": "msfginfo.com",
+  "ai": {
+    "provider": "",
+    "apiKey": ""
+  },
+  "smtp": {
+    "host": "smtp.porkbun.com",
+    "port": "465",
+    "secure": true,
+    "user": "info@msfginfo.com",
+    "pass": "",
+    "from": "info@msfginfo.com"
+  },
+  "emailSignature": {
+    "name": "",
+    "title": "",
+    "phone": "",
+    "email": "",
+    "nmls": "",
+    "company": ""
+  }
+}

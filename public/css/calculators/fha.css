@@ -1,30 +1,6 @@
 /* FHA Loan Calculator — page-specific styles */
 
-/* ---- MISMO drop zone ---- */
-.fha-mismo-drop {
-  border: 2px dashed var(--color-gray-300);
-  border-radius: var(--border-radius);
-  padding: var(--space-sm) var(--space-md);
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--color-gray-500);
-  margin-bottom: var(--space-lg);
-  transition: border-color 0.2s, background 0.2s;
-  cursor: pointer;
-}
-
-.fha-mismo-drop:hover,
-.fha-mismo-drop.dragover {
-  border-color: var(--brand-accent);
-  background: rgba(45, 106, 79, 0.04);
-}
-
-.fha-mismo-drop.loaded {
-  border-color: var(--brand-accent);
-  background: #e8f5e9;
-  color: var(--brand-primary);
-  font-weight: 600;
-}
+/* MISMO drop zone → uses shared .mismo-drop in components.css */
 
 /* ---- Seasoning status cards ---- */
 .fha-seasoning-grid {
@@ -347,7 +323,7 @@
 
 /* ---- Print ---- */
 @media print {
-  .fha-mismo-drop,
+  .mismo-drop,
   .fha-costs-warning,
   .action-bar,
   .fha-collapsible-header .fha-collapse-icon { display: none !important; }

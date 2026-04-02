@@ -38,14 +38,14 @@
     <!-- Financed Fees -->
     <div class="calc-section">
       <h2>Financed Fees</h2>
-      <p class="text-muted text-sm" style="margin-bottom: var(--space-md);">Fees rolled into the loan balance that affect the APR calculation.</p>
-      <div class="form-grid" style="grid-template-columns: 1fr auto;">
+      <p class="text-muted text-sm u-mb-md"Fees rolled into the loan balance that affect the APR calculation.</p>
+      <div class="form-grid u-grid-1-auto">
         <div class="form-group">
           <label for="financedFees">Total Financed Fees ($)</label>
           <input type="number" id="financedFees" value="0" min="0" step="100">
         </div>
       </div>
-      <button type="button" class="btn btn-sm btn-ghost" style="margin-top: var(--space-sm);" data-action="toggle-fees" data-target="financed">
+      <button type="button" class="btn btn-sm btn-ghost u-mt-sm" data-action="toggle-fees" data-target="financed">
         <span id="financedToggleText">Show Fee Breakdown</span>
       </button>
       <div id="financedFeeBreakdown" class="fee-breakdown" style="display: none;">
@@ -73,14 +73,14 @@
     <!-- Prepaid Fees -->
     <div class="calc-section">
       <h2>Prepaid Fees</h2>
-      <p class="text-muted text-sm" style="margin-bottom: var(--space-md);">Fees paid at closing that affect the APR.</p>
-      <div class="form-grid" style="grid-template-columns: 1fr auto;">
+      <p class="text-muted text-sm u-mb-md"Fees paid at closing that affect the APR.</p>
+      <div class="form-grid u-grid-1-auto">
         <div class="form-group">
           <label for="prepaidFees">Total Prepaid Fees ($)</label>
           <input type="number" id="prepaidFees" value="0" min="0" step="100">
         </div>
       </div>
-      <button type="button" class="btn btn-sm btn-ghost" style="margin-top: var(--space-sm);" data-action="toggle-fees" data-target="prepaid">
+      <button type="button" class="btn btn-sm btn-ghost u-mt-sm" data-action="toggle-fees" data-target="prepaid">
         <span id="prepaidToggleText">Show Fee Breakdown</span>
       </button>
       <div id="prepaidFeeBreakdown" class="fee-breakdown" style="display: none;">
@@ -126,7 +126,7 @@
         <strong>Warning:</strong> The APR is significantly higher than the note rate.
       </div>
 
-      <div class="result-highlight" style="margin-top: var(--space-lg);">
+      <div class="result-highlight u-mt-lg">
         <div class="result-highlight__label">Annual Percentage Rate (APR)</div>
         <div class="result-highlight__value" id="aprResult">0.000%</div>
       </div>

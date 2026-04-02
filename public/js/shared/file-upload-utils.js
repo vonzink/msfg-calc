@@ -11,7 +11,7 @@ MSFG.FileUpload = {
 
   /** Validate file MIME type against allowed upload types */
   validateFile: function(file) {
-    var allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+    const allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
     return allowed.indexOf(file.type) !== -1;
   },
 

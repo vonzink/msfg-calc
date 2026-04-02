@@ -2,31 +2,7 @@
    Loan Timeline — Calendar & TRID Compliance Tool
    ===================================================== */
 
-/* ---- MISMO Drop Zone ---- */
-.lt-mismo-drop {
-  border: 2px dashed var(--color-gray-300);
-  border-radius: var(--border-radius);
-  padding: var(--space-lg) var(--space-xl);
-  text-align: center;
-  color: var(--color-gray-500);
-  cursor: pointer;
-  transition: border-color var(--transition), background var(--transition);
-  margin-bottom: var(--space-lg);
-  font-size: 0.85rem;
-}
-.lt-mismo-drop:hover,
-.lt-mismo-drop.dragover {
-  border-color: var(--brand-accent);
-  background: var(--brand-light);
-  color: var(--brand-secondary);
-}
-.lt-mismo-drop.loaded {
-  border-color: var(--color-success);
-  background: #e8f5e9;
-  color: var(--color-success);
-  cursor: default;
-  font-weight: 600;
-}
+/* MISMO drop zone → uses shared .mismo-drop in components.css */
 
 /* ---- Loan Info Bar ---- */
 .lt-loan-info {
@@ -606,7 +582,7 @@
 
 /* ---- Print Styles ---- */
 @media print {
-  .lt-mismo-drop,
+  .mismo-drop,
   .lt-calendar-nav__btn,
   .action-bar,
   .lt-purpose-toggle,

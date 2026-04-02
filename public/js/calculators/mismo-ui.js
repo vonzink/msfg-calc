@@ -8,17 +8,9 @@
 
   const esc = MSFG.escHtml;
 
-  function formatCurrency(num) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency', currency: 'USD',
-      minimumFractionDigits: 0, maximumFractionDigits: 0
-    }).format(num);
-  }
+  const formatCurrency = MSFG.formatCurrency;
 
-  function daysBetween(d1, d2) {
-    if (!d1 || !d2) return null;
-    return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
-  }
+  const daysBetween = MSFG.daysBetween;
 
   function fmtDate(d) {
     if (!d) return 'N/A';

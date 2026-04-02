@@ -7,9 +7,9 @@
   <div class="calc-page__body">
 
     <!-- MISMO Drop Zone -->
-    <div class="fha-mismo-drop" id="fhaMismoDrop">
+    <div class="mismo-drop" id="fhaMismoDrop">
       Drop a MISMO XML file here to auto-populate fields, or <strong>click to browse</strong>
-      <input type="file" id="fhaMismoFile" accept=".xml,.mismo" style="display:none">
+      <input type="file" id="fhaMismoFile" accept=".xml,.mismo" class="u-hidden">
     </div>
 
     <!-- Section 1: Borrower & Property -->
@@ -25,7 +25,7 @@
           <input type="text" id="fhaCaseId" placeholder="Optional">
         </div>
       </div>
-      <div class="form-grid" style="margin-top: var(--space-md);">
+      <div class="form-grid u-mt-md">
         <div class="form-group">
           <label>Appraised Value
             <span class="help-icon" data-help="Current appraised value used to calculate LTV and max FHA loan amount.">?</span>
@@ -55,7 +55,7 @@
     <!-- Section 2: Current Loan -->
     <div class="calc-section">
       <h2>Current Loan</h2>
-      <div style="margin-bottom: var(--space-md);">
+      <div class="u-mb-md">
         <label class="form-check">
           <input type="checkbox" id="fhaIsExistingFha">
           Current loan is FHA (required for streamline)
@@ -81,7 +81,7 @@
           <input type="number" id="fhaCurrentPayment" step="0.01" placeholder="0.00">
         </div>
       </div>
-      <div class="form-grid" style="margin-top: var(--space-md);">
+      <div class="form-grid u-mt-md">
         <div class="form-group">
           <label>Current Loan Type</label>
           <select id="fhaCurrentLoanType">
@@ -165,7 +165,7 @@
             <tbody id="fhaRefundTableBody"></tbody>
           </table>
         </div>
-        <div style="margin-top: var(--space-sm);">
+        <div class="u-mt-sm">
           <button type="button" class="btn btn-sm" id="fhaResetRefundBtn">Reset to Default</button>
         </div>
       </div>
@@ -263,7 +263,7 @@
           <span class="fha-costs-total__value" id="fhaTotalClosingCosts">$0.00</span>
         </div>
 
-        <div class="fha-cost-row" style="margin-top: var(--space-md);">
+        <div class="fha-cost-row u-mt-md">
           <label>Accrued Interest
             <span class="help-icon" data-help="Only if payoff is on/after payment due date. Do NOT include per diem beyond payoff.">?</span>
           </label>
@@ -305,7 +305,7 @@
           </select>
         </div>
       </div>
-      <div class="form-grid" style="margin-top: var(--space-md);">
+      <div class="form-grid u-mt-md">
         <div class="form-group">
           <label>Requested Loan Amount
             <span class="help-icon" data-help="Enter the actual loan amount. Leave blank to use the maximum FHA-allowed amount.">?</span>
@@ -313,7 +313,7 @@
           <input type="number" id="fhaRequestedLoanAmount" step="0.01" placeholder="Leave blank for max">
         </div>
       </div>
-      <div style="margin-top: var(--space-md);">
+      <div class="u-mt-md">
         <label class="form-check">
           <input type="checkbox" id="fhaFinanceUfmip" checked>
           Finance UFMIP into loan amount
@@ -447,7 +447,7 @@
       </div>
 
       <!-- Notes -->
-      <div style="margin-top: var(--space-lg);">
+      <div class="u-mt-lg">
         <h3 style="font-size: 0.95rem; color: var(--color-gray-700);">Notes &amp; Flags</h3>
         <ul class="fha-notes-list" id="fhaResultNotes"></ul>
       </div>

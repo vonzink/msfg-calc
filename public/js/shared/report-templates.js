@@ -9,13 +9,13 @@
 
   /* ---- helpers ---- */
   function val(doc, id) {
-    var el = doc.getElementById(id);
+    const el = doc.getElementById(id);
     if (!el) return 0;
     if (el.tagName === 'INPUT' || el.tagName === 'SELECT') return parseFloat(el.value) || 0;
     return parseFloat((el.textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
   }
   function txt(doc, id) {
-    var el = doc.getElementById(id);
+    const el = doc.getElementById(id);
     return el ? (el.value !== undefined && (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') ? el.value : el.textContent || '').trim() : '';
   }
   function fmt(n) {
@@ -35,10 +35,10 @@
 
   /* ---- shared income renderers ---- */
   function renderIncomeTable(data, calcName) {
-    var html = '';
-    var hasData = false;
+    let html = '';
+    let hasData = false;
     (data.sections || []).forEach(function (sec) {
-      var sectionHasData = sec.rows && sec.rows.some(function (r) { return r.y1 || r.y2; });
+      const sectionHasData = sec.rows && sec.rows.some(function (r) { return r.y1 || r.y2; });
       if (!sectionHasData && !sec.monthly) return;
       hasData = true;
       html += '<div class="rpt-section">';
@@ -63,12 +63,12 @@
   }
 
   function pdfIncomeTable(data) {
-    var content = [];
+    const content = [];
     (data.sections || []).forEach(function (sec) {
-      var sectionHasData = sec.rows && sec.rows.some(function (r) { return r.y1 || r.y2; });
+      const sectionHasData = sec.rows && sec.rows.some(function (r) { return r.y1 || r.y2; });
       if (!sectionHasData && !sec.monthly) return;
       content.push({ text: sec.title + (sec.ownership ? ' (' + sec.ownership + '% ownership)' : ''), style: 'sectionTitle', margin: [0, 8, 0, 4] });
-      var body = [
+      const body = [
         [{ text: 'Line Item', style: 'tableHeader' }, { text: 'Year 1', style: 'tableHeader', alignment: 'right' }, { text: 'Year 2', style: 'tableHeader', alignment: 'right' }]
       ];
       sec.rows.forEach(function (r) {
@@ -88,14 +88,14 @@
   }
 
   function pdfKeyValue(data, paramsList, resultsList, grandTotalLabel, grandTotalKey) {
-    var content = [];
+    const content = [];
     if (paramsList && paramsList.length) {
-      var pBody = paramsList.map(function (p) { return [p[0], { text: String(p[1]), alignment: 'right' }]; });
+      const pBody = paramsList.map(function (p) { return [p[0], { text: String(p[1]), alignment: 'right' }]; });
       content.push({ text: 'Parameters', style: 'sectionTitle', margin: [0, 4, 0, 4] });
       content.push({ table: { widths: ['*', 120], body: pBody }, layout: 'noBorders' });
     }
     if (resultsList && resultsList.length) {
-      var rBody = [[{ text: 'Result', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]];
+      const rBody = [[{ text: 'Result', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]];
       resultsList.forEach(function (r) { rBody.push([r[0], { text: String(r[1]), alignment: 'right' }]); });
       content.push({ text: 'Results', style: 'sectionTitle', margin: [0, 10, 0, 4] });
       content.push({ table: { headerRows: 1, widths: ['*', 120], body: rBody }, layout: 'lightHorizontalLines' });
@@ -104,9 +104,9 @@
   }
 
   /* ---- registry ---- */
-  var extractors = {};
-  var renderers = {};
-  var pdfGenerators = {};
+  const extractors = {};
+  const renderers = {};
+  const pdfGenerators = {};
 
   function register(slug, ext, rend, pdf) {
     if (ext) extractors[slug] = ext;
@@ -126,15 +126,15 @@
     renderers: renderers,
     pdfGenerators: pdfGenerators,
     extract: function (slug, doc) {
-      var fn = extractors[slug];
+      const fn = extractors[slug];
       return fn ? fn(doc) : null;
     },
     render: function (slug, data) {
-      var fn = renderers[slug];
+      const fn = renderers[slug];
       return fn ? fn(data) : '<p class="rpt-no-template">No report template available for this calculator.</p>';
     },
     pdfContent: function (slug, data) {
-      var fn = pdfGenerators[slug];
+      const fn = pdfGenerators[slug];
       return fn ? fn(data) : [{ text: 'No PDF template available.', italics: true }];
     },
     register: register,

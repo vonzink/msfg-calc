@@ -168,4 +168,9 @@ MSFG.escHtml = function(str) {
     .replace(/"/g, '&quot;');
 };
 
+MSFG.el = function(id) { return document.getElementById(id); };
+MSFG.qs = function(sel, ctx) { return (ctx || document).querySelector(sel); };
+MSFG.qsa = function(sel, ctx) { return (ctx || document).querySelectorAll(sel); };
+MSFG.daysBetween = function(d1, d2) { return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24)); };
+
 window.MSFG = MSFG;

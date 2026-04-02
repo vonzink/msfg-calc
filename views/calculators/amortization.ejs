@@ -11,7 +11,7 @@
       <h2><span class="section-number">1</span> Loan Details</h2>
 
       <!-- Mode Toggle: Purchase / Refinance -->
-      <div class="form-group" style="margin-bottom: var(--space-md);">
+      <div class="form-group u-mb-md">
         <div class="amort-term-toggle" id="modeToggle">
           <button type="button" class="amort-term-btn active" data-mode="purchase">Purchase</button>
           <button type="button" class="amort-term-btn" data-mode="refinance">Refinance</button>
@@ -21,7 +21,7 @@
       <!-- ===== Purchase Fields ===== -->
       <div id="purchaseFields">
         <!-- Home Price with Range Slider -->
-        <div class="form-group" style="margin-bottom: var(--space-md);">
+        <div class="form-group u-mb-md">
           <label for="homePrice">Home Price</label>
           <div class="amort-slider-row">
             <input type="number" id="homePrice" value="0" min="0" max="2000000" step="5000" placeholder="Home price">
@@ -29,7 +29,7 @@
           </div>
         </div>
 
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-grid u-grid-2col">
           <!-- Down Payment (dual $ / %) -->
           <div class="form-group">
             <label>Down Payment</label>
@@ -56,7 +56,7 @@
       <!-- ===== Refinance Fields ===== -->
       <div id="refiFields" style="display: none;">
         <!-- Loan Amount with Range Slider (master) -->
-        <div class="form-group" style="margin-bottom: var(--space-md);">
+        <div class="form-group u-mb-md">
           <label for="refiLoanAmount">Loan Amount</label>
           <div class="amort-slider-row">
             <input type="number" id="refiLoanAmount" value="0" min="0" max="2000000" step="5000" placeholder="Loan amount">
@@ -64,7 +64,7 @@
           </div>
         </div>
 
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-grid u-grid-2col">
           <!-- Appraised Value -->
           <div class="form-group">
             <label for="appraisedValue">Appraised Value</label>
@@ -79,14 +79,14 @@
         </div>
 
         <!-- Equity (computed) -->
-        <div class="form-group" style="margin-top: var(--space-sm);">
+        <div class="form-group u-mt-sm">
           <label for="refiEquity">Equity</label>
           <input type="text" id="refiEquity" value="$80,000" readonly class="calculated-field">
         </div>
       </div>
 
       <!-- ===== LTV Display (shared) ===== -->
-      <div class="amort-ltv-display" id="ltvDisplay" style="margin-top: var(--space-md);">
+      <div class="amort-ltv-display u-mt-md" id="ltvDisplay">
         <div class="amort-ltv-header">
           <span class="amort-ltv-label">Loan-to-Value (LTV)</span>
           <span class="amort-ltv-value" id="ltvValue">0.0%</span>
@@ -98,7 +98,7 @@
         <small class="amort-ltv-note" id="ltvNote"></small>
       </div>
 
-      <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-top: var(--space-md);">
+      <div class="form-grid u-grid-2col u-mt-md">
         <!-- Interest Rate -->
         <div class="form-group">
           <label for="interestRate">Interest Rate (%)</label>
@@ -116,7 +116,7 @@
       </div>
 
       <!-- Loan Term Toggle -->
-      <div class="form-group" style="margin-top: var(--space-md);">
+      <div class="form-group u-mt-md">
         <label>Loan Term</label>
         <div class="amort-term-toggle" id="termToggle">
           <button type="button" class="amort-term-btn active" data-years="30">30 yr</button>
@@ -129,7 +129,7 @@
     <!-- ===== 2. Taxes & Insurance ===== -->
     <div class="calc-section">
       <h2><span class="section-number">2</span> Taxes & Insurance</h2>
-      <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="form-grid u-grid-3col">
         <div class="form-group">
           <label for="propertyTax">
             Property Tax
@@ -170,7 +170,7 @@
         </button>
       </h2>
       <div id="extraPaymentSection" style="display: none;">
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-grid u-grid-2col">
           <div class="form-group">
             <label for="extraPayment">Extra Payment Amount ($)</label>
             <input type="number" id="extraPayment" value="0" min="0" step="50">
@@ -184,7 +184,7 @@
             </div>
           </div>
         </div>
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-top: var(--space-md);">
+        <div class="form-grid u-grid-2col u-mt-md">
           <div class="form-group" id="extraStartDateGroup">
             <label>Extra Payment Start Date</label>
             <div class="amort-date-row">
@@ -205,7 +205,7 @@
         <div class="result-highlight__value" id="resultMonthlyPI">$0.00</div>
       </div>
 
-      <div class="results-grid" style="margin-top: var(--space-md);">
+      <div class="results-grid u-mt-md">
         <div class="result-card">
           <div class="result-card__label">Total Monthly Payment</div>
           <div class="result-card__value" id="resultTotalMonthly">$0.00</div>
