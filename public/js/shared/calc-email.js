@@ -167,14 +167,22 @@
   });
 
   /* ---- Bind data-action buttons (Print + Email) ---- */
-  document.addEventListener('DOMContentLoaded', function () {
+  function bindActionButtons() {
     document.querySelectorAll('[data-action="calc-print"]').forEach(function (el) {
       el.addEventListener('click', handlePrint);
     });
     document.querySelectorAll('[data-action="calc-email"]').forEach(function (el) {
       el.addEventListener('click', openModal);
     });
-  });
+  }
+
+  // Script loads at end of body — DOMContentLoaded may have already fired
+  // (especially inside workspace iframes). Run immediately if DOM is ready.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindActionButtons);
+  } else {
+    bindActionButtons();
+  }
 
   /* ---- Public API ---- */
   window.MSFG = window.MSFG || {};
