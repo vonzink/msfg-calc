@@ -99,6 +99,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (main.dataset.calcIcon) window.__calcIcon = main.dataset.calcIcon;
     if (main.dataset.calcSlug) window.__calcSlug = main.dataset.calcSlug;
   }
+
+  // Apply dynamic colors from data attributes (CSP-safe)
+  document.querySelectorAll('[data-color]').forEach(function(el) {
+    el.style.backgroundColor = el.dataset.color;
+  });
+  document.querySelectorAll('[data-border-color]').forEach(function(el) {
+    el.style.borderLeftColor = el.dataset.borderColor;
+  });
+  document.querySelectorAll('[data-max-width]').forEach(function(el) {
+    el.style.maxWidth = el.dataset.maxWidth + 'px';
+  });
 });
 
 /* ---- Default-value helpers ---- */

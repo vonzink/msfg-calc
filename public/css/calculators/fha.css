@@ -2,6 +2,12 @@
 
 /* MISMO drop zone → uses shared .mismo-drop in components.css */
 
+/* ---- Notes heading ---- */
+.fha-notes-heading {
+  font-size: 0.95rem;
+  color: var(--color-gray-700);
+}
+
 /* ---- Seasoning status cards ---- */
 .fha-seasoning-grid {
   display: grid;

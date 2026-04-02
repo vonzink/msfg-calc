@@ -6,7 +6,7 @@
   <div class="hub-counter-row">
     <% categories.forEach(cat => { %>
       <span class="hub-counter">
-        <span class="hub-counter-dot" style="background: <%= cat.color %>;"></span>
+        <span class="hub-counter-dot" data-color="<%= cat.color %>"></span>
         <span id="hubCount-<%= cat.id %>"><%= calculators.filter(c => c.category === cat.id).length %></span>
         <%= cat.label.replace(' Calculators', '') %>
       </span>
@@ -24,7 +24,7 @@
 <% categories.forEach(cat => { %>
   <div class="hub-category" data-category="<%= cat.id %>">
     <h2 class="hub-category__title">
-      <span class="hub-category__dot" style="background: <%= cat.color %>;"></span>
+      <span class="hub-category__dot" data-color="<%= cat.color %>"></span>
       <%= cat.label %>
     </h2>
     <div class="hub-grid">

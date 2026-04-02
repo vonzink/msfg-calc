@@ -1,5 +1,15 @@
 /* VA Pre-Qual — page-specific styles */
 
+/* ---- Results section heading ---- */
+.va-results-heading {
+  color: var(--brand-primary);
+  margin-bottom: var(--space-md);
+}
+
+/* ---- Residual value colors ---- */
+.va-value--muted  { color: var(--color-gray-500); }
+.va-value--brand  { color: var(--brand-primary); }
+
 .residual-comparison {
   display: grid;
   grid-template-columns: 1fr 1fr;

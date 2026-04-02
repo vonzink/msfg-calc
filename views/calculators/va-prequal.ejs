@@ -97,10 +97,10 @@
     <div class="calc-section">
       <h2>Pre-Qualification Results</h2>
 
-      <h3 style="color: var(--brand-primary); margin-bottom: var(--space-md);"><span class="section-number">6</span> Residual Income Analysis</h3>
+      <h3 class="va-results-heading"><span class="section-number">6</span> Residual Income Analysis</h3>
       <div class="residual-comparison">
-        <div class="residual-item"><h4>Required Residual</h4><div class="value" style="color: var(--color-gray-500);" id="requiredResidual">$0</div></div>
-        <div class="residual-item"><h4>Actual Residual</h4><div class="value" style="color: var(--brand-primary);" id="actualResidual">$0</div></div>
+        <div class="residual-item"><h4>Required Residual</h4><div class="value va-value--muted" id="requiredResidual">$0</div></div>
+        <div class="residual-item"><h4>Actual Residual</h4><div class="value va-value--brand" id="actualResidual">$0</div></div>
       </div>
       <div class="residual-status" id="residualStatus">Calculating...</div>
 
@@ -122,9 +122,9 @@
     <%- include('../partials/show-calculations', { calcId: 'vaprequal' }) %>
 
     <!-- Reference Tables -->
-    <div class="calc-section" style="margin-top: var(--space-xl);">
+    <div class="calc-section u-mt-xl">
       <button class="btn btn-sm btn-ghost" type="button" id="refTableToggle">Show Reference Tables</button>
-      <div id="refTables" class="u-hidden" style="margin-top: var(--space-lg);">
+      <div id="refTables" class="u-hidden u-mt-lg">
         <div class="residual-tables-container">
           <div class="residual-table-wrapper">
             <h3>Residual Income — Under $80,000</h3>

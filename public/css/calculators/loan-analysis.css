@@ -2,6 +2,14 @@
    Cover Letter — Clean Professional Styles
    ===================================================== */
 
+/* ---- Letter body textarea ---- */
+.la-body-textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
 /* ---- Optional Badge ---- */
 .la-optional-badge {
   display: inline-block;

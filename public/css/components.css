@@ -12,14 +12,75 @@
 .u-mb-sm          { margin-bottom: var(--space-sm); }
 .u-mb-md          { margin-bottom: var(--space-md); }
 .u-mb-lg          { margin-bottom: var(--space-lg); }
+.u-mb-xl          { margin-bottom: var(--space-xl); }
 .u-mt-sm          { margin-top: var(--space-sm); }
 .u-mt-md          { margin-top: var(--space-md); }
 .u-mt-lg          { margin-top: var(--space-lg); }
+.u-mt-xl          { margin-top: var(--space-xl); }
+.u-ml-auto        { margin-left: auto; }
 .u-text-center    { text-align: center; }
+.u-text-left      { text-align: left; }
 .u-text-right     { text-align: right; }
 .u-font-sm        { font-size: 0.85rem; }
 .u-gap-sm         { gap: var(--space-sm); }
 .u-gap-md         { gap: var(--space-md); }
+.u-no-border-top  { border-top: none; }
+.u-overflow-x     { overflow-x: auto; }
+.u-justify-end    { justify-content: flex-end; }
+.u-justify-center { justify-content: center; }
+.u-flex-wrap      { display: flex; align-items: center; flex-wrap: wrap; }
+.u-no-padding     { padding: 0; }
+.u-p-0            { padding: 0; }
+.u-mt-xs          { margin-top: var(--space-xs); }
+.u-text-brand     { color: var(--brand-primary); }
+.u-max-w-400      { max-width: 400px; }
+
+/* Icon inline alignment (SVG in buttons) */
+.icon-inline svg  { vertical-align: -2px; margin-right: 4px; }
+
+/* Legacy iframe wrapper */
+.legacy-iframe     { width: 100%; min-height: 80vh; border: none; display: block; }
+
+/* Settings page helper text */
+.settings-help     { font-size: 0.88rem; color: var(--color-gray-500); margin-bottom: var(--space-md); }
+.settings-help-sm  { font-size: 0.85rem; color: var(--color-gray-500); }
+
+/* Settings logo preview */
+.settings-logo-preview { padding: var(--space-lg); background: var(--color-gray-50); border-radius: var(--border-radius); text-align: center; }
+
+/* Settings AI key input row */
+.settings-key-row  { display: flex; gap: var(--space-xs); }
+.settings-key-row input { flex: 1; }
+
+/* Settings AI action row */
+.settings-action-row { display: flex; align-items: center; gap: var(--space-sm); margin-top: var(--space-md); flex-wrap: wrap; }
+
+/* Settings AI status box */
+.settings-status-box { margin-top: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-gray-50); border-radius: var(--border-radius); font-size: 0.85rem; }
+
+/* Settings AI toggle key button */
+.btn--compact      { padding: 0.4rem 0.6rem; font-size: 0.85rem; }
+
+/* Danger-outlined button (clear / destructive actions) */
+.btn--danger-outline { color: var(--color-danger, #dc3545); border-color: var(--color-danger, #dc3545); }
+
+/* Success status text */
+.text-success      { color: var(--color-success, #2d6a4f); }
+
+/* Muted-light (lighter than text-muted) */
+.text-muted-light  { color: var(--color-gray-400); }
+
+/* Full-width form group spanning grid */
+.form-group--full  { grid-column: 1 / -1; }
+
+/* Error page component */
+.error-page        { text-align: center; padding: var(--space-2xl); }
+.error-page__code  { font-size: 4rem; color: var(--color-gray-300); margin-bottom: var(--space-sm); }
+.error-page__title { color: var(--color-gray-700); }
+.error-page__msg   { color: var(--color-gray-500); margin-bottom: var(--space-xl); }
+
+/* AI test result inline */
+.settings-test-result { font-size: 0.85rem; margin-left: var(--space-sm); }
 
 /* ---- Sections ---- */
 .calc-section {

@@ -1,7 +1,7 @@
     <!-- SMTP / Email Configuration -->
     <div class="calc-section">
       <h2>Email (SMTP) Configuration</h2>
-      <p style="font-size: 0.88rem; color: var(--color-gray-500); margin-bottom: var(--space-md);">
+      <p class="settings-help">
         Configure SMTP to enable emailing calculator results to clients. For Outlook use <code>smtp.office365.com</code> port <code>587</code>.
         For Gmail use <code>smtp.gmail.com</code> port <code>587</code> with an App Password.
       </p>
@@ -22,7 +22,7 @@
                    placeholder="587">
           </div>
         </div>
-        <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-grid u-mt-md">
           <div class="form-group">
             <label for="smtpUser">Username / Email</label>
             <input type="text" id="smtpUser" name="smtp_user"
@@ -36,9 +36,9 @@
                    placeholder="App password">
           </div>
         </div>
-        <div class="form-grid" style="margin-top: var(--space-md);">
+        <div class="form-grid u-mt-md">
           <div class="form-group">
-            <label for="smtpFrom">From Address <span style="color:var(--color-gray-400);">(optional, defaults to username)</span></label>
+            <label for="smtpFrom">From Address <span class="text-muted-light">(optional, defaults to username)</span></label>
             <input type="email" id="smtpFrom" name="smtp_from"
                    value="<%= config.smtp ? config.smtp.from : '' %>"
                    placeholder="noreply@msfginfo.com">

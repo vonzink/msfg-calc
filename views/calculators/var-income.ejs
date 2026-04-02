@@ -16,7 +16,7 @@
         <div class="calc-section">
           <h2>
             <span class="emp-panel-title">Employment 1</span>
-            <button class="btn btn-sm btn-secondary remove-emp-btn u-hidden" type="button" style="margin-left: auto;">Remove</button>
+            <button class="btn btn-sm btn-secondary remove-emp-btn u-hidden u-ml-auto" type="button">Remove</button>
           </h2>
 
           <div class="upload-zone" data-emp-index="0" data-upload-type="paystub">
@@ -83,7 +83,7 @@
           </div>
 
           <!-- Hourly-specific fields -->
-          <div class="emp-hourly-fields u-hidden" style="margin-top: var(--space-md);">
+          <div class="emp-hourly-fields u-hidden u-mt-md">
             <div class="form-grid">
               <div class="form-group">
                 <label>Expected Hours/Week
@@ -91,7 +91,7 @@
                 </label>
                 <input type="number" class="emp-hours-per-week" step="0.5" placeholder="40">
               </div>
-              <div class="form-group" style="justify-content: center;">
+              <div class="form-group u-justify-center">
                 <label class="form-check u-mt-md">
                   <input type="checkbox" class="emp-hours-fluctuate">
                   Hours fluctuate (treat base as variable)
@@ -105,7 +105,7 @@
               <label>Employment Start Date</label>
               <input type="date" class="emp-start-date">
             </div>
-            <div class="form-group" style="justify-content: center;">
+            <div class="form-group u-justify-center">
               <label class="form-check u-mt-md">
                 <input type="checkbox" class="emp-comp-change">
                 Recent comp/role change
@@ -174,7 +174,7 @@
         <!-- Prior Year W-2 Data -->
         <div class="calc-section">
           <h2>Prior Year W-2 / Earnings History</h2>
-          <p style="font-size: 0.85rem; color: var(--color-gray-500); margin-bottom: var(--space-md);">
+          <p class="settings-help-sm u-mb-md">
             Enter prior year totals from W-2s or tax returns. Two years recommended for trending analysis.
           </p>
 
@@ -227,14 +227,14 @@
     </div>
 
     <!-- Add Employment Button -->
-    <div style="text-align: center; margin-bottom: var(--space-xl);">
+    <div class="u-text-center u-mb-xl">
       <button class="btn btn-ghost" id="addEmploymentBtn" type="button">
         + Add Employment
       </button>
     </div>
 
     <!-- Calculate Button -->
-    <div class="action-bar" style="border-top: none;">
+    <div class="action-bar u-no-border-top">
       <button class="btn btn-secondary" id="resetBtn" type="button">Reset</button>
       <button class="btn btn-primary" id="calculateBtn" type="button">Analyze Income</button>
     </div>
@@ -273,7 +273,7 @@
       <div class="calc-section">
         <h2>Flags &amp; Observations</h2>
         <div id="flagsContainer">
-          <p style="font-size: 0.85rem; color: var(--color-gray-500);">Run analysis to see flags.</p>
+          <p class="settings-help-sm">Run analysis to see flags.</p>
         </div>
       </div>
 
@@ -281,7 +281,7 @@
       <div class="calc-section">
         <h2>Required Documentation</h2>
         <div id="docsContainer">
-          <p style="font-size: 0.85rem; color: var(--color-gray-500);">Run analysis to see documentation requirements.</p>
+          <p class="settings-help-sm">Run analysis to see documentation requirements.</p>
         </div>
       </div>
 
