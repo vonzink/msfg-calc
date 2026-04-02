@@ -57,7 +57,8 @@
     var ehlHtml = EHL_URL
       ? '<div class="rpt-brand-ehl"><img src="' + EHL_URL + '" alt="Equal Housing Lender" class="rpt-brand-ehl-img" onerror="this.parentElement.innerHTML=\'Equal Housing Lender\'"></div>'
       : '';
-    return ehlHtml +
+    return '<div class="rpt-brand-footer-divider"></div>' +
+      ehlHtml +
       '<div class="rpt-brand-footer">' +
         '<span>' + COMPANY + '</span>' +
         '<span>' + formatDate(timestamp) + '</span>' +
