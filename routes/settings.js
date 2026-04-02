@@ -249,6 +249,7 @@ router.post('/smtp', (req, res) => {
 
   config.smtp.host = host;
   config.smtp.port = port;
+  config.smtp.secure = port === '465';
   config.smtp.user = user;
   /* Only update password if a new one was provided (not masked) */
   if (pass && !pass.includes('••')) {

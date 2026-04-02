@@ -15,6 +15,14 @@
     "provider": "",
     "apiKey": ""
   },
+  "smtp": {
+    "host": "smtp.porkbun.com",
+    "port": "465",
+    "secure": true,
+    "user": "info@msfginfo.com",
+    "pass": "",
+    "from": "info@msfginfo.com"
+  },
   "emailSignature": {
     "name": "",
     "title": "",
