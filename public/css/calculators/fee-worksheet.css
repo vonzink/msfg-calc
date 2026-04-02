@@ -253,6 +253,7 @@
 
   .fw-fee-section {
     break-inside: avoid;
+    page-break-inside: avoid;
     margin-bottom: 8px;
   }
 
@@ -261,5 +262,11 @@
     background: transparent;
     font-weight: 600;
     padding: 0;
+  }
+
+  /* Keep summary totals with their content */
+  .fw-summary {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }

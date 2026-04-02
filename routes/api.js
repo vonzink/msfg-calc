@@ -237,7 +237,6 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
 <!-- Header -->
 <tr><td style="background:${primaryColor};padding:20px 30px;">
   <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">${escHTML(calcData.title || 'Calculator Results')}</h1>
-  <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:13px;">${escHTML(siteName)}</p>
 </td></tr>`;
 
   /* Personal message */
@@ -261,11 +260,35 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
         const isTotal = row.isTotal;
         const weight = isTotal ? 'font-weight:700;' : '';
         const border = isTotal ? 'border-top:2px solid #ddd;' : '';
-        html += `
+        const useStacked = row.stacked || (row.value && row.value.length > 60);
+        if (row.stacked) {
+          // Stacked list item: icon+name on top, reason below in smaller lighter text
+          html += `
+    <tr style="background:${bg};">
+      <td colspan="2" style="padding:8px 12px ${row.value ? '1px' : '8px'};color:#333;font-size:13px;">${escHTML(row.label)}</td>
+    </tr>`;
+          if (row.value) {
+            html += `
+    <tr style="background:${bg};">
+      <td colspan="2" style="padding:0 12px 8px 28px;color:#888;font-size:11px;line-height:1.4;">${escHTML(row.value)}</td>
+    </tr>`;
+          }
+        } else if (useStacked) {
+          // Long value: label on top, value below spanning full width
+          html += `
+    <tr style="background:${bg};${border}">
+      <td colspan="2" style="padding:8px 12px 2px;color:#555;${weight}font-size:13px;">${escHTML(row.label)}</td>
+    </tr>
+    <tr style="background:${bg};">
+      <td colspan="2" style="padding:2px 12px 8px;color:#222;font-size:13px;line-height:1.4;">${escHTML(row.value)}</td>
+    </tr>`;
+        } else {
+          html += `
     <tr style="background:${bg};${border}">
       <td style="padding:8px 12px;color:#555;${weight}">${escHTML(row.label)}</td>
       <td style="padding:8px 12px;text-align:right;color:#222;${weight}">${escHTML(row.value)}</td>
     </tr>`;
+        }
       });
       html += '</table></td></tr>';
     });

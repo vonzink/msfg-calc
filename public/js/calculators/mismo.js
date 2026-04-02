@@ -454,13 +454,98 @@
     });
 
     // Action buttons
-    el('mismoPrintBtn').addEventListener('click', function () { window.print(); });
     el('mismoClearBtn').addEventListener('click', clearAll);
 
     // Auto-populate from workspace sessionStorage
     const storedXml = sessionStorage.getItem('msfg-mismo-xml');
     if (storedXml) {
       window.__mismoProcessXmlString(storedXml);
+    }
+
+    /* ---- Register email data provider ---- */
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        const sections = [];
+
+        // Loan summary section (compact — combine related fields)
+        const summaryRows = [];
+        function kv(id) {
+          const node = el(id);
+          const val = node ? node.textContent.trim() : '';
+          return (val && val !== '\u2014' && val !== '--') ? val : '';
+        }
+        const borrower = kv('kvBorrower');
+        if (borrower) summaryRows.push({ label: 'Borrower(s)', value: borrower });
+        const property = kv('kvProperty');
+        if (property) summaryRows.push({ label: 'Property', value: property });
+        // Combine purpose / type / occupancy into one line
+        const purposeParts = [kv('kvPurpose'), kv('kvType'), kv('kvOccupancy')].filter(Boolean);
+        if (purposeParts.length) summaryRows.push({ label: 'Purpose / Type / Occupancy', value: purposeParts.join('  \u00B7  ') });
+        // Combine amount / LTV / property type into one line
+        const amtParts = [];
+        const amt = kv('kvAmount');
+        const ltv = kv('kvLTV');
+        const propType = kv('kvPropertyType');
+        if (amt) amtParts.push(amt);
+        if (ltv) amtParts.push(ltv + ' LTV');
+        if (propType) amtParts.push(propType);
+        if (amtParts.length) summaryRows.push({ label: 'Amount / LTV / Property', value: amtParts.join('  \u00B7  ') });
+        if (summaryRows.length > 0) {
+          sections.push({ heading: 'Loan Summary', rows: summaryRows });
+        }
+
+        // Status chips
+        const chipRows = [];
+        ['chipProgram', 'chipEmp', 'chipRes', 'chipGaps', 'chipREO', 'chipDec'].forEach(function (id) {
+          const chip = el(id);
+          if (chip && chip.textContent.trim() && chip.textContent.indexOf('Pending') === -1) {
+            const isOk = chip.classList.contains('mismo-chip--ok');
+            const isWarn = chip.classList.contains('mismo-chip--warn') || chip.classList.contains('mismo-chip--need');
+            chipRows.push({ label: chip.textContent.trim(), value: isOk ? 'CLEAR' : isWarn ? 'ATTENTION' : '--' });
+          }
+        });
+        if (chipRows.length > 0) {
+          sections.push({ heading: 'Status Overview', rows: chipRows });
+        }
+
+        // Helper to build section from checklist state
+        function buildSection(heading, sectionKey) {
+          const items = checklistState[sectionKey];
+          if (!items || items.length === 0) return;
+          const rows = [];
+          // Count summary as first row
+          const required = items.filter(function (i) { return i.status === 'required'; }).length;
+          const conditional = items.filter(function (i) { return i.status === 'conditional'; }).length;
+          const ok = items.filter(function (i) { return i.status === 'ok'; }).length;
+          const countParts = [];
+          if (required > 0) countParts.push(required + ' required');
+          if (conditional > 0) countParts.push(conditional + ' conditional');
+          if (ok > 0) countParts.push(ok + ' received');
+          rows.push({ label: heading, value: countParts.join('  \u00B7  ') || 'None', isTotal: true });
+          items.forEach(function (item) {
+            const icon = item.status === 'required' ? '\u26A0\uFE0F' :
+                         item.status === 'conditional' ? '\u2753' :
+                         item.status === 'ok' ? '\u2705' :
+                         item.status === 'incomplete' ? '\u26D4' : '\u2022';
+            rows.push({
+              label: icon + '  ' + item.name,
+              value: item.reason ? '\u2014 ' + item.reason : '',
+              stacked: true
+            });
+          });
+          sections.push({ heading: heading, rows: rows });
+        }
+
+        buildSection('Income Documentation', 'income');
+        buildSection('General Documentation', 'general');
+        buildSection('Asset Documentation', 'assets');
+        buildSection('Credit Documentation', 'credit');
+
+        return {
+          title: 'Conditions & Documents Checklist',
+          sections: sections
+        };
+      });
     }
   });
 

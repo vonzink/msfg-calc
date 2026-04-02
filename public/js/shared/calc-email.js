@@ -59,8 +59,19 @@
       html += '<h4 style="color:#333; margin:12px 0 6px; border-bottom:1px solid #e0e0e0; padding-bottom:4px;">' + MSFG.escHtml(sec.heading) + '</h4>';
       html += '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
       sec.rows.forEach(function (row) {
-        html += '<tr><td style="padding:3px 8px 3px 0; color:#555;">' + MSFG.escHtml(row.label) + '</td>';
-        html += '<td style="padding:3px 0; font-weight:600; text-align:right;">' + MSFG.escHtml(row.value) + '</td></tr>';
+        var valueLong = row.value && row.value.length > 60;
+        if (row.stacked) {
+          html += '<tr><td colspan="2" style="padding:4px 8px ' + (row.value ? '0' : '4px') + ' 0; color:#333; font-size:13px;">' + MSFG.escHtml(row.label) + '</td></tr>';
+          if (row.value) {
+            html += '<tr><td colspan="2" style="padding:0 8px 4px 16px; color:#999; font-size:11px; line-height:1.3;">' + MSFG.escHtml(row.value) + '</td></tr>';
+          }
+        } else if (valueLong) {
+          html += '<tr><td colspan="2" style="padding:3px 8px 0 0; color:#555; font-size:12px;">' + MSFG.escHtml(row.label) + '</td></tr>';
+          html += '<tr><td colspan="2" style="padding:0 8px 4px 0; color:#222; line-height:1.4;">' + MSFG.escHtml(row.value) + '</td></tr>';
+        } else {
+          html += '<tr><td style="padding:3px 8px 3px 0; color:#555;">' + MSFG.escHtml(row.label) + '</td>';
+          html += '<td style="padding:3px 0; font-weight:600; text-align:right;">' + MSFG.escHtml(row.value) + '</td></tr>';
+        }
       });
       html += '</table>';
     });

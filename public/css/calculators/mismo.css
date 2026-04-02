@@ -446,10 +446,25 @@
   .mismo-empty-state,
   .mismo-info-only { display: none !important; }
 
+  /* Hide the entire upload card (first child of top-grid) */
+  .mismo-top-grid > div:first-child { display: none !important; }
+
   .mismo-top-grid {
     grid-template-columns: 1fr;
   }
 
+  /* Compact summary for print */
+  .mismo-summary-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.25rem;
+  }
+  .mismo-kv { padding: 2px 4px; }
+  .mismo-kv-label { font-size: 7pt; }
+  .mismo-kv-value { font-size: 8pt; }
+  .mismo-chips { margin-top: 0.25rem; }
+  .mismo-chip { font-size: 7pt; padding: 1px 6px; }
+
+  /* Clean input appearance */
   .mismo-doc-item__status {
     border: none;
     background: none;
@@ -463,10 +478,24 @@
     background: none;
     padding: 0;
   }
+
+  /* Each doc item should not split across pages */
   .mismo-doc-item {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
+
+  /* Each checklist section starts on a new page */
   .mismo-checklist-section {
+    break-before: page;
+    page-break-before: always;
     break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* But the first checklist section should NOT break — it follows the summary */
+  .mismo-checklist-section:first-of-type {
+    break-before: auto;
+    page-break-before: auto;
   }
 }

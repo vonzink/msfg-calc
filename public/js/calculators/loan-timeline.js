@@ -1016,36 +1016,94 @@
 
     if (MSFG.CalcActions) {
       MSFG.CalcActions.register(function () {
-        const rows = [];
-        EVENT_DEFS.forEach(function (ev) {
-          const d = state.events[ev.id];
-          if (d && state.visibility[ev.id] !== false) {
-            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            rows.push({ label: ev.label, value: dateStr });
-          }
-        });
-        state.customDates.forEach(function (cd) {
-          if (cd.date) {
-            const dateStr = cd.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            rows.push({ label: cd.label, value: dateStr });
-          }
-        });
-
         const sections = [];
-        if (rows.length > 0) {
-          sections.push({ heading: 'Timeline Milestones', rows: rows });
-        }
 
+        // Loan information
         const borrower = el('ltBorrower') ? el('ltBorrower').textContent : '';
         const fileNum = el('ltFileNum') ? el('ltFileNum').textContent : '';
+        const purpose = el('ltPurpose') ? el('ltPurpose').textContent : '';
+        const program = el('ltProgram') ? el('ltProgram').textContent : '';
         const infoRows = [];
         if (borrower && borrower !== '--') infoRows.push({ label: 'Borrower', value: borrower });
         if (fileNum && fileNum !== '--') infoRows.push({ label: 'File #', value: fileNum });
         infoRows.push({ label: 'Loan Purpose', value: state.loanPurpose || 'Purchase' });
+        if (purpose && purpose !== '--') infoRows.push({ label: 'Purpose', value: purpose });
+        if (program && program !== '--') infoRows.push({ label: 'Program', value: program });
+
+        // Add days to closing
+        const closing = state.events.closingEstimate;
+        const funding = state.events.fundingEstimate;
+        const today = new Date();
+        if (closing) {
+          const daysToClose = Math.round((closing - today) / (1000 * 60 * 60 * 24));
+          infoRows.push({ label: 'Days to Closing', value: daysToClose >= 0 ? daysToClose + ' days' : 'PAST DUE', isTotal: daysToClose < 0 });
+        }
         if (infoRows.length > 0) {
-          sections.unshift({ heading: 'Loan Information', rows: infoRows });
+          sections.push({ heading: 'Loan Information', rows: infoRows });
         }
 
+        // Group events by category
+        const categoryLabels = {
+          milestone: 'Key Milestones',
+          deadline: 'Critical Deadlines',
+          lock: 'Rate Lock',
+          contingency: 'Contingencies',
+          condition: 'Conditions',
+          turntime: 'Underwriting Turn Times'
+        };
+        const grouped = {};
+        EVENT_DEFS.forEach(function (ev) {
+          const d = state.events[ev.id];
+          if (d && state.visibility[ev.id] !== false) {
+            if (!grouped[ev.category]) grouped[ev.category] = [];
+            const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            grouped[ev.category].push({ label: ev.label, value: dateStr });
+          }
+        });
+
+        // Add grouped sections in order
+        ['milestone', 'deadline', 'lock', 'contingency', 'condition', 'turntime'].forEach(function (cat) {
+          if (grouped[cat] && grouped[cat].length > 0) {
+            sections.push({ heading: categoryLabels[cat], rows: grouped[cat] });
+          }
+        });
+
+        // Custom dates
+        if (state.customDates.length > 0) {
+          const customRows = [];
+          state.customDates.forEach(function (cd) {
+            if (cd.date) {
+              const dateStr = cd.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+              customRows.push({ label: cd.label, value: dateStr });
+            }
+          });
+          if (customRows.length > 0) {
+            sections.push({ heading: 'Custom Dates', rows: customRows });
+          }
+        }
+
+        // Key dates calculation — lock days remaining, days app to close, etc.
+        const summaryRows = [];
+        const app = state.events.applicationTaken;
+        if (app && closing) {
+          summaryRows.push({ label: 'Application to Closing', value: Math.round((closing - app) / (1000 * 60 * 60 * 24)) + ' days' });
+        }
+        if (closing && funding) {
+          summaryRows.push({ label: 'Closing to Funding', value: Math.round((funding - closing) / (1000 * 60 * 60 * 24)) + ' days' });
+        }
+        const lockDate = state.events.lockDate;
+        const lockExp = state.events.lockExpiration;
+        if (lockDate && lockExp) {
+          const lockDays = Math.round((lockExp - lockDate) / (1000 * 60 * 60 * 24));
+          const lockRemaining = Math.round((lockExp - today) / (1000 * 60 * 60 * 24));
+          summaryRows.push({ label: 'Lock Period', value: lockDays + ' days' });
+          summaryRows.push({ label: 'Lock Days Remaining', value: lockRemaining >= 0 ? lockRemaining + ' days' : 'EXPIRED', isTotal: lockRemaining < 0 });
+        }
+        if (summaryRows.length > 0) {
+          sections.push({ heading: 'Timeline Summary', rows: summaryRows });
+        }
+
+        // Notes
         const notes = el('ltNotes') ? el('ltNotes').value.trim() : '';
         if (notes) {
           sections.push({ heading: 'Notes', rows: [{ label: 'Notes', value: notes }] });

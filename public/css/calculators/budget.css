@@ -590,7 +590,16 @@
 
   .bg-results__cards { grid-template-columns: repeat(4, 1fr); }
 
-  .bg-card { break-inside: avoid; }
+  .bg-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
   .bg-liab-row--omitted { opacity: 0.5; }
+
+  /* Results section should stay together */
+  .bg-results {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }

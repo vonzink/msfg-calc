@@ -477,57 +477,143 @@
     if (MSFG.CalcActions) {
       MSFG.CalcActions.register(function () {
         const g = function (id) { const el = document.getElementById(id); return el ? el.textContent || el.value : ''; };
+
+        // Helper: collect custom items for a section
+        function getCustomRows(section) {
+          const rows = [];
+          customItems.forEach(function (item) {
+            if (item.section === section) {
+              const el = document.getElementById(item.inputId);
+              const amount = el ? P(el.value) || 0 : 0;
+              if (amount !== 0) rows.push({ label: item.name, value: fmt(amount) });
+            }
+          });
+          return rows;
+        }
+
+        // Helper: add fee row only if non-zero
+        function feeRow(label, id) {
+          const amount = v(id);
+          return amount !== 0 ? { label: label, value: fmt(amount) } : null;
+        }
+
+        // Build detailed sections
+        const loanInfoRows = [
+          { label: 'Borrower(s)', value: g('fwBorrowerName') || '(not entered)' },
+          { label: 'File Number', value: g('fwFileNumber') || '--' },
+          { label: 'Prepared', value: g('fwPrepDate') || '--' },
+          { label: 'Loan Purpose', value: g('fwLoanPurpose') || '--' },
+          { label: 'Product', value: g('fwProduct') || '--' },
+          { label: 'Occupancy', value: g('fwOccupancy') || '--' },
+          { label: 'Property Type', value: g('fwPropertyType') || '--' },
+          { label: 'Property Value', value: fmt(v('fwPropertyValue')) },
+          { label: 'Loan Amount', value: fmt(v('fwLoanAmount')) },
+          { label: 'Total Loan Amount', value: fmt(v('fwTotalLoanAmt') || v('fwLoanAmount')) },
+          { label: 'Down Payment', value: fmt(v('fwDownPayment')) },
+          { label: 'Interest Rate', value: v('fwRate').toFixed(3) + '%' },
+          { label: 'APR', value: v('fwAPR') ? v('fwAPR').toFixed(3) + '%' : '--' },
+          { label: 'Term', value: v('fwTermMonths') + ' months' }
+        ];
+
+        // A. Origination Charges
+        const origRows = [
+          feeRow('Origination Fee', 'fwOrigFee'),
+          feeRow('Discount Points', 'fwDiscountPts'),
+          feeRow('Processing Fee', 'fwProcessingFee'),
+          feeRow('Underwriting Fee', 'fwUnderwritingFee')
+        ].filter(Boolean).concat(getCustomRows('origination'));
+        origRows.push({ label: 'Total Origination', value: g('fwOrigTotal'), isTotal: true });
+
+        // B. Services Borrower Cannot Shop
+        const cannotShopRows = [
+          feeRow('Appraisal Fee', 'fwAppraisalFee'),
+          feeRow('Credit Report Fee', 'fwCreditReportFee'),
+          feeRow('Technology Fee', 'fwTechFee'),
+          feeRow('VOE Fee', 'fwVOEFee'),
+          feeRow('Flood Cert Fee', 'fwFloodFee'),
+          feeRow('Tax Service Fee', 'fwTaxServiceFee'),
+          feeRow('MERS Fee', 'fwMERSFee')
+        ].filter(Boolean).concat(getCustomRows('cannotShop'));
+        cannotShopRows.push({ label: 'Total Cannot Shop', value: g('fwCannotShopTotal'), isTotal: true });
+
+        // C. Services Borrower Can Shop
+        const canShopRows = [
+          feeRow('eRecording Fee', 'fwERecordingFee'),
+          feeRow('Title - CPL', 'fwTitleCPL'),
+          feeRow("Title - Lender's Policy", 'fwTitleLenders'),
+          feeRow('Title - Settlement Fee', 'fwTitleSettlement'),
+          feeRow('Title - Tax Cert', 'fwTitleTaxCert'),
+          feeRow("Title - Owner's Policy", 'fwTitleOwners'),
+          feeRow('Wire Fee', 'fwWireFee')
+        ].filter(Boolean).concat(getCustomRows('canShop'));
+        canShopRows.push({ label: 'Total Can Shop', value: g('fwCanShopTotal'), isTotal: true });
+
+        // D. Government Fees
+        const govRows = [
+          feeRow('Recording Fee', 'fwRecordingFee'),
+          feeRow('Transfer Tax', 'fwTransferTax')
+        ].filter(Boolean).concat(getCustomRows('government'));
+        govRows.push({ label: 'Total Government', value: g('fwGovTotal'), isTotal: true });
+
+        // E. Prepaids
+        const prepaidRows = [
+          feeRow('Hazard Insurance Prepaid', 'fwPrepaidHazIns'),
+          feeRow('Prepaid Interest', 'fwPrepaidInterest')
+        ].filter(Boolean).concat(getCustomRows('prepaids'));
+        prepaidRows.push({ label: 'Total Prepaids', value: g('fwPrepaidsTotal'), isTotal: true });
+
+        // F. Escrow
+        const escrowRows = [
+          feeRow('Escrow - Tax', 'fwEscrowTax'),
+          feeRow('Escrow - Insurance', 'fwEscrowIns')
+        ].filter(Boolean).concat(getCustomRows('escrow'));
+        escrowRows.push({ label: 'Total Escrow', value: g('fwEscrowTotal'), isTotal: true });
+
+        // G. Other
+        const otherRows = [
+          feeRow('Other Fee 1', 'fwOther1'),
+          feeRow('Other Fee 2', 'fwOther2')
+        ].filter(Boolean).concat(getCustomRows('other'));
+        otherRows.push({ label: 'Total Other', value: g('fwOtherTotal'), isTotal: true });
+
+        // Funds needed to close
+        const isRefi = (document.getElementById('fwLoanPurpose') || {}).value === 'Refinance';
+        const fundsRows = [];
+        if (!isRefi) fundsRows.push({ label: 'Purchase Price', value: fmt(v('fwPurchasePrice')) });
+        fundsRows.push(
+          { label: 'Est. Prepaids', value: fmt(v('fwEstPrepaids')) },
+          { label: 'Est. Closing Costs', value: fmt(v('fwEstClosing')) },
+          { label: 'Discount / Origination', value: fmt(v('fwDiscount')) },
+          { label: 'Total Due', value: fmt(v('fwTotalDue')), isTotal: true },
+          { label: 'Loan Amount', value: fmt(v('fwSummaryLoanAmt')) },
+          { label: 'Seller Credits', value: fmt(v('fwSellerCredits')) },
+          { label: 'Lender Credits', value: fmt(v('fwLenderCredits')) },
+          { label: 'Estimated Funds From You', value: g('fwFundsFromYou'), isTotal: true }
+        );
+
+        // Monthly payment
+        const monthlyRows = [
+          { label: 'Principal & Interest', value: fmt(v('fwMonthlyPI')) },
+          { label: 'Hazard Insurance', value: fmt(v('fwMonthlyIns')) },
+          { label: 'Property Tax', value: fmt(v('fwMonthlyTax')) },
+          { label: 'Mortgage Insurance', value: fmt(v('fwMonthlyMI')) },
+          { label: 'HOA', value: fmt(v('fwMonthlyHOA')) },
+          { label: 'Total Monthly Payment', value: g('fwTotalMonthly'), isTotal: true }
+        ];
+
         return {
           title: 'Itemized Fee Worksheet',
           sections: [
-            {
-              heading: 'Loan Information',
-              rows: [
-                { label: 'Borrower(s)', value: g('fwBorrowerName') || '(not entered)' },
-                { label: 'File Number', value: g('fwFileNumber') || '--' },
-                { label: 'Property Value', value: fmt(v('fwPropertyValue')) },
-                { label: 'Loan Amount', value: fmt(v('fwLoanAmount')) },
-                { label: 'Interest Rate', value: v('fwRate').toFixed(3) + '%' },
-                { label: 'Term', value: v('fwTermMonths') + ' months' }
-              ]
-            },
-            {
-              heading: 'Closing Costs',
-              rows: [
-                { label: 'Origination Charges', value: g('fwOrigTotal') },
-                { label: 'Services Cannot Shop', value: g('fwCannotShopTotal') },
-                { label: 'Services Can Shop', value: g('fwCanShopTotal') },
-                { label: 'Government Fees', value: g('fwGovTotal') },
-                { label: 'Other Fees', value: g('fwOtherTotal') }
-              ]
-            },
-            {
-              heading: 'Prepaids & Escrow',
-              rows: [
-                { label: 'Prepaids Total', value: g('fwPrepaidsTotal') },
-                { label: 'Escrow Total', value: g('fwEscrowTotal') }
-              ]
-            },
-            {
-              heading: 'Funds Needed to Close',
-              rows: [
-                { label: 'Total Due from Borrower', value: fmt(v('fwTotalDue')) },
-                { label: 'Seller Credits', value: fmt(v('fwSellerCredits')) },
-                { label: 'Lender Credits', value: fmt(v('fwLenderCredits')) },
-                { label: 'Estimated Funds From You', value: g('fwFundsFromYou'), isTotal: true }
-              ]
-            },
-            {
-              heading: 'Monthly Housing Payment',
-              rows: [
-                { label: 'Principal & Interest', value: fmt(v('fwMonthlyPI')) },
-                { label: 'Hazard Insurance', value: fmt(v('fwMonthlyIns')) },
-                { label: 'Property Tax', value: fmt(v('fwMonthlyTax')) },
-                { label: 'Mortgage Insurance', value: fmt(v('fwMonthlyMI')) },
-                { label: 'HOA', value: fmt(v('fwMonthlyHOA')) },
-                { label: 'Total Monthly Payment', value: g('fwTotalMonthly'), isTotal: true }
-              ]
-            }
+            { heading: 'Loan Information', rows: loanInfoRows },
+            { heading: 'A. Origination Charges', rows: origRows },
+            { heading: 'B. Services You Cannot Shop For', rows: cannotShopRows },
+            { heading: 'C. Services You Can Shop For', rows: canShopRows },
+            { heading: 'D. Government Recording & Transfer', rows: govRows },
+            { heading: 'E. Prepaids', rows: prepaidRows },
+            { heading: 'F. Escrow at Closing', rows: escrowRows },
+            { heading: 'G. Other', rows: otherRows },
+            { heading: 'Funds Needed to Close', rows: fundsRows },
+            { heading: 'Est. Monthly Housing Payment', rows: monthlyRows }
           ]
         };
       });

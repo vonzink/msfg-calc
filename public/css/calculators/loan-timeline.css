@@ -620,12 +620,20 @@
   }
   .lt-calendar {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
   .lt-alerts {
     break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .lt-event-category {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
   .lt-notes {
     border: 1px solid #ccc;
     min-height: 40px;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }

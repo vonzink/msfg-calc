@@ -239,5 +239,59 @@
 
     // Load session report items for attachment picker
     loadAttachments();
+
+    /* ---- Register email data provider ---- */
+    if (MSFG.CalcActions) {
+      MSFG.CalcActions.register(function () {
+        var sig = getSignature();
+        var sections = [];
+
+        // Recipient info
+        var recipientRows = [];
+        var borrowerName = el('laBorrowerName').value.trim();
+        var coBorrower = el('laCoBorrowerName').value.trim();
+        if (borrowerName) recipientRows.push({ label: 'Borrower', value: borrowerName });
+        if (coBorrower) recipientRows.push({ label: 'Co-Borrower', value: coBorrower });
+        var street = el('laStreet').value.trim();
+        var city = el('laCity').value.trim();
+        var state = el('laState').value.trim();
+        var zip = el('laZip').value.trim();
+        var addrParts = [street];
+        var csz = [city, state].filter(Boolean).join(', ');
+        if (zip) csz += ' ' + zip;
+        if (csz.trim()) addrParts.push(csz.trim());
+        var fullAddr = addrParts.filter(Boolean).join(', ');
+        if (fullAddr) recipientRows.push({ label: 'Address', value: fullAddr });
+
+        var now = new Date();
+        var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        recipientRows.push({ label: 'Date', value: months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear() });
+
+        if (recipientRows.length > 0) {
+          sections.push({ heading: 'Letter Details', rows: recipientRows });
+        }
+
+        // Letter body — split into paragraphs and include as rows
+        var body = el('laBody').value.trim();
+        if (body) {
+          var paragraphs = body.split(/\n\n+/);
+          var bodyRows = [];
+          paragraphs.forEach(function (p, i) {
+            var trimmed = p.trim();
+            if (trimmed) {
+              bodyRows.push({ label: 'Paragraph ' + (i + 1), value: trimmed });
+            }
+          });
+          if (bodyRows.length > 0) {
+            sections.push({ heading: 'Letter Body', rows: bodyRows });
+          }
+        }
+
+        return {
+          title: 'Cover Letter',
+          sections: sections
+        };
+      });
+    }
   });
 })();
