@@ -104,6 +104,22 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Relax CSP for legacy HTML pages (they contain inline <script> tags)
+const legacyCsp = helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    imgSrc: ["'self'", "data:", "blob:", "https://msfg-media.s3.us-west-2.amazonaws.com"],
+    frameSrc: ["'self'"],
+    connectSrc: ["'self'", "https://cdnjs.cloudflare.com"]
+  }
+});
+app.use('/legacy', legacyCsp);
+app.use('/calculators/llpm', legacyCsp);
+app.use('/calculators/batch-llpm', legacyCsp);
+
 // Legacy standalone apps (served via iframe from EJS wrappers)
 
 // Helper: serve a static HTML file with cache-busting ?v= injected on local JS/CSS tags
