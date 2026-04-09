@@ -494,20 +494,6 @@
           sections.push({ heading: 'Loan Summary', rows: summaryRows });
         }
 
-        // Status chips
-        const chipRows = [];
-        ['chipProgram', 'chipEmp', 'chipRes', 'chipGaps', 'chipREO', 'chipDec'].forEach(function (id) {
-          const chip = el(id);
-          if (chip && chip.textContent.trim() && chip.textContent.indexOf('Pending') === -1) {
-            const isOk = chip.classList.contains('mismo-chip--ok');
-            const isWarn = chip.classList.contains('mismo-chip--warn') || chip.classList.contains('mismo-chip--need');
-            chipRows.push({ label: chip.textContent.trim(), value: isOk ? 'CLEAR' : isWarn ? 'ATTENTION' : '--' });
-          }
-        });
-        if (chipRows.length > 0) {
-          sections.push({ heading: 'Status Overview', rows: chipRows });
-        }
-
         // Helper to build section from checklist state
         function buildSection(heading, sectionKey) {
           const items = checklistState[sectionKey];
