@@ -264,7 +264,7 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
         if (row.stacked) {
           // Stacked list item: colored bullet + name on top, reason below
           const bullet = row.bulletColor
-            ? `<span style="color:${row.bulletColor};margin-right:5px;">&#9679;</span>`
+            ? `<span style="color:${row.bulletColor};">&#9679;</span>&nbsp;&nbsp;`
             : '';
           html += `
     <tr style="background:${bg};">

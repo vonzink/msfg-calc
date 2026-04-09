@@ -63,7 +63,7 @@
         var valueLong = row.value && row.value.length > 60;
         if (row.stacked) {
           var bullet = row.bulletColor
-            ? '<span style="color:' + row.bulletColor + ';margin-right:5px;">&#9679;</span>'
+            ? '<span style="color:' + row.bulletColor + ';">&#9679;</span>&nbsp;&nbsp;'
             : '';
           html += '<tr><td colspan="2" style="padding:4px 8px ' + (row.value ? '0' : '4px') + ' 0; color:#333; font-size:13px;">' + bullet + MSFG.escHtml(row.label) + '</td></tr>';
           if (row.value) {
