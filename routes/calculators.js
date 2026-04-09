@@ -13,13 +13,13 @@ const generalCalcs = [
   { slug: 'apr',             view: 'calculators/apr',             title: 'APR Calculator',                css: 'apr' },
   { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator', css: 'fha', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
   { slug: 'va-prequal',      view: 'calculators/va-prequal',      title: 'VA Pre-Qualification Worksheet', css: 'va-prequal' },
-  { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator',  noScript: true },
-  { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator',       noScript: true },
+  { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator' },
+  { slug: 'buydown',         view: 'calculators/buydown',         title: 'Buydown Calculator' },
   { slug: 'buy-vs-rent',     view: 'calculators/buy-vs-rent',     title: 'Buy vs Rent Calculator' },
   { slug: 'cash-vs-mortgage', view: 'calculators/cash-vs-mortgage', title: 'Cash vs Mortgage Comparison' },
-  { slug: 'refi',            view: 'calculators/refi',            title: 'Refinance Analysis Tool',   noScript: true },
-  { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI',        noScript: true },
-  { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator', noScript: true },
+  { slug: 'refi',            view: 'calculators/refi',            title: 'Refinance Analysis Tool' },
+  { slug: 'reo',             view: 'calculators/reo',             title: 'REO Investment ROI' },
+  { slug: 'escrow',          view: 'calculators/escrow',          title: 'Escrow Prepaids Calculator' },
   {
     slug: 'amortization',
     view: 'calculators/amortization',
@@ -35,7 +35,8 @@ const generalCalcs = [
   { slug: 'compare',        view: 'calculators/compare',        title: 'Loan Comparison',            css: 'compare', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
   { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' },
   { slug: 'mismo',          view: 'calculators/mismo',          title: 'Conditions & Documents',     css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js', '/js/calculators/mismo-docs.js', '/js/calculators/mismo-ui.js'] },
-  { slug: 'loan-timeline',  view: 'calculators/loan-timeline',  title: 'Loan Timeline',              css: 'loan-timeline', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] }
+  { slug: 'loan-timeline',  view: 'calculators/loan-timeline',  title: 'Loan Timeline',              css: 'loan-timeline', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
+  { slug: 'llpm',           view: 'calculators/llpm',           title: 'LLPM Tool' }
 ];
 
 generalCalcs.forEach(gc => {

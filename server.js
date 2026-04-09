@@ -120,7 +120,6 @@ const legacyCsp = helmet.contentSecurityPolicy({
   }
 });
 app.use('/legacy', legacyCsp);
-app.use('/calculators/llpm', legacyCsp);
 app.use('/calculators/batch-llpm', legacyCsp);
 
 // Legacy standalone apps (served via iframe from EJS wrappers)
@@ -142,8 +141,8 @@ function serveLegacyHtml(filePath) {
 app.get('/legacy/refi-calc/index.html', serveLegacyHtml(path.join(__dirname, 'legacy', 'refi-calc', 'index.html')));
 app.use('/legacy/amort-calc', express.static(path.join(__dirname, 'legacy', 'amort-calc')));
 
-app.get('/calculators/llpm', serveLegacyHtml(path.join(__dirname, 'legacy', 'llpm-calc', 'LLPMTool.html')));
-app.use('/calculators/llpm', express.static(path.join(__dirname, 'legacy', 'llpm-calc')));
+app.get('/legacy/llpm-calc/LLPMTool.html', serveLegacyHtml(path.join(__dirname, 'legacy', 'llpm-calc', 'LLPMTool.html')));
+app.use('/legacy/llpm-calc', express.static(path.join(__dirname, 'legacy', 'llpm-calc')));
 
 app.get('/calculators/batch-llpm', serveLegacyHtml(path.join(__dirname, 'legacy', 'batch-llpm', 'index.html')));
 app.use('/calculators/batch-llpm', express.static(path.join(__dirname, 'legacy', 'batch-llpm')));
