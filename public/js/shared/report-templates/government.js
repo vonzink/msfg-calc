@@ -97,27 +97,40 @@
     },
     function (data) {
       var inp = data.inputs;
-      var inputPairs = [['Borrower', inp.borrower || '\u2014'], ['Appraised Value', fmt0(inp.appraisedValue)]];
-      if (inp.currentUpb) inputPairs.push(['Current UPB', fmt0(inp.currentUpb)]);
-      if (inp.newRate) inputPairs.push(['New Rate', ratePct(inp.newRate)]);
+      var hasRefi = data.refi.totalLoan && data.refi.totalLoan !== '\u2014';
+      var hasSl = data.streamline.totalLoan && data.streamline.totalLoan !== '\u2014';
+      var hasPurch = data.purchase.totalLoan && data.purchase.totalLoan !== '\u2014';
 
-      var resultPairs = [];
-      if (data.refi.totalLoan) {
-        resultPairs.push(['FHA Refi Total Loan', data.refi.totalLoan]);
-        resultPairs.push(['FHA Refi NTB', data.refi.ntb || '\u2014']);
-        resultPairs.push(['FHA Refi Cash to Close', data.refi.cashToClose || '\u2014']);
-      }
-      if (data.streamline.totalLoan) {
-        resultPairs.push(['Streamline Total Loan', data.streamline.totalLoan]);
-        resultPairs.push(['Streamline NTB', data.streamline.ntb || '\u2014']);
-        resultPairs.push(['Streamline Cash to Close', data.streamline.cashToClose || '\u2014']);
-      }
-      if (data.purchase.totalLoan) {
-        resultPairs.push(['Purchase Total Loan', data.purchase.totalLoan]);
-        resultPairs.push(['Purchase Cash to Close', data.purchase.cashToClose || '\u2014']);
-      }
+      /* Compact info row */
+      var infoPairs = [['Borrower', inp.borrower || '\u2014'], ['Appraised Value', fmt0(inp.appraisedValue)]];
+      if (inp.currentUpb) infoPairs.push(['Current UPB', fmt0(inp.currentUpb)]);
+      if (inp.newRate) infoPairs.push(['New Rate', ratePct(inp.newRate)]);
+      if (inp.totalClosingCosts) infoPairs.push(['Closing Costs', inp.totalClosingCosts]);
 
-      return pdfKeyValue(data, inputPairs, resultPairs);
+      var content = [];
+      var infoBody = infoPairs.map(function(p) { return [{ text: p[0], fontSize: 7.5, color: '#6c757d' }, { text: p[1], fontSize: 7.5, alignment: 'right' }]; });
+      content.push({ table: { widths: ['*', 'auto'], body: infoBody }, layout: { hLineWidth: function() { return 0; }, vLineWidth: function() { return 0; }, paddingLeft: function() { return 3; }, paddingRight: function() { return 3; }, paddingTop: function() { return 1.5; }, paddingBottom: function() { return 1.5; } }, margin: [0, 0, 0, 4] });
+
+      /* Comparison table */
+      var header = [{ text: 'Item', style: 'tableHeader' }];
+      if (hasPurch) header.push({ text: 'Purchase', style: 'tableHeader', alignment: 'right' });
+      if (hasRefi) header.push({ text: 'FHA Refi', style: 'tableHeader', alignment: 'right' });
+      if (hasSl) header.push({ text: 'Streamline', style: 'tableHeader', alignment: 'right' });
+      var colCount = header.length;
+      var widths = ['*'];
+      for (var w = 1; w < colCount; w++) widths.push(75);
+
+      var rows = [['Max Base Loan','maxLoan'],['Actual Loan','actualLoan'],['UFMIP','ufmip','newUfmip'],['Total Loan','totalLoan'],['LTV','ltv'],['Payment','payment'],['NTB','ntb'],['Cash to Close','cashToClose']];
+      var tbody = [header];
+      rows.forEach(function(row) {
+        var r = [{ text: row[0], fontSize: 7.5 }];
+        if (hasPurch) r.push({ text: data.purchase[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
+        if (hasRefi) r.push({ text: data.refi[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
+        if (hasSl) { var k = row[2] || row[1]; r.push({ text: data.streamline[k] || data.streamline[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' }); }
+        tbody.push(r);
+      });
+      content.push({ table: { headerRows: 1, widths: widths, body: tbody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
+      return content;
     }
   );
 

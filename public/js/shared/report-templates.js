@@ -67,38 +67,80 @@
     (data.sections || []).forEach(function (sec) {
       const sectionHasData = sec.rows && sec.rows.some(function (r) { return r.y1 || r.y2; });
       if (!sectionHasData && !sec.monthly) return;
-      content.push({ text: sec.title + (sec.ownership ? ' (' + sec.ownership + '% ownership)' : ''), style: 'sectionTitle', margin: [0, 8, 0, 4] });
+      content.push({ text: sec.title + (sec.ownership ? ' (' + sec.ownership + '% ownership)' : ''), style: 'sectionTitle', margin: [0, 4, 0, 2] });
       const body = [
         [{ text: 'Line Item', style: 'tableHeader' }, { text: 'Year 1', style: 'tableHeader', alignment: 'right' }, { text: 'Year 2', style: 'tableHeader', alignment: 'right' }]
       ];
       sec.rows.forEach(function (r) {
         if (!r.y1 && !r.y2) return;
-        body.push([r.label, { text: fmt(r.y1), alignment: 'right' }, { text: fmt(r.y2), alignment: 'right' }]);
+        body.push([{ text: r.label, fontSize: 7.5 }, { text: fmt(r.y1), fontSize: 7.5, alignment: 'right' }, { text: fmt(r.y2), fontSize: 7.5, alignment: 'right' }]);
       });
-      content.push({ table: { headerRows: 1, widths: ['*', 90, 90], body: body }, layout: 'lightHorizontalLines' });
+      content.push({ table: { headerRows: 1, widths: ['*', 70, 70], body: body }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 2] });
       if (sec.monthly !== undefined) {
-        content.push({ columns: [{ text: 'Monthly Income', bold: true }, { text: fmt(sec.monthly), alignment: 'right', bold: true }], margin: [0, 4, 0, 0] });
+        content.push({ columns: [{ text: 'Monthly Income', bold: true, fontSize: 8 }, { text: fmt(sec.monthly), alignment: 'right', bold: true, fontSize: 8 }], margin: [0, 1, 0, 0] });
       }
     });
     if (data.totalMonthly !== undefined) {
-      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: '#2d6a4f' }], margin: [0, 10, 0, 4] });
-      content.push({ columns: [{ text: 'TOTAL MONTHLY INCOME', bold: true, fontSize: 12, color: '#2d6a4f' }, { text: fmt(data.totalMonthly), alignment: 'right', bold: true, fontSize: 12, color: '#2d6a4f' }] });
+      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 532, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 4, 0, 2] });
+      content.push({ columns: [{ text: 'TOTAL MONTHLY INCOME', bold: true, fontSize: 9, color: '#2d6a4f' }, { text: fmt(data.totalMonthly), alignment: 'right', bold: true, fontSize: 9, color: '#2d6a4f' }] });
     }
     return content;
   }
 
   function pdfKeyValue(data, paramsList, resultsList, grandTotalLabel, grandTotalKey) {
     const content = [];
-    if (paramsList && paramsList.length) {
-      const pBody = paramsList.map(function (p) { return [p[0], { text: String(p[1]), alignment: 'right' }]; });
-      content.push({ text: 'Parameters', style: 'sectionTitle', margin: [0, 4, 0, 4] });
-      content.push({ table: { widths: ['*', 120], body: pBody }, layout: 'noBorders' });
-    }
-    if (resultsList && resultsList.length) {
+    /* Compact layout helper */
+    const tightLayout = {
+      hLineWidth: function(i, node) { return (i === 0 || i === node.table.body.length) ? 0 : 0.5; },
+      vLineWidth: function() { return 0; },
+      hLineColor: function() { return '#e2e6ea'; },
+      paddingLeft: function() { return 4; },
+      paddingRight: function() { return 4; },
+      paddingTop: function() { return 2; },
+      paddingBottom: function() { return 2; }
+    };
+    if (paramsList && paramsList.length && resultsList && resultsList.length) {
+      /* Side-by-side 2-column layout */
+      const pBody = paramsList.map(function (p) {
+        return [{ text: p[0], fontSize: 7.5, color: '#6c757d' }, { text: String(p[1]), fontSize: 7.5, alignment: 'right' }];
+      });
       const rBody = [[{ text: 'Result', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]];
-      resultsList.forEach(function (r) { rBody.push([r[0], { text: String(r[1]), alignment: 'right' }]); });
-      content.push({ text: 'Results', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-      content.push({ table: { headerRows: 1, widths: ['*', 120], body: rBody }, layout: 'lightHorizontalLines' });
+      resultsList.forEach(function (r) { rBody.push([{ text: r[0], fontSize: 7.5 }, { text: String(r[1]), fontSize: 7.5, alignment: 'right' }]); });
+      content.push({
+        columns: [
+          {
+            width: '48%',
+            stack: [
+              { text: 'Parameters', style: 'sectionTitle', margin: [0, 0, 0, 2] },
+              { table: { widths: ['*', 'auto'], body: pBody }, layout: tightLayout }
+            ]
+          },
+          { width: '4%', text: '' },
+          {
+            width: '48%',
+            stack: [
+              { text: 'Results', style: 'sectionTitle', margin: [0, 0, 0, 2] },
+              { table: { headerRows: 1, widths: ['*', 'auto'], body: rBody }, layout: 'lightHorizontalLines' }
+            ]
+          }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 4]
+      });
+    } else {
+      if (paramsList && paramsList.length) {
+        const pBody = paramsList.map(function (p) {
+          return [{ text: p[0], fontSize: 7.5, color: '#6c757d' }, { text: String(p[1]), fontSize: 7.5, alignment: 'right' }];
+        });
+        content.push({ text: 'Parameters', style: 'sectionTitle', margin: [0, 2, 0, 2] });
+        content.push({ table: { widths: ['*', 'auto'], body: pBody }, layout: tightLayout, margin: [0, 0, 0, 4] });
+      }
+      if (resultsList && resultsList.length) {
+        const rBody = [[{ text: 'Result', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]];
+        resultsList.forEach(function (r) { rBody.push([{ text: r[0], fontSize: 7.5 }, { text: String(r[1]), fontSize: 7.5, alignment: 'right' }]); });
+        content.push({ text: 'Results', style: 'sectionTitle', margin: [0, 4, 0, 2] });
+        content.push({ table: { headerRows: 1, widths: ['*', 'auto'], body: rBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
+      }
     }
     return content;
   }

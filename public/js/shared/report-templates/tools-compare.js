@@ -277,11 +277,11 @@
 
       function dataRow(label, values, opts) {
         opts = opts || {};
-        var cells = [{ text: label, fontSize: 8, bold: opts.bold || false }];
+        var cells = [{ text: label, fontSize: 7, bold: opts.bold || false }];
         for (var i = 0; i < n; i++) {
           cells.push({
             text: values[i],
-            fontSize: 8,
+            fontSize: 7,
             alignment: 'right',
             bold: opts.bold || false,
             color: opts.highlight && opts.bestIdx === i ? '#1b5e20' : undefined,
@@ -296,7 +296,7 @@
         for (var i = 0; i <= n; i++) {
           cells.push({
             text: i === 0 ? title : '',
-            fontSize: 7,
+            fontSize: 7.5,
             bold: true,
             color: '#ffffff',
             fillColor: '#2d6a4f'

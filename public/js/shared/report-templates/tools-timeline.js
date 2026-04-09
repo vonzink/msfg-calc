@@ -365,8 +365,8 @@
         var daysRemaining = Math.max(0, daysTotal - Math.max(0, daysElapsed));
         var progressPct = totalSpan > 0 ? Math.max(0, Math.min(100, ((nowMs - appMs) / totalSpan) * 100)) : 0;
 
-        content.push({ text: 'Timeline Progress', style: 'sectionHeader', margin: [0, 10, 0, 4] });
-        content.push({ text: 'Day ' + Math.max(0, daysElapsed) + ' of ' + daysTotal + '  \u2014  Application: ' + formatDate(appDate) + '  \u2192  Funding: ' + formatDate(fundDate), fontSize: 9, color: '#333', margin: [0, 0, 0, 4] });
+        content.push({ text: 'Timeline Progress', style: 'sectionHeader', margin: [0, 4, 0, 2] });
+        content.push({ text: 'Day ' + Math.max(0, daysElapsed) + ' of ' + daysTotal + '  \u2014  Application: ' + formatDate(appDate) + '  \u2192  Funding: ' + formatDate(fundDate), fontSize: 7.5, color: '#333', margin: [0, 0, 0, 4] });
 
         /* Text-based progress bar */
         var barLen = 40;
@@ -378,17 +378,17 @@
         for (var bj = 0; bj < emptyLen; bj++) barEmpty += '\u2591';
         content.push({
           text: [
-            { text: barFilled, color: '#22c55e', fontSize: 10 },
-            { text: barEmpty, color: '#e5e7eb', fontSize: 10 },
-            { text: '  ' + Math.round(progressPct) + '%', fontSize: 8, color: '#666' }
+            { text: barFilled, color: '#22c55e', fontSize: 8 },
+            { text: barEmpty, color: '#e5e7eb', fontSize: 8 },
+            { text: '  ' + Math.round(progressPct) + '%', fontSize: 7, color: '#666' }
           ],
           margin: [0, 0, 0, 2]
         });
 
         if (nowMs >= fundMs) {
-          content.push({ text: 'Status: Complete', fontSize: 8, color: '#22c55e', bold: true, margin: [0, 0, 0, 4] });
+          content.push({ text: 'Status: Complete', fontSize: 7, color: '#22c55e', bold: true, margin: [0, 0, 0, 4] });
         } else {
-          content.push({ text: daysRemaining + ' day' + (daysRemaining !== 1 ? 's' : '') + ' remaining', fontSize: 8, color: '#888', margin: [0, 0, 0, 4] });
+          content.push({ text: daysRemaining + ' day' + (daysRemaining !== 1 ? 's' : '') + ' remaining', fontSize: 7, color: '#888', margin: [0, 0, 0, 4] });
         }
 
         /* Event list on timeline */
@@ -430,7 +430,7 @@
         });
         var monthKeys = Object.keys(monthSet).sort();
 
-        content.push({ text: 'Calendar', style: 'sectionHeader', margin: [0, 10, 0, 6] });
+        content.push({ text: 'Calendar', style: 'sectionHeader', margin: [0, 4, 0, 2] });
 
         monthKeys.forEach(function (mk) {
           var parts = mk.split('-');
@@ -537,7 +537,7 @@
 
       /* TRID Alerts */
       if (alerts.length) {
-        content.push({ text: 'TRID Compliance', style: 'sectionHeader', margin: [0, 10, 0, 4] });
+        content.push({ text: 'TRID Compliance', style: 'sectionHeader', margin: [0, 4, 0, 2] });
         alerts.forEach(function (a) {
           var color = '#1565c0';
           var bgColor = '#e3f2fd';
@@ -547,7 +547,7 @@
           content.push({
             table: {
               widths: ['*'],
-              body: [[{ text: (a.icon ? a.icon + ' ' : '') + a.text, fontSize: 8, color: color, fillColor: bgColor, margin: [4, 3, 4, 3] }]]
+              body: [[{ text: (a.icon ? a.icon + ' ' : '') + a.text, fontSize: 7, color: color, fillColor: bgColor, margin: [4, 3, 4, 3] }]]
             },
             layout: {
               hLineWidth: function () { return 0.5; },
@@ -562,8 +562,8 @@
 
       /* Notes */
       if (data.notes) {
-        content.push({ text: 'Notes', style: 'sectionHeader', margin: [0, 10, 0, 4] });
-        content.push({ text: data.notes, fontSize: 8, color: '#333', margin: [0, 0, 0, 4] });
+        content.push({ text: 'Notes', style: 'sectionHeader', margin: [0, 4, 0, 2] });
+        content.push({ text: data.notes, fontSize: 7, color: '#333', margin: [0, 0, 0, 4] });
       }
 
       return content;

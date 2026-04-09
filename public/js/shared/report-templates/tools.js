@@ -249,84 +249,133 @@
     function (data) {
       var content = [];
       var items = data.customItems || [];
+      var fs = 7; // compact font size
 
       function fl(label, amount) {
         if (!amount) return null;
-        return [label, { text: fmt(amount), alignment: 'right' }];
+        return [{ text: label, fontSize: fs }, { text: fmt(amount), fontSize: fs, alignment: 'right' }];
       }
       function fml(label, amt, qty, unit, total) {
         if (!total) return null;
-        var detail = amt ? fmt(amt) + ' x ' + qty + ' ' + unit : '';
+        var detail = amt ? fmt(amt) + 'x' + qty + unit : '';
         var totalStr = (typeof total === 'number') ? fmt(total) : fmt(0);
-        return [label + (detail ? ' (' + detail + ')' : ''), { text: totalStr, alignment: 'right' }];
+        return [{ text: label + (detail ? ' (' + detail + ')' : ''), fontSize: fs }, { text: totalStr, fontSize: fs, alignment: 'right' }];
       }
       function cfl(section) {
         var out = [];
         items.forEach(function (ci) {
           if (ci.section === section) {
-            out.push([{ text: ci.name, italics: true }, { text: fmt(ci.amount || 0), alignment: 'right' }]);
+            out.push([{ text: ci.name, italics: true, fontSize: fs }, { text: fmt(ci.amount || 0), fontSize: fs, alignment: 'right' }]);
           }
         });
         return out;
       }
+      var tightLay = {
+        hLineWidth: function(i, node) { return i === 0 ? 0 : 0.5; },
+        vLineWidth: function() { return 0; },
+        hLineColor: function() { return '#e2e6ea'; },
+        paddingLeft: function() { return 3; },
+        paddingRight: function() { return 3; },
+        paddingTop: function() { return 1.5; },
+        paddingBottom: function() { return 1.5; }
+      };
       function sectionTable(title, totalStr, rows) {
-        var body = [[{ text: title, style: 'tableHeader' }, { text: totalStr, style: 'tableHeader', alignment: 'right' }]];
+        var body = [[{ text: title, bold: true, fontSize: 7.5, color: '#fff', fillColor: '#2d6a4f', margin: [2,1,2,1] }, { text: totalStr, bold: true, fontSize: 7.5, color: '#fff', fillColor: '#2d6a4f', alignment: 'right', margin: [2,1,2,1] }]];
         rows.forEach(function (r) { if (r) body.push(r); });
-        return { table: { headerRows: 1, widths: ['*', 90], body: body }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] };
+        return { table: { headerRows: 1, widths: ['*', 70], body: body }, layout: tightLay, margin: [0, 0, 0, 3] };
       }
 
-      /* Loan info */
-      var infoRows = [];
-      infoRows.push(['Borrower(s)', data.borrower || '']);
-      infoRows.push(['File #', data.fileNumber || '']);
-      infoRows.push(['Preparation Date', data.prepDate || '']);
-      infoRows.push(['Property Value', fmt(data.propertyValue)]);
-      infoRows.push(['Loan Purpose', data.purpose || '']);
-      infoRows.push(['Product', data.product || '']);
-      infoRows.push(['Down Payment', fmt(data.downPayment || 0)]);
-      infoRows.push(['Loan Amount', fmt(data.loanAmount)]);
-      infoRows.push(['Occupancy', data.occupancy || '']);
-      infoRows.push(['Interest Rate', ratePct(data.rate)]);
-      infoRows.push(['Total Loan Amount', fmt(data.totalLoanAmt || 0)]);
-      infoRows.push(['Property Type', data.propertyType || '']);
-      infoRows.push(['APR', ratePct(data.apr || 0)]);
-      infoRows.push(['Term', data.termMonths + ' months']);
-      var infoBody = [[{ text: 'Loan Information', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
-      infoRows.forEach(function (r) { infoBody.push([r[0], { text: r[1], alignment: 'right' }]); });
-      content.push({ table: { headerRows: 1, widths: ['*', 140], body: infoBody }, layout: 'lightHorizontalLines' });
+      /* Loan info — compact 2-column grid */
+      var leftInfo = [
+        ['Borrower(s)', data.borrower || ''], ['File #', data.fileNumber || ''],
+        ['Property Value', fmt(data.propertyValue)], ['Loan Amount', fmt(data.loanAmount)],
+        ['Loan Purpose', data.purpose || ''], ['Occupancy', data.occupancy || ''],
+        ['Product', data.product || '']
+      ];
+      var rightInfo = [
+        ['Prep Date', data.prepDate || ''], ['Total Loan Amt', fmt(data.totalLoanAmt || 0)],
+        ['Down Payment', fmt(data.downPayment || 0)], ['Interest Rate', ratePct(data.rate)],
+        ['Property Type', data.propertyType || ''], ['APR / Term', ratePct(data.apr || 0) + ' / ' + data.termMonths]
+      ];
+      var lBody = leftInfo.map(function(r) { return [{ text: r[0], fontSize: 7, color: '#6c757d' }, { text: r[1], fontSize: 7, alignment: 'right' }]; });
+      var rBody = rightInfo.map(function(r) { return [{ text: r[0], fontSize: 7, color: '#6c757d' }, { text: r[1], fontSize: 7, alignment: 'right' }]; });
+      content.push({
+        columns: [
+          { width: '49%', table: { widths: ['*', 'auto'], body: lBody }, layout: tightLay },
+          { width: '2%', text: '' },
+          { width: '49%', table: { widths: ['*', 'auto'], body: rBody }, layout: tightLay }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 6]
+      });
 
-      content.push(sectionTable('Origination Charges', data.origTotal, [fl('Origination Fee', data.origFee), fl('Discount Points', data.discountPts), fl('Processing Fee', data.processingFee), fl('Underwriting Fee', data.underwritingFee)].concat(cfl('origination'))));
-      content.push(sectionTable('Services Borrower Cannot Shop', data.cannotShopTotal, [fl('Appraisal Fee', data.appraisalFee), fl('Credit Report Fee', data.creditReportFee), fl('Technology Fee', data.techFee), fl('VOE Fee', data.voeFee), fl('Flood Cert Fee', data.floodFee), fl('Tax Service Fee', data.taxServiceFee), fl('MERS Registration Fee', data.mersFee)].concat(cfl('cannotShop'))));
-      content.push(sectionTable('Services Borrower Can Shop For', data.canShopTotal, [fl('E-Recording Fee', data.eRecordingFee), fl('Title - CPL', data.titleCPL), fl('Title - Lenders Coverage', data.titleLenders), fl('Title - Settlement Fee', data.titleSettlement), fl('Title - Tax Cert Fee', data.titleTaxCert), fl('Title - Owners Coverage', data.titleOwners), fl('Wire Transfer Fee', data.wireFee)].concat(cfl('canShop'))));
-      content.push(sectionTable('Taxes & Government Fees', data.govTotal, [fl('Recording Fee For Deed', data.recordingFee), fl('Transfer Taxes', data.transferTax)].concat(cfl('government'))));
-      content.push(sectionTable('Prepaids', data.prepaidsTotal, [fml('Hazard Insurance', data.hazInsAmt, data.hazInsMonths, 'mth(s)', data.prepaidHazIns), fml('Prepaid Interest', data.prepaidIntPerDiem, data.prepaidIntDays, 'day(s)', data.prepaidInterest)].concat(cfl('prepaids'))));
-      content.push(sectionTable('Initial Escrow Payment at Closing', data.escrowTotal, [fml('County Property Tax', data.escTaxAmt, data.escTaxMonths, 'mth(s)', data.escrowTax), fml('Hazard Insurance', data.escInsAmt, data.escInsMonths, 'mth(s)', data.escrowIns)].concat(cfl('escrow'))));
-      content.push(sectionTable('Other', data.otherTotal, [fl('Other Fee 1', data.other1), fl('Other Fee 2', data.other2)].concat(cfl('other'))));
+      /* Fee sections — 2-column layout (left: origination/cannot shop/can shop; right: gov/prepaids/escrow/other) */
+      var leftCol = [];
+      leftCol.push(sectionTable('Origination Charges', data.origTotal, [fl('Origination Fee', data.origFee), fl('Discount Points', data.discountPts), fl('Processing Fee', data.processingFee), fl('Underwriting Fee', data.underwritingFee)].concat(cfl('origination'))));
+      leftCol.push(sectionTable('Svc Borrower Cannot Shop', data.cannotShopTotal, [fl('Appraisal Fee', data.appraisalFee), fl('Credit Report Fee', data.creditReportFee), fl('Technology Fee', data.techFee), fl('VOE Fee', data.voeFee), fl('Flood Cert Fee', data.floodFee), fl('Tax Service Fee', data.taxServiceFee), fl('MERS Registration Fee', data.mersFee)].concat(cfl('cannotShop'))));
+      leftCol.push(sectionTable('Svc Borrower Can Shop', data.canShopTotal, [fl('E-Recording Fee', data.eRecordingFee), fl('Title - CPL', data.titleCPL), fl('Title - Lenders Coverage', data.titleLenders), fl('Title - Settlement Fee', data.titleSettlement), fl('Title - Tax Cert Fee', data.titleTaxCert), fl('Title - Owners Coverage', data.titleOwners), fl('Wire Transfer Fee', data.wireFee)].concat(cfl('canShop'))));
 
+      var rightCol = [];
+      rightCol.push(sectionTable('Taxes & Gov\'t Fees', data.govTotal, [fl('Recording Fee', data.recordingFee), fl('Transfer Taxes', data.transferTax)].concat(cfl('government'))));
+      rightCol.push(sectionTable('Prepaids', data.prepaidsTotal, [fml('Hazard Ins', data.hazInsAmt, data.hazInsMonths, 'mo', data.prepaidHazIns), fml('Prepaid Interest', data.prepaidIntPerDiem, data.prepaidIntDays, 'day', data.prepaidInterest)].concat(cfl('prepaids'))));
+      rightCol.push(sectionTable('Initial Escrow at Closing', data.escrowTotal, [fml('Property Tax', data.escTaxAmt, data.escTaxMonths, 'mo', data.escrowTax), fml('Hazard Ins', data.escInsAmt, data.escInsMonths, 'mo', data.escrowIns)].concat(cfl('escrow'))));
+      rightCol.push(sectionTable('Other', data.otherTotal, [fl('Other Fee 1', data.other1), fl('Other Fee 2', data.other2)].concat(cfl('other'))));
+
+      content.push({
+        columns: [
+          { width: '49%', stack: leftCol },
+          { width: '2%', text: '' },
+          { width: '49%', stack: rightCol }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 4]
+      });
+
+      /* Funds needed + monthly payment — side-by-side */
       var isRefi = data.purpose && data.purpose.indexOf('Refinance') !== -1;
-      var fundsBody = [[{ text: 'Funds Needed To Close', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
-      fundsBody.push([(isRefi ? 'Refinance' : 'Purchase Price'), { text: fmt(data.purchasePrice || 0), alignment: 'right' }]);
-      fundsBody.push(['Estimated Prepaid Items', { text: fmt(data.estPrepaids || 0), alignment: 'right' }]);
-      fundsBody.push(['Estimated Closing Cost', { text: fmt(data.estClosing || 0), alignment: 'right' }]);
-      if (data.discount) fundsBody.push(['Discount', { text: fmt(data.discount), alignment: 'right' }]);
-      fundsBody.push([{ text: 'Total Due from Borrower at Closing (K)', bold: true }, { text: fmt(data.totalDue || 0), alignment: 'right', bold: true }]);
-      fundsBody.push(['Loan Amount', { text: fmt(data.summaryLoanAmt || 0), alignment: 'right' }]);
-      fundsBody.push(['Total Paid by/on Behalf of Borrower (L)', { text: fmt(data.totalPaid || 0), alignment: 'right' }]);
-      fundsBody.push(['Seller Credits', { text: fmt(data.sellerCredits || 0), alignment: 'right' }]);
-      fundsBody.push(['Lender Credits', { text: fmt(data.lenderCredits || 0), alignment: 'right' }]);
-      content.push({ table: { headerRows: 1, widths: ['*', 110], body: fundsBody }, layout: 'lightHorizontalLines' });
-      content.push({ columns: [{ text: 'Total Estimated Funds From You', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 4, 0, 8] });
+      var fundsRows = [
+        [{ text: (isRefi ? 'Refinance' : 'Purchase Price'), fontSize: fs }, { text: fmt(data.purchasePrice || 0), fontSize: fs, alignment: 'right' }],
+        [{ text: 'Est. Prepaid Items', fontSize: fs }, { text: fmt(data.estPrepaids || 0), fontSize: fs, alignment: 'right' }],
+        [{ text: 'Est. Closing Cost', fontSize: fs }, { text: fmt(data.estClosing || 0), fontSize: fs, alignment: 'right' }]
+      ];
+      if (data.discount) fundsRows.push([{ text: 'Discount', fontSize: fs }, { text: fmt(data.discount), fontSize: fs, alignment: 'right' }]);
+      fundsRows.push([{ text: 'Total Due at Closing (K)', fontSize: fs, bold: true }, { text: fmt(data.totalDue || 0), fontSize: fs, alignment: 'right', bold: true }]);
+      fundsRows.push([{ text: 'Loan Amount', fontSize: fs }, { text: fmt(data.summaryLoanAmt || 0), fontSize: fs, alignment: 'right' }]);
+      fundsRows.push([{ text: 'Total Paid by/on Behalf (L)', fontSize: fs }, { text: fmt(data.totalPaid || 0), fontSize: fs, alignment: 'right' }]);
+      fundsRows.push([{ text: 'Seller Credits', fontSize: fs }, { text: fmt(data.sellerCredits || 0), fontSize: fs, alignment: 'right' }]);
+      fundsRows.push([{ text: 'Lender Credits', fontSize: fs }, { text: fmt(data.lenderCredits || 0), fontSize: fs, alignment: 'right' }]);
 
-      var monthlyBody = [[{ text: 'Monthly Housing Payment', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
-      monthlyBody.push(['First Mortgage', { text: fmt(data.monthlyPI), alignment: 'right' }]);
-      monthlyBody.push(['Hazard Insurance', { text: fmt(data.monthlyIns), alignment: 'right' }]);
-      monthlyBody.push(['Property Tax', { text: fmt(data.monthlyTax), alignment: 'right' }]);
-      monthlyBody.push(['Mortgage Insurance', { text: fmt(data.monthlyMI || 0), alignment: 'right' }]);
-      monthlyBody.push(['HOA', { text: fmt(data.monthlyHOA || 0), alignment: 'right' }]);
-      content.push({ table: { headerRows: 1, widths: ['*', 110], body: monthlyBody }, layout: 'lightHorizontalLines' });
-      content.push({ columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 4, 0, 4] });
+      var monthlyRows = [
+        [{ text: 'First Mortgage', fontSize: fs }, { text: fmt(data.monthlyPI), fontSize: fs, alignment: 'right' }],
+        [{ text: 'Hazard Insurance', fontSize: fs }, { text: fmt(data.monthlyIns), fontSize: fs, alignment: 'right' }],
+        [{ text: 'Property Tax', fontSize: fs }, { text: fmt(data.monthlyTax), fontSize: fs, alignment: 'right' }],
+        [{ text: 'Mortgage Insurance', fontSize: fs }, { text: fmt(data.monthlyMI || 0), fontSize: fs, alignment: 'right' }],
+        [{ text: 'HOA', fontSize: fs }, { text: fmt(data.monthlyHOA || 0), fontSize: fs, alignment: 'right' }]
+      ];
 
-      content.push({ text: 'Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.', fontSize: 8, color: '#888', italics: true, margin: [0, 4, 0, 0] });
+      content.push({
+        columns: [
+          {
+            width: '49%',
+            stack: [
+              sectionTable('Funds Needed To Close', '', fundsRows),
+              { columns: [{ text: 'Total Funds From You', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 1, 0, 0] }
+            ]
+          },
+          { width: '2%', text: '' },
+          {
+            width: '49%',
+            stack: [
+              sectionTable('Monthly Housing Payment', '', monthlyRows),
+              { columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 1, 0, 0] }
+            ]
+          }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 4]
+      });
+
+      content.push({ text: 'Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.', fontSize: 6.5, color: '#888', italics: true, margin: [0, 2, 0, 0] });
       return content;
     }
   );

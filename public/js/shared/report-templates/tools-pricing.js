@@ -195,7 +195,7 @@
 
       // Breakdown table
       if (res.breakdown && res.breakdown.length) {
-        content.push({ text: 'LLPA Breakdown', style: 'sectionHeader', margin: [0, 10, 0, 4] });
+        content.push({ text: 'LLPA Breakdown', style: 'sectionHeader', margin: [0, 4, 0, 2] });
 
         var body = [
           [
@@ -206,14 +206,14 @@
         ];
         res.breakdown.forEach(function (row) {
           body.push([
-            { text: row.name, fontSize: 8 },
-            { text: row.points, fontSize: 8, alignment: 'right' },
-            { text: row.reason || '', fontSize: 8, color: '#666' }
+            { text: row.name, fontSize: 7.5 },
+            { text: row.points, fontSize: 7.5, alignment: 'right' },
+            { text: row.reason || '', fontSize: 7.5, color: '#666' }
           ]);
         });
 
         content.push({
-          table: { headerRows: 1, widths: ['*', 50, '*'], body: body },
+          table: { headerRows: 1, widths: ['*', 40, '*'], body: body },
           layout: {
             hLineWidth: function () { return 0.5; },
             vLineWidth: function () { return 0; },
@@ -228,8 +228,8 @@
 
       // Warnings
       if (res.warnings && res.warnings.length) {
-        content.push({ text: 'Warnings', style: 'sectionHeader', margin: [0, 10, 0, 4] });
-        var warnList = res.warnings.map(function (w) { return { text: w, fontSize: 8, color: '#8a5a00' }; });
+        content.push({ text: 'Warnings', style: 'sectionHeader', margin: [0, 4, 0, 2] });
+        var warnList = res.warnings.map(function (w) { return { text: w, fontSize: 7.5, color: '#8a5a00' }; });
         content.push({ ul: warnList, margin: [10, 0, 0, 0] });
       }
 

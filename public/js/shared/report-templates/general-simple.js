@@ -90,11 +90,11 @@
     },
     function (data) {
       var body = [[{ text: 'Debt', style: 'tableHeader' }, { text: 'Balance', style: 'tableHeader', alignment: 'right' }, { text: 'Rate', style: 'tableHeader', alignment: 'right' }, { text: 'Payment', style: 'tableHeader', alignment: 'right' }]];
-      (data.debts || []).forEach(function (d) { body.push([d.label, { text: fmt(d.balance), alignment: 'right' }, { text: pct(d.rate), alignment: 'right' }, { text: fmt(d.payment), alignment: 'right' }]); });
+      (data.debts || []).forEach(function (d) { body.push([{ text: d.label, fontSize: 7.5 }, { text: fmt(d.balance), fontSize: 7.5, alignment: 'right' }, { text: pct(d.rate), fontSize: 7.5, alignment: 'right' }, { text: fmt(d.payment), fontSize: 7.5, alignment: 'right' }]); });
       var r = data.results;
       return [
-        { table: { headerRows: 1, widths: ['*', 80, 60, 80], body: body }, layout: 'lightHorizontalLines' },
-        { columns: [{ text: 'Blended Rate', bold: true, fontSize: 12, color: '#2d6a4f' }, { text: r.blendedRate, alignment: 'right', bold: true, fontSize: 12, color: '#2d6a4f' }], margin: [0, 8, 0, 0] }
+        { table: { headerRows: 1, widths: ['*', 70, 50, 70], body: body }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] },
+        { columns: [{ text: 'Blended Rate', bold: true, fontSize: 9, color: '#2d6a4f' }, { text: r.blendedRate, alignment: 'right', bold: true, fontSize: 9, color: '#2d6a4f' }], margin: [0, 2, 0, 0] }
       ];
     }
   );
@@ -191,15 +191,15 @@
         ]];
         data.years.forEach(function (yr) {
           body.push([
-            yr.label || '',
-            { text: yr.rate || '', alignment: 'right' },
-            { text: yr.p_i_payment || '', alignment: 'right' },
-            { text: yr.total_payment || '', alignment: 'right' },
-            { text: yr.monthly_savings || '', alignment: 'right' }
+            { text: yr.label || '', fontSize: 7.5 },
+            { text: yr.rate || '', fontSize: 7.5, alignment: 'right' },
+            { text: yr.p_i_payment || '', fontSize: 7.5, alignment: 'right' },
+            { text: yr.total_payment || '', fontSize: 7.5, alignment: 'right' },
+            { text: yr.monthly_savings || '', fontSize: 7.5, alignment: 'right' }
           ]);
         });
-        content.push({ text: 'Year-by-Year Breakdown', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-        content.push({ table: { headerRows: 1, widths: ['*', 60, 80, 80, 80], body: body }, layout: 'lightHorizontalLines' });
+        content.push({ text: 'Year-by-Year Breakdown', style: 'sectionTitle', margin: [0, 4, 0, 2] });
+        content.push({ table: { headerRows: 1, widths: ['*', 50, 65, 65, 65], body: body }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
       }
       return content;
     }

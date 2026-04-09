@@ -88,7 +88,7 @@
       [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', ratePct(inp.rate)], ['Term', inp.term + ' yrs'], ['Investment Return', pct(inp.investReturn)], ['Appreciation', pct(inp.appreciation)], ['Period', inp.period + ' yrs']],
       [['Cash Net Cost', brk.cash.total], ['Mortgage Net Cost', brk.mortgage.total], ['Difference', res.difference]],
       'Recommendation', null
-    ).concat([{ text: res.recommendation, bold: true, fontSize: 11, color: '#2d6a4f', margin: [0, 8, 0, 0] }]);
+    ).concat([{ text: res.recommendation, bold: true, fontSize: 9, color: '#2d6a4f', margin: [0, 4, 0, 0] }]);
   });
 
   /* ---- Buy vs Rent ---- */
@@ -152,7 +152,7 @@
     return pdfKeyValue(data,
       [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', ratePct(inp.rate)], ['Rent', fmt0(inp.rent) + '/mo'], ['Period', inp.period + ' yrs']],
       [['Monthly Payment', res.monthlyPayment], ['Total Own Cost', res.ownCost], ['Total Rent Cost', res.rentCost], ['Net Equity', res.equity], ['Difference', res.difference]]
-    ).concat(res.recommendation ? [{ text: res.recommendation, bold: true, fontSize: 11, color: '#2d6a4f', margin: [0, 8, 0, 0] }] : []);
+    ).concat(res.recommendation ? [{ text: res.recommendation, bold: true, fontSize: 9, color: '#2d6a4f', margin: [0, 4, 0, 0] }] : []);
   });
 
   /* ---- Refi ---- */
@@ -377,82 +377,82 @@
 
     var loanBody = loanParams.map(function (r, i) {
       if (i === 0) return [{ text: r[0], style: 'tableHeader' }, { text: r[1], style: 'tableHeader', alignment: 'center' }, { text: r[2], style: 'tableHeader', alignment: 'center' }];
-      return [r[0], { text: r[1], alignment: 'right' }, { text: r[2], alignment: 'right' }];
+      return [{ text: r[0], fontSize: 7.5 }, { text: r[1], fontSize: 7.5, alignment: 'right' }, { text: r[2], fontSize: 7.5, alignment: 'right' }];
     });
-    content.push({ table: { headerRows: 1, widths: ['*', 120, 120], body: loanBody }, layout: 'lightHorizontalLines' });
+    content.push({ table: { headerRows: 1, widths: ['*', 100, 100], body: loanBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
 
-    content.push({ text: 'Refinance Now', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+    content.push({ text: 'Refinance Now', style: 'sectionTitle', margin: [0, 4, 0, 2] });
     var nowBody = [
       [{ text: 'Metric', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }],
-      ['Monthly Savings', { text: now.monthlySavings || '', alignment: 'right' }],
-      ['Total Closing Costs', { text: now.totalClosingCosts || '', alignment: 'right' }],
-      ['Breakeven Point', { text: now.breakeven || '', alignment: 'right' }],
-      [{ text: 'Net Savings (Stay Period)', bold: true }, { text: now.netSavings || '', alignment: 'right', bold: true }]
+      [{ text: 'Monthly Savings', fontSize: 7.5 }, { text: now.monthlySavings || '', fontSize: 7.5, alignment: 'right' }],
+      [{ text: 'Total Closing Costs', fontSize: 7.5 }, { text: now.totalClosingCosts || '', fontSize: 7.5, alignment: 'right' }],
+      [{ text: 'Breakeven Point', fontSize: 7.5 }, { text: now.breakeven || '', fontSize: 7.5, alignment: 'right' }],
+      [{ text: 'Net Savings (Stay Period)', fontSize: 7.5, bold: true }, { text: now.netSavings || '', fontSize: 7.5, alignment: 'right', bold: true }]
     ];
-    content.push({ table: { headerRows: 1, widths: ['*', 120], body: nowBody }, layout: 'lightHorizontalLines' });
+    content.push({ table: { headerRows: 1, widths: ['*', 100], body: nowBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
 
     if (data.costOfWaiting) {
       var cow = data.costOfWaiting;
-      content.push({ text: 'Cost of Waiting', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ text: 'Cost of Waiting', style: 'sectionTitle', margin: [0, 4, 0, 2] });
       var cowBody = [
         [{ text: 'Metric', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]
       ];
-      if (inp.futureRate) cowBody.push(['Expected Future Rate', { text: ratePct(inp.futureRate), alignment: 'right' }]);
-      if (inp.monthsToWait) cowBody.push(['Months Until Future Rate', { text: inp.monthsToWait + ' mo', alignment: 'right' }]);
-      cowBody.push(['Extra Interest While Waiting', { text: cow.extraInterest, alignment: 'right' }]);
-      cowBody.push(['Future Monthly Payment', { text: cow.futurePayment, alignment: 'right' }]);
-      cowBody.push(['Future Monthly Savings', { text: cow.futureSavings, alignment: 'right' }]);
-      cowBody.push(['Breakeven (If You Wait)', { text: cow.breakevenWait, alignment: 'right' }]);
-      content.push({ table: { headerRows: 1, widths: ['*', 120], body: cowBody }, layout: 'lightHorizontalLines' });
+      if (inp.futureRate) cowBody.push([{ text: 'Expected Future Rate', fontSize: 7.5 }, { text: ratePct(inp.futureRate), fontSize: 7.5, alignment: 'right' }]);
+      if (inp.monthsToWait) cowBody.push([{ text: 'Months Until Future Rate', fontSize: 7.5 }, { text: inp.monthsToWait + ' mo', fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Extra Interest While Waiting', fontSize: 7.5 }, { text: cow.extraInterest, fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Future Monthly Payment', fontSize: 7.5 }, { text: cow.futurePayment, fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Future Monthly Savings', fontSize: 7.5 }, { text: cow.futureSavings, fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Breakeven (If You Wait)', fontSize: 7.5 }, { text: cow.breakevenWait, fontSize: 7.5, alignment: 'right' }]);
+      content.push({ table: { headerRows: 1, widths: ['*', 100], body: cowBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
 
       var cmpBody = [
         [{ text: '', style: 'tableHeader' }, { text: 'Refi Now', style: 'tableHeader', alignment: 'center' }, { text: 'Wait & Refi', style: 'tableHeader', alignment: 'center' }]
       ];
-      if (cow.nowCosts || cow.waitCosts) cmpBody.push(['Closing Costs', { text: cow.nowCosts || '—', alignment: 'right' }, { text: cow.waitEffective || cow.waitCosts || '—', alignment: 'right' }]);
-      if (cow.nowSavings || cow.waitSavings) cmpBody.push(['Monthly Savings', { text: cow.nowSavings || '—', alignment: 'right' }, { text: cow.waitSavings || '—', alignment: 'right' }]);
-      if (cow.nowBreakeven || cow.waitBreakeven) cmpBody.push(['Breakeven', { text: cow.nowBreakeven || '—', alignment: 'right' }, { text: cow.waitBreakeven || '—', alignment: 'right' }]);
-      if (cow.nowNet || cow.waitNet) cmpBody.push([{ text: 'Net Savings', bold: true }, { text: cow.nowNet || '—', alignment: 'right', bold: true }, { text: cow.waitNet || '—', alignment: 'right', bold: true }]);
-      if (cmpBody.length > 1) content.push({ table: { headerRows: 1, widths: ['*', 110, 110], body: cmpBody }, layout: 'lightHorizontalLines', margin: [0, 6, 0, 0] });
+      if (cow.nowCosts || cow.waitCosts) cmpBody.push([{ text: 'Closing Costs', fontSize: 7.5 }, { text: cow.nowCosts || '—', fontSize: 7.5, alignment: 'right' }, { text: cow.waitEffective || cow.waitCosts || '—', fontSize: 7.5, alignment: 'right' }]);
+      if (cow.nowSavings || cow.waitSavings) cmpBody.push([{ text: 'Monthly Savings', fontSize: 7.5 }, { text: cow.nowSavings || '—', fontSize: 7.5, alignment: 'right' }, { text: cow.waitSavings || '—', fontSize: 7.5, alignment: 'right' }]);
+      if (cow.nowBreakeven || cow.waitBreakeven) cmpBody.push([{ text: 'Breakeven', fontSize: 7.5 }, { text: cow.nowBreakeven || '—', fontSize: 7.5, alignment: 'right' }, { text: cow.waitBreakeven || '—', fontSize: 7.5, alignment: 'right' }]);
+      if (cow.nowNet || cow.waitNet) cmpBody.push([{ text: 'Net Savings', fontSize: 7.5, bold: true }, { text: cow.nowNet || '—', fontSize: 7.5, alignment: 'right', bold: true }, { text: cow.waitNet || '—', fontSize: 7.5, alignment: 'right', bold: true }]);
+      if (cmpBody.length > 1) content.push({ table: { headerRows: 1, widths: ['*', 90, 90], body: cmpBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
 
       if (cow.difference) {
-        content.push({ columns: [{ text: 'Net Difference', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: cow.difference, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 6, 0, 0] });
+        content.push({ columns: [{ text: 'Net Difference', bold: true, fontSize: 9, color: '#2d6a4f' }, { text: cow.difference, alignment: 'right', bold: true, fontSize: 9, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
       }
     }
 
     if (data.doubleRefi) {
       var dr = data.doubleRefi;
-      content.push({ text: 'Refi Twice Strategy', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ text: 'Refi Twice Strategy', style: 'sectionTitle', margin: [0, 4, 0, 2] });
       var drBody = [
         [{ text: 'Metric', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }],
-        ['Phase 1 Savings', { text: dr.phase1Savings, alignment: 'right' }],
-        ['Phase 2 Payment', { text: dr.phase2Payment, alignment: 'right' }],
-        ['Total Costs (2 Refis)', { text: dr.totalCosts, alignment: 'right' }],
-        ['Combined Breakeven', { text: dr.breakeven, alignment: 'right' }]
+        [{ text: 'Phase 1 Savings', fontSize: 7.5 }, { text: dr.phase1Savings, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Phase 2 Payment', fontSize: 7.5 }, { text: dr.phase2Payment, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Total Costs (2 Refis)', fontSize: 7.5 }, { text: dr.totalCosts, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Combined Breakeven', fontSize: 7.5 }, { text: dr.breakeven, fontSize: 7.5, alignment: 'right' }]
       ];
-      content.push({ table: { headerRows: 1, widths: ['*', 120], body: drBody }, layout: 'lightHorizontalLines' });
+      content.push({ table: { headerRows: 1, widths: ['*', 100], body: drBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
 
       var triBody = [
         [{ text: '', style: 'tableHeader' }, { text: 'Refi Now', style: 'tableHeader', alignment: 'center' }, { text: 'Refi Twice', style: 'tableHeader', alignment: 'center' }, { text: 'Wait & Refi', style: 'tableHeader', alignment: 'center' }]
       ];
-      triBody.push(['Costs', { text: dr.compare3NowCosts || '—', alignment: 'right' }, { text: dr.compare3DoubleCosts || '—', alignment: 'right' }, { text: dr.compare3WaitCosts || '—', alignment: 'right' }]);
-      triBody.push([{ text: 'Net Savings', bold: true }, { text: dr.compare3NowNet || '—', alignment: 'right', bold: true }, { text: dr.compare3DoubleNet || '—', alignment: 'right', bold: true }, { text: dr.compare3WaitNet || '—', alignment: 'right', bold: true }]);
-      content.push({ table: { headerRows: 1, widths: ['*', 90, 90, 90], body: triBody }, layout: 'lightHorizontalLines', margin: [0, 6, 0, 0] });
+      triBody.push([{ text: 'Costs', fontSize: 7.5 }, { text: dr.compare3NowCosts || '—', fontSize: 7.5, alignment: 'right' }, { text: dr.compare3DoubleCosts || '—', fontSize: 7.5, alignment: 'right' }, { text: dr.compare3WaitCosts || '—', fontSize: 7.5, alignment: 'right' }]);
+      triBody.push([{ text: 'Net Savings', fontSize: 7.5, bold: true }, { text: dr.compare3NowNet || '—', fontSize: 7.5, alignment: 'right', bold: true }, { text: dr.compare3DoubleNet || '—', fontSize: 7.5, alignment: 'right', bold: true }, { text: dr.compare3WaitNet || '—', fontSize: 7.5, alignment: 'right', bold: true }]);
+      content.push({ table: { headerRows: 1, widths: ['*', 80, 80, 80], body: triBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
 
       if (dr.bestStrategy) {
-        content.push({ columns: [{ text: 'Best Strategy', bold: true, fontSize: 11, color: '#2d6a4f' }, { text: dr.bestStrategy, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 6, 0, 0] });
+        content.push({ columns: [{ text: 'Best Strategy', bold: true, fontSize: 9, color: '#2d6a4f' }, { text: dr.bestStrategy, alignment: 'right', bold: true, fontSize: 9, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
       }
     }
 
     if (data.recommendation) {
-      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 10, 0, 4] });
-      content.push({ text: data.recommendation, bold: true, fontSize: 11, color: '#2d6a4f', margin: [0, 4, 0, 0] });
-      if (data.adviceDetail) content.push({ text: data.adviceDetail, fontSize: 9, color: '#555', margin: [0, 2, 0, 0] });
+      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 532, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 4, 0, 2] });
+      content.push({ text: data.recommendation, bold: true, fontSize: 9, color: '#2d6a4f', margin: [0, 2, 0, 0] });
+      if (data.adviceDetail) content.push({ text: data.adviceDetail, fontSize: 7.5, color: '#555', margin: [0, 1, 0, 0] });
       if (data.adviceBullets && data.adviceBullets.length) {
         var bulletList = data.adviceBullets.map(function (b) {
           var icon = b.type === 'pro' ? '✓ ' : b.type === 'con' ? '✗ ' : '• ';
-          return { text: icon + b.text, fontSize: 9, color: b.type === 'pro' ? '#2d6a4f' : b.type === 'con' ? '#c0392b' : '#555' };
+          return { text: icon + b.text, fontSize: 7.5, color: b.type === 'pro' ? '#2d6a4f' : b.type === 'con' ? '#c0392b' : '#555' };
         });
-        content.push({ ul: bulletList, margin: [0, 4, 0, 0] });
+        content.push({ ul: bulletList, margin: [0, 2, 0, 0] });
       }
     }
     return content;
@@ -670,7 +670,7 @@
     var content = pdfKeyValue(data, params, results);
 
     if (data.yearlySummary && data.yearlySummary.length) {
-      content.push({ text: 'Annual Breakdown', style: 'sectionTitle', margin: [0, 10, 0, 4] });
+      content.push({ text: 'Annual Breakdown', style: 'sectionTitle', margin: [0, 4, 0, 2] });
       var yrBody = [[
         { text: 'Year', style: 'tableHeader' },
         { text: 'Principal', style: 'tableHeader', alignment: 'right' },
@@ -679,18 +679,18 @@
         { text: 'Total Paid', style: 'tableHeader', alignment: 'right' }
       ]];
       data.yearlySummary.forEach(function (yr) {
-        yrBody.push([yr.year,
-          { text: fmt(yr.principal), alignment: 'right' },
-          { text: fmt(yr.interest), alignment: 'right' },
-          { text: yr.extra ? fmt(yr.extra) : '—', alignment: 'right' },
-          { text: fmt(yr.payments), alignment: 'right' }
+        yrBody.push([{ text: yr.year, fontSize: 7 },
+          { text: fmt(yr.principal), fontSize: 7, alignment: 'right' },
+          { text: fmt(yr.interest), fontSize: 7, alignment: 'right' },
+          { text: yr.extra ? fmt(yr.extra) : '—', fontSize: 7, alignment: 'right' },
+          { text: fmt(yr.payments), fontSize: 7, alignment: 'right' }
         ]);
       });
-      content.push({ table: { headerRows: 1, widths: ['*', 80, 80, 60, 80], body: yrBody }, layout: 'lightHorizontalLines' });
+      content.push({ table: { headerRows: 1, widths: ['*', 65, 65, 50, 65], body: yrBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
     }
 
     if (data.schedule && data.schedule.length) {
-      content.push({ text: 'Full Amortization Schedule', style: 'sectionTitle', margin: [0, 10, 0, 4], pageBreak: 'before' });
+      content.push({ text: 'Full Amortization Schedule', style: 'sectionTitle', margin: [0, 4, 0, 2], pageBreak: 'before' });
       var sBody = [[
         { text: '#', style: 'tableHeader' }, { text: 'Date', style: 'tableHeader' },
         { text: 'Payment', style: 'tableHeader', alignment: 'right' },
@@ -701,15 +701,15 @@
       ]];
       data.schedule.forEach(function (pmt) {
         sBody.push([
-          String(pmt.num), pmt.date,
-          { text: fmt(pmt.payment), alignment: 'right' },
-          { text: fmt(pmt.principal), alignment: 'right' },
-          { text: fmt(pmt.interest), alignment: 'right' },
-          { text: pmt.extra ? fmt(pmt.extra) : '—', alignment: 'right' },
-          { text: fmt(pmt.balance), alignment: 'right' }
+          { text: String(pmt.num), fontSize: 6.5 }, { text: pmt.date, fontSize: 6.5 },
+          { text: fmt(pmt.payment), fontSize: 6.5, alignment: 'right' },
+          { text: fmt(pmt.principal), fontSize: 6.5, alignment: 'right' },
+          { text: fmt(pmt.interest), fontSize: 6.5, alignment: 'right' },
+          { text: pmt.extra ? fmt(pmt.extra) : '—', fontSize: 6.5, alignment: 'right' },
+          { text: fmt(pmt.balance), fontSize: 6.5, alignment: 'right' }
         ]);
       });
-      content.push({ table: { headerRows: 1, widths: [22, 55, 65, 65, 65, 50, 75], body: sBody }, layout: 'lightHorizontalLines', fontSize: 7 });
+      content.push({ table: { headerRows: 1, widths: [18, 48, 58, 58, 58, 42, 68], body: sBody }, layout: 'lightHorizontalLines' });
     }
     return content;
   });
@@ -944,45 +944,62 @@
       var hou = data.housing;
       var tot = data.totals;
       var content = [];
+      var fs = 7.5;
 
-      function row(label, val) { return val ? [label, { text: fmt(val), alignment: 'right' }] : null; }
+      function row(label, val) { return val ? [{ text: label, fontSize: fs }, { text: fmt(val), fontSize: fs, alignment: 'right' }] : null; }
       function filterRows(rows) { return rows.filter(function (r) { return r !== null; }); }
 
-      /* Loan info */
+      /* Loan info — compact inline */
       var loanRows = [];
-      if (data.borrower) loanRows.push(['Borrower(s)', data.borrower]);
-      if (data.loanAmount) loanRows.push(['Loan Amount', fmt0(data.loanAmount)]);
-      if (data.rate) loanRows.push(['Rate', ratePct(data.rate)]);
-      if (data.termMonths) loanRows.push(['Term', data.termMonths + ' months']);
-      if (data.product) loanRows.push(['Product', data.product]);
+      if (data.borrower) loanRows.push([{ text: 'Borrower(s)', fontSize: fs, color: '#6c757d' }, { text: data.borrower, fontSize: fs, alignment: 'right' }]);
+      if (data.loanAmount) loanRows.push([{ text: 'Loan Amount', fontSize: fs, color: '#6c757d' }, { text: fmt0(data.loanAmount), fontSize: fs, alignment: 'right' }]);
+      if (data.rate) loanRows.push([{ text: 'Rate', fontSize: fs, color: '#6c757d' }, { text: ratePct(data.rate), fontSize: fs, alignment: 'right' }]);
+      if (data.termMonths) loanRows.push([{ text: 'Term', fontSize: fs, color: '#6c757d' }, { text: data.termMonths + ' months', fontSize: fs, alignment: 'right' }]);
+      if (data.product) loanRows.push([{ text: 'Product', fontSize: fs, color: '#6c757d' }, { text: data.product, fontSize: fs, alignment: 'right' }]);
       if (loanRows.length) {
-        content.push({ text: 'Loan Information', style: 'sectionTitle', margin: [0, 4, 0, 4] });
-        content.push({ table: { widths: ['*', 150], body: loanRows }, layout: 'noBorders' });
+        content.push({ text: 'Loan Information', style: 'sectionTitle', margin: [0, 0, 0, 2] });
+        content.push({ table: { widths: ['*', 'auto'], body: loanRows }, layout: { hLineWidth: function() { return 0; }, vLineWidth: function() { return 0; }, paddingLeft: function() { return 3; }, paddingRight: function() { return 3; }, paddingTop: function() { return 1.5; }, paddingBottom: function() { return 1.5; } }, margin: [0, 0, 0, 4] });
       }
 
-      /* Income */
-      var incBody = [[{ text: 'Source / Employer', style: 'tableHeader' }, { text: 'Type', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
+      /* Income + Housing side by side */
+      var incBody = [[{ text: 'Source', style: 'tableHeader' }, { text: 'Type', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
       if (data.incomeItems && data.incomeItems.length) {
         data.incomeItems.forEach(function (item) {
-          if (item.amount) incBody.push([item.name || '-', item.type || '-', { text: fmt(item.amount), alignment: 'right' }]);
+          if (item.amount) incBody.push([{ text: item.name || '-', fontSize: fs }, { text: item.type || '-', fontSize: fs }, { text: fmt(item.amount), fontSize: fs, alignment: 'right' }]);
         });
       }
-      content.push({ text: 'Qualifying Income', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-      content.push({ table: { headerRows: 1, widths: ['*', 80, 80], body: incBody }, layout: 'lightHorizontalLines' });
-      content.push({ columns: [{ text: 'Qualifying Income', bold: true }, { text: tot.qualIncome, alignment: 'right', bold: true }], margin: [0, 4, 0, 0] });
-      content.push({ columns: [{ text: 'Total Monthly Income', bold: true, color: '#2d6a4f' }, { text: tot.totalIncome, alignment: 'right', bold: true, color: '#2d6a4f' }], margin: [0, 4, 0, 0] });
-
-      /* Housing */
       var houBody = [[{ text: 'Item', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }]];
       filterRows([
         row('P&I', hou.pi), row('Property Tax', hou.tax), row('Insurance', hou.insurance),
         row('MI', hou.mi), row('HOA', hou.hoa), row('Flood', hou.flood), row('Other', hou.other)
       ]).forEach(function (r) { houBody.push(r); });
-      content.push({ text: 'Proposed Housing Payment', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-      content.push({ table: { headerRows: 1, widths: ['*', 100], body: houBody }, layout: 'lightHorizontalLines' });
-      content.push({ columns: [{ text: 'Total Housing', bold: true, color: '#c62828' }, { text: tot.housing, alignment: 'right', bold: true, color: '#c62828' }], margin: [0, 4, 0, 0] });
 
-      /* Individual Liabilities */
+      content.push({
+        columns: [
+          {
+            width: '55%',
+            stack: [
+              { text: 'Qualifying Income', style: 'sectionTitle', margin: [0, 0, 0, 2] },
+              { table: { headerRows: 1, widths: ['*', 55, 60], body: incBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 2] },
+              { columns: [{ text: 'Qual. Income', bold: true, fontSize: fs }, { text: tot.qualIncome, alignment: 'right', bold: true, fontSize: fs }], margin: [0, 1, 0, 0] },
+              { columns: [{ text: 'Total Income', bold: true, fontSize: 8, color: '#2d6a4f' }, { text: tot.totalIncome, alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }], margin: [0, 1, 0, 0] }
+            ]
+          },
+          { width: '3%', text: '' },
+          {
+            width: '42%',
+            stack: [
+              { text: 'Proposed Housing', style: 'sectionTitle', margin: [0, 0, 0, 2] },
+              { table: { headerRows: 1, widths: ['*', 65], body: houBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 2] },
+              { columns: [{ text: 'Total Housing', bold: true, fontSize: 8, color: '#c62828' }, { text: tot.housing, alignment: 'right', bold: true, fontSize: 8, color: '#c62828' }], margin: [0, 1, 0, 0] }
+            ]
+          }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 4]
+      });
+
+      /* Liabilities */
       var liabBody = [[
         { text: 'Creditor', style: 'tableHeader' },
         { text: 'Type', style: 'tableHeader' },
@@ -995,31 +1012,42 @@
           var status = l.payoff ? 'Payoff' : l.omit ? 'Omitted' : 'Active';
           var color = (l.omit || l.payoff) ? '#999' : '#333';
           liabBody.push([
-            { text: l.holder || '-', color: color },
-            { text: l.type || '-', color: color },
-            { text: fmt(l.balance), alignment: 'right', color: color },
-            { text: fmt(l.payment), alignment: 'right', color: color },
-            { text: status, color: color }
+            { text: l.holder || '-', fontSize: fs, color: color },
+            { text: l.type || '-', fontSize: fs, color: color },
+            { text: fmt(l.balance), fontSize: fs, alignment: 'right', color: color },
+            { text: fmt(l.payment), fontSize: fs, alignment: 'right', color: color },
+            { text: status, fontSize: fs, color: color }
           ]);
         });
       }
-      content.push({ text: 'Credit Report Liabilities', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-      content.push({ table: { headerRows: 1, widths: ['*', 60, 70, 60, 50], body: liabBody }, layout: 'lightHorizontalLines' });
-      content.push({ columns: [{ text: 'Active Debts (in DTI)', bold: true }, { text: tot.liabilities, alignment: 'right', bold: true }], margin: [0, 4, 0, 0] });
+      content.push({ text: 'Credit Report Liabilities', style: 'sectionTitle', margin: [0, 2, 0, 2] });
+      content.push({ table: { headerRows: 1, widths: ['*', 55, 60, 55, 42], body: liabBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 2] });
+      content.push({ columns: [{ text: 'Active Debts (in DTI)', bold: true, fontSize: fs }, { text: tot.liabilities, alignment: 'right', bold: true, fontSize: fs }], margin: [0, 1, 0, 0] });
       if (tot.payoff && tot.payoff !== '$0') {
-        content.push({ columns: [{ text: 'Total Payoff Amount', bold: true, color: '#e65100' }, { text: tot.payoff, alignment: 'right', bold: true, color: '#e65100' }], margin: [0, 2, 0, 0] });
+        content.push({ columns: [{ text: 'Total Payoff Amount', bold: true, fontSize: fs, color: '#e65100' }, { text: tot.payoff, alignment: 'right', bold: true, fontSize: fs, color: '#e65100' }], margin: [0, 1, 0, 0] });
       }
 
-      /* DTI */
-      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: '#2d6a4f' }], margin: [0, 10, 0, 4] });
-      content.push({ columns: [{ text: 'Front-End DTI', bold: true, fontSize: 11 }, { text: tot.frontDTI, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }] });
-      content.push({ columns: [{ text: 'Back-End DTI', bold: true, fontSize: 11 }, { text: tot.backDTI, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }] });
-      content.push({ columns: [{ text: 'Residual Income', bold: true, fontSize: 11 }, { text: tot.residual, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
-      content.push({ columns: [{ text: 'Net Cash Flow', bold: true, fontSize: 11 }, { text: tot.cashFlow, alignment: 'right', bold: true, fontSize: 11, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
+      /* DTI + Reserves — compact row */
+      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 532, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 4, 0, 2] });
+      content.push({
+        columns: [
+          { stack: [
+            { columns: [{ text: 'Front-End DTI', bold: true, fontSize: 8 }, { text: tot.frontDTI, alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }] },
+            { columns: [{ text: 'Back-End DTI', bold: true, fontSize: 8 }, { text: tot.backDTI, alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }] }
+          ], width: '48%' },
+          { width: '4%', text: '' },
+          { stack: [
+            { columns: [{ text: 'Residual Income', bold: true, fontSize: 8 }, { text: tot.residual, alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }] },
+            { columns: [{ text: 'Net Cash Flow', bold: true, fontSize: 8 }, { text: tot.cashFlow, alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }] }
+          ], width: '48%' }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 2]
+      });
 
       /* Reserves */
-      content.push({ columns: [{ text: 'Total Reserves', bold: true, fontSize: 10 }, { text: tot.reserves, alignment: 'right', bold: true, fontSize: 10 }], margin: [0, 8, 0, 0] });
-      content.push({ columns: [{ text: 'Months of Reserves', fontSize: 10 }, { text: tot.reserveMonths, alignment: 'right', fontSize: 10 }], margin: [0, 2, 0, 0] });
+      content.push({ columns: [{ text: 'Total Reserves', bold: true, fontSize: 8 }, { text: tot.reserves, alignment: 'right', bold: true, fontSize: 8 }], margin: [0, 2, 0, 0] });
+      content.push({ columns: [{ text: 'Months of Reserves', fontSize: 7.5 }, { text: tot.reserveMonths, alignment: 'right', fontSize: 7.5 }], margin: [0, 1, 0, 0] });
 
       return content;
     }

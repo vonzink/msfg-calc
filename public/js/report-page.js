@@ -344,45 +344,67 @@
 
       var content = [];
       var fmt = function(n) { return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(n); };
+      var pageW = 532; // usable width with 30pt margins on letter
 
-      /* -- Helper: branded page header for each calc -- */
-      var isFirstPage = true;
-      function pdfPageHeader(name, icon) {
+      /* -- Compact section header (colored bar, no page break) -- */
+      var isFirstCalc = true;
+      function pdfSectionHeader(name, icon) {
         var header = [];
-        if (!isFirstPage) {
-          header.push({ text: '', pageBreak: 'before' });
+        if (!isFirstCalc) {
+          // Thin separator line between calculators instead of page break
+          header.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: pageW, y2: 0, lineWidth: 0.5, lineColor: '#dee2e6' }], margin: [0, 8, 0, 6] });
         }
-        isFirstPage = false;
-        if (logoData) {
-          header.push({
-            table: {
-              widths: ['auto', '*'],
-              body: [[
-                { image: logoData, width: 100, margin: [0, 2, 0, 2] },
-                { text: icon + '  ' + name, style: 'calcTitle', alignment: 'right', margin: [0, 6, 0, 0] }
-              ]]
-            },
-            layout: {
-              hLineWidth: function(i, node) { return i === node.table.body.length ? 2 : 0; },
-              vLineWidth: function() { return 0; },
-              hLineColor: function() { return '#2d6a4f'; },
-              paddingLeft: function() { return 0; },
-              paddingRight: function() { return 0; },
-              paddingTop: function() { return 4; },
-              paddingBottom: function() { return 6; }
-            },
-            margin: [0, 0, 0, 12]
-          });
-        } else {
-          header.push({ text: icon + '  ' + name, style: 'calcTitle', margin: [0, 0, 0, 4] });
-          header.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#2d6a4f' }], margin: [0, 0, 0, 12] });
-        }
+        isFirstCalc = false;
+        // Compact colored bar with calc title
+        header.push({
+          table: {
+            widths: ['*'],
+            body: [[{ text: icon + '  ' + name, bold: true, fontSize: 9, color: '#ffffff', margin: [6, 3, 6, 3] }]]
+          },
+          layout: {
+            hLineWidth: function() { return 0; },
+            vLineWidth: function() { return 0; },
+            fillColor: function() { return '#2d6a4f'; },
+            paddingLeft: function() { return 0; },
+            paddingRight: function() { return 0; },
+            paddingTop: function() { return 0; },
+            paddingBottom: function() { return 0; }
+          },
+          margin: [0, 0, 0, 6]
+        });
         return header;
       }
 
-      /* -- General / Government pages (one per calc) -- */
+      /* -- Page header with logo (top of first page only) -- */
+      if (logoData) {
+        var dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        content.push({
+          table: {
+            widths: ['auto', '*'],
+            body: [[
+              { image: logoData, width: 80, margin: [0, 0, 0, 0] },
+              { stack: [
+                { text: 'Session Report', fontSize: 14, bold: true, color: '#1b4332', alignment: 'right' },
+                { text: dateStr, fontSize: 7, color: '#6c757d', alignment: 'right', margin: [0, 2, 0, 0] }
+              ], margin: [0, 2, 0, 0] }
+            ]]
+          },
+          layout: {
+            hLineWidth: function(i, node) { return i === node.table.body.length ? 1.5 : 0; },
+            vLineWidth: function() { return 0; },
+            hLineColor: function() { return '#2d6a4f'; },
+            paddingLeft: function() { return 0; },
+            paddingRight: function() { return 0; },
+            paddingTop: function() { return 2; },
+            paddingBottom: function() { return 4; }
+          },
+          margin: [0, 0, 0, 10]
+        });
+      }
+
+      /* -- General / Government calcs (compact, flowing) -- */
       otherItems.forEach(function(item) {
-        pdfPageHeader(item.name, item.icon).forEach(function(n) { content.push(n); });
+        pdfSectionHeader(item.name, item.icon).forEach(function(n) { content.push(n); });
 
         if (item.version === 2 && item.data && item.slug && MSFG.ReportTemplates) {
           var pc = MSFG.ReportTemplates.pdfContent(item.slug, item.data);
@@ -390,22 +412,16 @@
         } else {
           content.push({ text: 'Legacy item — view in browser.', italics: true, color: '#888' });
         }
-        if (ehlData) {
-          content.push({ image: ehlData, width: 50, alignment: 'center', margin: [0, 16, 0, 2] });
-        } else if (EHL_URL) {
-          content.push({ text: 'Equal Housing Lender', alignment: 'center', fontSize: 7, color: '#aaaaaa', margin: [0, 16, 0, 2] });
-        }
-        content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 8, color: '#aaaaaa', margin: [0, 2, 0, 0] });
       });
 
-      /* -- Income consolidated page(s) -- */
+      /* -- Income consolidated section -- */
       if (incomeItems.length > 0) {
-        pdfPageHeader('Income Analysis', '\uD83D\uDCDD').forEach(function(n) { content.push(n); });
+        pdfSectionHeader('Income Analysis', '\uD83D\uDCDD').forEach(function(n) { content.push(n); });
 
         var combinedMonthly = 0;
         incomeItems.forEach(function(item, idx) {
-          if (idx > 0) content.push({ text: '', margin: [0, 4, 0, 0] });
-          content.push({ text: item.icon + '  ' + item.name, style: 'incomeSubTitle', margin: [0, 4, 0, 4] });
+          if (idx > 0) content.push({ text: '', margin: [0, 2, 0, 0] });
+          content.push({ text: item.icon + '  ' + item.name, style: 'incomeSubTitle', margin: [0, 2, 0, 2] });
           if (item.version === 2 && item.data && MSFG.ReportTemplates) {
             var pc = MSFG.ReportTemplates.pdfContent(item.slug, item.data);
             if (Array.isArray(pc)) pc.forEach(function(n) { content.push(n); });
@@ -414,45 +430,42 @@
         });
 
         if (incomeItems.length > 1) {
-          content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#2d6a4f' }], margin: [0, 12, 0, 6] });
+          content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: pageW, y2: 0, lineWidth: 1.5, lineColor: '#2d6a4f' }], margin: [0, 6, 0, 3] });
           content.push({ columns: [
-            { text: 'COMBINED MONTHLY INCOME', bold: true, fontSize: 13, color: '#2d6a4f' },
-            { text: fmt(combinedMonthly), alignment: 'right', bold: true, fontSize: 13, color: '#2d6a4f' }
+            { text: 'COMBINED MONTHLY INCOME', bold: true, fontSize: 10, color: '#2d6a4f' },
+            { text: fmt(combinedMonthly), alignment: 'right', bold: true, fontSize: 10, color: '#2d6a4f' }
           ] });
         }
-        if (ehlData) {
-          content.push({ image: ehlData, width: 50, alignment: 'center', margin: [0, 12, 0, 2] });
-        } else if (EHL_URL) {
-          content.push({ text: 'Equal Housing Lender', alignment: 'center', fontSize: 7, color: '#aaaaaa', margin: [0, 12, 0, 2] });
-        }
-        content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 8, color: '#aaaaaa', margin: [0, 2, 0, 0] });
       }
+
+      /* -- Footer: EHL + company info at very end -- */
+      if (ehlData) {
+        content.push({ image: ehlData, width: 36, alignment: 'center', margin: [0, 12, 0, 2] });
+      } else if (EHL_URL) {
+        content.push({ text: 'Equal Housing Lender', alignment: 'center', fontSize: 6, color: '#aaaaaa', margin: [0, 12, 0, 2] });
+      }
+      content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 7, color: '#aaaaaa', margin: [0, 2, 0, 0] });
 
       var docDef = {
         pageSize: 'LETTER',
-        pageMargins: [40, 40, 40, 50],
+        pageMargins: [30, 30, 30, 36],
         content: content,
         styles: {
-          title: { fontSize: 26, bold: true, color: '#1b4332' },
-          companyName: { fontSize: 12, color: '#2d6a4f', bold: true },
-          subtitle: { fontSize: 10, color: '#6c757d' },
-          tocTitle: { fontSize: 14, bold: true, color: '#1b4332' },
-          tocItem: { fontSize: 10, color: '#495057' },
-          calcTitle: { fontSize: 16, bold: true, color: '#1b4332' },
-          calcDate: { fontSize: 9, color: '#999999' },
-          sectionTitle: { fontSize: 11, bold: true, color: '#1b4332' },
-          incomeSubTitle: { fontSize: 11, bold: true, color: '#2d6a4f' },
-          tableHeader: { bold: true, fontSize: 8, color: '#ffffff', fillColor: '#2d6a4f' }
+          title: { fontSize: 14, bold: true, color: '#1b4332' },
+          companyName: { fontSize: 9, color: '#2d6a4f', bold: true },
+          subtitle: { fontSize: 8, color: '#6c757d' },
+          calcTitle: { fontSize: 10, bold: true, color: '#1b4332' },
+          calcDate: { fontSize: 7, color: '#999999' },
+          sectionTitle: { fontSize: 8.5, bold: true, color: '#1b4332' },
+          incomeSubTitle: { fontSize: 8.5, bold: true, color: '#2d6a4f' },
+          tableHeader: { bold: true, fontSize: 7, color: '#ffffff', fillColor: '#2d6a4f' }
         },
-        defaultStyle: { fontSize: 9.5, color: '#333333' },
+        defaultStyle: { fontSize: 8, color: '#333333' },
         footer: function(pg, total) {
           return {
-            stack: [
-              { canvas: [{ type: 'line', x1: 40, y1: 0, x2: 572, y2: 0, lineWidth: 0.5, lineColor: '#2d6a4f' }] },
-              { columns: [
-                { text: COMPANY, fontSize: 7, color: '#6c757d', margin: [40, 4, 0, 0] },
-                { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 7, color: '#6c757d', margin: [0, 4, 40, 0] }
-              ] }
+            columns: [
+              { text: COMPANY_NAME, fontSize: 6, color: '#adb5bd', margin: [30, 0, 0, 0] },
+              { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 6, color: '#adb5bd', margin: [0, 0, 30, 0] }
             ],
             margin: [0, 6, 0, 0]
           };

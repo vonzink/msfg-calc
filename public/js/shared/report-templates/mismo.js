@@ -156,49 +156,58 @@
     function (data) {
       var content = [];
 
-      // Loan Summary — all fields
-      var summaryBody = [
-        [{ text: 'Loan Summary', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]
-      ];
+      // Loan Summary + Status side by side
       var summaryFields = [
         { label: 'Borrower(s)', value: data.borrower },
-        { label: 'Loan Purpose', value: data.purpose },
-        { label: 'Loan Type', value: data.loanType },
-        { label: 'Loan Amount', value: data.amount },
-        { label: 'Property Type', value: data.propertyType },
+        { label: 'Purpose', value: data.purpose },
+        { label: 'Type', value: data.loanType },
+        { label: 'Amount', value: data.amount },
+        { label: 'Prop. Type', value: data.propertyType },
         { label: 'Occupancy', value: data.occupancy },
         { label: 'LTV', value: data.ltv },
-        { label: 'Subject Property', value: data.property }
+        { label: 'Property', value: data.property }
       ];
+      var sBody = [];
       summaryFields.forEach(function (f) {
         if (f.value && f.value !== '\u2014') {
           var isBorrower = f.label === 'Borrower(s)';
-          summaryBody.push([f.label, { text: f.value, alignment: 'right', bold: isBorrower }]);
+          sBody.push([{ text: f.label, fontSize: 7, color: '#6c757d' }, { text: f.value, fontSize: 7, alignment: 'right', bold: isBorrower }]);
         }
       });
-      content.push({ table: { headerRows: 1, widths: ['*', 'auto'], body: summaryBody }, layout: 'lightHorizontalLines' });
+      var tightLay = { hLineWidth: function(i, node) { return (i === 0 || i === node.table.body.length) ? 0 : 0.5; }, vLineWidth: function() { return 0; }, hLineColor: function() { return '#e2e6ea'; }, paddingLeft: function() { return 3; }, paddingRight: function() { return 3; }, paddingTop: function() { return 1.5; }, paddingBottom: function() { return 1.5; } };
 
-      // Status Chips
+      // Status chips as inline text
+      var chipStack = [];
       if (data.chips && data.chips.length) {
-        content.push({ text: 'Status Indicators', style: 'sectionTitle', margin: [0, 10, 0, 4] });
-        data.chips.forEach(function (chip) {
+        var chipTexts = data.chips.map(function (chip) {
           var color = '#333';
           if (chip.status === 'ok') color = '#2e7d32';
-          else if (chip.status === 'warn') color = '#e65100';
+          else if (chip.status === 'warn') color = '#b8960c';
           else if (chip.status === 'need') color = '#c62828';
-          content.push({ text: chip.label, color: color, fontSize: 9, bold: true, margin: [0, 2, 0, 2] });
+          return { text: chip.label, color: color, fontSize: 7, bold: true };
         });
+        chipStack.push({ text: 'Status Indicators', style: 'sectionTitle', margin: [0, 0, 0, 2] });
+        // Render each chip on its own line
+        chipTexts.forEach(function(ct) { chipStack.push({ text: ct.text, color: ct.color, fontSize: ct.fontSize, bold: ct.bold, margin: [0, 1, 0, 1] }); });
       }
-
-      // Complexity flags
       if (data.complexityFlags && data.complexityFlags.length) {
-        content.push({ text: 'Complexity: ' + data.complexityFlags.join(' | '), fontSize: 8, color: '#1565c0', margin: [0, 4, 0, 4] });
+        chipStack.push({ text: 'Complexity: ' + data.complexityFlags.join(' | '), fontSize: 6.5, color: '#1565c0', margin: [0, 2, 0, 0] });
       }
 
-      // Checklist Sections
+      content.push({
+        columns: [
+          { width: '55%', table: { widths: ['*', 'auto'], body: sBody }, layout: tightLay },
+          { width: '3%', text: '' },
+          { width: '42%', stack: chipStack }
+        ],
+        columnGap: 0,
+        margin: [0, 0, 0, 4]
+      });
+
+      // Checklist Sections — compact tables
       data.sections.forEach(function (sec) {
         if (!sec.items || !sec.items.length) return;
-        content.push({ text: sec.title, style: 'sectionTitle', margin: [0, 10, 0, 4] });
+        content.push({ text: sec.title, style: 'sectionTitle', margin: [0, 4, 0, 2] });
         var body = [
           [{ text: 'Status', style: 'tableHeader', alignment: 'center' },
            { text: 'Document', style: 'tableHeader' },
@@ -207,17 +216,18 @@
         sec.items.forEach(function (item) {
           var label = 'Required'; var color = '#c62828';
           if (item.status === 'ok') { label = 'Cleared'; color = '#2e7d32'; }
-          else if (item.status === 'conditional') { label = 'Conditional'; color = '#e65100'; }
+          else if (item.status === 'conditional') { label = 'Conditional'; color = '#b8960c'; }
           else if (item.status === 'incomplete') { label = 'Incomplete'; color = '#1565c0'; }
           body.push([
-            { text: label, alignment: 'center', color: color, bold: true, fontSize: 8 },
-            { text: item.name, fontSize: 9 },
-            { text: item.reason, fontSize: 8, color: '#666' }
+            { text: label, alignment: 'center', color: color, bold: true, fontSize: 6.5 },
+            { text: item.name, fontSize: 7 },
+            { text: item.reason, fontSize: 6.5, color: '#666' }
           ]);
         });
         content.push({
-          table: { headerRows: 1, widths: [65, '*', '*'], body: body },
-          layout: 'lightHorizontalLines'
+          table: { headerRows: 1, widths: [50, '*', '*'], body: body },
+          layout: 'lightHorizontalLines',
+          margin: [0, 0, 0, 2]
         });
       });
 
