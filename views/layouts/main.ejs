@@ -14,6 +14,22 @@
   <link rel="stylesheet" href="/css/print.css?v=<%= v %>" media="print">
   <link rel="stylesheet" href="/css/email-modal.css?v=<%= v %>">
   <%- typeof extraHead !== 'undefined' ? extraHead : '' %>
+  <% var theme = typeof site !== 'undefined' && site.theme ? site.theme : {}; %>
+  <% if (theme.primaryColor || theme.bodyFont) { %>
+  <style>
+    :root {
+      <% if (theme.primaryColor) { %>--brand-primary: <%= theme.primaryColor %>;<% } %>
+      <% if (theme.secondaryColor) { %>--brand-secondary: <%= theme.secondaryColor %>;<% } %>
+      <% if (theme.accentColor) { %>--brand-accent: <%= theme.accentColor %>;<% } %>
+      <% if (theme.lightColor) { %>--brand-light: <%= theme.lightColor %>;<% } %>
+      <% if (theme.bodyFont) { %>--font-body: '<%= theme.bodyFont %>', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;<% } %>
+      <% if (theme.headingFont) { %>--font-heading: '<%= theme.headingFont %>', 'Inter', sans-serif;<% } %>
+    }
+  </style>
+  <% if (theme.bodyFont && theme.bodyFont !== 'Inter' || theme.headingFont && theme.headingFont !== 'Poppins') { %>
+  <link href="https://fonts.googleapis.com/css2?<% if (theme.bodyFont && theme.bodyFont !== 'Inter') { %>family=<%= encodeURIComponent(theme.bodyFont) %>:wght@300;400;500;600;700&<% } %><% if (theme.headingFont && theme.headingFont !== 'Poppins' && theme.headingFont !== theme.bodyFont) { %>family=<%= encodeURIComponent(theme.headingFont) %>:wght@600;700&<% } %>display=swap" rel="stylesheet">
+  <% } %>
+  <% } %>
 </head>
 <body<%= typeof bodyClass !== 'undefined' ? ' class="' + bodyClass + '"' : '' %>>
 

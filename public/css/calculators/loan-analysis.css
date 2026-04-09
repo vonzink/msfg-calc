@@ -161,6 +161,21 @@
   margin: 0 0 20px 0;
 }
 
+.la-sig-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.la-sig-photo {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--color-gray-200, #dee2e6);
+  flex-shrink: 0;
+}
+
 .la-sig-name {
   font-weight: 600;
   font-size: 1.05rem;

@@ -117,7 +117,7 @@ router.use((req, res, next) => {
   // Exempt JSON-body endpoints (no form, no CSRF cookie flow)
   if (req.path === '/ai/test') return next();
   // Multipart uploads — CSRF checked after multer parses the body
-  if (req.path === '/logo') return next();
+  if (req.path === '/logo' || req.path === '/lo-photo') return next();
 
   const cookieToken = req.cookies?._csrf;
   const bodyToken = req.body?._csrf;
@@ -198,6 +198,79 @@ router.post('/logo', upload.single('logo'), (req, res) => {
   config.logo.src = '/images/' + newName;
   writeConfig(config);
 
+  res.redirect('/settings?saved=1');
+});
+
+// --- LO Photo Upload ---
+
+router.post('/lo-photo', upload.single('loPhoto'), (req, res) => {
+  // CSRF check (deferred — multer must parse body first)
+  const cookieToken = req.cookies?._csrf;
+  const bodyToken = req.body?._csrf;
+  if (!cookieToken || !bodyToken || cookieToken !== bodyToken) {
+    if (req.file) try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore */ }
+    return res.status(403).render('404', { title: 'Invalid Request' });
+  }
+
+  if (!req.file) return res.redirect('/settings?saved=0');
+
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  const allowedExts = ['.png', '.jpg', '.jpeg', '.webp'];
+  if (!allowedExts.includes(ext)) {
+    try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore */ }
+    return res.redirect('/settings?saved=0');
+  }
+
+  const newName = 'lo-photo.png';
+  const newPath = path.join(__dirname, '..', 'public', 'images', newName);
+
+  try {
+    fs.renameSync(req.file.path, newPath);
+  } catch (err) {
+    console.error('Failed to move uploaded LO photo:', err);
+    return res.redirect('/settings?saved=0');
+  }
+
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
+
+  config.loPhoto = '/images/' + newName;
+  writeConfig(config);
+
+  res.redirect('/settings?saved=1');
+});
+
+// --- Theme Customization ---
+
+router.post('/theme', (req, res) => {
+  const config = readConfig();
+  if (!config) return res.redirect('/settings?saved=0');
+
+  const hexRegex = /^#[0-9a-fA-F]{6}$/;
+  const allowedFonts = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Source Sans Pro', 'Nunito', 'Poppins', 'Montserrat', 'Raleway', 'Merriweather Sans', 'Oswald', 'Playfair Display', 'Lora', 'Merriweather'];
+
+  if (!config.theme) config.theme = {};
+
+  if (typeof req.body.primaryColor === 'string' && hexRegex.test(req.body.primaryColor)) {
+    config.theme.primaryColor = req.body.primaryColor;
+  }
+  if (typeof req.body.secondaryColor === 'string' && hexRegex.test(req.body.secondaryColor)) {
+    config.theme.secondaryColor = req.body.secondaryColor;
+  }
+  if (typeof req.body.accentColor === 'string' && hexRegex.test(req.body.accentColor)) {
+    config.theme.accentColor = req.body.accentColor;
+  }
+  if (typeof req.body.lightColor === 'string' && hexRegex.test(req.body.lightColor)) {
+    config.theme.lightColor = req.body.lightColor;
+  }
+  if (typeof req.body.bodyFont === 'string' && allowedFonts.includes(req.body.bodyFont)) {
+    config.theme.bodyFont = req.body.bodyFont;
+  }
+  if (typeof req.body.headingFont === 'string' && allowedFonts.includes(req.body.headingFont)) {
+    config.theme.headingFont = req.body.headingFont;
+  }
+
+  writeConfig(config);
   res.redirect('/settings?saved=1');
 });
 

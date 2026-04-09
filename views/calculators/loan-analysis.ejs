@@ -2,6 +2,7 @@
   window.__emailSignature = <%- JSON.stringify(typeof site !== 'undefined' && site.emailSignature ? site.emailSignature : {}) %>;
   window.__companyLogo = '<%= typeof site !== "undefined" ? site.logo.src : "/images/msfg-logo.png" %>';
   window.__companyName = '<%= typeof site !== "undefined" ? site.companyName : "MSFG" %>';
+  window.__loPhoto = '<%= typeof site !== "undefined" && site.loPhoto ? site.loPhoto : "" %>';
 </script>
 
 <div class="calc-page">

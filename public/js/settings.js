@@ -112,4 +112,41 @@ document.addEventListener('DOMContentLoaded', function() {
       form.submit();
     });
   }
+
+  // --- Theme: sync color pickers with text inputs ---
+  var colorPairs = [
+    ['themePrimaryPicker', 'themePrimary'],
+    ['themeSecondaryPicker', 'themeSecondary'],
+    ['themeAccentPicker', 'themeAccent'],
+    ['themeLightPicker', 'themeLight']
+  ];
+  colorPairs.forEach(function(pair) {
+    var picker = document.getElementById(pair[0]);
+    var text = document.getElementById(pair[1]);
+    if (!picker || !text) return;
+    picker.addEventListener('input', function() { text.value = this.value; });
+    text.addEventListener('input', function() {
+      if (/^#[0-9a-fA-F]{6}$/.test(this.value)) picker.value = this.value;
+    });
+  });
+
+  // --- Theme: reset to default ---
+  var themeResetBtn = document.getElementById('themeResetBtn');
+  if (themeResetBtn) {
+    themeResetBtn.addEventListener('click', function() {
+      var defaults = { primary: '#2d6a4f', secondary: '#1b4332', accent: '#40916c', light: '#d8f3dc' };
+      document.getElementById('themePrimary').value = defaults.primary;
+      document.getElementById('themePrimaryPicker').value = defaults.primary;
+      document.getElementById('themeSecondary').value = defaults.secondary;
+      document.getElementById('themeSecondaryPicker').value = defaults.secondary;
+      document.getElementById('themeAccent').value = defaults.accent;
+      document.getElementById('themeAccentPicker').value = defaults.accent;
+      document.getElementById('themeLight').value = defaults.light;
+      document.getElementById('themeLightPicker').value = defaults.light;
+      var bodyFont = document.getElementById('themeBodyFont');
+      var headingFont = document.getElementById('themeHeadingFont');
+      if (bodyFont) bodyFont.value = 'Inter';
+      if (headingFont) headingFont.value = 'Poppins';
+    });
+  }
 });

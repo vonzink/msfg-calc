@@ -1,0 +1,75 @@
+    <!-- Theme Customization -->
+    <div class="calc-section">
+      <h2>Theme Customization</h2>
+      <p class="settings-help">
+        Customize the colors and fonts used across all calculators.
+      </p>
+
+      <% var theme = config.theme || {}; %>
+      <form action="/settings/theme" method="POST">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+        <h3 class="u-mt-md u-mb-sm" style="font-size:0.95rem;color:var(--color-gray-700);">Colors</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="themePrimary">Primary Color</label>
+            <div style="display:flex;gap:var(--space-sm);align-items:center;">
+              <input type="color" id="themePrimaryPicker" value="<%= theme.primaryColor || '#2d6a4f' %>" style="width:40px;height:36px;border:1px solid var(--color-gray-200);border-radius:4px;cursor:pointer;padding:2px;">
+              <input type="text" id="themePrimary" name="primaryColor" value="<%= theme.primaryColor || '#2d6a4f' %>" placeholder="#2d6a4f" maxlength="7" style="flex:1;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="themeSecondary">Secondary Color</label>
+            <div style="display:flex;gap:var(--space-sm);align-items:center;">
+              <input type="color" id="themeSecondaryPicker" value="<%= theme.secondaryColor || '#1b4332' %>" style="width:40px;height:36px;border:1px solid var(--color-gray-200);border-radius:4px;cursor:pointer;padding:2px;">
+              <input type="text" id="themeSecondary" name="secondaryColor" value="<%= theme.secondaryColor || '#1b4332' %>" placeholder="#1b4332" maxlength="7" style="flex:1;">
+            </div>
+          </div>
+        </div>
+        <div class="form-grid u-mt-md">
+          <div class="form-group">
+            <label for="themeAccent">Accent Color</label>
+            <div style="display:flex;gap:var(--space-sm);align-items:center;">
+              <input type="color" id="themeAccentPicker" value="<%= theme.accentColor || '#40916c' %>" style="width:40px;height:36px;border:1px solid var(--color-gray-200);border-radius:4px;cursor:pointer;padding:2px;">
+              <input type="text" id="themeAccent" name="accentColor" value="<%= theme.accentColor || '#40916c' %>" placeholder="#40916c" maxlength="7" style="flex:1;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="themeLight">Light Color</label>
+            <div style="display:flex;gap:var(--space-sm);align-items:center;">
+              <input type="color" id="themeLightPicker" value="<%= theme.lightColor || '#d8f3dc' %>" style="width:40px;height:36px;border:1px solid var(--color-gray-200);border-radius:4px;cursor:pointer;padding:2px;">
+              <input type="text" id="themeLight" name="lightColor" value="<%= theme.lightColor || '#d8f3dc' %>" placeholder="#d8f3dc" maxlength="7" style="flex:1;">
+            </div>
+          </div>
+        </div>
+
+        <h3 class="u-mt-lg u-mb-sm" style="font-size:0.95rem;color:var(--color-gray-700);">Fonts</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="themeBodyFont">Body Font</label>
+            <select id="themeBodyFont" name="bodyFont">
+              <% var bodyFont = theme.bodyFont || 'Inter'; %>
+              <% var fontOptions = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Source Sans Pro', 'Nunito', 'Poppins', 'Montserrat', 'Raleway', 'Merriweather Sans']; %>
+              <% fontOptions.forEach(function(f) { %>
+                <option value="<%= f %>" <%= bodyFont === f ? 'selected' : '' %>><%= f %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="themeHeadingFont">Heading Font</label>
+            <select id="themeHeadingFont" name="headingFont">
+              <% var headingFont = theme.headingFont || 'Poppins'; %>
+              <% var headingOptions = ['Poppins', 'Montserrat', 'Inter', 'Raleway', 'Roboto', 'Oswald', 'Playfair Display', 'Lora', 'Merriweather', 'Nunito']; %>
+              <% headingOptions.forEach(function(f) { %>
+                <option value="<%= f %>" <%= headingFont === f ? 'selected' : '' %>><%= f %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button type="submit" class="btn btn-primary">Save Theme</button>
+          <button type="button" class="btn btn-ghost" id="themeResetBtn">Reset to Default</button>
+        </div>
+      </form>
+    </div>

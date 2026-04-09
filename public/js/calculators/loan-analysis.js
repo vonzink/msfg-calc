@@ -172,13 +172,25 @@
     // --- Signature ---
     html += '<div class="la-letter__signature">';
     html += '<p class="la-sig-closing">Sincerely,</p>';
-    if (sig.name) {
-      html += '<p class="la-sig-name">' + escHtml(sig.name) + '</p>';
-      if (sig.title) html += '<p class="la-sig-line">' + escHtml(sig.title) + '</p>';
-      if (sig.company) html += '<p class="la-sig-line">' + escHtml(sig.company) + '</p>';
-      if (sig.phone) html += '<p class="la-sig-line">' + escHtml(sig.phone) + '</p>';
-      if (sig.email) html += '<p class="la-sig-line">' + escHtml(sig.email) + '</p>';
-      if (sig.nmls) html += '<p class="la-sig-line">NMLS# ' + escHtml(sig.nmls) + '</p>';
+    var loPhoto = window.__loPhoto || '';
+    if (loPhoto || sig.name) {
+      html += '<div class="la-sig-block">';
+      if (loPhoto) {
+        html += '<img src="' + escHtml(loPhoto) + '" alt="" class="la-sig-photo">';
+      }
+      html += '<div class="la-sig-details">';
+      if (sig.name) {
+        html += '<p class="la-sig-name">' + escHtml(sig.name) + '</p>';
+        if (sig.title) html += '<p class="la-sig-line">' + escHtml(sig.title) + '</p>';
+        if (sig.company) html += '<p class="la-sig-line">' + escHtml(sig.company) + '</p>';
+        if (sig.phone) html += '<p class="la-sig-line">' + escHtml(sig.phone) + '</p>';
+        if (sig.email) html += '<p class="la-sig-line">' + escHtml(sig.email) + '</p>';
+        if (sig.nmls) html += '<p class="la-sig-line">NMLS# ' + escHtml(sig.nmls) + '</p>';
+      } else {
+        html += '<p class="la-sig-name">[Your Name]</p>';
+        html += '<p class="la-sig-line">[Contact Information]</p>';
+      }
+      html += '</div></div>';
     } else {
       html += '<p class="la-sig-name">[Your Name]</p>';
       html += '<p class="la-sig-line">[Contact Information]</p>';
