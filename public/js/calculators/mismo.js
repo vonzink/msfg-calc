@@ -475,7 +475,7 @@
           return (val && val !== '\u2014' && val !== '--') ? val : '';
         }
         const borrower = kv('kvBorrower');
-        if (borrower) summaryRows.push({ label: 'Borrower(s)', value: borrower });
+        if (borrower) summaryRows.push({ label: 'Borrower(s)', value: borrower, bold: true });
         const property = kv('kvProperty');
         if (property) summaryRows.push({ label: 'Property', value: property });
         // Combine purpose / type / occupancy into one line
@@ -523,14 +523,14 @@
           if (ok > 0) countParts.push(ok + ' received');
           rows.push({ label: heading, value: countParts.join('  \u00B7  ') || 'None', isTotal: true });
           items.forEach(function (item) {
-            const icon = item.status === 'required' ? '\u26A0\uFE0F' :
-                         item.status === 'conditional' ? '\u2753' :
-                         item.status === 'ok' ? '\u2705' :
-                         item.status === 'incomplete' ? '\u26D4' : '\u2022';
             rows.push({
-              label: icon + '  ' + item.name,
+              label: item.name,
               value: item.reason ? '\u2014 ' + item.reason : '',
-              stacked: true
+              stacked: true,
+              bulletColor: item.status === 'required' ? '#c62828' :
+                           item.status === 'conditional' ? '#e65100' :
+                           item.status === 'ok' ? '#2e7d32' :
+                           item.status === 'incomplete' ? '#1565c0' : '#666'
             });
           });
           sections.push({ heading: heading, rows: rows });

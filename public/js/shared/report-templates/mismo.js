@@ -101,7 +101,8 @@
       ];
       summaryFields.forEach(function (f) {
         if (f.value && f.value !== '\u2014') {
-          html += '<div class="rpt-param"><span>' + esc(f.label) + '</span><span>' + esc(f.value) + '</span></div>';
+          var bold = f.label === 'Borrower(s)';
+          html += '<div class="rpt-param"><span>' + esc(f.label) + '</span><span' + (bold ? ' style="font-weight:700;font-size:1.05em"' : '') + '>' + esc(f.value) + '</span></div>';
         }
       });
       html += '</div></div>';
@@ -171,7 +172,8 @@
       ];
       summaryFields.forEach(function (f) {
         if (f.value && f.value !== '\u2014') {
-          summaryBody.push([f.label, { text: f.value, alignment: 'right' }]);
+          var isBorrower = f.label === 'Borrower(s)';
+          summaryBody.push([f.label, { text: f.value, alignment: 'right', bold: isBorrower }]);
         }
       });
       content.push({ table: { headerRows: 1, widths: ['*', 'auto'], body: summaryBody }, layout: 'lightHorizontalLines' });

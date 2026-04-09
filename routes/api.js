@@ -262,15 +262,18 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
         const border = isTotal ? 'border-top:2px solid #ddd;' : '';
         const useStacked = row.stacked || (row.value && row.value.length > 60);
         if (row.stacked) {
-          // Stacked list item: icon+name on top, reason below in smaller lighter text
+          // Stacked list item: colored bullet + name on top, reason below
+          const bullet = row.bulletColor
+            ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${row.bulletColor};margin-right:6px;vertical-align:middle;"></span>`
+            : '';
           html += `
     <tr style="background:${bg};">
-      <td colspan="2" style="padding:8px 12px ${row.value ? '1px' : '8px'};color:#333;font-size:13px;">${escHTML(row.label)}</td>
+      <td colspan="2" style="padding:8px 12px ${row.value ? '1px' : '8px'};color:#333;font-size:13px;">${bullet}${escHTML(row.label)}</td>
     </tr>`;
           if (row.value) {
             html += `
     <tr style="background:${bg};">
-      <td colspan="2" style="padding:0 12px 8px 28px;color:#888;font-size:11px;line-height:1.4;">${escHTML(row.value)}</td>
+      <td colspan="2" style="padding:0 12px 8px ${row.bulletColor ? '28px' : '28px'};color:#888;font-size:11px;line-height:1.4;">${escHTML(row.value)}</td>
     </tr>`;
           }
         } else if (useStacked) {
@@ -283,10 +286,11 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
       <td colspan="2" style="padding:2px 12px 8px;color:#222;font-size:13px;line-height:1.4;">${escHTML(row.value)}</td>
     </tr>`;
         } else {
+          const boldVal = row.bold ? 'font-weight:700;font-size:1.05em;' : '';
           html += `
     <tr style="background:${bg};${border}">
       <td style="padding:8px 12px;color:#555;${weight}">${escHTML(row.label)}</td>
-      <td style="padding:8px 12px;text-align:right;color:#222;${weight}">${escHTML(row.value)}</td>
+      <td style="padding:8px 12px;text-align:right;color:#222;${weight}${boldVal}">${escHTML(row.value)}</td>
     </tr>`;
         }
       });
