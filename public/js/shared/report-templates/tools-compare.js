@@ -261,7 +261,7 @@
       if (data.fileNumber) headerParts.push('File #: ' + data.fileNumber);
       if (data.prepDate) headerParts.push('Date: ' + data.prepDate);
       if (headerParts.length) {
-        content.push({ text: headerParts.join('  |  '), fontSize: 6.5, color: '#666', margin: [0, 0, 0, 8] });
+        content.push({ text: headerParts.join('  |  '), fontSize: 7.5, color: '#666', margin: [0, 0, 0, 8] });
       }
 
       var widths = ['*'];
@@ -277,11 +277,11 @@
 
       function dataRow(label, values, opts) {
         opts = opts || {};
-        var cells = [{ text: label, fontSize: 6, bold: opts.bold || false }];
+        var cells = [{ text: label, fontSize: 7.5, bold: opts.bold || false }];
         for (var i = 0; i < n; i++) {
           cells.push({
             text: values[i],
-            fontSize: 6,
+            fontSize: 7.5,
             alignment: 'right',
             bold: opts.bold || false,
             color: opts.highlight && opts.bestIdx === i ? '#1b5e20' : undefined,
@@ -296,7 +296,7 @@
         for (var i = 0; i <= n; i++) {
           cells.push({
             text: i === 0 ? title : '',
-            fontSize: 6.5,
+            fontSize: 7.5,
             bold: true,
             color: '#ffffff',
             fillColor: '#2d6a4f'

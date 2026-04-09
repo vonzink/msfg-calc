@@ -366,7 +366,7 @@
         var progressPct = totalSpan > 0 ? Math.max(0, Math.min(100, ((nowMs - appMs) / totalSpan) * 100)) : 0;
 
         content.push({ text: 'Timeline Progress', style: 'sectionHeader', margin: [0, 4, 0, 2] });
-        content.push({ text: 'Day ' + Math.max(0, daysElapsed) + ' of ' + daysTotal + '  \u2014  Application: ' + formatDate(appDate) + '  \u2192  Funding: ' + formatDate(fundDate), fontSize: 6, color: '#333', margin: [0, 0, 0, 4] });
+        content.push({ text: 'Day ' + Math.max(0, daysElapsed) + ' of ' + daysTotal + '  \u2014  Application: ' + formatDate(appDate) + '  \u2192  Funding: ' + formatDate(fundDate), fontSize: 7.5, color: '#333', margin: [0, 0, 0, 4] });
 
         /* Text-based progress bar */
         var barLen = 40;

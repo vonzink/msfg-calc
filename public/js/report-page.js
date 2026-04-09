@@ -361,7 +361,7 @@
             widths: [logoData ? 'auto' : 0, '*'],
             body: [[
               logoData ? { image: logoData, width: 48, margin: [0, 0, 0, 0] } : { text: '' },
-              { text: icon + '  ' + name, bold: true, fontSize: 8, color: '#1b4332', alignment: 'right', margin: [0, 2, 0, 0] }
+              { text: icon + '  ' + name, bold: true, fontSize: 9, color: '#1b4332', alignment: 'right', margin: [0, 2, 0, 0] }
             ]]
           },
           layout: {
@@ -426,11 +426,11 @@
         pageMargins: [20, 20, 20, 24],
         content: content,
         styles: {
-          sectionTitle: { fontSize: 7, bold: true, color: '#1b4332' },
-          incomeSubTitle: { fontSize: 7, bold: true, color: '#2d6a4f' },
-          tableHeader: { bold: true, fontSize: 6, color: '#ffffff', fillColor: '#2d6a4f' }
+          sectionTitle: { fontSize: 8, bold: true, color: '#1b4332' },
+          incomeSubTitle: { fontSize: 8, bold: true, color: '#2d6a4f' },
+          tableHeader: { bold: true, fontSize: 7, color: '#ffffff', fillColor: '#2d6a4f' }
         },
-        defaultStyle: { fontSize: 6.5, color: '#333333' },
+        defaultStyle: { fontSize: 7.5, color: '#333333' },
         footer: function(pg, total) {
           var parts = [
             { text: COMPANY, fontSize: 5.5, color: '#adb5bd' }

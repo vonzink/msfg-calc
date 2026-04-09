@@ -206,9 +206,9 @@
         ];
         res.breakdown.forEach(function (row) {
           body.push([
-            { text: row.name, fontSize: 6 },
-            { text: row.points, fontSize: 6, alignment: 'right' },
-            { text: row.reason || '', fontSize: 6, color: '#666' }
+            { text: row.name, fontSize: 7.5 },
+            { text: row.points, fontSize: 7.5, alignment: 'right' },
+            { text: row.reason || '', fontSize: 7.5, color: '#666' }
           ]);
         });
 
@@ -229,7 +229,7 @@
       // Warnings
       if (res.warnings && res.warnings.length) {
         content.push({ text: 'Warnings', style: 'sectionHeader', margin: [0, 4, 0, 2] });
-        var warnList = res.warnings.map(function (w) { return { text: w, fontSize: 6, color: '#8a5a00' }; });
+        var warnList = res.warnings.map(function (w) { return { text: w, fontSize: 7.5, color: '#8a5a00' }; });
         content.push({ ul: warnList, margin: [10, 0, 0, 0] });
       }
 

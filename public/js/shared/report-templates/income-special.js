@@ -56,16 +56,16 @@
       var a = data.methodA;
       var body = [
         [{ text: 'Item', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }],
-        [{ text: 'Months in Service', fontSize: 6 }, { text: String(a.months), fontSize: 6, alignment: 'right' }],
-        [{ text: 'Total Rents', fontSize: 6 }, { text: fmt(a.rents), fontSize: 6, alignment: 'right' }],
-        [{ text: 'Total Expenses', fontSize: 6 }, { text: fmt(a.expenses), fontSize: 6, alignment: 'right' }],
-        [{ text: 'Depreciation', fontSize: 6 }, { text: fmt(a.depreciation), fontSize: 6, alignment: 'right' }],
-        [{ text: 'PITIA Payment', fontSize: 6 }, { text: fmt(a.pitia), fontSize: 6, alignment: 'right' }]
+        [{ text: 'Months in Service', fontSize: 7.5 }, { text: String(a.months), fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Total Rents', fontSize: 7.5 }, { text: fmt(a.rents), fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Total Expenses', fontSize: 7.5 }, { text: fmt(a.expenses), fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Depreciation', fontSize: 7.5 }, { text: fmt(a.depreciation), fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'PITIA Payment', fontSize: 7.5 }, { text: fmt(a.pitia), fontSize: 7.5, alignment: 'right' }]
       ];
       return [
         a.address ? { text: a.address, italics: true, margin: [0, 4, 0, 4] } : null,
         { table: { headerRows: 1, widths: ['*', 65], body: body }, layout: RT.helpers.TIGHT },
-        { columns: [{ text: 'Monthly Qualifying Income', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: fmt(a.result), alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 2, 0, 0] }
+        { columns: [{ text: 'Monthly Qualifying Income', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: fmt(a.result), alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 2, 0, 0] }
       ].filter(Boolean);
     }
   );
@@ -218,11 +218,11 @@
           content.push({ text: 'Employment ' + (i + 1) + (emp.employer ? ' \u2014 ' + emp.employer : ''), style: 'sectionTitle', margin: [0, 8, 0, 4] });
           var body = [
             [{ text: 'Earnings', style: 'tableHeader' }, { text: 'YTD', style: 'tableHeader', alignment: 'right' }, { text: 'Prior Yr 1', style: 'tableHeader', alignment: 'right' }, { text: 'Prior Yr 2', style: 'tableHeader', alignment: 'right' }],
-            [{ text: 'Base', fontSize: 6 }, { text: fmt(emp.ytd.base), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior1.base), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior2.base), fontSize: 6, alignment: 'right' }]
+            [{ text: 'Base', fontSize: 7.5 }, { text: fmt(emp.ytd.base), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior1.base), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior2.base), fontSize: 7.5, alignment: 'right' }]
           ];
-          if (emp.ytd.overtime || emp.prior1.overtime) body.push([{ text: 'Overtime', fontSize: 6 }, { text: fmt(emp.ytd.overtime), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior1.overtime), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior2.overtime), fontSize: 6, alignment: 'right' }]);
-          if (emp.ytd.bonus || emp.prior1.bonus) body.push([{ text: 'Bonus', fontSize: 6 }, { text: fmt(emp.ytd.bonus), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior1.bonus), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior2.bonus), fontSize: 6, alignment: 'right' }]);
-          if (emp.ytd.commission || emp.prior1.commission) body.push([{ text: 'Commission', fontSize: 6 }, { text: fmt(emp.ytd.commission), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior1.commission), fontSize: 6, alignment: 'right' }, { text: fmt(emp.prior2.commission), fontSize: 6, alignment: 'right' }]);
+          if (emp.ytd.overtime || emp.prior1.overtime) body.push([{ text: 'Overtime', fontSize: 7.5 }, { text: fmt(emp.ytd.overtime), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior1.overtime), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior2.overtime), fontSize: 7.5, alignment: 'right' }]);
+          if (emp.ytd.bonus || emp.prior1.bonus) body.push([{ text: 'Bonus', fontSize: 7.5 }, { text: fmt(emp.ytd.bonus), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior1.bonus), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior2.bonus), fontSize: 7.5, alignment: 'right' }]);
+          if (emp.ytd.commission || emp.prior1.commission) body.push([{ text: 'Commission', fontSize: 7.5 }, { text: fmt(emp.ytd.commission), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior1.commission), fontSize: 7.5, alignment: 'right' }, { text: fmt(emp.prior2.commission), fontSize: 7.5, alignment: 'right' }]);
           content.push({ table: { headerRows: 1, widths: ['*', 65, 65, 65], body: body }, layout: RT.helpers.TIGHT });
         });
       }
@@ -230,16 +230,16 @@
       content.push({ text: 'Income Summary', style: 'sectionTitle', margin: [0, 4, 0, 2] });
       var rBody = [
         [{ text: 'Category', style: 'tableHeader' }, { text: 'Monthly', style: 'tableHeader', alignment: 'right' }],
-        [{ text: 'Monthly Base', fontSize: 6 }, { text: res.monthlyBase, fontSize: 6, alignment: 'right' }],
-        [{ text: 'Monthly Variable', fontSize: 6 }, { text: res.monthlyVariable, fontSize: 6, alignment: 'right' }],
-        [{ text: 'Total Usable', fontSize: 6 }, { text: res.monthlyTotal, fontSize: 6, alignment: 'right' }]
+        [{ text: 'Monthly Base', fontSize: 7.5 }, { text: res.monthlyBase, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Monthly Variable', fontSize: 7.5 }, { text: res.monthlyVariable, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Total Usable', fontSize: 7.5 }, { text: res.monthlyTotal, fontSize: 7.5, alignment: 'right' }]
       ];
       content.push({ table: { headerRows: 1, widths: ['*', 65], body: rBody }, layout: RT.helpers.TIGHT });
-      content.push({ columns: [{ text: 'Qualifying Monthly Income', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: res.qualifyingIncome, alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
+      content.push({ columns: [{ text: 'Qualifying Monthly Income', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: res.qualifyingIncome, alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
 
       if (data.flags && data.flags.length) {
         content.push({ text: 'Flags & Observations', style: 'sectionTitle', margin: [0, 4, 0, 2] });
-        content.push({ ul: data.flags.map(function (f) { return { text: f, fontSize: 6 }; }) });
+        content.push({ ul: data.flags.map(function (f) { return { text: f, fontSize: 7.5 }; }) });
       }
       return content;
     }

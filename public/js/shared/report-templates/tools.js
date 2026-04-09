@@ -249,7 +249,7 @@
     function (data) {
       var content = [];
       var items = data.customItems || [];
-      var fs = 5.5; // ultra-compact font size for 1-page fit
+      var fs = 6.5; // compact font size for 1-page fit
       var TIGHT = RT.helpers.TIGHT;
 
       function fl(label, amount) {
@@ -281,7 +281,7 @@
         paddingBottom: function() { return 0.8; }
       };
       function sectionTable(title, totalStr, rows) {
-        var body = [[{ text: title, bold: true, fontSize: 6, color: '#fff', fillColor: '#2d6a4f', margin: [1,0.5,1,0.5] }, { text: totalStr, bold: true, fontSize: 6, color: '#fff', fillColor: '#2d6a4f', alignment: 'right', margin: [1,0.5,1,0.5] }]];
+        var body = [[{ text: title, bold: true, fontSize: 7, color: '#fff', fillColor: '#2d6a4f', margin: [1,0.5,1,0.5] }, { text: totalStr, bold: true, fontSize: 7, color: '#fff', fillColor: '#2d6a4f', alignment: 'right', margin: [1,0.5,1,0.5] }]];
         rows.forEach(function (r) { if (r) body.push(r); });
         return { table: { headerRows: 1, widths: ['*', 58], body: body }, layout: ultraTight, margin: [0, 0, 0, 2] };
       }
@@ -298,8 +298,8 @@
         ['Down Payment', fmt(data.downPayment || 0)], ['Interest Rate', ratePct(data.rate)],
         ['Property Type', data.propertyType || ''], ['APR / Term', ratePct(data.apr || 0) + ' / ' + data.termMonths]
       ];
-      var lBody = leftInfo.map(function(r) { return [{ text: r[0], fontSize: 5.5, color: '#6c757d' }, { text: r[1], fontSize: 5.5, alignment: 'right' }]; });
-      var rBody = rightInfo.map(function(r) { return [{ text: r[0], fontSize: 5.5, color: '#6c757d' }, { text: r[1], fontSize: 5.5, alignment: 'right' }]; });
+      var lBody = leftInfo.map(function(r) { return [{ text: r[0], fontSize: 6.5, color: '#6c757d' }, { text: r[1], fontSize: 6.5, alignment: 'right' }]; });
+      var rBody = rightInfo.map(function(r) { return [{ text: r[0], fontSize: 6.5, color: '#6c757d' }, { text: r[1], fontSize: 6.5, alignment: 'right' }]; });
       content.push({
         columns: [
           { width: '49%', table: { widths: ['*', 'auto'], body: lBody }, layout: ultraTight },
@@ -360,7 +360,7 @@
             width: '49%',
             stack: [
               sectionTable('Funds Needed To Close', '', fundsRows),
-              { columns: [{ text: 'Total Funds From You', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 0, 0, 0] }
+              { columns: [{ text: 'Total Funds From You', bold: true, fontSize: 8, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }], margin: [0, 0, 0, 0] }
             ]
           },
           { width: '2%', text: '' },
@@ -368,7 +368,7 @@
             width: '49%',
             stack: [
               sectionTable('Monthly Housing Payment', '', monthlyRows),
-              { columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 0, 0, 0] }
+              { columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 8, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }], margin: [0, 0, 0, 0] }
             ]
           }
         ],
@@ -376,7 +376,7 @@
         margin: [0, 0, 0, 2]
       });
 
-      content.push({ text: 'Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.', fontSize: 5.5, color: '#888', italics: true, margin: [0, 1, 0, 0] });
+      content.push({ text: 'Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.', fontSize: 6.5, color: '#888', italics: true, margin: [0, 1, 0, 0] });
       return content;
     }
   );

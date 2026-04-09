@@ -88,7 +88,7 @@
       [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', ratePct(inp.rate)], ['Term', inp.term + ' yrs'], ['Investment Return', pct(inp.investReturn)], ['Appreciation', pct(inp.appreciation)], ['Period', inp.period + ' yrs']],
       [['Cash Net Cost', brk.cash.total], ['Mortgage Net Cost', brk.mortgage.total], ['Difference', res.difference]],
       'Recommendation', null
-    ).concat([{ text: res.recommendation, bold: true, fontSize: 7, color: '#2d6a4f', margin: [0, 4, 0, 0] }]);
+    ).concat([{ text: res.recommendation, bold: true, fontSize: 8.5, color: '#2d6a4f', margin: [0, 4, 0, 0] }]);
   });
 
   /* ---- Buy vs Rent ---- */
@@ -152,7 +152,7 @@
     return pdfKeyValue(data,
       [['Purchase Price', fmt0(inp.price)], ['Down Payment', pct(inp.downPct)], ['Rate', ratePct(inp.rate)], ['Rent', fmt0(inp.rent) + '/mo'], ['Period', inp.period + ' yrs']],
       [['Monthly Payment', res.monthlyPayment], ['Total Own Cost', res.ownCost], ['Total Rent Cost', res.rentCost], ['Net Equity', res.equity], ['Difference', res.difference]]
-    ).concat(res.recommendation ? [{ text: res.recommendation, bold: true, fontSize: 7, color: '#2d6a4f', margin: [0, 4, 0, 0] }] : []);
+    ).concat(res.recommendation ? [{ text: res.recommendation, bold: true, fontSize: 8.5, color: '#2d6a4f', margin: [0, 4, 0, 0] }] : []);
   });
 
   /* ---- Refi ---- */
@@ -377,17 +377,17 @@
 
     var loanBody = loanParams.map(function (r, i) {
       if (i === 0) return [{ text: r[0], style: 'tableHeader' }, { text: r[1], style: 'tableHeader', alignment: 'center' }, { text: r[2], style: 'tableHeader', alignment: 'center' }];
-      return [{ text: r[0], fontSize: 6 }, { text: r[1], fontSize: 6, alignment: 'right' }, { text: r[2], fontSize: 6, alignment: 'right' }];
+      return [{ text: r[0], fontSize: 7.5 }, { text: r[1], fontSize: 7.5, alignment: 'right' }, { text: r[2], fontSize: 7.5, alignment: 'right' }];
     });
     content.push({ table: { headerRows: 1, widths: ['*', 100, 100], body: loanBody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 2] });
 
     content.push({ text: 'Refinance Now', style: 'sectionTitle', margin: [0, 3, 0, 1] });
     var nowBody = [
       [{ text: 'Metric', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }],
-      [{ text: 'Monthly Savings', fontSize: 6 }, { text: now.monthlySavings || '', fontSize: 6, alignment: 'right' }],
-      [{ text: 'Total Closing Costs', fontSize: 6 }, { text: now.totalClosingCosts || '', fontSize: 6, alignment: 'right' }],
-      [{ text: 'Breakeven Point', fontSize: 6 }, { text: now.breakeven || '', fontSize: 6, alignment: 'right' }],
-      [{ text: 'Net Savings (Stay Period)', fontSize: 6, bold: true }, { text: now.netSavings || '', fontSize: 6, alignment: 'right', bold: true }]
+      [{ text: 'Monthly Savings', fontSize: 7.5 }, { text: now.monthlySavings || '', fontSize: 7.5, alignment: 'right' }],
+      [{ text: 'Total Closing Costs', fontSize: 7.5 }, { text: now.totalClosingCosts || '', fontSize: 7.5, alignment: 'right' }],
+      [{ text: 'Breakeven Point', fontSize: 7.5 }, { text: now.breakeven || '', fontSize: 7.5, alignment: 'right' }],
+      [{ text: 'Net Savings (Stay Period)', fontSize: 7.5, bold: true }, { text: now.netSavings || '', fontSize: 7.5, alignment: 'right', bold: true }]
     ];
     content.push({ table: { headerRows: 1, widths: ['*', 100], body: nowBody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 2] });
 
@@ -397,25 +397,25 @@
       var cowBody = [
         [{ text: 'Metric', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]
       ];
-      if (inp.futureRate) cowBody.push([{ text: 'Expected Future Rate', fontSize: 6 }, { text: ratePct(inp.futureRate), fontSize: 6, alignment: 'right' }]);
-      if (inp.monthsToWait) cowBody.push([{ text: 'Months Until Future Rate', fontSize: 6 }, { text: inp.monthsToWait + ' mo', fontSize: 6, alignment: 'right' }]);
-      cowBody.push([{ text: 'Extra Interest While Waiting', fontSize: 6 }, { text: cow.extraInterest, fontSize: 6, alignment: 'right' }]);
-      cowBody.push([{ text: 'Future Monthly Payment', fontSize: 6 }, { text: cow.futurePayment, fontSize: 6, alignment: 'right' }]);
-      cowBody.push([{ text: 'Future Monthly Savings', fontSize: 6 }, { text: cow.futureSavings, fontSize: 6, alignment: 'right' }]);
-      cowBody.push([{ text: 'Breakeven (If You Wait)', fontSize: 6 }, { text: cow.breakevenWait, fontSize: 6, alignment: 'right' }]);
+      if (inp.futureRate) cowBody.push([{ text: 'Expected Future Rate', fontSize: 7.5 }, { text: ratePct(inp.futureRate), fontSize: 7.5, alignment: 'right' }]);
+      if (inp.monthsToWait) cowBody.push([{ text: 'Months Until Future Rate', fontSize: 7.5 }, { text: inp.monthsToWait + ' mo', fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Extra Interest While Waiting', fontSize: 7.5 }, { text: cow.extraInterest, fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Future Monthly Payment', fontSize: 7.5 }, { text: cow.futurePayment, fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Future Monthly Savings', fontSize: 7.5 }, { text: cow.futureSavings, fontSize: 7.5, alignment: 'right' }]);
+      cowBody.push([{ text: 'Breakeven (If You Wait)', fontSize: 7.5 }, { text: cow.breakevenWait, fontSize: 7.5, alignment: 'right' }]);
       content.push({ table: { headerRows: 1, widths: ['*', 100], body: cowBody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 2] });
 
       var cmpBody = [
         [{ text: '', style: 'tableHeader' }, { text: 'Refi Now', style: 'tableHeader', alignment: 'center' }, { text: 'Wait & Refi', style: 'tableHeader', alignment: 'center' }]
       ];
-      if (cow.nowCosts || cow.waitCosts) cmpBody.push([{ text: 'Closing Costs', fontSize: 6 }, { text: cow.nowCosts || '—', fontSize: 6, alignment: 'right' }, { text: cow.waitEffective || cow.waitCosts || '—', fontSize: 6, alignment: 'right' }]);
-      if (cow.nowSavings || cow.waitSavings) cmpBody.push([{ text: 'Monthly Savings', fontSize: 6 }, { text: cow.nowSavings || '—', fontSize: 6, alignment: 'right' }, { text: cow.waitSavings || '—', fontSize: 6, alignment: 'right' }]);
-      if (cow.nowBreakeven || cow.waitBreakeven) cmpBody.push([{ text: 'Breakeven', fontSize: 6 }, { text: cow.nowBreakeven || '—', fontSize: 6, alignment: 'right' }, { text: cow.waitBreakeven || '—', fontSize: 6, alignment: 'right' }]);
-      if (cow.nowNet || cow.waitNet) cmpBody.push([{ text: 'Net Savings', fontSize: 6, bold: true }, { text: cow.nowNet || '—', fontSize: 6, alignment: 'right', bold: true }, { text: cow.waitNet || '—', fontSize: 6, alignment: 'right', bold: true }]);
+      if (cow.nowCosts || cow.waitCosts) cmpBody.push([{ text: 'Closing Costs', fontSize: 7.5 }, { text: cow.nowCosts || '—', fontSize: 7.5, alignment: 'right' }, { text: cow.waitEffective || cow.waitCosts || '—', fontSize: 7.5, alignment: 'right' }]);
+      if (cow.nowSavings || cow.waitSavings) cmpBody.push([{ text: 'Monthly Savings', fontSize: 7.5 }, { text: cow.nowSavings || '—', fontSize: 7.5, alignment: 'right' }, { text: cow.waitSavings || '—', fontSize: 7.5, alignment: 'right' }]);
+      if (cow.nowBreakeven || cow.waitBreakeven) cmpBody.push([{ text: 'Breakeven', fontSize: 7.5 }, { text: cow.nowBreakeven || '—', fontSize: 7.5, alignment: 'right' }, { text: cow.waitBreakeven || '—', fontSize: 7.5, alignment: 'right' }]);
+      if (cow.nowNet || cow.waitNet) cmpBody.push([{ text: 'Net Savings', fontSize: 7.5, bold: true }, { text: cow.nowNet || '—', fontSize: 7.5, alignment: 'right', bold: true }, { text: cow.waitNet || '—', fontSize: 7.5, alignment: 'right', bold: true }]);
       if (cmpBody.length > 1) content.push({ table: { headerRows: 1, widths: ['*', 90, 90], body: cmpBody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 2] });
 
       if (cow.difference) {
-        content.push({ columns: [{ text: 'Net Difference', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: cow.difference, alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
+        content.push({ columns: [{ text: 'Net Difference', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: cow.difference, alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
       }
     }
 
@@ -424,33 +424,33 @@
       content.push({ text: 'Refi Twice Strategy', style: 'sectionTitle', margin: [0, 3, 0, 1] });
       var drBody = [
         [{ text: 'Metric', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }],
-        [{ text: 'Phase 1 Savings', fontSize: 6 }, { text: dr.phase1Savings, fontSize: 6, alignment: 'right' }],
-        [{ text: 'Phase 2 Payment', fontSize: 6 }, { text: dr.phase2Payment, fontSize: 6, alignment: 'right' }],
-        [{ text: 'Total Costs (2 Refis)', fontSize: 6 }, { text: dr.totalCosts, fontSize: 6, alignment: 'right' }],
-        [{ text: 'Combined Breakeven', fontSize: 6 }, { text: dr.breakeven, fontSize: 6, alignment: 'right' }]
+        [{ text: 'Phase 1 Savings', fontSize: 7.5 }, { text: dr.phase1Savings, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Phase 2 Payment', fontSize: 7.5 }, { text: dr.phase2Payment, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Total Costs (2 Refis)', fontSize: 7.5 }, { text: dr.totalCosts, fontSize: 7.5, alignment: 'right' }],
+        [{ text: 'Combined Breakeven', fontSize: 7.5 }, { text: dr.breakeven, fontSize: 7.5, alignment: 'right' }]
       ];
       content.push({ table: { headerRows: 1, widths: ['*', 100], body: drBody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 2] });
 
       var triBody = [
         [{ text: '', style: 'tableHeader' }, { text: 'Refi Now', style: 'tableHeader', alignment: 'center' }, { text: 'Refi Twice', style: 'tableHeader', alignment: 'center' }, { text: 'Wait & Refi', style: 'tableHeader', alignment: 'center' }]
       ];
-      triBody.push([{ text: 'Costs', fontSize: 6 }, { text: dr.compare3NowCosts || '—', fontSize: 6, alignment: 'right' }, { text: dr.compare3DoubleCosts || '—', fontSize: 6, alignment: 'right' }, { text: dr.compare3WaitCosts || '—', fontSize: 6, alignment: 'right' }]);
-      triBody.push([{ text: 'Net Savings', fontSize: 6, bold: true }, { text: dr.compare3NowNet || '—', fontSize: 6, alignment: 'right', bold: true }, { text: dr.compare3DoubleNet || '—', fontSize: 6, alignment: 'right', bold: true }, { text: dr.compare3WaitNet || '—', fontSize: 6, alignment: 'right', bold: true }]);
+      triBody.push([{ text: 'Costs', fontSize: 7.5 }, { text: dr.compare3NowCosts || '—', fontSize: 7.5, alignment: 'right' }, { text: dr.compare3DoubleCosts || '—', fontSize: 7.5, alignment: 'right' }, { text: dr.compare3WaitCosts || '—', fontSize: 7.5, alignment: 'right' }]);
+      triBody.push([{ text: 'Net Savings', fontSize: 7.5, bold: true }, { text: dr.compare3NowNet || '—', fontSize: 7.5, alignment: 'right', bold: true }, { text: dr.compare3DoubleNet || '—', fontSize: 7.5, alignment: 'right', bold: true }, { text: dr.compare3WaitNet || '—', fontSize: 7.5, alignment: 'right', bold: true }]);
       content.push({ table: { headerRows: 1, widths: ['*', 80, 80, 80], body: triBody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 2] });
 
       if (dr.bestStrategy) {
-        content.push({ columns: [{ text: 'Best Strategy', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: dr.bestStrategy, alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
+        content.push({ columns: [{ text: 'Best Strategy', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: dr.bestStrategy, alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 2, 0, 0] });
       }
     }
 
     if (data.recommendation) {
       content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 532, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 3, 0, 1] });
-      content.push({ text: data.recommendation, bold: true, fontSize: 7, color: '#2d6a4f', margin: [0, 2, 0, 0] });
-      if (data.adviceDetail) content.push({ text: data.adviceDetail, fontSize: 6, color: '#555', margin: [0, 1, 0, 0] });
+      content.push({ text: data.recommendation, bold: true, fontSize: 8.5, color: '#2d6a4f', margin: [0, 2, 0, 0] });
+      if (data.adviceDetail) content.push({ text: data.adviceDetail, fontSize: 7.5, color: '#555', margin: [0, 1, 0, 0] });
       if (data.adviceBullets && data.adviceBullets.length) {
         var bulletList = data.adviceBullets.map(function (b) {
           var icon = b.type === 'pro' ? '✓ ' : b.type === 'con' ? '✗ ' : '• ';
-          return { text: icon + b.text, fontSize: 6, color: b.type === 'pro' ? '#2d6a4f' : b.type === 'con' ? '#c0392b' : '#555' };
+          return { text: icon + b.text, fontSize: 7.5, color: b.type === 'pro' ? '#2d6a4f' : b.type === 'con' ? '#c0392b' : '#555' };
         });
         content.push({ ul: bulletList, margin: [0, 2, 0, 0] });
       }
@@ -680,11 +680,11 @@
         { text: 'Total Paid', style: 'tableHeader', alignment: 'right' }
       ]];
       data.yearlySummary.forEach(function (yr) {
-        yrBody.push([{ text: yr.year, fontSize: 6 },
-          { text: fmt(yr.principal), fontSize: 6, alignment: 'right' },
-          { text: fmt(yr.interest), fontSize: 6, alignment: 'right' },
-          { text: yr.extra ? fmt(yr.extra) : '—', fontSize: 6, alignment: 'right' },
-          { text: fmt(yr.payments), fontSize: 6, alignment: 'right' }
+        yrBody.push([{ text: yr.year, fontSize: 7.5 },
+          { text: fmt(yr.principal), fontSize: 7.5, alignment: 'right' },
+          { text: fmt(yr.interest), fontSize: 7.5, alignment: 'right' },
+          { text: yr.extra ? fmt(yr.extra) : '—', fontSize: 7.5, alignment: 'right' },
+          { text: fmt(yr.payments), fontSize: 7.5, alignment: 'right' }
         ]);
       });
       content.push({ table: { headerRows: 1, widths: ['*', 60, 60, 45, 60], body: yrBody }, layout: TIGHT, margin: [0, 0, 0, 2] });
@@ -1028,7 +1028,7 @@
 
       /* Reserves */
       content.push({ columns: [{ text: 'Total Reserves', bold: true, fontSize: 8 }, { text: tot.reserves, alignment: 'right', bold: true, fontSize: 8 }], margin: [0, 2, 0, 0] });
-      content.push({ columns: [{ text: 'Months of Reserves', fontSize: 6 }, { text: tot.reserveMonths, alignment: 'right', fontSize: 6 }], margin: [0, 1, 0, 0] });
+      content.push({ columns: [{ text: 'Months of Reserves', fontSize: 7.5 }, { text: tot.reserveMonths, alignment: 'right', fontSize: 7.5 }], margin: [0, 1, 0, 0] });
 
       return content;
     }

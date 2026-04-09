@@ -84,16 +84,16 @@
       ];
       sec.rows.forEach(function (r) {
         if (!r.y1 && !r.y2) return;
-        body.push([{ text: r.label, fontSize: 6 }, { text: fmt(r.y1), fontSize: 6, alignment: 'right' }, { text: fmt(r.y2), fontSize: 6, alignment: 'right' }]);
+        body.push([{ text: r.label, fontSize: 7.5 }, { text: fmt(r.y1), fontSize: 7.5, alignment: 'right' }, { text: fmt(r.y2), fontSize: 7.5, alignment: 'right' }]);
       });
-      content.push({ table: { headerRows: 1, widths: ['*', 60, 60], body: body }, layout: TIGHT, margin: [0, 0, 0, 1] });
+      content.push({ table: { headerRows: 1, widths: ['auto', 65, 65], body: body }, layout: TIGHT, margin: [0, 0, 0, 1] });
       if (sec.monthly !== undefined) {
-        content.push({ columns: [{ text: 'Monthly Income', bold: true, fontSize: 6.5 }, { text: fmt(sec.monthly), alignment: 'right', bold: true, fontSize: 6.5 }], margin: [0, 1, 0, 0] });
+        content.push({ columns: [{ text: 'Monthly Income', bold: true, fontSize: 8 }, { text: fmt(sec.monthly), alignment: 'right', bold: true, fontSize: 8 }], margin: [0, 1, 0, 0] });
       }
     });
     if (data.totalMonthly !== undefined) {
       content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 532, y2: 0, lineWidth: 0.75, lineColor: '#2d6a4f' }], margin: [0, 2, 0, 1] });
-      content.push({ columns: [{ text: 'TOTAL MONTHLY INCOME', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: fmt(data.totalMonthly), alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }] });
+      content.push({ columns: [{ text: 'TOTAL MONTHLY INCOME', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: fmt(data.totalMonthly), alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }] });
     }
     return content;
   }
@@ -101,19 +101,19 @@
   function pdfKeyValue(data, paramsList, resultsList, grandTotalLabel, grandTotalKey) {
     const content = [];
     if (paramsList && paramsList.length && resultsList && resultsList.length) {
-      /* Side-by-side 2-column layout */
+      /* Side-by-side 2-column layout — auto label width keeps values close */
       const pBody = paramsList.map(function (p) {
-        return [{ text: p[0], fontSize: 6, color: '#6c757d' }, { text: String(p[1]), fontSize: 6, alignment: 'right' }];
+        return [{ text: p[0], fontSize: 7.5, color: '#6c757d' }, { text: String(p[1]), fontSize: 7.5, alignment: 'right' }];
       });
       const rBody = [[{ text: 'Result', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]];
-      resultsList.forEach(function (r) { rBody.push([{ text: r[0], fontSize: 6 }, { text: String(r[1]), fontSize: 6, alignment: 'right' }]); });
+      resultsList.forEach(function (r) { rBody.push([{ text: r[0], fontSize: 7.5 }, { text: String(r[1]), fontSize: 7.5, alignment: 'right' }]); });
       content.push({
         columns: [
           {
             width: '48%',
             stack: [
               { text: 'Parameters', style: 'sectionTitle', margin: [0, 0, 0, 1] },
-              { table: { widths: ['*', 'auto'], body: pBody }, layout: TIGHT }
+              { table: { widths: ['auto', '*'], body: pBody }, layout: TIGHT }
             ]
           },
           { width: '4%', text: '' },
@@ -121,7 +121,7 @@
             width: '48%',
             stack: [
               { text: 'Results', style: 'sectionTitle', margin: [0, 0, 0, 1] },
-              { table: { headerRows: 1, widths: ['*', 'auto'], body: rBody }, layout: TIGHT }
+              { table: { headerRows: 1, widths: ['auto', '*'], body: rBody }, layout: TIGHT }
             ]
           }
         ],
@@ -131,16 +131,16 @@
     } else {
       if (paramsList && paramsList.length) {
         const pBody = paramsList.map(function (p) {
-          return [{ text: p[0], fontSize: 6, color: '#6c757d' }, { text: String(p[1]), fontSize: 6, alignment: 'right' }];
+          return [{ text: p[0], fontSize: 7.5, color: '#6c757d' }, { text: String(p[1]), fontSize: 7.5, alignment: 'right' }];
         });
         content.push({ text: 'Parameters', style: 'sectionTitle', margin: [0, 1, 0, 1] });
-        content.push({ table: { widths: ['*', 'auto'], body: pBody }, layout: TIGHT, margin: [0, 0, 0, 3] });
+        content.push({ table: { widths: ['auto', '*'], body: pBody }, layout: TIGHT, margin: [0, 0, 0, 3] });
       }
       if (resultsList && resultsList.length) {
         const rBody = [[{ text: 'Result', style: 'tableHeader' }, { text: 'Value', style: 'tableHeader', alignment: 'right' }]];
-        resultsList.forEach(function (r) { rBody.push([{ text: r[0], fontSize: 6 }, { text: String(r[1]), fontSize: 6, alignment: 'right' }]); });
+        resultsList.forEach(function (r) { rBody.push([{ text: r[0], fontSize: 7.5 }, { text: String(r[1]), fontSize: 7.5, alignment: 'right' }]); });
         content.push({ text: 'Results', style: 'sectionTitle', margin: [0, 2, 0, 1] });
-        content.push({ table: { headerRows: 1, widths: ['*', 'auto'], body: rBody }, layout: TIGHT, margin: [0, 0, 0, 3] });
+        content.push({ table: { headerRows: 1, widths: ['auto', '*'], body: rBody }, layout: TIGHT, margin: [0, 0, 0, 3] });
       }
     }
     return content;
