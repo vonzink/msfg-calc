@@ -98,6 +98,54 @@
     }
   }
 
+  const copyBtn = document.getElementById('emailCopyBtn');
+
+  async function copyPreview() {
+    const data = _getEmailData ? _getEmailData() : null;
+    if (!data) {
+      setStatus('No calculator data to copy.', 'error');
+      return;
+    }
+    const html = buildPreviewHTML(data);
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([previewToPlainText(data)], { type: 'text/plain' })
+        })
+      ]);
+      setStatus('Copied to clipboard!', 'success');
+      setTimeout(function () { if (statusEl) statusEl.textContent = ''; }, 2000);
+    } catch (err) {
+      // Fallback: copy plain text
+      try {
+        await navigator.clipboard.writeText(previewToPlainText(data));
+        setStatus('Copied as plain text.', 'success');
+        setTimeout(function () { if (statusEl) statusEl.textContent = ''; }, 2000);
+      } catch (e) {
+        setStatus('Copy failed — check browser permissions.', 'error');
+      }
+    }
+  }
+
+  function previewToPlainText(data) {
+    let text = data.title + '\n' + '='.repeat(data.title.length) + '\n\n';
+    data.sections.forEach(function (sec) {
+      text += sec.heading + '\n' + '-'.repeat(sec.heading.length) + '\n';
+      sec.rows.forEach(function (row) {
+        if (row.stacked) {
+          text += '  ' + row.label + (row.value ? '\n    ' + row.value : '') + '\n';
+        } else if (row.isTotal) {
+          text += row.label + ':  ' + row.value + '\n';
+        } else {
+          text += '  ' + row.label + ':  ' + row.value + '\n';
+        }
+      });
+      text += '\n';
+    });
+    return text.trim();
+  }
+
   function setStatus(msg, type) {
     if (!statusEl) return;
     statusEl.textContent = msg;
@@ -156,6 +204,7 @@
   if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
   if (sendBtn) sendBtn.addEventListener('click', sendEmail);
   if (previewToggle) previewToggle.addEventListener('click', togglePreview);
+  if (copyBtn) copyBtn.addEventListener('click', copyPreview);
 
   /* Close on overlay click */
   if (overlay) {
