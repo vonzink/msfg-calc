@@ -58,7 +58,8 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://msfg-media.s3.us-west-2.amazonaws.com"],
       frameSrc: ["'self'", "https://us-west-1s6ie2uego.auth.us-west-1.amazoncognito.com"],
-      connectSrc: ["'self'", "https://cdnjs.cloudflare.com"]
+      connectSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      formAction: ["'self'", "https://dashboard.msfgco.com"]
     }
   },
   // Allow iframes from same origin (workspace uses them)
