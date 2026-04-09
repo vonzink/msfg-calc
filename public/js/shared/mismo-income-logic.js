@@ -48,7 +48,7 @@
    */
   function determineIncomeDocumentation(borrower, loanData) {
     const docs = [];
-    const tag = '[' + borrower.name + ']';
+    const tag = borrower.name + ':';
     const loan = loanData || {};
 
     const isSelfEmployed = checkSelfEmployed(borrower);

@@ -265,7 +265,7 @@
 
     // Per-borrower documentation
     data.borrowers.forEach(function (b) {
-      const tag = '[' + b.name + ']';
+      const tag = b.name + ':';
 
       general.push({ name: tag + ' Government-issued photo ID (unexpired)', status: 'required',
         reason: 'Required per borrower for identity verification.' });
