@@ -298,10 +298,11 @@
     // Status select
     const statusSelect = document.createElement('select');
     statusSelect.className = 'mismo-doc-item__status';
+    var statusLabels = { required: 'Required', conditional: 'Conditional', incomplete: 'Incomplete', ok: 'Cleared' };
     ['required', 'conditional', 'incomplete', 'ok'].forEach(function (s) {
       const opt = document.createElement('option');
       opt.value = s;
-      opt.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+      opt.textContent = statusLabels[s];
       if (s === item.status) opt.selected = true;
       statusSelect.appendChild(opt);
     });

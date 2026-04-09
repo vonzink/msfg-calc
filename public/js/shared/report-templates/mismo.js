@@ -137,7 +137,7 @@
         html += '<table class="rpt-table"><thead><tr><th style="width:90px">Status</th><th>Document</th><th>Reason</th></tr></thead><tbody>';
         sec.items.forEach(function (item) {
           var label = 'Required'; var color = '#c62828';
-          if (item.status === 'ok') { label = 'OK'; color = '#2e7d32'; }
+          if (item.status === 'ok') { label = 'Cleared'; color = '#2e7d32'; }
           else if (item.status === 'conditional') { label = 'Conditional'; color = '#e65100'; }
           else if (item.status === 'incomplete') { label = 'Incomplete'; color = '#1565c0'; }
           html += '<tr>';
@@ -206,7 +206,7 @@
         ];
         sec.items.forEach(function (item) {
           var label = 'Required'; var color = '#c62828';
-          if (item.status === 'ok') { label = 'OK'; color = '#2e7d32'; }
+          if (item.status === 'ok') { label = 'Cleared'; color = '#2e7d32'; }
           else if (item.status === 'conditional') { label = 'Conditional'; color = '#e65100'; }
           else if (item.status === 'incomplete') { label = 'Incomplete'; color = '#1565c0'; }
           body.push([
