@@ -345,31 +345,14 @@
       var content = [];
       var fmt = function(n) { return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(n); };
 
-      /* -- Cover page -- */
-      if (logoData) {
-        content.push({ image: logoData, width: 180, margin: [0, 40, 0, 16] });
-      }
-      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 3, lineColor: '#2d6a4f' }], margin: [0, 0, 0, 12] });
-      content.push({ text: 'Session Report', style: 'title', margin: [0, 0, 0, 6] });
-      content.push({ text: COMPANY, style: 'companyName', margin: [0, 0, 0, 4] });
-      content.push({ text: 'Generated ' + new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), style: 'subtitle', margin: [0, 0, 0, 24] });
-      content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#40916c' }], margin: [0, 0, 0, 16] });
-
-      if (items.length > 1) {
-        content.push({ text: 'Contents', style: 'tocTitle', margin: [0, 8, 0, 6] });
-        var tocIdx = 1;
-        otherItems.forEach(function(item) {
-          content.push({ text: tocIdx++ + '. ' + item.icon + '  ' + item.name, style: 'tocItem', margin: [8, 2, 0, 2] });
-        });
-        if (incomeItems.length > 0) {
-          content.push({ text: tocIdx + '. Income Analysis (' + incomeItems.length + ' calculators)', style: 'tocItem', margin: [8, 2, 0, 2] });
-        }
-      }
-
       /* -- Helper: branded page header for each calc -- */
+      var isFirstPage = true;
       function pdfPageHeader(name, icon) {
         var header = [];
-        header.push({ text: '', pageBreak: 'before' });
+        if (!isFirstPage) {
+          header.push({ text: '', pageBreak: 'before' });
+        }
+        isFirstPage = false;
         if (logoData) {
           header.push({
             table: {
