@@ -252,7 +252,7 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
     calcData.sections.forEach(function (sec) {
       html += `
 <tr><td style="padding:20px 30px 0;">
-  <h3 style="color:${primaryColor};font-size:15px;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid ${primaryColor};">${escHTML(sec.heading)}</h3>
+  <h3 style="color:${primaryColor};font-size:15px;margin:0 0 10px;"><span style="padding-bottom:6px;border-bottom:2px solid ${primaryColor};">${escHTML(sec.heading)}</span></h3>
   <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">`;
 
       sec.rows.forEach(function (row, i) {
@@ -264,7 +264,7 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
         if (row.stacked) {
           // Stacked list item: colored bullet + name on top, reason below
           const bullet = row.bulletColor
-            ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${row.bulletColor};margin-right:6px;vertical-align:middle;"></span>`
+            ? `<span style="color:${row.bulletColor};margin-right:5px;">&#9679;</span>`
             : '';
           html += `
     <tr style="background:${bg};">

@@ -57,13 +57,13 @@
     let html = '<div style="font-family: Arial, sans-serif; font-size: 13px;">';
     html += '<h3 style="color:#2d6a4f; margin:0 0 12px;">' + MSFG.escHtml(data.title) + '</h3>';
     data.sections.forEach(function (sec) {
-      html += '<h4 style="color:#333; margin:12px 0 6px; border-bottom:1px solid #e0e0e0; padding-bottom:4px;">' + MSFG.escHtml(sec.heading) + '</h4>';
+      html += '<h4 style="color:#333; margin:12px 0 6px;"><span style="border-bottom:1px solid #e0e0e0; padding-bottom:4px;">' + MSFG.escHtml(sec.heading) + '</span></h4>';
       html += '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
       sec.rows.forEach(function (row) {
         var valueLong = row.value && row.value.length > 60;
         if (row.stacked) {
           var bullet = row.bulletColor
-            ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + row.bulletColor + ';margin-right:6px;vertical-align:middle;"></span>'
+            ? '<span style="color:' + row.bulletColor + ';margin-right:5px;">&#9679;</span>'
             : '';
           html += '<tr><td colspan="2" style="padding:4px 8px ' + (row.value ? '0' : '4px') + ' 0; color:#333; font-size:13px;">' + bullet + MSFG.escHtml(row.label) + '</td></tr>';
           if (row.value) {
