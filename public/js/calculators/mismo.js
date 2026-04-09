@@ -515,7 +515,7 @@
               value: item.reason ? '\u2014 ' + item.reason : '',
               stacked: true,
               bulletColor: item.status === 'required' ? '#c62828' :
-                           item.status === 'conditional' ? '#e65100' :
+                           item.status === 'conditional' ? '#b8960c' :
                            item.status === 'ok' ? '#2e7d32' :
                            item.status === 'incomplete' ? '#1565c0' : '#666'
             });
