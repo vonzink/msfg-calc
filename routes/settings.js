@@ -116,6 +116,8 @@ router.use((req, res, next) => {
   if (req.method !== 'POST') return next();
   // Exempt JSON-body endpoints (no form, no CSRF cookie flow)
   if (req.path === '/ai/test') return next();
+  // Multipart uploads — CSRF checked after multer parses the body
+  if (req.path === '/logo') return next();
 
   const cookieToken = req.cookies?._csrf;
   const bodyToken = req.body?._csrf;
@@ -161,6 +163,14 @@ router.get('/', (req, res) => {
 });
 
 router.post('/logo', upload.single('logo'), (req, res) => {
+  // CSRF check (deferred from middleware because multer must parse body first)
+  const cookieToken = req.cookies?._csrf;
+  const bodyToken = req.body?._csrf;
+  if (!cookieToken || !bodyToken || cookieToken !== bodyToken) {
+    if (req.file) try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore */ }
+    return res.status(403).render('404', { title: 'Invalid Request' });
+  }
+
   if (!req.file) return res.redirect('/settings?saved=0');
 
   // Validate extension (defense in depth — MIME already checked by multer)
