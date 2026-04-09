@@ -108,7 +108,7 @@
       if (inp.totalClosingCosts) infoPairs.push(['Closing Costs', inp.totalClosingCosts]);
 
       var content = [];
-      var infoBody = infoPairs.map(function(p) { return [{ text: p[0], fontSize: 7.5, color: '#6c757d' }, { text: p[1], fontSize: 7.5, alignment: 'right' }]; });
+      var infoBody = infoPairs.map(function(p) { return [{ text: p[0], fontSize: 6, color: '#6c757d' }, { text: p[1], fontSize: 6, alignment: 'right' }]; });
       content.push({ table: { widths: ['*', 'auto'], body: infoBody }, layout: { hLineWidth: function() { return 0; }, vLineWidth: function() { return 0; }, paddingLeft: function() { return 3; }, paddingRight: function() { return 3; }, paddingTop: function() { return 1.5; }, paddingBottom: function() { return 1.5; } }, margin: [0, 0, 0, 4] });
 
       /* Comparison table */
@@ -123,13 +123,13 @@
       var rows = [['Max Base Loan','maxLoan'],['Actual Loan','actualLoan'],['UFMIP','ufmip','newUfmip'],['Total Loan','totalLoan'],['LTV','ltv'],['Payment','payment'],['NTB','ntb'],['Cash to Close','cashToClose']];
       var tbody = [header];
       rows.forEach(function(row) {
-        var r = [{ text: row[0], fontSize: 7.5 }];
-        if (hasPurch) r.push({ text: data.purchase[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
-        if (hasRefi) r.push({ text: data.refi[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
-        if (hasSl) { var k = row[2] || row[1]; r.push({ text: data.streamline[k] || data.streamline[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' }); }
+        var r = [{ text: row[0], fontSize: 6 }];
+        if (hasPurch) r.push({ text: data.purchase[row[1]] || '\u2014', fontSize: 6, alignment: 'right' });
+        if (hasRefi) r.push({ text: data.refi[row[1]] || '\u2014', fontSize: 6, alignment: 'right' });
+        if (hasSl) { var k = row[2] || row[1]; r.push({ text: data.streamline[k] || data.streamline[row[1]] || '\u2014', fontSize: 6, alignment: 'right' }); }
         tbody.push(r);
       });
-      content.push({ table: { headerRows: 1, widths: widths, body: tbody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 4] });
+      content.push({ table: { headerRows: 1, widths: widths, body: tbody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 4] });
       return content;
     }
   );

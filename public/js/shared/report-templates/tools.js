@@ -249,7 +249,8 @@
     function (data) {
       var content = [];
       var items = data.customItems || [];
-      var fs = 7; // compact font size
+      var fs = 5.5; // ultra-compact font size for 1-page fit
+      var TIGHT = RT.helpers.TIGHT;
 
       function fl(label, amount) {
         if (!amount) return null;
@@ -270,19 +271,19 @@
         });
         return out;
       }
-      var tightLay = {
-        hLineWidth: function(i, node) { return i === 0 ? 0 : 0.5; },
+      var ultraTight = {
+        hLineWidth: function(i, node) { return i === 0 ? 0 : 0.3; },
         vLineWidth: function() { return 0; },
-        hLineColor: function() { return '#e2e6ea'; },
-        paddingLeft: function() { return 3; },
-        paddingRight: function() { return 3; },
-        paddingTop: function() { return 1.5; },
-        paddingBottom: function() { return 1.5; }
+        hLineColor: function() { return '#dee2e6'; },
+        paddingLeft: function() { return 2; },
+        paddingRight: function() { return 2; },
+        paddingTop: function() { return 0.8; },
+        paddingBottom: function() { return 0.8; }
       };
       function sectionTable(title, totalStr, rows) {
-        var body = [[{ text: title, bold: true, fontSize: 7.5, color: '#fff', fillColor: '#2d6a4f', margin: [2,1,2,1] }, { text: totalStr, bold: true, fontSize: 7.5, color: '#fff', fillColor: '#2d6a4f', alignment: 'right', margin: [2,1,2,1] }]];
+        var body = [[{ text: title, bold: true, fontSize: 6, color: '#fff', fillColor: '#2d6a4f', margin: [1,0.5,1,0.5] }, { text: totalStr, bold: true, fontSize: 6, color: '#fff', fillColor: '#2d6a4f', alignment: 'right', margin: [1,0.5,1,0.5] }]];
         rows.forEach(function (r) { if (r) body.push(r); });
-        return { table: { headerRows: 1, widths: ['*', 70], body: body }, layout: tightLay, margin: [0, 0, 0, 3] };
+        return { table: { headerRows: 1, widths: ['*', 58], body: body }, layout: ultraTight, margin: [0, 0, 0, 2] };
       }
 
       /* Loan info — compact 2-column grid */
@@ -297,28 +298,28 @@
         ['Down Payment', fmt(data.downPayment || 0)], ['Interest Rate', ratePct(data.rate)],
         ['Property Type', data.propertyType || ''], ['APR / Term', ratePct(data.apr || 0) + ' / ' + data.termMonths]
       ];
-      var lBody = leftInfo.map(function(r) { return [{ text: r[0], fontSize: 7, color: '#6c757d' }, { text: r[1], fontSize: 7, alignment: 'right' }]; });
-      var rBody = rightInfo.map(function(r) { return [{ text: r[0], fontSize: 7, color: '#6c757d' }, { text: r[1], fontSize: 7, alignment: 'right' }]; });
+      var lBody = leftInfo.map(function(r) { return [{ text: r[0], fontSize: 5.5, color: '#6c757d' }, { text: r[1], fontSize: 5.5, alignment: 'right' }]; });
+      var rBody = rightInfo.map(function(r) { return [{ text: r[0], fontSize: 5.5, color: '#6c757d' }, { text: r[1], fontSize: 5.5, alignment: 'right' }]; });
       content.push({
         columns: [
-          { width: '49%', table: { widths: ['*', 'auto'], body: lBody }, layout: tightLay },
+          { width: '49%', table: { widths: ['*', 'auto'], body: lBody }, layout: ultraTight },
           { width: '2%', text: '' },
-          { width: '49%', table: { widths: ['*', 'auto'], body: rBody }, layout: tightLay }
+          { width: '49%', table: { widths: ['*', 'auto'], body: rBody }, layout: ultraTight }
         ],
         columnGap: 0,
-        margin: [0, 0, 0, 6]
+        margin: [0, 0, 0, 3]
       });
 
-      /* Fee sections — 2-column layout (left: origination/cannot shop/can shop; right: gov/prepaids/escrow/other) */
+      /* Fee sections — 2-column layout */
       var leftCol = [];
       leftCol.push(sectionTable('Origination Charges', data.origTotal, [fl('Origination Fee', data.origFee), fl('Discount Points', data.discountPts), fl('Processing Fee', data.processingFee), fl('Underwriting Fee', data.underwritingFee)].concat(cfl('origination'))));
-      leftCol.push(sectionTable('Svc Borrower Cannot Shop', data.cannotShopTotal, [fl('Appraisal Fee', data.appraisalFee), fl('Credit Report Fee', data.creditReportFee), fl('Technology Fee', data.techFee), fl('VOE Fee', data.voeFee), fl('Flood Cert Fee', data.floodFee), fl('Tax Service Fee', data.taxServiceFee), fl('MERS Registration Fee', data.mersFee)].concat(cfl('cannotShop'))));
-      leftCol.push(sectionTable('Svc Borrower Can Shop', data.canShopTotal, [fl('E-Recording Fee', data.eRecordingFee), fl('Title - CPL', data.titleCPL), fl('Title - Lenders Coverage', data.titleLenders), fl('Title - Settlement Fee', data.titleSettlement), fl('Title - Tax Cert Fee', data.titleTaxCert), fl('Title - Owners Coverage', data.titleOwners), fl('Wire Transfer Fee', data.wireFee)].concat(cfl('canShop'))));
+      leftCol.push(sectionTable('Svc Cannot Shop', data.cannotShopTotal, [fl('Appraisal Fee', data.appraisalFee), fl('Credit Report Fee', data.creditReportFee), fl('Technology Fee', data.techFee), fl('VOE Fee', data.voeFee), fl('Flood Cert Fee', data.floodFee), fl('Tax Service Fee', data.taxServiceFee), fl('MERS Fee', data.mersFee)].concat(cfl('cannotShop'))));
+      leftCol.push(sectionTable('Svc Can Shop', data.canShopTotal, [fl('E-Recording Fee', data.eRecordingFee), fl('Title - CPL', data.titleCPL), fl('Title - Lenders', data.titleLenders), fl('Title - Settlement', data.titleSettlement), fl('Title - Tax Cert', data.titleTaxCert), fl('Title - Owners', data.titleOwners), fl('Wire Transfer Fee', data.wireFee)].concat(cfl('canShop'))));
 
       var rightCol = [];
-      rightCol.push(sectionTable('Taxes & Gov\'t Fees', data.govTotal, [fl('Recording Fee', data.recordingFee), fl('Transfer Taxes', data.transferTax)].concat(cfl('government'))));
-      rightCol.push(sectionTable('Prepaids', data.prepaidsTotal, [fml('Hazard Ins', data.hazInsAmt, data.hazInsMonths, 'mo', data.prepaidHazIns), fml('Prepaid Interest', data.prepaidIntPerDiem, data.prepaidIntDays, 'day', data.prepaidInterest)].concat(cfl('prepaids'))));
-      rightCol.push(sectionTable('Initial Escrow at Closing', data.escrowTotal, [fml('Property Tax', data.escTaxAmt, data.escTaxMonths, 'mo', data.escrowTax), fml('Hazard Ins', data.escInsAmt, data.escInsMonths, 'mo', data.escrowIns)].concat(cfl('escrow'))));
+      rightCol.push(sectionTable('Taxes & Gov\'t', data.govTotal, [fl('Recording Fee', data.recordingFee), fl('Transfer Taxes', data.transferTax)].concat(cfl('government'))));
+      rightCol.push(sectionTable('Prepaids', data.prepaidsTotal, [fml('Hazard Ins', data.hazInsAmt, data.hazInsMonths, 'mo', data.prepaidHazIns), fml('Prepaid Int', data.prepaidIntPerDiem, data.prepaidIntDays, 'day', data.prepaidInterest)].concat(cfl('prepaids'))));
+      rightCol.push(sectionTable('Initial Escrow', data.escrowTotal, [fml('Prop Tax', data.escTaxAmt, data.escTaxMonths, 'mo', data.escrowTax), fml('Hazard Ins', data.escInsAmt, data.escInsMonths, 'mo', data.escrowIns)].concat(cfl('escrow'))));
       rightCol.push(sectionTable('Other', data.otherTotal, [fl('Other Fee 1', data.other1), fl('Other Fee 2', data.other2)].concat(cfl('other'))));
 
       content.push({
@@ -328,7 +329,7 @@
           { width: '49%', stack: rightCol }
         ],
         columnGap: 0,
-        margin: [0, 0, 0, 4]
+        margin: [0, 0, 0, 2]
       });
 
       /* Funds needed + monthly payment — side-by-side */
@@ -339,9 +340,9 @@
         [{ text: 'Est. Closing Cost', fontSize: fs }, { text: fmt(data.estClosing || 0), fontSize: fs, alignment: 'right' }]
       ];
       if (data.discount) fundsRows.push([{ text: 'Discount', fontSize: fs }, { text: fmt(data.discount), fontSize: fs, alignment: 'right' }]);
-      fundsRows.push([{ text: 'Total Due at Closing (K)', fontSize: fs, bold: true }, { text: fmt(data.totalDue || 0), fontSize: fs, alignment: 'right', bold: true }]);
+      fundsRows.push([{ text: 'Total Due (K)', fontSize: fs, bold: true }, { text: fmt(data.totalDue || 0), fontSize: fs, alignment: 'right', bold: true }]);
       fundsRows.push([{ text: 'Loan Amount', fontSize: fs }, { text: fmt(data.summaryLoanAmt || 0), fontSize: fs, alignment: 'right' }]);
-      fundsRows.push([{ text: 'Total Paid by/on Behalf (L)', fontSize: fs }, { text: fmt(data.totalPaid || 0), fontSize: fs, alignment: 'right' }]);
+      fundsRows.push([{ text: 'Total Paid (L)', fontSize: fs }, { text: fmt(data.totalPaid || 0), fontSize: fs, alignment: 'right' }]);
       fundsRows.push([{ text: 'Seller Credits', fontSize: fs }, { text: fmt(data.sellerCredits || 0), fontSize: fs, alignment: 'right' }]);
       fundsRows.push([{ text: 'Lender Credits', fontSize: fs }, { text: fmt(data.lenderCredits || 0), fontSize: fs, alignment: 'right' }]);
 
@@ -359,7 +360,7 @@
             width: '49%',
             stack: [
               sectionTable('Funds Needed To Close', '', fundsRows),
-              { columns: [{ text: 'Total Funds From You', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 1, 0, 0] }
+              { columns: [{ text: 'Total Funds From You', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: data.fundsFromYou, alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 0, 0, 0] }
             ]
           },
           { width: '2%', text: '' },
@@ -367,15 +368,15 @@
             width: '49%',
             stack: [
               sectionTable('Monthly Housing Payment', '', monthlyRows),
-              { columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 8.5, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 8.5, color: '#2d6a4f' }], margin: [0, 1, 0, 0] }
+              { columns: [{ text: 'Total Monthly Payment', bold: true, fontSize: 7, color: '#2d6a4f' }, { text: data.totalMonthly, alignment: 'right', bold: true, fontSize: 7, color: '#2d6a4f' }], margin: [0, 0, 0, 0] }
             ]
           }
         ],
         columnGap: 0,
-        margin: [0, 0, 0, 4]
+        margin: [0, 0, 0, 2]
       });
 
-      content.push({ text: 'Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.', fontSize: 6.5, color: '#888', italics: true, margin: [0, 2, 0, 0] });
+      content.push({ text: 'Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.', fontSize: 5.5, color: '#888', italics: true, margin: [0, 1, 0, 0] });
       return content;
     }
   );
@@ -426,7 +427,7 @@
           var line = sigLines[j].textContent.trim();
           if (!line) continue;
           var isBold = sigLines[j].classList.contains('la-sig-name');
-          content.push({ text: line, bold: isBold, fontSize: isBold ? 11 : 9, color: isBold ? '#2d6a4f' : '#666', margin: [0, 1, 0, 1] });
+          content.push({ text: line, bold: isBold, fontSize: isBold ? 8 : 7, color: isBold ? '#2d6a4f' : '#666', margin: [0, 1, 0, 1] });
         }
       }
 

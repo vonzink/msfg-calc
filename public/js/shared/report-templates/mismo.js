@@ -171,7 +171,7 @@
       summaryFields.forEach(function (f) {
         if (f.value && f.value !== '\u2014') {
           var isBorrower = f.label === 'Borrower(s)';
-          sBody.push([{ text: f.label, fontSize: 7, color: '#6c757d' }, { text: f.value, fontSize: 7, alignment: 'right', bold: isBorrower }]);
+          sBody.push([{ text: f.label, fontSize: 6, color: '#6c757d' }, { text: f.value, fontSize: 6, alignment: 'right', bold: isBorrower }]);
         }
       });
       var tightLay = { hLineWidth: function(i, node) { return (i === 0 || i === node.table.body.length) ? 0 : 0.5; }, vLineWidth: function() { return 0; }, hLineColor: function() { return '#e2e6ea'; }, paddingLeft: function() { return 3; }, paddingRight: function() { return 3; }, paddingTop: function() { return 1.5; }, paddingBottom: function() { return 1.5; } };
@@ -184,7 +184,7 @@
           if (chip.status === 'ok') color = '#2e7d32';
           else if (chip.status === 'warn') color = '#b8960c';
           else if (chip.status === 'need') color = '#c62828';
-          return { text: chip.label, color: color, fontSize: 7, bold: true };
+          return { text: chip.label, color: color, fontSize: 6, bold: true };
         });
         chipStack.push({ text: 'Status Indicators', style: 'sectionTitle', margin: [0, 0, 0, 2] });
         // Render each chip on its own line
@@ -220,7 +220,7 @@
           else if (item.status === 'incomplete') { label = 'Incomplete'; color = '#1565c0'; }
           body.push([
             { text: label, alignment: 'center', color: color, bold: true, fontSize: 6.5 },
-            { text: item.name, fontSize: 7 },
+            { text: item.name, fontSize: 6 },
             { text: item.reason, fontSize: 6.5, color: '#666' }
           ]);
         });

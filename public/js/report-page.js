@@ -344,65 +344,43 @@
 
       var content = [];
       var fmt = function(n) { return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(n); };
-      var pageW = 532; // usable width with 30pt margins on letter
+      var PW = 572; // usable width: 612 - 20*2
 
-      /* -- Compact section header (colored bar, no page break) -- */
+      /* ============================================================
+         Section header — page break before each calc, compact bar
+         ============================================================ */
       var isFirstCalc = true;
       function pdfSectionHeader(name, icon) {
         var header = [];
         if (!isFirstCalc) {
-          // Thin separator line between calculators instead of page break
-          header.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: pageW, y2: 0, lineWidth: 0.5, lineColor: '#dee2e6' }], margin: [0, 8, 0, 6] });
+          header.push({ text: '', pageBreak: 'before' });
         }
         isFirstCalc = false;
-        // Compact colored bar with calc title
         header.push({
           table: {
-            widths: ['*'],
-            body: [[{ text: icon + '  ' + name, bold: true, fontSize: 9, color: '#ffffff', margin: [6, 3, 6, 3] }]]
-          },
-          layout: {
-            hLineWidth: function() { return 0; },
-            vLineWidth: function() { return 0; },
-            fillColor: function() { return '#2d6a4f'; },
-            paddingLeft: function() { return 0; },
-            paddingRight: function() { return 0; },
-            paddingTop: function() { return 0; },
-            paddingBottom: function() { return 0; }
-          },
-          margin: [0, 0, 0, 6]
-        });
-        return header;
-      }
-
-      /* -- Page header with logo (top of first page only) -- */
-      if (logoData) {
-        var dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        content.push({
-          table: {
-            widths: ['auto', '*'],
+            widths: [logoData ? 'auto' : 0, '*'],
             body: [[
-              { image: logoData, width: 80, margin: [0, 0, 0, 0] },
-              { stack: [
-                { text: 'Session Report', fontSize: 14, bold: true, color: '#1b4332', alignment: 'right' },
-                { text: dateStr, fontSize: 7, color: '#6c757d', alignment: 'right', margin: [0, 2, 0, 0] }
-              ], margin: [0, 2, 0, 0] }
+              logoData ? { image: logoData, width: 48, margin: [0, 0, 0, 0] } : { text: '' },
+              { text: icon + '  ' + name, bold: true, fontSize: 8, color: '#1b4332', alignment: 'right', margin: [0, 2, 0, 0] }
             ]]
           },
           layout: {
-            hLineWidth: function(i, node) { return i === node.table.body.length ? 1.5 : 0; },
+            hLineWidth: function(i, node) { return i === node.table.body.length ? 1 : 0; },
             vLineWidth: function() { return 0; },
             hLineColor: function() { return '#2d6a4f'; },
             paddingLeft: function() { return 0; },
             paddingRight: function() { return 0; },
-            paddingTop: function() { return 2; },
-            paddingBottom: function() { return 4; }
+            paddingTop: function() { return 0; },
+            paddingBottom: function() { return 2; }
           },
-          margin: [0, 0, 0, 10]
+          margin: [0, 0, 0, 5]
         });
+        return header;
       }
 
-      /* -- General / Government calcs (compact, flowing) -- */
+      /* ============================================================
+         Each calculator = its own page
+         ============================================================ */
       otherItems.forEach(function(item) {
         pdfSectionHeader(item.name, item.icon).forEach(function(n) { content.push(n); });
 
@@ -414,14 +392,16 @@
         }
       });
 
-      /* -- Income consolidated section -- */
+      /* ============================================================
+         Income — consolidated on its own page
+         ============================================================ */
       if (incomeItems.length > 0) {
         pdfSectionHeader('Income Analysis', '\uD83D\uDCDD').forEach(function(n) { content.push(n); });
 
         var combinedMonthly = 0;
         incomeItems.forEach(function(item, idx) {
           if (idx > 0) content.push({ text: '', margin: [0, 2, 0, 0] });
-          content.push({ text: item.icon + '  ' + item.name, style: 'incomeSubTitle', margin: [0, 2, 0, 2] });
+          content.push({ text: item.icon + '  ' + item.name, style: 'incomeSubTitle', margin: [0, 1, 0, 1] });
           if (item.version === 2 && item.data && MSFG.ReportTemplates) {
             var pc = MSFG.ReportTemplates.pdfContent(item.slug, item.data);
             if (Array.isArray(pc)) pc.forEach(function(n) { content.push(n); });
@@ -430,44 +410,48 @@
         });
 
         if (incomeItems.length > 1) {
-          content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: pageW, y2: 0, lineWidth: 1.5, lineColor: '#2d6a4f' }], margin: [0, 6, 0, 3] });
+          content.push({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: PW, y2: 0, lineWidth: 1, lineColor: '#2d6a4f' }], margin: [0, 4, 0, 2] });
           content.push({ columns: [
-            { text: 'COMBINED MONTHLY INCOME', bold: true, fontSize: 10, color: '#2d6a4f' },
-            { text: fmt(combinedMonthly), alignment: 'right', bold: true, fontSize: 10, color: '#2d6a4f' }
+            { text: 'COMBINED MONTHLY INCOME', bold: true, fontSize: 8, color: '#2d6a4f' },
+            { text: fmt(combinedMonthly), alignment: 'right', bold: true, fontSize: 8, color: '#2d6a4f' }
           ] });
         }
       }
 
-      /* -- Footer: EHL + company info at very end -- */
-      if (ehlData) {
-        content.push({ image: ehlData, width: 36, alignment: 'center', margin: [0, 12, 0, 2] });
-      } else if (EHL_URL) {
-        content.push({ text: 'Equal Housing Lender', alignment: 'center', fontSize: 6, color: '#aaaaaa', margin: [0, 12, 0, 2] });
-      }
-      content.push({ text: COMPANY + '  |  ' + DOMAIN, alignment: 'center', fontSize: 7, color: '#aaaaaa', margin: [0, 2, 0, 0] });
-
+      /* ============================================================
+         Document definition — ultra-tight for print
+         ============================================================ */
       var docDef = {
         pageSize: 'LETTER',
-        pageMargins: [30, 30, 30, 36],
+        pageMargins: [20, 20, 20, 24],
         content: content,
         styles: {
-          title: { fontSize: 14, bold: true, color: '#1b4332' },
-          companyName: { fontSize: 9, color: '#2d6a4f', bold: true },
-          subtitle: { fontSize: 8, color: '#6c757d' },
-          calcTitle: { fontSize: 10, bold: true, color: '#1b4332' },
-          calcDate: { fontSize: 7, color: '#999999' },
-          sectionTitle: { fontSize: 8.5, bold: true, color: '#1b4332' },
-          incomeSubTitle: { fontSize: 8.5, bold: true, color: '#2d6a4f' },
-          tableHeader: { bold: true, fontSize: 7, color: '#ffffff', fillColor: '#2d6a4f' }
+          sectionTitle: { fontSize: 7, bold: true, color: '#1b4332' },
+          incomeSubTitle: { fontSize: 7, bold: true, color: '#2d6a4f' },
+          tableHeader: { bold: true, fontSize: 6, color: '#ffffff', fillColor: '#2d6a4f' }
         },
-        defaultStyle: { fontSize: 8, color: '#333333' },
+        defaultStyle: { fontSize: 6.5, color: '#333333' },
         footer: function(pg, total) {
+          var parts = [
+            { text: COMPANY, fontSize: 5.5, color: '#adb5bd' }
+          ];
+          if (ehlData) {
+            // EHL in footer instead of body
+            return {
+              columns: [
+                { image: ehlData, width: 14, margin: [20, -2, 0, 0] },
+                { text: COMPANY + '  |  ' + DOMAIN, fontSize: 5.5, color: '#adb5bd', margin: [4, 2, 0, 0] },
+                { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 5.5, color: '#adb5bd', margin: [0, 2, 20, 0] }
+              ],
+              margin: [0, 2, 0, 0]
+            };
+          }
           return {
             columns: [
-              { text: COMPANY_NAME, fontSize: 6, color: '#adb5bd', margin: [30, 0, 0, 0] },
-              { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 6, color: '#adb5bd', margin: [0, 0, 30, 0] }
+              { text: COMPANY + '  |  ' + DOMAIN, fontSize: 5.5, color: '#adb5bd', margin: [20, 0, 0, 0] },
+              { text: 'Page ' + pg + ' of ' + total, alignment: 'right', fontSize: 5.5, color: '#adb5bd', margin: [0, 0, 20, 0] }
             ],
-            margin: [0, 6, 0, 0]
+            margin: [0, 2, 0, 0]
           };
         }
       };

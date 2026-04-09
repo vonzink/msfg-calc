@@ -347,7 +347,7 @@
       if (infoRows.length) {
         var infoBody = [[{ text: 'Loan Information', style: 'tableHeader' }, { text: '', style: 'tableHeader' }]];
         infoRows.forEach(function (r) { infoBody.push([r[0], { text: r[1], alignment: 'right' }]); });
-        content.push({ table: { headerRows: 1, widths: ['*', 160], body: infoBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 8] });
+        content.push({ table: { headerRows: 1, widths: ['*', 160], body: infoBody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 8] });
       }
 
       /* Timeline Progress Summary */
@@ -366,7 +366,7 @@
         var progressPct = totalSpan > 0 ? Math.max(0, Math.min(100, ((nowMs - appMs) / totalSpan) * 100)) : 0;
 
         content.push({ text: 'Timeline Progress', style: 'sectionHeader', margin: [0, 4, 0, 2] });
-        content.push({ text: 'Day ' + Math.max(0, daysElapsed) + ' of ' + daysTotal + '  \u2014  Application: ' + formatDate(appDate) + '  \u2192  Funding: ' + formatDate(fundDate), fontSize: 7.5, color: '#333', margin: [0, 0, 0, 4] });
+        content.push({ text: 'Day ' + Math.max(0, daysElapsed) + ' of ' + daysTotal + '  \u2014  Application: ' + formatDate(appDate) + '  \u2192  Funding: ' + formatDate(fundDate), fontSize: 6, color: '#333', margin: [0, 0, 0, 4] });
 
         /* Text-based progress bar */
         var barLen = 40;
@@ -412,7 +412,7 @@
               { text: String(evDay), fontSize: 7, alignment: 'right' }
             ]);
           });
-          content.push({ table: { headerRows: 1, widths: [70, '*', 80, 30], body: evBody }, layout: 'lightHorizontalLines', margin: [0, 4, 0, 8] });
+          content.push({ table: { headerRows: 1, widths: [70, '*', 80, 30], body: evBody }, layout: RT.helpers.TIGHT, margin: [0, 4, 0, 8] });
         }
       }
 
