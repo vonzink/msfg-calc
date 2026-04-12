@@ -326,8 +326,15 @@
     if (!iframe) return null;
 
     try {
-      const outerDoc = iframe.contentDocument || iframe.contentWindow.document;
+      const outerWin = iframe.contentWindow;
+      const outerDoc = iframe.contentDocument || outerWin.document;
       if (!outerDoc) return null;
+
+      // Generic state hook — any calculator can implement window.__calcState
+      if (outerWin && outerWin.__calcState && typeof outerWin.__calcState.save === 'function') {
+        return { _api: 'calcState', data: outerWin.__calcState.save() };
+      }
+
       const nestedIframe = outerDoc.querySelector('iframe');
 
       if (nestedIframe) {
@@ -336,6 +343,11 @@
 
         if (innerWin && innerWin.RefiUI && typeof innerWin.RefiUI.readAllInputs === 'function') {
           return { _api: 'RefiUI', data: innerWin.RefiUI.readAllInputs() };
+        }
+
+        // Check nested iframe for __calcState too
+        if (innerWin && innerWin.__calcState && typeof innerWin.__calcState.save === 'function') {
+          return { _api: 'calcState', data: innerWin.__calcState.save() };
         }
 
         if (innerDoc && innerDoc.body) {
@@ -398,8 +410,28 @@
     if (!iframe) return;
 
     try {
-      const outerDoc = iframe.contentDocument || iframe.contentWindow.document;
+      const outerWin = iframe.contentWindow;
+      const outerDoc = iframe.contentDocument || outerWin.document;
       if (!outerDoc) return;
+
+      // Generic state hook — restore via __calcState
+      if (panelData._api === 'calcState') {
+        const targetWin = outerWin;
+        // Try outer window first, then nested iframe
+        if (targetWin && targetWin.__calcState && typeof targetWin.__calcState.restore === 'function') {
+          targetWin.__calcState.restore(panelData.data);
+          return;
+        }
+        const nested = outerDoc.querySelector('iframe');
+        if (nested) {
+          const nw = nested.contentWindow;
+          if (nw && nw.__calcState && typeof nw.__calcState.restore === 'function') {
+            nw.__calcState.restore(panelData.data);
+            return;
+          }
+        }
+      }
+
       const nestedIframe = outerDoc.querySelector('iframe');
 
       if (panelData._api === 'RefiUI' && nestedIframe) {

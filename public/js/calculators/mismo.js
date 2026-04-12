@@ -441,6 +441,97 @@
   };
 
   /* ======================================================
+     Generic Workspace State Save/Restore Hook
+     Allows the workspace to persist checklist edits when
+     navigating away and back (e.g., to Session Report).
+     ====================================================== */
+
+  window.__calcState = {
+    save: function () {
+      // Collect summary KV text values
+      var kvIds = ['kvBorrower', 'kvPurpose', 'kvType', 'kvAmount', 'kvPropertyType', 'kvOccupancy', 'kvLTV', 'kvProperty'];
+      var summary = {};
+      kvIds.forEach(function (id) {
+        var node = el(id);
+        summary[id] = node ? node.textContent.trim() : '';
+      });
+
+      // Collect chip states
+      var chipIds = ['chipProgram', 'chipEmp', 'chipRes', 'chipGaps', 'chipREO', 'chipDec'];
+      var chips = {};
+      chipIds.forEach(function (id) {
+        var chip = el(id);
+        if (!chip) return;
+        chips[id] = { text: chip.textContent.trim(), className: chip.className };
+      });
+
+      // Collect complexity flags
+      var complexityFlags = [];
+      var flagsEl = el('mismoComplexity');
+      if (flagsEl) {
+        flagsEl.querySelectorAll('.mismo-complexity-flag').forEach(function (f) {
+          complexityFlags.push(f.textContent.trim());
+        });
+      }
+
+      return {
+        checklistState: JSON.parse(JSON.stringify(checklistState)),
+        itemCounter: itemCounter,
+        summary: summary,
+        chips: chips,
+        complexityFlags: complexityFlags,
+        hasData: !el('mismoResults').classList.contains('u-hidden')
+      };
+    },
+
+    restore: function (data) {
+      if (!data || !data.hasData) return;
+
+      // Restore state variables
+      checklistState = data.checklistState || { income: [], general: [], assets: [], credit: [] };
+      itemCounter = data.itemCounter || 0;
+
+      // Restore summary KV values
+      if (data.summary) {
+        Object.keys(data.summary).forEach(function (id) {
+          setKV(id, data.summary[id] === '\u2014' ? null : data.summary[id]);
+        });
+      }
+
+      // Restore chips
+      if (data.chips) {
+        Object.keys(data.chips).forEach(function (id) {
+          var chip = el(id);
+          if (!chip) return;
+          chip.textContent = data.chips[id].text;
+          chip.className = data.chips[id].className;
+        });
+      }
+
+      // Restore complexity flags
+      var flagsEl = el('mismoComplexity');
+      if (flagsEl) {
+        if (data.complexityFlags && data.complexityFlags.length > 0) {
+          flagsEl.innerHTML = data.complexityFlags.map(function (f) {
+            return '<span class="mismo-complexity-flag">' + MSFG.escHtml(f) + '</span>';
+          }).join('');
+          flagsEl.classList.remove('u-hidden');
+        } else {
+          flagsEl.classList.add('u-hidden');
+        }
+      }
+
+      // Render checklists from restored state
+      renderAllChecklists();
+
+      // Show results and action bar
+      el('mismoResults').classList.remove('u-hidden');
+      el('mismoEmpty').classList.add('u-hidden');
+      el('mismoActionBar').classList.remove('u-hidden');
+    }
+  };
+
+  /* ======================================================
      Init
      ====================================================== */
 
