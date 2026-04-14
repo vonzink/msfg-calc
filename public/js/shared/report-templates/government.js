@@ -5,7 +5,7 @@
   var val = h.val, txt = h.txt, fmt0 = h.fmt0, ratePct = h.ratePct;
   var pdfKeyValue = h.pdfKeyValue;
 
-  /* ---- FHA (Unified: purchase, refi, streamline comparison) ---- */
+  /* ---- FHA (Unified: purchase, refi 3-column comparison) ---- */
   RT.register('fha',
     function (doc) {
       return {
@@ -16,25 +16,33 @@
           currentPayment: val(doc,'fhaCurrentPayment'), newRate: val(doc,'fhaNewRate'),
           totalClosingCosts: txt(doc,'fhaTotalClosingCosts')
         },
-        refi: {
-          maxLoan: txt(doc,'fhaRefiMaxLoan'), actualLoan: txt(doc,'fhaRefiActualLoan'),
-          ufmip: txt(doc,'fhaRefiUfmip'),
-          totalLoan: txt(doc,'fhaRefiTotalLoan'), ltv: txt(doc,'fhaRefiLtv'),
-          payment: txt(doc,'fhaRefiPayment'), ntb: txt(doc,'fhaRefiNtb'),
-          cashToClose: txt(doc,'fhaRefiCashToClose')
+        purchase: {
+          maxLoan: txt(doc,'fhaMaxBaseLoan'), actualLoan: txt(doc,'fhaActualBaseLoan'),
+          ufmip: txt(doc,'fhaNewUfmipAmt'), totalLoan: txt(doc,'fhaTotalLoanAmt'),
+          ltv: txt(doc,'fhaLtv'), pi: txt(doc,'fhaMonthlyPI'),
+          mip: txt(doc,'fhaMonthlyMip'), total: txt(doc,'fhaTotalMonthly'),
+          cashToClose: txt(doc,'fhaCashToClose')
+        },
+        rateTerm: {
+          maxLoan: txt(doc,'fhaRT_maxLoan'), ufmip: txt(doc,'fhaRT_ufmip'),
+          totalLoan: txt(doc,'fhaRT_totalLoan'), ltv: txt(doc,'fhaRT_ltv'),
+          pi: txt(doc,'fhaRT_pi'), mip: txt(doc,'fhaRT_mip'),
+          total: txt(doc,'fhaRT_total'), ntb: txt(doc,'fhaRT_ntb'),
+          cashToClose: txt(doc,'fhaRT_cashToClose')
+        },
+        cashOut: {
+          maxLoan: txt(doc,'fhaCO_maxLoan'), ufmip: txt(doc,'fhaCO_ufmip'),
+          totalLoan: txt(doc,'fhaCO_totalLoan'), ltv: txt(doc,'fhaCO_ltv'),
+          pi: txt(doc,'fhaCO_pi'), mip: txt(doc,'fhaCO_mip'),
+          total: txt(doc,'fhaCO_total'), ntb: txt(doc,'fhaCO_ntb'),
+          cashToClose: txt(doc,'fhaCO_cashToClose')
         },
         streamline: {
-          maxLoan: txt(doc,'fhaSlMaxLoan'), actualLoan: txt(doc,'fhaSlActualLoan'),
-          ufmipRefund: txt(doc,'fhaSlUfmipRefund'),
-          newUfmip: txt(doc,'fhaSlNewUfmip'), totalLoan: txt(doc,'fhaSlTotalLoan'),
-          payment: txt(doc,'fhaSlPayment'), ntb: txt(doc,'fhaSlNtb'),
-          cashToClose: txt(doc,'fhaSlCashToClose')
-        },
-        purchase: {
-          maxLoan: txt(doc,'fhaPurchMaxLoan'), actualLoan: txt(doc,'fhaPurchActualLoan'),
-          ufmip: txt(doc,'fhaPurchUfmip'),
-          totalLoan: txt(doc,'fhaPurchTotalLoan'), ltv: txt(doc,'fhaPurchLtv'),
-          payment: txt(doc,'fhaPurchPayment'), cashToClose: txt(doc,'fhaPurchCashToClose')
+          maxLoan: txt(doc,'fhaSL_maxLoan'), ufmipRefund: txt(doc,'fhaSL_ufmipRefund'),
+          ufmip: txt(doc,'fhaSL_ufmip'), totalLoan: txt(doc,'fhaSL_totalLoan'),
+          pi: txt(doc,'fhaSL_pi'), mip: txt(doc,'fhaSL_mip'),
+          total: txt(doc,'fhaSL_total'), ntb: txt(doc,'fhaSL_ntb'),
+          cashToClose: txt(doc,'fhaSL_cashToClose')
         }
       };
     },
@@ -55,26 +63,29 @@
       if (inp.totalClosingCosts) html += '<div class="rpt-param"><span>Total Closing Costs</span><span>' + inp.totalClosingCosts + '</span></div>';
       html += '</div></div>';
 
-      // Comparison table
-      var hasRefi = data.refi.totalLoan && data.refi.totalLoan !== '\u2014';
-      var hasSl = data.streamline.totalLoan && data.streamline.totalLoan !== '\u2014';
+      // Determine which scenarios have data
       var hasPurch = data.purchase.totalLoan && data.purchase.totalLoan !== '\u2014';
+      var hasRT = data.rateTerm.totalLoan && data.rateTerm.totalLoan !== '\u2014';
+      var hasCO = data.cashOut.totalLoan && data.cashOut.totalLoan !== '\u2014';
+      var hasSl = data.streamline.totalLoan && data.streamline.totalLoan !== '\u2014' && data.streamline.totalLoan !== 'N/A';
 
       html += '<div class="rpt-section"><h4 class="rpt-section-title">FHA Scenario Comparison</h4>';
       html += '<table class="rpt-table"><thead><tr><th>Item</th>';
       if (hasPurch) html += '<th class="rpt-num">Purchase</th>';
-      if (hasRefi) html += '<th class="rpt-num">FHA Refi</th>';
+      if (hasRT) html += '<th class="rpt-num">Rate/Term</th>';
+      if (hasCO) html += '<th class="rpt-num">Cash-Out</th>';
       if (hasSl) html += '<th class="rpt-num">Streamline</th>';
       html += '</tr></thead><tbody>';
 
       var rows = [
         ['Max Base Loan', 'maxLoan'],
-        ['Actual Base Loan', 'actualLoan'],
         ['UFMIP Refund', 'ufmipRefund'],
-        ['New UFMIP', 'ufmip', 'newUfmip'],
+        ['New UFMIP', 'ufmip'],
         ['Total Loan', 'totalLoan'],
         ['LTV', 'ltv'],
-        ['New P&I Payment', 'payment'],
+        ['P&I Payment', 'pi'],
+        ['Monthly MIP', 'mip'],
+        ['Total Monthly', 'total'],
         ['NTB', 'ntb'],
         ['Cash to Close', 'cashToClose']
       ];
@@ -84,11 +95,9 @@
         var key = row[1];
         html += '<tr><td>' + label + '</td>';
         if (hasPurch) html += '<td class="rpt-num">' + (data.purchase[key] || '\u2014') + '</td>';
-        if (hasRefi) html += '<td class="rpt-num">' + (data.refi[key] || '\u2014') + '</td>';
-        if (hasSl) {
-          var slKey = row[2] || key;
-          html += '<td class="rpt-num">' + (data.streamline[slKey] || data.streamline[key] || '\u2014') + '</td>';
-        }
+        if (hasRT) html += '<td class="rpt-num">' + (data.rateTerm[key] || '\u2014') + '</td>';
+        if (hasCO) html += '<td class="rpt-num">' + (data.cashOut[key] || '\u2014') + '</td>';
+        if (hasSl) html += '<td class="rpt-num">' + (data.streamline[key] || '\u2014') + '</td>';
         html += '</tr>';
       });
 
@@ -97,9 +106,10 @@
     },
     function (data) {
       var inp = data.inputs;
-      var hasRefi = data.refi.totalLoan && data.refi.totalLoan !== '\u2014';
-      var hasSl = data.streamline.totalLoan && data.streamline.totalLoan !== '\u2014';
       var hasPurch = data.purchase.totalLoan && data.purchase.totalLoan !== '\u2014';
+      var hasRT = data.rateTerm.totalLoan && data.rateTerm.totalLoan !== '\u2014';
+      var hasCO = data.cashOut.totalLoan && data.cashOut.totalLoan !== '\u2014';
+      var hasSl = data.streamline.totalLoan && data.streamline.totalLoan !== '\u2014' && data.streamline.totalLoan !== 'N/A';
 
       /* Compact info row */
       var infoPairs = [['Borrower', inp.borrower || '\u2014'], ['Appraised Value', fmt0(inp.appraisedValue)]];
@@ -114,19 +124,21 @@
       /* Comparison table */
       var header = [{ text: 'Item', style: 'tableHeader' }];
       if (hasPurch) header.push({ text: 'Purchase', style: 'tableHeader', alignment: 'right' });
-      if (hasRefi) header.push({ text: 'FHA Refi', style: 'tableHeader', alignment: 'right' });
+      if (hasRT) header.push({ text: 'Rate/Term', style: 'tableHeader', alignment: 'right' });
+      if (hasCO) header.push({ text: 'Cash-Out', style: 'tableHeader', alignment: 'right' });
       if (hasSl) header.push({ text: 'Streamline', style: 'tableHeader', alignment: 'right' });
       var colCount = header.length;
       var widths = ['*'];
       for (var w = 1; w < colCount; w++) widths.push(75);
 
-      var rows = [['Max Base Loan','maxLoan'],['Actual Loan','actualLoan'],['UFMIP','ufmip','newUfmip'],['Total Loan','totalLoan'],['LTV','ltv'],['Payment','payment'],['NTB','ntb'],['Cash to Close','cashToClose']];
+      var rows = [['Max Loan','maxLoan'],['UFMIP','ufmip'],['Total Loan','totalLoan'],['LTV','ltv'],['P&I','pi'],['MIP','mip'],['Total','total'],['NTB','ntb'],['Cash to Close','cashToClose']];
       var tbody = [header];
       rows.forEach(function(row) {
         var r = [{ text: row[0], fontSize: 7.5 }];
         if (hasPurch) r.push({ text: data.purchase[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
-        if (hasRefi) r.push({ text: data.refi[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
-        if (hasSl) { var k = row[2] || row[1]; r.push({ text: data.streamline[k] || data.streamline[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' }); }
+        if (hasRT) r.push({ text: data.rateTerm[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
+        if (hasCO) r.push({ text: data.cashOut[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
+        if (hasSl) r.push({ text: data.streamline[row[1]] || '\u2014', fontSize: 7.5, alignment: 'right' });
         tbody.push(r);
       });
       content.push({ table: { headerRows: 1, widths: widths, body: tbody }, layout: RT.helpers.TIGHT, margin: [0, 0, 0, 4] });

@@ -56,6 +56,7 @@
             <span class="help-icon" data-help="FHA statutory loan limit for the county. Used as one of three max-mortgage calculations.">?</span>
           </label>
           <input type="number" id="fhaCountyLimit" step="1" value="541287">
+          <small><a href="https://entp.hud.gov/idapp/html/hicostlook.cfm" target="_blank" rel="noopener">FHA Loan Limits</a></small>
         </div>
       </div>
     </div>
@@ -63,17 +64,6 @@
     <!-- Section 2: Current Loan (refi only) -->
     <div class="calc-section fha-refi-only" style="display:none;">
       <h2>Current Loan</h2>
-
-      <div class="form-grid u-mb-md">
-        <div class="form-group">
-          <label>Refinance Type</label>
-          <select id="fhaRefiTypeSelect">
-            <option value="rateTerm">Rate/Term</option>
-            <option value="cashOut">Cash-Out</option>
-            <option value="streamline">Streamline</option>
-          </select>
-        </div>
-      </div>
 
       <div class="u-mb-md">
         <label class="form-check">
@@ -341,26 +331,7 @@
       </div>
     </div>
 
-    <!-- Section 7: Monthly Escrow & HOA -->
-    <div class="calc-section">
-      <h2>Monthly Escrow &amp; HOA</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Monthly Property Tax</label>
-          <input type="number" id="fhaMonthlyTax" step="0.01" placeholder="0.00">
-        </div>
-        <div class="form-group">
-          <label>Monthly Homeowner's Insurance</label>
-          <input type="number" id="fhaMonthlyInsurance" step="0.01" placeholder="0.00">
-        </div>
-        <div class="form-group">
-          <label>Monthly HOA</label>
-          <input type="number" id="fhaMonthlyHoa" step="0.01" placeholder="0.00">
-        </div>
-      </div>
-    </div>
-
-    <!-- Section 8: Cash to Close Inputs -->
+    <!-- Section 7: Cash to Close Inputs -->
     <div class="calc-section">
       <h2>Cash to Close Inputs</h2>
       <div class="form-grid">
@@ -389,102 +360,170 @@
     <div class="calc-section" id="fhaResultsSection" style="display:none;">
       <h2>Results</h2>
 
-      <!-- Three-Calculation Max Mortgage -->
-      <div class="fha-max-mortgage-grid">
-        <div class="fha-max-card">
-          <div class="fha-max-card__label">LTV Calculation</div>
-          <div class="fha-max-card__value" id="fhaLtvCalc">&mdash;</div>
+      <!-- Purchase Results (shown in purchase mode) -->
+      <div id="fhaPurchaseResults" class="fha-purchase-only">
+        <div class="fha-max-mortgage-grid">
+          <div class="fha-max-card">
+            <div class="fha-max-card__label">LTV Calculation</div>
+            <div class="fha-max-card__value" id="fhaLtvCalc">&mdash;</div>
+          </div>
+          <div class="fha-max-card">
+            <div class="fha-max-card__label">County Limit</div>
+            <div class="fha-max-card__value" id="fhaStatutoryLimit">&mdash;</div>
+          </div>
         </div>
-        <div class="fha-max-card fha-refi-only" style="display:none;">
-          <div class="fha-max-card__label">Existing Debt</div>
-          <div class="fha-max-card__value" id="fhaExistingDebtCalc">&mdash;</div>
+        <div class="fha-max-result">
+          <span>Maximum Base Loan:</span>
+          <strong id="fhaMaxBaseLoan">&mdash;</strong>
         </div>
-        <div class="fha-max-card">
-          <div class="fha-max-card__label">County Limit</div>
-          <div class="fha-max-card__value" id="fhaStatutoryLimit">&mdash;</div>
+
+        <div class="fha-results-wrap u-mt-md">
+          <table class="fha-results-table">
+            <tbody>
+              <tr class="fha-section-row"><td colspan="2">Loan Amount</td></tr>
+              <tr>
+                <td>Actual Base Loan</td>
+                <td id="fhaActualBaseLoan">&mdash;</td>
+              </tr>
+              <tr>
+                <td>New UFMIP (1.75%)</td>
+                <td id="fhaNewUfmipAmt">&mdash;</td>
+              </tr>
+              <tr class="fha-subtotal-row">
+                <td>Total Loan Amount</td>
+                <td id="fhaTotalLoanAmt">&mdash;</td>
+              </tr>
+              <tr>
+                <td>LTV</td>
+                <td id="fhaLtv">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Annual MIP Rate</td>
+                <td id="fhaMipRateDisplay">&mdash;</td>
+              </tr>
+
+              <tr class="fha-section-row"><td colspan="2">Monthly Payment</td></tr>
+              <tr>
+                <td>Principal &amp; Interest</td>
+                <td id="fhaMonthlyPI">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Monthly MIP</td>
+                <td id="fhaMonthlyMip">&mdash;</td>
+              </tr>
+              <tr class="fha-total-row">
+                <td>Total Monthly P&amp;I + MIP</td>
+                <td id="fhaTotalMonthly">&mdash;</td>
+              </tr>
+
+              <tr class="fha-section-row"><td colspan="2">Cash to Close</td></tr>
+              <tr class="fha-total-row">
+                <td>Est. Cash to Close</td>
+                <td id="fhaCashToClose">&mdash;</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      <div class="fha-max-result">
-        <span>Maximum Base Loan:</span>
-        <strong id="fhaMaxBaseLoan">&mdash;</strong>
+
+      <!-- Refi Results (shown in refi mode) — 3-column comparison -->
+      <div id="fhaRefiResults" class="fha-refi-only" style="display:none;">
+        <div class="fha-results-wrap">
+          <table class="fha-results-table fha-compare-table">
+            <thead>
+              <tr>
+                <th class="fha-label-col"></th>
+                <th>Rate/Term</th>
+                <th>Cash-Out</th>
+                <th>Streamline</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fha-section-row"><td colspan="4">Loan Amount</td></tr>
+              <tr>
+                <td>Max Base Loan</td>
+                <td id="fhaRT_maxLoan">&mdash;</td>
+                <td id="fhaCO_maxLoan">&mdash;</td>
+                <td id="fhaSL_maxLoan">&mdash;</td>
+              </tr>
+              <tr>
+                <td>UFMIP Refund</td>
+                <td id="fhaRT_ufmipRefund">&mdash;</td>
+                <td id="fhaCO_ufmipRefund">&mdash;</td>
+                <td id="fhaSL_ufmipRefund">&mdash;</td>
+              </tr>
+              <tr>
+                <td>New UFMIP (1.75%)</td>
+                <td id="fhaRT_ufmip">&mdash;</td>
+                <td id="fhaCO_ufmip">&mdash;</td>
+                <td id="fhaSL_ufmip">&mdash;</td>
+              </tr>
+              <tr class="fha-subtotal-row">
+                <td>Total Loan</td>
+                <td id="fhaRT_totalLoan">&mdash;</td>
+                <td id="fhaCO_totalLoan">&mdash;</td>
+                <td id="fhaSL_totalLoan">&mdash;</td>
+              </tr>
+              <tr>
+                <td>LTV</td>
+                <td id="fhaRT_ltv">&mdash;</td>
+                <td id="fhaCO_ltv">&mdash;</td>
+                <td id="fhaSL_ltv">&mdash;</td>
+              </tr>
+
+              <tr class="fha-section-row"><td colspan="4">Monthly Payment</td></tr>
+              <tr>
+                <td>Principal &amp; Interest</td>
+                <td id="fhaRT_pi">&mdash;</td>
+                <td id="fhaCO_pi">&mdash;</td>
+                <td id="fhaSL_pi">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Monthly MIP</td>
+                <td id="fhaRT_mip">&mdash;</td>
+                <td id="fhaCO_mip">&mdash;</td>
+                <td id="fhaSL_mip">&mdash;</td>
+              </tr>
+              <tr class="fha-total-row">
+                <td>Total P&amp;I + MIP</td>
+                <td id="fhaRT_total">&mdash;</td>
+                <td id="fhaCO_total">&mdash;</td>
+                <td id="fhaSL_total">&mdash;</td>
+              </tr>
+
+              <tr class="fha-section-row"><td colspan="4">Net Tangible Benefit</td></tr>
+              <tr>
+                <td>NTB Status</td>
+                <td id="fhaRT_ntb">&mdash;</td>
+                <td id="fhaCO_ntb">&mdash;</td>
+                <td id="fhaSL_ntb">&mdash;</td>
+              </tr>
+              <tr>
+                <td>NTB Detail</td>
+                <td id="fhaRT_ntbDetail">&mdash;</td>
+                <td id="fhaCO_ntbDetail">&mdash;</td>
+                <td id="fhaSL_ntbDetail">&mdash;</td>
+              </tr>
+
+              <tr class="fha-section-row"><td colspan="4">Cash to Close</td></tr>
+              <tr class="fha-total-row">
+                <td>Est. Cash to Close</td>
+                <td id="fhaRT_cashToClose">&mdash;</td>
+                <td id="fhaCO_cashToClose">&mdash;</td>
+                <td id="fhaSL_cashToClose">&mdash;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Seasoning (streamline only) -->
+        <div class="fha-seasoning-summary u-mt-md" id="fhaSeasoningSummary" style="display:none;">
+          <strong>Streamline Seasoning:</strong>
+          <span id="fhaSeasoningSummaryText"></span>
+        </div>
       </div>
 
-      <!-- Loan Breakdown -->
-      <div class="fha-results-wrap u-mt-md">
-        <table class="fha-results-table">
-          <tbody>
-            <tr class="fha-section-row"><td colspan="2">Loan Amount</td></tr>
-            <tr>
-              <td>Actual Base Loan</td>
-              <td id="fhaActualBaseLoan">&mdash;</td>
-            </tr>
-            <tr class="fha-refi-only" style="display:none;">
-              <td>UFMIP Refund</td>
-              <td id="fhaUfmipRefundAmt">&mdash;</td>
-            </tr>
-            <tr>
-              <td>New UFMIP (1.75%)</td>
-              <td id="fhaNewUfmipAmt">&mdash;</td>
-            </tr>
-            <tr class="fha-subtotal-row">
-              <td>Total Loan Amount</td>
-              <td id="fhaTotalLoanAmt">&mdash;</td>
-            </tr>
-            <tr>
-              <td>LTV</td>
-              <td id="fhaLtv">&mdash;</td>
-            </tr>
-            <tr>
-              <td>Annual MIP Rate</td>
-              <td id="fhaMipRateDisplay">&mdash;</td>
-            </tr>
-
-            <tr class="fha-section-row"><td colspan="2">Monthly Payment</td></tr>
-            <tr>
-              <td>Principal &amp; Interest</td>
-              <td id="fhaMonthlyPI">&mdash;</td>
-            </tr>
-            <tr>
-              <td>Monthly MIP</td>
-              <td id="fhaMonthlyMip">&mdash;</td>
-            </tr>
-            <tr>
-              <td>Property Tax</td>
-              <td id="fhaMonthlyTaxOut">&mdash;</td>
-            </tr>
-            <tr>
-              <td>Homeowner's Insurance</td>
-              <td id="fhaMonthlyInsOut">&mdash;</td>
-            </tr>
-            <tr>
-              <td>HOA</td>
-              <td id="fhaMonthlyHoaOut">&mdash;</td>
-            </tr>
-            <tr class="fha-total-row">
-              <td>Total Monthly Payment</td>
-              <td id="fhaTotalMonthly">&mdash;</td>
-            </tr>
-
-            <tr class="fha-section-row fha-refi-only" style="display:none;"><td colspan="2">Net Tangible Benefit</td></tr>
-            <tr class="fha-refi-only" style="display:none;">
-              <td>NTB Status</td>
-              <td id="fhaNtbResult">&mdash;</td>
-            </tr>
-            <tr class="fha-refi-only" style="display:none;">
-              <td>NTB Detail</td>
-              <td id="fhaNtbDetail">&mdash;</td>
-            </tr>
-
-            <tr class="fha-section-row"><td colspan="2">Cash to Close</td></tr>
-            <tr class="fha-total-row">
-              <td>Est. Cash to Close</td>
-              <td id="fhaCashToClose">&mdash;</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Notes -->
+      <!-- Notes (both modes) -->
       <div class="u-mt-lg">
         <h3 class="fha-notes-heading">Notes &amp; Flags</h3>
         <ul class="fha-notes-list" id="fhaResultNotes"></ul>

@@ -271,6 +271,44 @@
   font-size: 1.15rem;
 }
 
+/* ---- 3-column refi comparison table ---- */
+.fha-compare-table {
+  min-width: 520px;
+}
+
+.fha-compare-table thead th {
+  padding: 10px var(--space-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  background: var(--color-gray-50);
+  border-bottom: 2px solid var(--color-gray-300);
+  white-space: nowrap;
+}
+
+.fha-compare-table .fha-label-col {
+  text-align: left !important;
+  background: transparent !important;
+  width: 180px;
+  min-width: 150px;
+}
+
+.fha-compare-table tbody td {
+  text-align: center;
+}
+
+.fha-compare-table tbody td:first-child {
+  text-align: left;
+}
+
+.fha-seasoning-summary {
+  font-size: 0.88rem;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-gray-200);
+}
+
 /* ---- Single-scenario results table ---- */
 .fha-results-wrap {
   overflow-x: auto;

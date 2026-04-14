@@ -1,6 +1,7 @@
 /* =====================================================
    FHA Loan Calculator — Redesigned Live-Calc Engine
    Purchase, Rate/Term Refi, Cash-Out Refi, Streamline
+   3-column refi comparison mode
    ===================================================== */
 'use strict';
 
@@ -123,11 +124,7 @@
       financeUfmip:       el('fhaFinanceUfmip') ? el('fhaFinanceUfmip').checked : true,
       prepaidsCash:       val('fhaPrepaidsCash'),
       totalCredits:       val('fhaTotalCredits'),
-      escrowRefund:       val('fhaEscrowRefund'),
-      monthlyTax:         val('fhaMonthlyTax'),
-      monthlyInsurance:   val('fhaMonthlyInsurance'),
-      monthlyHoa:         val('fhaMonthlyHoa'),
-      refiType:           txt('fhaRefiTypeSelect')
+      escrowRefund:       val('fhaEscrowRefund')
     };
   }
 
@@ -189,7 +186,7 @@
   /* ===========================================================
      Net Tangible Benefit — Combined Rate Method
      =========================================================== */
-  function evaluateNtb(state, newPI, newMipMonthly, annualMipRate) {
+  function evaluateNtb(state, scenario, newPI, newMipMonthly, annualMipRate) {
     const result = { met: null, detail: '' };
 
     if (!state.currentPayment || !newPI) {
@@ -206,9 +203,7 @@
     const oldPayment = state.currentPayment;
     const newTotal = newPI + newMipMonthly;
 
-    // Determine scenario
-    const refiType = state.refiType || 'rateTerm';
-    const isStreamline = state.isExistingFha && refiType === 'rateTerm';
+    const isStreamline = scenario === 'streamline';
 
     // Seasoning-based ARM check
     let armSeasoning = 0;
@@ -438,18 +433,121 @@
   }
 
   /* ===========================================================
+     Scenario Calculator — computes one refi or purchase scenario
+     =========================================================== */
+  function calcScenario(state, scenario, value, ufmipRefund) {
+    const isStreamline = scenario === 'streamline';
+
+    // Three-way max mortgage
+    const threeWay = calcThreeWayMax(state, scenario, value, ufmipRefund);
+
+    // For streamline, base loan = UPB - UFMIP refund (overrides three-way)
+    let maxBase;
+    if (isStreamline) {
+      maxBase = Math.max(0, state.currentUpb - ufmipRefund.refundAmount);
+    } else {
+      maxBase = threeWay.maxBase;
+    }
+
+    // Actual base loan
+    let actualBase;
+    let cappedNote = '';
+    if (isStreamline) {
+      actualBase = maxBase; // streamline is formula-driven
+    } else if (state.requestedLoanAmount > 0 && state.requestedLoanAmount <= maxBase) {
+      actualBase = state.requestedLoanAmount;
+    } else {
+      actualBase = maxBase;
+      if (state.requestedLoanAmount > maxBase && maxBase > 0) {
+        cappedNote = 'Requested amount exceeds max \u2014 capped at ' + fmt(maxBase) + '.';
+      }
+    }
+
+    // UFMIP
+    const ufmipAmt = actualBase * UFMIP_RATE;
+    const totalLoan = state.financeUfmip ? actualBase + ufmipAmt : actualBase;
+
+    // LTV
+    const ltv = value > 0 ? actualBase / value : 0;
+
+    // Annual MIP rate
+    const annualMipRate = lookupMipRate(actualBase, ltv, state.newTerm);
+    const monthlyMIP = (actualBase * annualMipRate) / 12;
+
+    // Monthly P&I
+    const monthlyPI = (totalLoan > 0 && state.newRate > 0 && state.newTerm > 0)
+      ? pmt(totalLoan, state.newRate / 100, state.newTerm)
+      : 0;
+
+    // Total monthly = PI + MIP only
+    const totalMonthly = monthlyPI + monthlyMIP;
+
+    // NTB
+    const ntb = evaluateNtb(state, scenario, monthlyPI, monthlyMIP, annualMipRate);
+
+    // Cash to close
+    let cashToClose;
+    if (scenario === 'purchase') {
+      const downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
+      const ufmipOop = state.financeUfmip ? 0 : ufmipAmt;
+      cashToClose = downPayment + state.prepaidsCash + ufmipOop - state.totalCredits;
+    } else if (isStreamline) {
+      cashToClose = state.prepaidsCash - state.totalCredits - state.escrowRefund;
+    } else {
+      const payoff = state.currentUpb || 0;
+      cashToClose = (payoff + state.totalClosingCosts + state.prepaidsCash + state.accruedInterest)
+        - totalLoan - state.totalCredits - state.escrowRefund;
+    }
+
+    return {
+      threeWay, maxBase, actualBase, ufmipAmt, totalLoan, ltv,
+      annualMipRate, monthlyPI, monthlyMIP, totalMonthly,
+      ntb, cashToClose, cappedNote
+    };
+  }
+
+  /* ===========================================================
+     NTB Pill HTML
+     =========================================================== */
+  function ntbPillHtml(ntb) {
+    if (ntb.met === null) return '<span class="fha-ntb-pill na">N/A</span>';
+    if (ntb.met) return '<span class="fha-ntb-pill pass">PASS</span>';
+    return '<span class="fha-ntb-pill fail">FAIL</span>';
+  }
+
+  /* ===========================================================
+     Render a refi scenario column
+     =========================================================== */
+  function renderRefiColumn(prefix, r, ufmipRefund, isNA) {
+    if (isNA) {
+      const ids = ['maxLoan', 'ufmipRefund', 'ufmip', 'totalLoan', 'ltv',
+        'pi', 'mip', 'total', 'ntb', 'ntbDetail', 'cashToClose'];
+      ids.forEach(id => setText(prefix + id, 'N/A'));
+      return;
+    }
+    setText(prefix + 'maxLoan', r.maxBase > 0 ? fmt(r.maxBase) : '\u2014');
+    setText(prefix + 'ufmipRefund', ufmipRefund && ufmipRefund.refundAmount > 0
+      ? '-' + fmt(ufmipRefund.refundAmount)
+        + ' (' + ufmipRefund.refundPercent + '% at mo ' + ufmipRefund.monthsSince + ')'
+      : '\u2014');
+    setText(prefix + 'ufmip', r.ufmipAmt > 0 ? fmt(r.ufmipAmt) : '\u2014');
+    setText(prefix + 'totalLoan', r.totalLoan > 0 ? fmt(r.totalLoan) : '\u2014');
+    setText(prefix + 'ltv', r.ltv > 0 ? MSFG.formatPercent(r.ltv * 100) : '\u2014');
+    setText(prefix + 'pi', r.monthlyPI > 0 ? fmt(r.monthlyPI) : '\u2014');
+    setText(prefix + 'mip', r.monthlyMIP > 0 ? fmt(r.monthlyMIP) : '\u2014');
+    setText(prefix + 'total', r.totalMonthly > 0 ? fmt(r.totalMonthly) : '\u2014');
+    setHtml(prefix + 'ntb', ntbPillHtml(r.ntb));
+    setText(prefix + 'ntbDetail', r.ntb.detail || '');
+    setText(prefix + 'cashToClose', formatCashToClose(r.cashToClose));
+  }
+
+  /* ===========================================================
      Main Recalculate — Live Calc
      =========================================================== */
   function recalculate() {
     const state = readInputs();
     const notes = [];
-
-    // Determine scenario
     const isRefi = loanMode === 'refi';
-    const refiType = state.refiType || 'rateTerm';
-    const isStreamline = isRefi && state.isExistingFha && refiType === 'rateTerm';
-    const isCashOut = isRefi && refiType === 'cashOut';
-    const scenario = !isRefi ? 'purchase' : isCashOut ? 'cashOut' : 'rateTerm';
 
     // Determine the value basis
     let value;
@@ -462,7 +560,7 @@
     // Check if we have enough data to show results
     const hasEnoughData = !isRefi
       ? (state.purchasePrice > 0 || state.appraisedValue > 0)
-      : (isStreamline ? state.currentUpb > 0 : state.appraisedValue > 0);
+      : (state.appraisedValue > 0 || state.currentUpb > 0);
 
     const resultsSection = el('fhaResultsSection');
     if (!hasEnoughData) {
@@ -483,164 +581,152 @@
       ? calculateUfmipRefund(state)
       : { refundPercent: 0, refundAmount: 0, originalUfmip: 0, monthsSince: 0 };
 
-    // Three-way max mortgage
-    const threeWay = calcThreeWayMax(state, scenario, value, ufmipRefund);
-
-    // For streamline, base loan = UPB - UFMIP refund (overrides three-way)
-    let maxBase;
-    if (isStreamline) {
-      maxBase = Math.max(0, state.currentUpb - ufmipRefund.refundAmount);
-    } else {
-      maxBase = threeWay.maxBase;
-    }
-
-    // Actual base loan
-    let actualBase;
-    if (isStreamline) {
-      actualBase = maxBase; // streamline is formula-driven
-    } else if (state.requestedLoanAmount > 0 && state.requestedLoanAmount <= maxBase) {
-      actualBase = state.requestedLoanAmount;
-    } else {
-      actualBase = maxBase;
-      if (state.requestedLoanAmount > maxBase && maxBase > 0) {
-        notes.push('Requested amount exceeds max \u2014 capped at ' + fmt(maxBase) + '.');
-      }
-    }
-
-    // UFMIP
-    const ufmipAmt = actualBase * UFMIP_RATE;
-    const totalLoan = state.financeUfmip ? actualBase + ufmipAmt : actualBase;
-
-    // LTV
-    const ltv = value > 0 ? actualBase / value : 0;
-
-    // Annual MIP rate
-    const annualMipRate = lookupMipRate(actualBase, ltv, state.newTerm);
-    const monthlyMIP = (actualBase * annualMipRate) / 12;
-
-    // Monthly P&I
-    const monthlyPI = (totalLoan > 0 && state.newRate > 0 && state.newTerm > 0)
-      ? pmt(totalLoan, state.newRate / 100, state.newTerm)
-      : 0;
-
-    // Monthly totals
-    const totalMonthly = monthlyPI + monthlyMIP + state.monthlyTax
-      + state.monthlyInsurance + state.monthlyHoa;
-
     // Auto-calculate current MIP rate from existing loan data for NTB
     if (isRefi && state.isExistingFha && state.originalLoanAmount > 0) {
-      // Estimate the original LTV (original loan / appraised value as proxy)
       const origValue = state.appraisedValue || state.originalLoanAmount;
       const origLtv = origValue > 0 ? state.originalLoanAmount / origValue : 0.96;
-      // Use remaining term to estimate original term bracket
       const origTermYears = state.remainingTerm > 0
         ? Math.ceil(state.remainingTerm / 12) : 30;
       const oldMipRate = lookupMipRate(state.originalLoanAmount, origLtv, origTermYears);
       state.currentMipRate = oldMipRate * 100; // store as percent to match currentRate
     }
 
-    // NTB (refi modes only)
-    let ntb = { met: null, detail: '' };
-    if (isRefi) {
-      ntb = evaluateNtb(state, monthlyPI, monthlyMIP, annualMipRate);
-    }
-
-    // Cash to close
-    let cashToClose;
     if (!isRefi) {
-      // Purchase: down payment + prepaids + (UFMIP if not financed) - credits
-      const downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
-      const ufmipOop = state.financeUfmip ? 0 : ufmipAmt;
-      cashToClose = downPayment + state.prepaidsCash + ufmipOop - state.totalCredits;
-    } else if (isStreamline) {
-      // Streamline: prepaids - credits - escrow refund
-      cashToClose = state.prepaidsCash - state.totalCredits - state.escrowRefund;
-    } else {
-      // Standard refi: (payoff + closingCosts + prepaids + accruedInterest) - totalLoan - credits - escrowRefund
-      const payoff = state.currentUpb || 0;
-      cashToClose = (payoff + state.totalClosingCosts + state.prepaidsCash + state.accruedInterest)
-        - totalLoan - state.totalCredits - state.escrowRefund;
-    }
+      // ========== PURCHASE MODE ==========
+      const r = calcScenario(state, 'purchase', value, null);
 
-    // ------- Render outputs -------
+      // Three-calc max mortgage display
+      setText('fhaLtvCalc', r.threeWay.ltvCalc > 0 ? fmt(r.threeWay.ltvCalc) : '\u2014');
+      setText('fhaStatutoryLimit', r.threeWay.statutoryLimit > 0 ? fmt(r.threeWay.statutoryLimit) : '\u2014');
+      setText('fhaMaxBaseLoan', r.maxBase > 0 ? fmt(r.maxBase) : '\u2014');
 
-    // Three-calc max mortgage display
-    setText('fhaLtvCalc', threeWay.ltvCalc > 0
-      ? fmt(threeWay.ltvCalc) : '\u2014');
-    setText('fhaExistingDebtCalc', threeWay.existingDebtCalc > 0
-      ? fmt(threeWay.existingDebtCalc) : '\u2014');
-    setText('fhaStatutoryLimit', threeWay.statutoryLimit > 0
-      ? fmt(threeWay.statutoryLimit) : '\u2014');
+      // Loan amounts
+      setText('fhaActualBaseLoan', r.actualBase > 0 ? fmt(r.actualBase) : '\u2014');
+      setText('fhaNewUfmipAmt', r.ufmipAmt > 0 ? fmt(r.ufmipAmt) : '\u2014');
+      setText('fhaTotalLoanAmt', r.totalLoan > 0 ? fmt(r.totalLoan) : '\u2014');
+      setText('fhaLtv', r.ltv > 0 ? MSFG.formatPercent(r.ltv * 100) : '\u2014');
+      setText('fhaMipRateDisplay', (r.annualMipRate * 100).toFixed(2) + '%');
 
-    // Loan amounts
-    setText('fhaMaxBaseLoan', maxBase > 0 ? fmt(maxBase) : '\u2014');
-    setText('fhaActualBaseLoan', actualBase > 0 ? fmt(actualBase) : '\u2014');
-    setText('fhaNewUfmipAmt', ufmipAmt > 0 ? fmt(ufmipAmt) : '\u2014');
-    setText('fhaTotalLoanAmt', totalLoan > 0 ? fmt(totalLoan) : '\u2014');
-    setText('fhaLtv', ltv > 0 ? MSFG.formatPercent(ltv * 100) : '\u2014');
+      // Monthly breakdown
+      setText('fhaMonthlyPI', r.monthlyPI > 0 ? fmt(r.monthlyPI) : '\u2014');
+      setText('fhaMonthlyMip', r.monthlyMIP > 0 ? fmt(r.monthlyMIP) : '\u2014');
+      setText('fhaTotalMonthly', r.totalMonthly > 0 ? fmt(r.totalMonthly) : '\u2014');
 
-    // UFMIP refund (refi only)
-    setText('fhaUfmipRefundAmt', ufmipRefund.refundAmount > 0
-      ? '-' + fmt(ufmipRefund.refundAmount)
-        + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ')'
-      : '\u2014');
+      // Cash to close
+      setText('fhaCashToClose', formatCashToClose(r.cashToClose));
 
-    // MIP rate display
-    setText('fhaMipRateDisplay', (annualMipRate * 100).toFixed(2) + '%');
-
-    // Monthly breakdown
-    setText('fhaMonthlyPI', monthlyPI > 0 ? fmt(monthlyPI) : '\u2014');
-    setText('fhaMonthlyMip', monthlyMIP > 0 ? fmt(monthlyMIP) : '\u2014');
-    setText('fhaMonthlyTaxOut', state.monthlyTax > 0 ? fmt(state.monthlyTax) : '\u2014');
-    setText('fhaMonthlyInsOut', state.monthlyInsurance > 0 ? fmt(state.monthlyInsurance) : '\u2014');
-    setText('fhaMonthlyHoaOut', state.monthlyHoa > 0 ? fmt(state.monthlyHoa) : '\u2014');
-    setText('fhaTotalMonthly', totalMonthly > 0 ? fmt(totalMonthly) : '\u2014');
-
-    // NTB result
-    const ntbEl = el('fhaNtbResult');
-    if (ntbEl) {
-      if (!isRefi || ntb.met === null) {
-        ntbEl.innerHTML = '<span class="fha-ntb-pill na">N/A</span>';
-      } else if (ntb.met) {
-        ntbEl.innerHTML = '<span class="fha-ntb-pill pass">PASS</span>';
-      } else {
-        ntbEl.innerHTML = '<span class="fha-ntb-pill fail">FAIL</span>';
-      }
-    }
-    setText('fhaNtbDetail', ntb.detail || '');
-
-    // Cash to close
-    setText('fhaCashToClose', formatCashToClose(cashToClose));
-
-    // Notes
-    if (!isRefi) {
+      // Notes
       notes.push('Max base loan at '
-        + (threeWay.maxLtvPct * 100).toFixed(2) + '% of lesser of price or value.');
-    } else if (isStreamline) {
-      notes.push('Streamline: base loan = UPB \u2212 UFMIP refund.');
-      if (ufmipRefund.refundAmount > 0) {
-        notes.push('UFMIP Refund: ' + fmt(ufmipRefund.refundAmount)
-          + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ').');
+        + (r.threeWay.maxLtvPct * 100).toFixed(2) + '% of lesser of price or value.');
+      if (r.cappedNote) notes.push(r.cappedNote);
+      if (!state.financeUfmip && r.ufmipAmt > 0) {
+        notes.push('UFMIP of ' + fmt(r.ufmipAmt) + ' not financed \u2014 due at closing.');
       }
+
+      // Render calc steps for purchase
+      renderCalcSteps(state, {
+        scenario: 'purchase', value, maxBase: r.maxBase, actualBase: r.actualBase,
+        ufmipAmt: r.ufmipAmt, totalLoan: r.totalLoan, ltv: r.ltv,
+        annualMipRate: r.annualMipRate, monthlyPI: r.monthlyPI, monthlyMIP: r.monthlyMIP,
+        totalMonthly: r.totalMonthly, cashToClose: r.cashToClose,
+        ntb: r.ntb, ufmipRefund: ufmipRefund, threeWay: r.threeWay,
+        isStreamline: false, isCashOut: false
+      });
+
+      // Workspace tally
+      if (window.top !== window) {
+        window.top.postMessage({
+          type: 'msfg-tally-update',
+          slug: 'fha',
+          monthlyPayment: r.totalMonthly,
+          loanAmount: r.totalLoan,
+          cashToClose: r.cashToClose
+        }, window.location.origin);
+      }
+
     } else {
-      const label = isCashOut ? 'Cash-Out' : 'Rate/Term';
-      notes.push(label + ' Refi: max base loan at '
-        + (threeWay.maxLtvPct * 100).toFixed(2) + '% of appraised value.');
-    }
+      // ========== REFI MODE — compute all three scenarios ==========
+      const rtResult = calcScenario(state, 'rateTerm', value, ufmipRefund);
+      const coResult = calcScenario(state, 'cashOut', value, ufmipRefund);
 
-    if (isCashOut && state.endorsementDate && state.currentDate) {
-      const months = monthsBetweenDates(state.endorsementDate, state.currentDate);
-      if (months < 12) {
-        notes.push('Cash-Out: owned < 12 months \u2014 may not be eligible.');
+      // Streamline: only if existing FHA and UPB > 0
+      const slEligible = state.isExistingFha && state.currentUpb > 0;
+      const slResult = slEligible
+        ? calcScenario(state, 'streamline', value, ufmipRefund)
+        : null;
+
+      // Render Rate/Term column
+      renderRefiColumn('fhaRT_', rtResult, ufmipRefund, false);
+
+      // Render Cash-Out column
+      renderRefiColumn('fhaCO_', coResult, ufmipRefund, false);
+
+      // Render Streamline column
+      renderRefiColumn('fhaSL_', slResult, ufmipRefund, !slEligible);
+
+      // Seasoning summary for streamline
+      const seasoningSummary = el('fhaSeasoningSummary');
+      const seasoningText = el('fhaSeasoningSummaryText');
+      if (seasoningSummary && seasoningText) {
+        if (slEligible && seasoning.paymentsMade !== null) {
+          seasoningSummary.style.display = '';
+          const bothPass = seasoning.paymentsPass && seasoning.daysPass;
+          seasoningText.textContent = seasoning.paymentsMade + ' payments, '
+            + seasoning.daysSince + ' days \u2014 '
+            + (bothPass ? 'Meets requirements' : 'Does NOT meet requirements');
+          seasoningText.style.color = bothPass ? '#2e7d32' : '#c62828';
+        } else {
+          seasoningSummary.style.display = 'none';
+        }
+      }
+
+      // Notes
+      notes.push('Rate/Term: max LTV ' + (rtResult.threeWay.maxLtvPct * 100).toFixed(2) + '% of appraised value.');
+      notes.push('Cash-Out: max LTV ' + (coResult.threeWay.maxLtvPct * 100).toFixed(2) + '% of appraised value.');
+      if (slEligible) {
+        notes.push('Streamline: base loan = UPB \u2212 UFMIP refund.');
+        if (ufmipRefund.refundAmount > 0) {
+          notes.push('UFMIP Refund: ' + fmt(ufmipRefund.refundAmount)
+            + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ').');
+        }
+      } else {
+        notes.push('Streamline: not eligible (requires existing FHA loan with UPB > 0).');
+      }
+
+      if (state.endorsementDate && state.currentDate) {
+        const months = monthsBetweenDates(state.endorsementDate, state.currentDate);
+        if (months < 12) {
+          notes.push('Cash-Out: owned < 12 months \u2014 may not be eligible.');
+        }
+      }
+
+      if (!state.financeUfmip) {
+        notes.push('UFMIP not financed \u2014 due at closing.');
+      }
+
+      // Render calc steps using Rate/Term as primary
+      renderCalcSteps(state, {
+        scenario: 'rateTerm', value, maxBase: rtResult.maxBase, actualBase: rtResult.actualBase,
+        ufmipAmt: rtResult.ufmipAmt, totalLoan: rtResult.totalLoan, ltv: rtResult.ltv,
+        annualMipRate: rtResult.annualMipRate, monthlyPI: rtResult.monthlyPI, monthlyMIP: rtResult.monthlyMIP,
+        totalMonthly: rtResult.totalMonthly, cashToClose: rtResult.cashToClose,
+        ntb: rtResult.ntb, ufmipRefund: ufmipRefund, threeWay: rtResult.threeWay,
+        isStreamline: false, isCashOut: false
+      });
+
+      // Workspace tally: send Rate/Term figures as primary
+      if (window.top !== window) {
+        window.top.postMessage({
+          type: 'msfg-tally-update',
+          slug: 'fha',
+          monthlyPayment: rtResult.totalMonthly,
+          loanAmount: rtResult.totalLoan,
+          cashToClose: rtResult.cashToClose
+        }, window.location.origin);
       }
     }
 
-    if (!state.financeUfmip && ufmipAmt > 0) {
-      notes.push('UFMIP of ' + fmt(ufmipAmt) + ' not financed \u2014 due at closing.');
-    }
-
-    // FHA requires owner-occupied — no second home check needed
-
+    // Render notes
     const notesList = el('fhaResultNotes');
     if (notesList) {
       notesList.innerHTML = '';
@@ -649,24 +735,6 @@
         li.textContent = note;
         notesList.appendChild(li);
       });
-    }
-
-    // Render calc steps
-    renderCalcSteps(state, {
-      scenario, value, maxBase, actualBase, ufmipAmt, totalLoan, ltv,
-      annualMipRate, monthlyPI, monthlyMIP, totalMonthly, cashToClose,
-      ntb, ufmipRefund, threeWay, isStreamline, isCashOut
-    });
-
-    // Workspace tally
-    if (window.top !== window) {
-      window.top.postMessage({
-        type: 'msfg-tally-update',
-        slug: 'fha',
-        monthlyPayment: totalMonthly,
-        loanAmount: totalLoan,
-        cashToClose: cashToClose
-      }, window.location.origin);
     }
   }
 
@@ -737,7 +805,7 @@
         fmt(r.monthlyPI)));
     }
 
-    steps.push(step('Total Monthly', 'P&I + MIP + Tax + Ins + HOA', fmt(r.totalMonthly)));
+    steps.push(step('Total Monthly', 'P&I + MIP', fmt(r.totalMonthly)));
 
     if (r.ntb.met !== null) {
       steps.push(step('NTB', r.ntb.detail,
@@ -1013,29 +1081,46 @@
         ]
       });
 
-      // Scenario results
-      const scenarioLabel = loanMode === 'purchase' ? 'Purchase'
-        : txt('fhaRefiTypeSelect') === 'cashOut' ? 'Cash-Out Refi'
-        : (el('fhaIsExistingFha') && el('fhaIsExistingFha').checked) ? 'Streamline' : 'Rate/Term Refi';
+      if (loanMode === 'purchase') {
+        // Purchase results from single-column IDs
+        const resultRows = [
+          { label: 'Max Base Loan', value: g('fhaMaxBaseLoan') },
+          { label: 'Actual Base Loan', value: g('fhaActualBaseLoan') },
+          { label: 'UFMIP', value: g('fhaNewUfmipAmt') },
+          { label: 'Total Loan', value: g('fhaTotalLoanAmt'), isTotal: true },
+          { label: 'LTV', value: g('fhaLtv') },
+          { label: 'Annual MIP Rate', value: g('fhaMipRateDisplay') },
+          { label: 'Monthly P&I', value: g('fhaMonthlyPI') },
+          { label: 'Monthly MIP', value: g('fhaMonthlyMip') },
+          { label: 'Total Monthly', value: g('fhaTotalMonthly'), isTotal: true },
+          { label: 'Est. Cash to Close', value: g('fhaCashToClose'), isTotal: true }
+        ];
+        sections.push({ heading: 'Purchase Results', rows: resultRows });
+      } else {
+        // Refi comparison — extract all three columns
+        const scenarioNames = ['Rate/Term', 'Cash-Out', 'Streamline'];
+        const prefixes = ['fhaRT_', 'fhaCO_', 'fhaSL_'];
+        const fields = [
+          ['Max Base Loan', 'maxLoan'],
+          ['UFMIP', 'ufmip'],
+          ['Total Loan', 'totalLoan'],
+          ['LTV', 'ltv'],
+          ['P&I', 'pi'],
+          ['Monthly MIP', 'mip'],
+          ['Total Monthly', 'total'],
+          ['NTB', 'ntb'],
+          ['Cash to Close', 'cashToClose']
+        ];
 
-      const resultRows = [
-        { label: 'Max Base Loan', value: g('fhaMaxBaseLoan') },
-        { label: 'Actual Base Loan', value: g('fhaActualBaseLoan') },
-        { label: 'UFMIP', value: g('fhaNewUfmipAmt') },
-        { label: 'Total Loan', value: g('fhaTotalLoanAmt'), isTotal: true },
-        { label: 'LTV', value: g('fhaLtv') },
-        { label: 'Annual MIP Rate', value: g('fhaMipRateDisplay') },
-        { label: 'Monthly P&I', value: g('fhaMonthlyPI') },
-        { label: 'Monthly MIP', value: g('fhaMonthlyMip') },
-        { label: 'Total Monthly', value: g('fhaTotalMonthly'), isTotal: true }
-      ];
-
-      if (loanMode === 'refi') {
-        resultRows.push({ label: 'Net Tangible Benefit', value: g('fhaNtbResult') });
+        prefixes.forEach((prefix, i) => {
+          const rows = fields.map(f => ({
+            label: f[0],
+            value: g(prefix + f[1]),
+            isTotal: f[0] === 'Total Loan' || f[0] === 'Total Monthly' || f[0] === 'Cash to Close'
+          }));
+          sections.push({ heading: scenarioNames[i] + ' Refi', rows });
+        });
       }
-
-      resultRows.push({ label: 'Est. Cash to Close', value: g('fhaCashToClose'), isTotal: true });
-      sections.push({ heading: scenarioLabel + ' Results', rows: resultRows });
 
       // Closing costs (if any)
       if (sumClosingCosts() > 0) {
@@ -1094,7 +1179,7 @@
     // Also bind change events for selects, checkboxes, and date inputs
     const changeSelectors = [
       'fhaPropertyType', 'fhaNewTerm', 'fhaNewLoanType',
-      'fhaCurrentLoanType', 'fhaRefiTypeSelect',
+      'fhaCurrentLoanType',
       'fhaEndorsementDate', 'fhaFirstPaymentDate', 'fhaCurrentDate'
     ];
     changeSelectors.forEach(id => {
