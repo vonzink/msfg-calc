@@ -1,16 +1,37 @@
 /* =====================================================
-   FHA Loan Calculator — Unified Engine
+   FHA Loan Calculator — Redesigned Live-Calc Engine
    Purchase, Rate/Term Refi, Cash-Out Refi, Streamline
    ===================================================== */
 'use strict';
 
-const FhaCalc = (() => {
+(function () {
 
   const P = MSFG.parseNum;
   const fmt = MSFG.formatCurrency;
   const pmt = MSFG.calcMonthlyPayment;
 
+  /* ---- Constants ---- */
   const UFMIP_RATE = 0.0175;
+
+  /* ---- MIP Rate Lookup Table ---- */
+  const MIP_TABLE = {
+    long: { // term > 15 years
+      low:  { high: 0.0055, low: 0.0050 }, // loan <= 726200
+      high: { high: 0.0075, low: 0.0070 }  // loan > 726200
+    },
+    short: { // term <= 15 years
+      low:  { high: 0.0040, low: 0.0015 }, // loan <= 726200
+      high: { high: 0.0065, low: 0.0040 }  // loan > 726200
+    }
+  };
+  const MIP_LOAN_THRESHOLD = 726200;
+
+  /* ---- Max LTV by Occupancy / Scenario ---- */
+  const MAX_LTV = {
+    purchase:  { oo: 0.965, secondHome: 0.85 },
+    rateTerm:  { oo: 0.9775, secondHome: 0.85 },
+    cashOut:   { oo: 0.80 }
+  };
 
   /* ---- HUD UFMIP Refund Schedule ---- */
   const DEFAULT_REFUND_TABLE = [
@@ -31,10 +52,25 @@ const FhaCalc = (() => {
 
   let refundTable = DEFAULT_REFUND_TABLE.map(r => Object.assign({}, r));
 
+  /* ---- Loan mode state ---- */
+  let loanMode = 'purchase'; // 'purchase' or 'refi'
+
   /* ---- DOM helpers ---- */
   const el = (id) => document.getElementById(id);
   const val = (id) => { const e = el(id); return e ? P(e.value) : 0; };
   const txt = (id) => { const e = el(id); return e ? (e.value || '').trim() : ''; };
+
+  function setText(id, text) {
+    const e = el(id);
+    if (!e) return;
+    if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA') e.value = text;
+    else e.textContent = text;
+  }
+
+  function setHtml(id, html) {
+    const e = el(id);
+    if (e) e.innerHTML = html;
+  }
 
   const COST_IDS = [
     'fhaCostOrigination', 'fhaCostProcessing', 'fhaCostUnderwriting', 'fhaCostPoints',
@@ -43,49 +79,243 @@ const FhaCalc = (() => {
     'fhaCostSurvey', 'fhaCostPest', 'fhaCostOther'
   ];
 
-  /* ===========================================================
-     Read Inputs
-     =========================================================== */
-  function readInputs() {
-    return {
-      borrowerName:      txt('fhaBorrowerName'),
-      caseId:            txt('fhaCaseId'),
-      appraisedValue:    val('fhaAppraisedValue'),
-      purchasePrice:     val('fhaPurchasePrice'),
-      propertyType:      txt('fhaPropertyType'),
-      isExistingFha:     el('fhaIsExistingFha').checked,
-      currentUpb:        val('fhaCurrentUpb'),
-      currentRate:       val('fhaCurrentRate'),
-      currentPayment:    val('fhaCurrentPayment'),
-      currentLoanType:   txt('fhaCurrentLoanType'),
-      originalLoanAmount: val('fhaOriginalLoanAmount'),
-      remainingTerm:     val('fhaRemainingTerm'),
-      endorsementDate:   txt('fhaEndorsementDate'),
-      firstPaymentDate:  txt('fhaFirstPaymentDate'),
-      currentDate:       txt('fhaCurrentDate'),
-      totalClosingCosts: sumClosingCosts(),
-      accruedInterest:   val('fhaAccruedInterest'),
-      newRate:           val('fhaNewRate'),
-      newTerm:           val('fhaNewTerm'),
-      newLoanType:       txt('fhaNewLoanType'),
-      requestedLoanAmount: val('fhaRequestedLoanAmount'),
-      financeUfmip:      el('fhaFinanceUfmip').checked,
-      prepaidsCash:      val('fhaPrepaidsCash'),
-      totalCredits:      val('fhaTotalCredits'),
-      escrowRefund:      val('fhaEscrowRefund'),
-      refiType:          txt('fhaRefiTypeSelect')
-    };
+  /* ---- Debounce ---- */
+  let _timer;
+  function debounce(fn, ms) {
+    return function () { clearTimeout(_timer); _timer = setTimeout(fn, ms); };
   }
 
+  /* ===========================================================
+     Read All Inputs
+     =========================================================== */
   function sumClosingCosts() {
     let total = 0;
     for (const id of COST_IDS) total += val(id);
     return total;
   }
 
-  function updateClosingCostsDisplay() {
-    const total = sumClosingCosts();
-    el('fhaTotalClosingCosts').textContent = fmt(total);
+  function readInputs() {
+    return {
+      borrowerName:       txt('fhaBorrowerName'),
+      caseId:             txt('fhaCaseId'),
+      appraisedValue:     val('fhaAppraisedValue'),
+      purchasePrice:      val('fhaPurchasePrice'),
+      propertyType:       txt('fhaPropertyType'),
+      occupancy:          txt('fhaOccupancy'),
+      countyLimit:        val('fhaCountyLimit'),
+      isExistingFha:      el('fhaIsExistingFha') ? el('fhaIsExistingFha').checked : false,
+      currentUpb:         val('fhaCurrentUpb'),
+      currentRate:        val('fhaCurrentRate'),
+      currentPayment:     val('fhaCurrentPayment'),
+      currentLoanType:    txt('fhaCurrentLoanType'),
+      currentMipRate:     val('fhaCurrentMipRate'),
+      originalLoanAmount: val('fhaOriginalLoanAmount'),
+      remainingTerm:      val('fhaRemainingTerm'),
+      endorsementDate:    txt('fhaEndorsementDate'),
+      firstPaymentDate:   txt('fhaFirstPaymentDate'),
+      currentDate:        txt('fhaCurrentDate'),
+      totalClosingCosts:  sumClosingCosts(),
+      accruedInterest:    val('fhaAccruedInterest'),
+      newRate:            val('fhaNewRate'),
+      newTerm:            parseInt(txt('fhaNewTerm'), 10) || 30,
+      newLoanType:        txt('fhaNewLoanType'),
+      requestedLoanAmount: val('fhaRequestedLoanAmount'),
+      financeUfmip:       el('fhaFinanceUfmip') ? el('fhaFinanceUfmip').checked : true,
+      prepaidsCash:       val('fhaPrepaidsCash'),
+      totalCredits:       val('fhaTotalCredits'),
+      escrowRefund:       val('fhaEscrowRefund'),
+      monthlyTax:         val('fhaMonthlyTax'),
+      monthlyInsurance:   val('fhaMonthlyInsurance'),
+      monthlyHoa:         val('fhaMonthlyHoa'),
+      refiType:           txt('fhaRefiTypeSelect')
+    };
+  }
+
+  /* ===========================================================
+     MIP Rate Lookup
+     =========================================================== */
+  function lookupMipRate(baseLoan, ltv, termYears) {
+    const tier = termYears > 15 ? MIP_TABLE.long : MIP_TABLE.short;
+    const bracket = baseLoan <= MIP_LOAN_THRESHOLD ? tier.low : tier.high;
+    const ltvThreshold = termYears > 15 ? 0.95 : 0.90;
+    return ltv > ltvThreshold ? bracket.high : bracket.low;
+  }
+
+  /* ===========================================================
+     Three-Way Max Mortgage Calculation
+     =========================================================== */
+  function calcThreeWayMax(state, scenario, value, ufmipRefund) {
+    const occupancy = state.occupancy || 'oo';
+
+    // 1. LTV calc
+    let maxLtvPct;
+    if (scenario === 'purchase') {
+      maxLtvPct = (MAX_LTV.purchase[occupancy] !== undefined)
+        ? MAX_LTV.purchase[occupancy] : MAX_LTV.purchase.oo;
+    } else if (scenario === 'cashOut') {
+      maxLtvPct = MAX_LTV.cashOut[occupancy] !== undefined
+        ? MAX_LTV.cashOut[occupancy] : MAX_LTV.cashOut.oo;
+    } else {
+      // rateTerm or streamline
+      maxLtvPct = (MAX_LTV.rateTerm[occupancy] !== undefined)
+        ? MAX_LTV.rateTerm[occupancy] : MAX_LTV.rateTerm.oo;
+    }
+
+    const ltvCalc = value > 0 ? value * maxLtvPct : 0;
+
+    // 2. Existing debt calc (refi only)
+    let existingDebtCalc = 0;
+    if (scenario !== 'purchase' && state.currentUpb > 0) {
+      const refundCredit = ufmipRefund ? ufmipRefund.refundAmount : 0;
+      existingDebtCalc = state.currentUpb + state.totalClosingCosts
+        + state.prepaidsCash + state.accruedInterest
+        - refundCredit - state.totalCredits;
+    }
+
+    // 3. Statutory limit
+    const statutoryLimit = state.countyLimit > 0 ? state.countyLimit : 0;
+
+    // Max base = min of positive values
+    const candidates = [];
+    if (ltvCalc > 0) candidates.push(ltvCalc);
+    if (existingDebtCalc > 0 && scenario !== 'purchase') candidates.push(existingDebtCalc);
+    if (statutoryLimit > 0) candidates.push(statutoryLimit);
+
+    const maxBase = candidates.length > 0 ? Math.min(...candidates) : 0;
+
+    return { ltvCalc, existingDebtCalc, statutoryLimit, maxBase, maxLtvPct };
+  }
+
+  /* ===========================================================
+     Net Tangible Benefit — Combined Rate Method
+     =========================================================== */
+  function evaluateNtb(state, newPI, newMipMonthly, annualMipRate) {
+    const result = { met: null, detail: '' };
+
+    if (!state.currentPayment || !newPI) {
+      result.detail = 'Insufficient data';
+      return result;
+    }
+
+    const oldType = state.currentLoanType;
+    const newType = state.newLoanType;
+    const combinedRateOld = state.currentRate + state.currentMipRate;
+    const combinedRateNew = state.newRate + (annualMipRate * 100);
+    const combinedDiff = combinedRateOld - combinedRateNew;
+
+    const oldPayment = state.currentPayment;
+    const newTotal = newPI + newMipMonthly;
+
+    // Determine scenario
+    const refiType = state.refiType || 'rateTerm';
+    const isStreamline = state.isExistingFha && refiType === 'rateTerm';
+
+    // Seasoning-based ARM check
+    let armSeasoning = 0;
+    if (state.firstPaymentDate && state.currentDate) {
+      const fp = new Date(state.firstPaymentDate);
+      const cd = new Date(state.currentDate);
+      if (!isNaN(fp.getTime()) && !isNaN(cd.getTime())) {
+        armSeasoning = Math.max(0,
+          (cd.getFullYear() - fp.getFullYear()) * 12 + (cd.getMonth() - fp.getMonth())
+        );
+      }
+    }
+
+    // Fixed -> Fixed: combined rate new must be >= 0.5% below old
+    if (oldType === 'fixed' && newType === 'fixed') {
+      if (combinedDiff >= 0.5) {
+        result.met = true;
+        result.detail = 'Combined rate reduced ' + combinedDiff.toFixed(3)
+          + '% (\u22650.5% required)';
+      } else {
+        result.met = false;
+        result.detail = 'Combined rate reduction ' + combinedDiff.toFixed(3)
+          + '% < 0.5% required';
+      }
+    }
+
+    // ARM (< 15mo seasoning) -> Fixed: new can be <= 2% above old
+    else if (oldType === 'arm' && newType === 'fixed') {
+      if (armSeasoning < 15) {
+        // Less than 15 months seasoning: new can be up to 2% above old
+        if (combinedDiff >= -2) {
+          result.met = true;
+          result.detail = 'ARM\u2192Fixed (< 15mo): combined rate diff '
+            + combinedDiff.toFixed(3) + '% (up to 2% increase allowed)';
+        } else {
+          result.met = false;
+          result.detail = 'ARM\u2192Fixed (< 15mo): rate increase '
+            + Math.abs(combinedDiff).toFixed(3) + '% exceeds 2% limit';
+        }
+      } else {
+        // 15+ months seasoning: treat like fixed-to-fixed
+        if (combinedDiff >= 0.5) {
+          result.met = true;
+          result.detail = 'ARM\u2192Fixed (\u226515mo): combined rate reduced '
+            + combinedDiff.toFixed(3) + '%';
+        } else {
+          result.met = false;
+          result.detail = 'ARM\u2192Fixed (\u226515mo): combined rate reduction '
+            + combinedDiff.toFixed(3) + '% < 0.5%';
+        }
+      }
+    }
+
+    // Fixed -> 1yr ARM: combined new must be >= 2% below old
+    else if (oldType === 'fixed' && newType === 'arm') {
+      if (combinedDiff >= 2) {
+        result.met = true;
+        result.detail = 'Fixed\u21921yr ARM: combined rate reduced '
+          + combinedDiff.toFixed(3) + '% (\u22652% required)';
+      } else {
+        result.met = false;
+        result.detail = 'Fixed\u21921yr ARM: combined rate reduction '
+          + combinedDiff.toFixed(3) + '% < 2% required';
+      }
+    }
+
+    // ARM -> ARM/Hybrid: combined new must be >= 1% below old
+    else if (oldType === 'arm' && newType === 'arm') {
+      if (combinedDiff >= 1) {
+        result.met = true;
+        result.detail = 'ARM\u2192ARM: combined rate reduced '
+          + combinedDiff.toFixed(3) + '% (\u22651% required)';
+      } else {
+        result.met = false;
+        result.detail = 'ARM\u2192ARM: combined rate reduction '
+          + combinedDiff.toFixed(3) + '% < 1% required';
+      }
+    }
+
+    // Streamline 5% combined P&I + MIP reduction test
+    if (isStreamline && result.met !== true) {
+      const pctReduction = (oldPayment - newTotal) / oldPayment;
+      if (pctReduction >= 0.05) {
+        result.met = true;
+        result.detail = 'Streamline: payment reduced '
+          + (pctReduction * 100).toFixed(2) + '% (\u22655% required)';
+      } else if (result.met === null) {
+        result.met = false;
+        result.detail = 'Streamline: only ' + (pctReduction * 100).toFixed(2)
+          + '% reduction (need \u22655%)';
+      }
+    }
+
+    // Term Reduction test: if new term < remaining AND rate not increased AND payment increase <= $50
+    if (result.met !== true && state.remainingTerm > 0) {
+      const newTermMonths = state.newTerm * 12;
+      const remainingMonths = state.remainingTerm;
+      if (newTermMonths < remainingMonths
+        && state.newRate <= state.currentRate
+        && (newTotal - oldPayment) <= 50) {
+        result.met = true;
+        result.detail = 'Term reduction: ' + remainingMonths + 'mo \u2192 '
+          + newTermMonths + 'mo, payment increase \u2264$50';
+      }
+    }
+
+    return result;
   }
 
   /* ===========================================================
@@ -116,31 +346,37 @@ const FhaCalc = (() => {
     const pmtsDetail = el('fhaPaymentsDetail');
     const daysDetail = el('fhaDaysDetail');
 
+    if (!pmtsEl || !daysEl) return;
+
     if (seasoning.paymentsMade === null) {
       pmtsEl.textContent = '\u2014';
       daysEl.textContent = '\u2014';
-      pmtsCard.className = 'fha-status-card';
-      daysCard.className = 'fha-status-card';
-      pmtsDetail.textContent = '';
-      daysDetail.textContent = '';
+      if (pmtsCard) pmtsCard.className = 'fha-status-card';
+      if (daysCard) daysCard.className = 'fha-status-card';
+      if (pmtsDetail) pmtsDetail.textContent = '';
+      if (daysDetail) daysDetail.textContent = '';
       return;
     }
 
     pmtsEl.textContent = seasoning.paymentsMade;
     daysEl.textContent = seasoning.daysSince;
 
-    pmtsCard.className = 'fha-status-card ' + (seasoning.paymentsPass ? 'pass' : 'fail');
-    daysCard.className = 'fha-status-card ' + (seasoning.daysPass ? 'pass' : 'fail');
+    if (pmtsCard) pmtsCard.className = 'fha-status-card ' + (seasoning.paymentsPass ? 'pass' : 'fail');
+    if (daysCard) daysCard.className = 'fha-status-card ' + (seasoning.daysPass ? 'pass' : 'fail');
 
-    pmtsDetail.textContent = seasoning.paymentsPass
-      ? 'Meets requirement (\u22656 payments)'
-      : `Need ${6 - seasoning.paymentsMade} more payment(s)`;
-    pmtsDetail.style.color = seasoning.paymentsPass ? '#2e7d32' : '#c62828';
+    if (pmtsDetail) {
+      pmtsDetail.textContent = seasoning.paymentsPass
+        ? 'Meets requirement (\u22656 payments)'
+        : 'Need ' + (6 - seasoning.paymentsMade) + ' more payment(s)';
+      pmtsDetail.style.color = seasoning.paymentsPass ? '#2e7d32' : '#c62828';
+    }
 
-    daysDetail.textContent = seasoning.daysPass
-      ? 'Meets requirement (\u2265210 days)'
-      : `Need ${210 - seasoning.daysSince} more day(s)`;
-    daysDetail.style.color = seasoning.daysPass ? '#2e7d32' : '#c62828';
+    if (daysDetail) {
+      daysDetail.textContent = seasoning.daysPass
+        ? 'Meets requirement (\u2265210 days)'
+        : 'Need ' + (210 - seasoning.daysSince) + ' more day(s)';
+      daysDetail.style.color = seasoning.daysPass ? '#2e7d32' : '#c62828';
+    }
   }
 
   /* ===========================================================
@@ -177,326 +413,8 @@ const FhaCalc = (() => {
   }
 
   /* ===========================================================
-     Scenario Calculators
+     Format Helpers
      =========================================================== */
-  function minPositive(a, b) {
-    const vals = [a, b].filter(v => Number.isFinite(v) && v > 0);
-    return vals.length ? Math.min(...vals) : 0;
-  }
-
-  function calcPayment(totalLoan, ratePercent, termYears) {
-    if (!totalLoan || !ratePercent || !termYears) return 0;
-    return pmt(totalLoan, ratePercent / 100, termYears);
-  }
-
-  function calculatePurchase(state, notes) {
-    const priceOrValue = minPositive(state.purchasePrice, state.appraisedValue);
-    if (!priceOrValue) {
-      notes.push('Purchase: enter purchase price and/or appraised value.');
-      return null;
-    }
-
-    const maxLtv = 0.965;
-    const maxBaseLoan = priceOrValue * maxLtv;
-    const actualLoan = (state.requestedLoanAmount > 0)
-      ? Math.min(state.requestedLoanAmount, maxBaseLoan) : maxBaseLoan;
-    const ufmipAmt = state.financeUfmip ? actualLoan * UFMIP_RATE : 0;
-    const totalLoan = actualLoan + ufmipAmt;
-    const ltv = actualLoan / priceOrValue;
-    const payment = calcPayment(totalLoan, state.newRate, state.newTerm);
-    const downPayment = Math.max(0, state.purchasePrice - actualLoan);
-    const ufmipOop = state.financeUfmip ? 0 : actualLoan * UFMIP_RATE;
-    const cashToClose = downPayment + state.prepaidsCash + ufmipOop - state.totalCredits;
-
-    if (state.requestedLoanAmount > maxBaseLoan) {
-      notes.push('Purchase: requested amount exceeds max — capped at ' + fmt(maxBaseLoan) + '.');
-    }
-    notes.push('Purchase: max base loan at 96.5% of lesser of price or value.');
-    return {
-      maxBaseLoan, actualLoan, ufmipRefund: 0, ufmipAmt, totalLoan, ltv, payment,
-      cashToClose, ntb: null, ntbDetail: '', seasoning: null
-    };
-  }
-
-  function calculateFhaRefi(state, notes) {
-    if (!state.appraisedValue) {
-      notes.push('FHA Refi: enter appraised value.');
-      return null;
-    }
-
-    const isCashOut = state.refiType === 'cashOut';
-    const maxLtv = isCashOut ? 0.80 : 0.9775;
-    const label = isCashOut ? 'Cash-Out (80%)' : 'Rate/Term (97.75%)';
-    const maxBaseLoan = state.appraisedValue * maxLtv;
-    const actualLoan = (state.requestedLoanAmount > 0)
-      ? Math.min(state.requestedLoanAmount, maxBaseLoan) : maxBaseLoan;
-    const ufmipAmt = state.financeUfmip ? actualLoan * UFMIP_RATE : 0;
-    const totalLoan = actualLoan + ufmipAmt;
-    const ltv = actualLoan / state.appraisedValue;
-    const payment = calcPayment(totalLoan, state.newRate, state.newTerm);
-
-    // Cash to close: (payoff + cash costs - credits - escrow refund) - totalLoan
-    const payoff = state.currentUpb || 0;
-    const cashToClose = (payoff + state.totalClosingCosts + state.prepaidsCash
-      - state.totalCredits - state.escrowRefund) - totalLoan;
-
-    // NTB
-    const ntb = evaluateNtb(state.currentPayment, payment, state.currentRate, state.newRate,
-      state.currentLoanType, state.newLoanType, 'refi');
-
-    if (state.requestedLoanAmount > maxBaseLoan) {
-      notes.push('FHA Refi: requested amount exceeds max — capped at ' + fmt(maxBaseLoan) + '.');
-    }
-    notes.push('FHA Refi (' + label + '): max base loan at ' + (maxLtv * 100).toFixed(2) + '% of appraised value.');
-    if (isCashOut && state.endorsementDate) {
-      const months = monthsBetweenDates(state.endorsementDate, state.currentDate);
-      if (months < 12) notes.push('FHA Cash-Out: owned < 12 months \u2014 may not be eligible.');
-    }
-
-    return {
-      maxBaseLoan, actualLoan, ufmipRefund: 0, ufmipAmt, totalLoan, ltv, payment,
-      cashToClose, ntb, ntbDetail: ntb.detail, seasoning: null
-    };
-  }
-
-  function calculateStreamline(state, ufmipRefund, seasoning, notes) {
-    if (!state.isExistingFha) {
-      notes.push('Streamline: current loan must be FHA.');
-      return null;
-    }
-    if (!state.currentUpb) {
-      notes.push('Streamline: enter current UPB.');
-      return null;
-    }
-
-    const maxBaseLoan = Math.max(0, state.currentUpb - ufmipRefund.refundAmount);
-    const actualLoan = maxBaseLoan; // Streamline is formula-driven, no user override
-    const newUfmip = actualLoan * UFMIP_RATE;
-    const totalLoan = actualLoan + newUfmip;
-    const payment = calcPayment(totalLoan, state.newRate, state.newTerm);
-
-    // Cash to close: prepaids - credits - escrow refund (costs already financed)
-    const cashToClose = state.prepaidsCash - state.totalCredits - state.escrowRefund;
-
-    // NTB for streamline
-    const ntb = evaluateNtb(state.currentPayment, payment, state.currentRate, state.newRate,
-      state.currentLoanType, state.newLoanType, 'streamline');
-
-    // Seasoning status
-    const seasoningPass = seasoning.paymentsPass && seasoning.daysPass;
-    const seasoningStatus = (seasoning.paymentsMade === null) ? null : seasoningPass;
-
-    notes.push('Streamline: base loan = UPB \u2212 UFMIP refund.');
-    if (ufmipRefund.refundAmount > 0) {
-      notes.push('UFMIP Refund: ' + fmt(ufmipRefund.refundAmount) + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ').');
-    }
-
-    return {
-      maxBaseLoan, actualLoan, ufmipRefund: ufmipRefund.refundAmount, ufmipAmt: newUfmip,
-      totalLoan, ltv: null, payment, cashToClose,
-      ntb, ntbDetail: ntb.detail, seasoning: seasoningStatus
-    };
-  }
-
-  /* ===========================================================
-     Net Tangible Benefit
-     =========================================================== */
-  function evaluateNtb(oldPmt, newPmt, oldRate, newRate, oldType, newType, scenario) {
-    const result = { met: null, reductionPercent: 0, detail: '' };
-    if (!oldPmt || !newPmt) {
-      result.detail = 'Insufficient data';
-      return result;
-    }
-
-    const pmtReduction = oldPmt - newPmt;
-    const pmtPct = pmtReduction / oldPmt;
-    const rateReduction = oldRate - newRate;
-
-    // Streamline: 5% combined reduction test
-    if (scenario === 'streamline') {
-      const threshold = 0.05;
-      result.met = pmtPct >= threshold;
-      result.reductionPercent = pmtPct;
-      result.detail = result.met
-        ? `Payment reduced ${(pmtPct * 100).toFixed(2)}% (\u22655% required)`
-        : `Only ${(pmtPct * 100).toFixed(2)}% reduction (need \u22655%)`;
-      return result;
-    }
-
-    // Standard refi: 4 loan type transitions
-    if (oldType === 'fixed' && newType === 'fixed') {
-      if (rateReduction >= 0.5) {
-        result.met = true;
-        result.detail = `Rate reduced ${rateReduction.toFixed(3)}% (\u22650.5% required)`;
-      } else if (pmtReduction > 0) {
-        result.met = true;
-        result.detail = `Payment reduced by ${fmt(pmtReduction)}`;
-      } else {
-        result.met = false;
-        result.detail = `Rate reduction ${rateReduction.toFixed(3)}% < 0.5% and no payment reduction`;
-      }
-    } else if (oldType === 'arm' && newType === 'fixed') {
-      const pmtIncreasePct = ((newPmt - oldPmt) / oldPmt) * 100;
-      if (pmtIncreasePct <= 20) {
-        result.met = true;
-        result.detail = pmtReduction >= 0
-          ? `Payment reduced by ${fmt(pmtReduction)}`
-          : `Payment increased ${pmtIncreasePct.toFixed(2)}% (\u226420% allowed)`;
-      } else {
-        result.met = false;
-        result.detail = `Payment increased ${pmtIncreasePct.toFixed(2)}% (exceeds 20% limit)`;
-      }
-    } else if (oldType === 'fixed' && newType === 'arm') {
-      if (pmtReduction > 0) {
-        result.met = true;
-        result.detail = `Payment reduced by ${fmt(pmtReduction)}`;
-      } else {
-        result.met = false;
-        result.detail = 'Fixed \u2192 ARM requires payment reduction';
-      }
-    } else if (oldType === 'arm' && newType === 'arm') {
-      if (rateReduction > 0 || pmtReduction > 0) {
-        result.met = true;
-        const parts = [];
-        if (rateReduction > 0) parts.push(`Rate reduced ${rateReduction.toFixed(3)}%`);
-        if (pmtReduction > 0) parts.push(`Payment reduced ${fmt(pmtReduction)}`);
-        result.detail = parts.join('; ');
-      } else {
-        result.met = false;
-        result.detail = 'ARM \u2192 ARM requires rate OR payment reduction';
-      }
-    }
-
-    result.reductionPercent = pmtPct;
-    return result;
-  }
-
-  /* ===========================================================
-     Utility
-     =========================================================== */
-  function monthsBetweenDates(date1, date2) {
-    if (!date1 || !date2) return 0;
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
-    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
-    return Math.max(0, (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth()));
-  }
-
-  /* ===========================================================
-     Render Comparison Results
-     =========================================================== */
-  function renderComparison(purchase, refi, streamline, notes) {
-    el('fhaResultsSection').classList.remove('u-hidden');
-
-    // Column visibility
-    const showPurch = !!purchase;
-    const showSl = !!streamline;
-
-    toggleColumn('fha-purch-col', showPurch);
-    toggleColumn('fha-sl-col', showSl);
-
-    // Purchase column
-    if (purchase) {
-      fillCell('fhaPurchMaxLoan', fmt(purchase.maxBaseLoan));
-      fillCell('fhaPurchActualLoan', fmt(purchase.actualLoan));
-      fillCell('fhaPurchUfmipRefund', '\u2014');
-      fillCell('fhaPurchUfmip', fmt(purchase.ufmipAmt));
-      fillCell('fhaPurchTotalLoan', fmt(purchase.totalLoan));
-      fillCell('fhaPurchLtv', (purchase.ltv * 100).toFixed(2) + '%');
-      fillCell('fhaPurchPayment', purchase.payment ? fmt(purchase.payment) : '\u2014');
-      fillNtbCell('fhaPurchNtb', null);
-      fillCell('fhaPurchNtbDetail', '\u2014');
-      fillCell('fhaPurchSeasoning', '\u2014');
-      fillCell('fhaPurchCashToClose', formatCashToClose(purchase.cashToClose));
-    }
-
-    // Refi column
-    if (refi) {
-      fillCell('fhaRefiMaxLoan', fmt(refi.maxBaseLoan));
-      fillCell('fhaRefiActualLoan', fmt(refi.actualLoan));
-      fillCell('fhaRefiUfmipRefund', '\u2014');
-      fillCell('fhaRefiUfmip', fmt(refi.ufmipAmt));
-      fillCell('fhaRefiTotalLoan', fmt(refi.totalLoan));
-      fillCell('fhaRefiLtv', (refi.ltv * 100).toFixed(2) + '%');
-      fillCell('fhaRefiPayment', refi.payment ? fmt(refi.payment) : '\u2014');
-      fillNtbCell('fhaRefiNtb', refi.ntb);
-      fillCell('fhaRefiNtbDetail', refi.ntbDetail || '\u2014');
-      fillCell('fhaRefiSeasoning', '\u2014');
-      fillCell('fhaRefiCashToClose', formatCashToClose(refi.cashToClose));
-
-      // Rate/Term cash-to-close warning: > $150 exceeds max for rate/term
-      const refiCtcEl = el('fhaRefiCashToClose');
-      const refiType = txt('fhaRefiTypeSelect');
-      if (refiCtcEl) {
-        if (refiType === 'rateTerm' && refi.cashToClose > 150) {
-          refiCtcEl.classList.add('fha-cash-warning');
-        } else {
-          refiCtcEl.classList.remove('fha-cash-warning');
-        }
-      }
-    } else {
-      clearRefiColumn();
-    }
-
-    // Streamline column
-    if (streamline) {
-      fillCell('fhaSlMaxLoan', fmt(streamline.maxBaseLoan));
-      fillCell('fhaSlActualLoan', fmt(streamline.actualLoan));
-      fillCell('fhaSlUfmipRefund', streamline.ufmipRefund > 0 ? '-' + fmt(streamline.ufmipRefund) : '\u2014');
-      fillCell('fhaSlNewUfmip', fmt(streamline.ufmipAmt));
-      fillCell('fhaSlTotalLoan', fmt(streamline.totalLoan));
-      fillCell('fhaSlLtv', 'N/A');
-      fillCell('fhaSlPayment', streamline.payment ? fmt(streamline.payment) : '\u2014');
-      fillNtbCell('fhaSlNtb', streamline.ntb);
-      fillCell('fhaSlNtbDetail', streamline.ntbDetail || '\u2014');
-      fillSeasoningCell('fhaSlSeasoning', streamline.seasoning);
-      fillCell('fhaSlCashToClose', formatCashToClose(streamline.cashToClose));
-    } else {
-      clearSlColumn();
-    }
-
-    // Highlight best total loan (lowest) and best cash to close
-    highlightBest(purchase, refi, streamline);
-
-    // Notes
-    const notesList = el('fhaResultNotes');
-    notesList.innerHTML = '';
-    notes.forEach(note => {
-      const li = document.createElement('li');
-      li.textContent = note;
-      notesList.appendChild(li);
-    });
-  }
-
-  function fillCell(id, text) {
-    const e = el(id);
-    if (e) e.textContent = text;
-  }
-
-  function fillNtbCell(id, ntb) {
-    const e = el(id);
-    if (!e) return;
-    if (!ntb || ntb.met === null) {
-      e.innerHTML = '<span class="fha-ntb-pill na">N/A</span>';
-    } else if (ntb.met) {
-      e.innerHTML = '<span class="fha-ntb-pill pass">PASS</span>';
-    } else {
-      e.innerHTML = '<span class="fha-ntb-pill fail">FAIL</span>';
-    }
-  }
-
-  function fillSeasoningCell(id, status) {
-    const e = el(id);
-    if (!e) return;
-    if (status === null) {
-      e.innerHTML = '<span class="fha-ntb-pill na">N/A</span>';
-    } else if (status) {
-      e.innerHTML = '<span class="fha-ntb-pill pass">PASS</span>';
-    } else {
-      e.innerHTML = '<span class="fha-ntb-pill fail">FAIL</span>';
-    }
-  }
-
   function formatCashToClose(amount) {
     if (!Number.isFinite(amount)) return '\u2014';
     if (amount > 0.01) return fmt(amount) + ' due';
@@ -504,126 +422,338 @@ const FhaCalc = (() => {
     return '$0.00';
   }
 
-  function clearRefiColumn() {
-    ['fhaRefiMaxLoan', 'fhaRefiActualLoan', 'fhaRefiUfmipRefund', 'fhaRefiUfmip',
-      'fhaRefiTotalLoan', 'fhaRefiLtv', 'fhaRefiPayment', 'fhaRefiNtb',
-      'fhaRefiNtbDetail', 'fhaRefiSeasoning', 'fhaRefiCashToClose'
-    ].forEach(id => fillCell(id, '\u2014'));
+  function minPositive(a, b) {
+    const vals = [a, b].filter(v => Number.isFinite(v) && v > 0);
+    return vals.length ? Math.min(...vals) : 0;
   }
 
-  function clearSlColumn() {
-    ['fhaSlMaxLoan', 'fhaSlActualLoan', 'fhaSlUfmipRefund', 'fhaSlNewUfmip',
-      'fhaSlTotalLoan', 'fhaSlLtv', 'fhaSlPayment', 'fhaSlNtb',
-      'fhaSlNtbDetail', 'fhaSlSeasoning', 'fhaSlCashToClose'
-    ].forEach(id => fillCell(id, '\u2014'));
+  function monthsBetweenDates(date1, date2) {
+    if (!date1 || !date2) return 0;
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+    return Math.max(0,
+      (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth())
+    );
   }
 
-  function toggleColumn(cls, show) {
-    document.querySelectorAll('.' + cls).forEach(e => {
-      e.classList.toggle('fha-col-hidden', !show);
-    });
-  }
+  /* ===========================================================
+     Main Recalculate — Live Calc
+     =========================================================== */
+  function recalculate() {
+    const state = readInputs();
+    const notes = [];
 
-  function highlightBest(purchase, refi, streamline) {
-    // Clear existing highlights
-    document.querySelectorAll('.fha-best-cell').forEach(e => e.classList.remove('fha-best-cell'));
+    // Determine scenario
+    const isRefi = loanMode === 'refi';
+    const refiType = state.refiType || 'rateTerm';
+    const isStreamline = isRefi && state.isExistingFha && refiType === 'rateTerm';
+    const isCashOut = isRefi && refiType === 'cashOut';
+    const scenario = !isRefi ? 'purchase' : isCashOut ? 'cashOut' : 'rateTerm';
 
-    const scenarios = [];
-    if (purchase) scenarios.push({ key: 'Purch', totalLoan: purchase.totalLoan, cashToClose: purchase.cashToClose });
-    if (refi) scenarios.push({ key: 'Refi', totalLoan: refi.totalLoan, cashToClose: refi.cashToClose });
-    if (streamline) scenarios.push({ key: 'Sl', totalLoan: streamline.totalLoan, cashToClose: streamline.cashToClose });
+    // Determine the value basis
+    let value;
+    if (!isRefi) {
+      value = minPositive(state.purchasePrice, state.appraisedValue);
+    } else {
+      value = state.appraisedValue || 0;
+    }
 
-    if (scenarios.length < 2) return;
+    // Check if we have enough data to show results
+    const hasEnoughData = !isRefi
+      ? (state.purchasePrice > 0 || state.appraisedValue > 0)
+      : (isStreamline ? state.currentUpb > 0 : state.appraisedValue > 0);
 
-    // Highlight lowest total loan
-    const minLoan = Math.min(...scenarios.map(s => s.totalLoan));
-    scenarios.forEach(s => {
-      if (s.totalLoan === minLoan) {
-        const cell = el('fha' + s.key + 'TotalLoan');
-        if (cell) cell.classList.add('fha-best-cell');
+    const resultsSection = el('fhaResultsSection');
+    if (!hasEnoughData) {
+      if (resultsSection) resultsSection.classList.add('u-hidden');
+      return;
+    }
+    if (resultsSection) resultsSection.classList.remove('u-hidden');
+
+    // Closing costs display
+    setText('fhaTotalClosingCosts', fmt(state.totalClosingCosts));
+
+    // Seasoning (refi only)
+    const seasoning = validateSeasoning(state);
+    if (isRefi) renderSeasoningStatus(seasoning);
+
+    // UFMIP Refund (refi with existing FHA)
+    const ufmipRefund = (isRefi && state.isExistingFha)
+      ? calculateUfmipRefund(state)
+      : { refundPercent: 0, refundAmount: 0, originalUfmip: 0, monthsSince: 0 };
+
+    // Three-way max mortgage
+    const threeWay = calcThreeWayMax(state, scenario, value, ufmipRefund);
+
+    // For streamline, base loan = UPB - UFMIP refund (overrides three-way)
+    let maxBase;
+    if (isStreamline) {
+      maxBase = Math.max(0, state.currentUpb - ufmipRefund.refundAmount);
+    } else {
+      maxBase = threeWay.maxBase;
+    }
+
+    // Actual base loan
+    let actualBase;
+    if (isStreamline) {
+      actualBase = maxBase; // streamline is formula-driven
+    } else if (state.requestedLoanAmount > 0 && state.requestedLoanAmount <= maxBase) {
+      actualBase = state.requestedLoanAmount;
+    } else {
+      actualBase = maxBase;
+      if (state.requestedLoanAmount > maxBase && maxBase > 0) {
+        notes.push('Requested amount exceeds max \u2014 capped at ' + fmt(maxBase) + '.');
       }
+    }
+
+    // UFMIP
+    const ufmipAmt = actualBase * UFMIP_RATE;
+    const totalLoan = state.financeUfmip ? actualBase + ufmipAmt : actualBase;
+
+    // LTV
+    const ltv = value > 0 ? actualBase / value : 0;
+
+    // Annual MIP rate
+    const annualMipRate = lookupMipRate(actualBase, ltv, state.newTerm);
+    const monthlyMIP = (actualBase * annualMipRate) / 12;
+
+    // Monthly P&I
+    const monthlyPI = (totalLoan > 0 && state.newRate > 0 && state.newTerm > 0)
+      ? pmt(totalLoan, state.newRate / 100, state.newTerm)
+      : 0;
+
+    // Monthly totals
+    const totalMonthly = monthlyPI + monthlyMIP + state.monthlyTax
+      + state.monthlyInsurance + state.monthlyHoa;
+
+    // NTB (refi modes only)
+    let ntb = { met: null, detail: '' };
+    if (isRefi) {
+      ntb = evaluateNtb(state, monthlyPI, monthlyMIP, annualMipRate);
+    }
+
+    // Cash to close
+    let cashToClose;
+    if (!isRefi) {
+      // Purchase: down payment + prepaids + (UFMIP if not financed) - credits
+      const downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
+      const ufmipOop = state.financeUfmip ? 0 : ufmipAmt;
+      cashToClose = downPayment + state.prepaidsCash + ufmipOop - state.totalCredits;
+    } else if (isStreamline) {
+      // Streamline: prepaids - credits - escrow refund
+      cashToClose = state.prepaidsCash - state.totalCredits - state.escrowRefund;
+    } else {
+      // Standard refi: (payoff + closingCosts + prepaids + accruedInterest) - totalLoan - credits - escrowRefund
+      const payoff = state.currentUpb || 0;
+      cashToClose = (payoff + state.totalClosingCosts + state.prepaidsCash + state.accruedInterest)
+        - totalLoan - state.totalCredits - state.escrowRefund;
+    }
+
+    // ------- Render outputs -------
+
+    // Three-calc max mortgage display
+    setText('fhaLtvCalc', threeWay.ltvCalc > 0
+      ? fmt(threeWay.ltvCalc) : '\u2014');
+    setText('fhaExistingDebtCalc', threeWay.existingDebtCalc > 0
+      ? fmt(threeWay.existingDebtCalc) : '\u2014');
+    setText('fhaStatutoryLimit', threeWay.statutoryLimit > 0
+      ? fmt(threeWay.statutoryLimit) : '\u2014');
+
+    // Loan amounts
+    setText('fhaMaxBaseLoan', maxBase > 0 ? fmt(maxBase) : '\u2014');
+    setText('fhaActualBaseLoan', actualBase > 0 ? fmt(actualBase) : '\u2014');
+    setText('fhaNewUfmipAmt', ufmipAmt > 0 ? fmt(ufmipAmt) : '\u2014');
+    setText('fhaTotalLoanAmt', totalLoan > 0 ? fmt(totalLoan) : '\u2014');
+    setText('fhaLtv', ltv > 0 ? MSFG.formatPercent(ltv * 100) : '\u2014');
+
+    // UFMIP refund (refi only)
+    setText('fhaUfmipRefundAmt', ufmipRefund.refundAmount > 0
+      ? '-' + fmt(ufmipRefund.refundAmount)
+        + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ')'
+      : '\u2014');
+
+    // MIP rate display
+    setText('fhaMipRateDisplay', (annualMipRate * 100).toFixed(2) + '%');
+
+    // Monthly breakdown
+    setText('fhaMonthlyPI', monthlyPI > 0 ? fmt(monthlyPI) : '\u2014');
+    setText('fhaMonthlyMip', monthlyMIP > 0 ? fmt(monthlyMIP) : '\u2014');
+    setText('fhaMonthlyTaxOut', state.monthlyTax > 0 ? fmt(state.monthlyTax) : '\u2014');
+    setText('fhaMonthlyInsOut', state.monthlyInsurance > 0 ? fmt(state.monthlyInsurance) : '\u2014');
+    setText('fhaMonthlyHoaOut', state.monthlyHoa > 0 ? fmt(state.monthlyHoa) : '\u2014');
+    setText('fhaTotalMonthly', totalMonthly > 0 ? fmt(totalMonthly) : '\u2014');
+
+    // NTB result
+    const ntbEl = el('fhaNtbResult');
+    if (ntbEl) {
+      if (!isRefi || ntb.met === null) {
+        ntbEl.innerHTML = '<span class="fha-ntb-pill na">N/A</span>';
+      } else if (ntb.met) {
+        ntbEl.innerHTML = '<span class="fha-ntb-pill pass">PASS</span>';
+      } else {
+        ntbEl.innerHTML = '<span class="fha-ntb-pill fail">FAIL</span>';
+      }
+    }
+    setText('fhaNtbDetail', ntb.detail || '');
+
+    // Cash to close
+    setText('fhaCashToClose', formatCashToClose(cashToClose));
+
+    // Notes
+    if (!isRefi) {
+      notes.push('Max base loan at '
+        + (threeWay.maxLtvPct * 100).toFixed(2) + '% of lesser of price or value.');
+    } else if (isStreamline) {
+      notes.push('Streamline: base loan = UPB \u2212 UFMIP refund.');
+      if (ufmipRefund.refundAmount > 0) {
+        notes.push('UFMIP Refund: ' + fmt(ufmipRefund.refundAmount)
+          + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ').');
+      }
+    } else {
+      const label = isCashOut ? 'Cash-Out' : 'Rate/Term';
+      notes.push(label + ' Refi: max base loan at '
+        + (threeWay.maxLtvPct * 100).toFixed(2) + '% of appraised value.');
+    }
+
+    if (isCashOut && state.endorsementDate && state.currentDate) {
+      const months = monthsBetweenDates(state.endorsementDate, state.currentDate);
+      if (months < 12) {
+        notes.push('Cash-Out: owned < 12 months \u2014 may not be eligible.');
+      }
+    }
+
+    if (!state.financeUfmip && ufmipAmt > 0) {
+      notes.push('UFMIP of ' + fmt(ufmipAmt) + ' not financed \u2014 due at closing.');
+    }
+
+    if (state.occupancy === 'secondHome' && isCashOut) {
+      notes.push('Cash-Out refinance not available for second homes.');
+    }
+
+    const notesList = el('fhaResultNotes');
+    if (notesList) {
+      notesList.innerHTML = '';
+      notes.forEach(note => {
+        const li = document.createElement('li');
+        li.textContent = note;
+        notesList.appendChild(li);
+      });
+    }
+
+    // Render calc steps
+    renderCalcSteps(state, {
+      scenario, value, maxBase, actualBase, ufmipAmt, totalLoan, ltv,
+      annualMipRate, monthlyPI, monthlyMIP, totalMonthly, cashToClose,
+      ntb, ufmipRefund, threeWay, isStreamline, isCashOut
     });
 
-    // Highlight lowest cash to close
-    const minCash = Math.min(...scenarios.map(s => s.cashToClose));
-    scenarios.forEach(s => {
-      if (s.cashToClose === minCash) {
-        const cell = el('fha' + s.key + 'CashToClose');
-        if (cell) cell.classList.add('fha-best-cell');
-      }
-    });
+    // Workspace tally
+    if (window.top !== window) {
+      window.top.postMessage({
+        type: 'msfg-tally-update',
+        slug: 'fha',
+        monthlyPayment: totalMonthly,
+        loanAmount: totalLoan,
+        cashToClose: cashToClose
+      }, window.location.origin);
+    }
   }
 
   /* ===========================================================
      Render Calc Steps
      =========================================================== */
-  function renderCalcSteps(purchase, refi, streamline, state) {
+  function renderCalcSteps(state, r) {
     const container = el('calcSteps-fha');
     if (!container) return;
 
-    let html = '';
+    const steps = [];
 
-    if (purchase) {
-      const purchSteps = [
-        step('Value Used', 'Lesser of ' + fmt(state.purchasePrice) + ' and ' + fmt(state.appraisedValue),
-          fmt(minPositive(state.purchasePrice, state.appraisedValue))),
-        step('Max Base Loan', 'Value Used \u00D7 96.5%', fmt(purchase.maxBaseLoan))
-      ];
-      if (purchase.actualLoan !== purchase.maxBaseLoan) {
-        purchSteps.push(step('Actual Base Loan', 'Requested (capped at max)', fmt(purchase.actualLoan)));
+    if (r.scenario === 'purchase') {
+      steps.push(step('Value Used',
+        'Lesser of ' + fmt(state.purchasePrice) + ' and ' + fmt(state.appraisedValue),
+        fmt(r.value)));
+      steps.push(step('Max Base Loan',
+        'Value \u00D7 ' + (r.threeWay.maxLtvPct * 100).toFixed(2) + '%',
+        fmt(r.threeWay.ltvCalc)));
+    } else if (r.isStreamline) {
+      steps.push(step('Current UPB', '', fmt(state.currentUpb)));
+      if (r.ufmipRefund.refundAmount > 0) {
+        steps.push(step('UFMIP Refund',
+          fmt(r.ufmipRefund.originalUfmip) + ' \u00D7 ' + r.ufmipRefund.refundPercent + '%',
+          '-' + fmt(r.ufmipRefund.refundAmount)));
       }
-      purchSteps.push(
-        step('UFMIP', 'Actual Loan \u00D7 1.75%' + (state.financeUfmip ? ' (financed)' : ' (cash)'), fmt(purchase.ufmipAmt)),
-        step('Total Loan', 'Actual Loan + UFMIP', fmt(purchase.totalLoan)),
-        step('LTV', 'Actual Loan \u00F7 Value', (purchase.ltv * 100).toFixed(2) + '%'),
-        step('Cash to Close', 'Down payment + prepaids \u2212 credits', formatCashToClose(purchase.cashToClose))
-      );
-      html += stepSection('Purchase Scenario', purchSteps);
-    }
-
-    if (refi) {
-      const isCashOut = state.refiType === 'cashOut';
-      const maxPct = isCashOut ? '80%' : '97.75%';
-      const refiSteps = [
-        step('Max Base Loan', fmt(state.appraisedValue) + ' \u00D7 ' + maxPct, fmt(refi.maxBaseLoan))
-      ];
-      if (refi.actualLoan !== refi.maxBaseLoan) {
-        refiSteps.push(step('Actual Base Loan', 'Requested (capped at max)', fmt(refi.actualLoan)));
+      steps.push(step('Base Loan', 'UPB \u2212 UFMIP refund', fmt(r.maxBase)));
+    } else {
+      steps.push(step('LTV Calc',
+        fmt(state.appraisedValue) + ' \u00D7 ' + (r.threeWay.maxLtvPct * 100).toFixed(2) + '%',
+        fmt(r.threeWay.ltvCalc)));
+      if (r.threeWay.existingDebtCalc > 0) {
+        steps.push(step('Existing Debt Calc',
+          'UPB + costs + prepaids + accrued int \u2212 refund \u2212 credits',
+          fmt(r.threeWay.existingDebtCalc)));
       }
-      refiSteps.push(
-        step('UFMIP', 'Actual Loan \u00D7 1.75%' + (state.financeUfmip ? ' (financed)' : ' (cash)'), fmt(refi.ufmipAmt)),
-        step('Total Loan', 'Actual Loan + UFMIP', fmt(refi.totalLoan)),
-        step('LTV', 'Actual Loan \u00F7 Appraised Value', (refi.ltv * 100).toFixed(2) + '%'),
-        step('New P&I', fmt(refi.totalLoan) + ' @ ' + state.newRate + '% / ' + state.newTerm + 'yr', fmt(refi.payment)),
-        step('NTB', refi.ntbDetail, refi.ntb.met === true ? 'PASS' : refi.ntb.met === false ? 'FAIL' : 'N/A'),
-        step('Cash to Close', '(Payoff + costs \u2212 credits \u2212 escrow refund) \u2212 loan', formatCashToClose(refi.cashToClose))
-      );
-      html += stepSection('FHA Refi Scenario (' + (isCashOut ? 'Cash-Out' : 'Rate/Term') + ')', refiSteps);
+      if (r.threeWay.statutoryLimit > 0) {
+        steps.push(step('Statutory Limit', 'County loan limit', fmt(r.threeWay.statutoryLimit)));
+      }
+      steps.push(step('Max Base Loan', 'Min of above', fmt(r.maxBase)));
     }
 
-    if (streamline) {
-      html += stepSection('Streamline Scenario', [
-        step('UPB', 'Current payoff balance', fmt(state.currentUpb)),
-        step('UFMIP Refund', fmt(streamline.ufmipRefund > 0 ? streamline.ufmipRefund : 0), streamline.ufmipRefund > 0 ? '-' + fmt(streamline.ufmipRefund) : '\u2014'),
-        step('Base Loan', 'UPB \u2212 UFMIP refund', fmt(streamline.maxBaseLoan)),
-        step('New UFMIP', 'Base Loan \u00D7 1.75%', fmt(streamline.ufmipAmt)),
-        step('Total Loan', 'Base + New UFMIP', fmt(streamline.totalLoan)),
-        step('New P&I', fmt(streamline.totalLoan) + ' @ ' + state.newRate + '% / ' + state.newTerm + 'yr', fmt(streamline.payment)),
-        step('NTB', streamline.ntbDetail, streamline.ntb.met === true ? 'PASS' : streamline.ntb.met === false ? 'FAIL' : 'N/A'),
-        step('Cash to Close', 'Prepaids \u2212 credits \u2212 escrow refund', formatCashToClose(streamline.cashToClose))
-      ]);
+    if (r.actualBase !== r.maxBase) {
+      steps.push(step('Actual Base Loan', 'Requested (capped at max)', fmt(r.actualBase)));
     }
 
-    container.innerHTML = html;
+    steps.push(step('UFMIP',
+      fmt(r.actualBase) + ' \u00D7 1.75%' + (state.financeUfmip ? ' (financed)' : ' (cash)'),
+      fmt(r.ufmipAmt)));
+    steps.push(step('Total Loan',
+      'Base + ' + (state.financeUfmip ? 'UFMIP' : '(UFMIP not financed)'),
+      fmt(r.totalLoan)));
+
+    if (r.ltv > 0) {
+      steps.push(step('LTV', fmt(r.actualBase) + ' \u00F7 ' + fmt(r.value),
+        (r.ltv * 100).toFixed(2) + '%'));
+    }
+
+    steps.push(step('Annual MIP Rate', 'Lookup based on loan amount, LTV, term',
+      (r.annualMipRate * 100).toFixed(2) + '%'));
+    steps.push(step('Monthly MIP',
+      fmt(r.actualBase) + ' \u00D7 ' + (r.annualMipRate * 100).toFixed(2) + '% \u00F7 12',
+      fmt(r.monthlyMIP)));
+
+    if (r.monthlyPI > 0) {
+      steps.push(step('Monthly P&I',
+        fmt(r.totalLoan) + ' @ ' + state.newRate + '% / ' + state.newTerm + 'yr',
+        fmt(r.monthlyPI)));
+    }
+
+    steps.push(step('Total Monthly', 'P&I + MIP + Tax + Ins + HOA', fmt(r.totalMonthly)));
+
+    if (r.ntb.met !== null) {
+      steps.push(step('NTB', r.ntb.detail,
+        r.ntb.met === true ? 'PASS' : 'FAIL'));
+    }
+
+    steps.push(step('Cash to Close', '', formatCashToClose(r.cashToClose)));
+
+    const title = r.scenario === 'purchase' ? 'Purchase'
+      : r.isStreamline ? 'Streamline'
+      : r.isCashOut ? 'Cash-Out Refi' : 'Rate/Term Refi';
+
+    container.innerHTML = stepSection(title + ' Calculation', steps);
   }
 
   function stepSection(title, steps) {
-    let html = `<div class="calc-step"><h4>${title}</h4>`;
+    let html = '<div class="calc-step"><h4>' + MSFG.escHtml(title) + '</h4>';
     html += '<div class="calc-step__formula">';
     steps.forEach(s => {
-      html += `<div style="margin-bottom:4px;"><strong>${s.label}:</strong> `;
-      if (s.formula) html += `<span style="color:var(--color-gray-500)">${s.formula}</span> = `;
-      html += `<strong>${s.value}</strong></div>`;
+      html += '<div style="margin-bottom:4px;"><strong>'
+        + MSFG.escHtml(s.label) + ':</strong> ';
+      if (s.formula) {
+        html += '<span style="color:var(--color-gray-500)">'
+          + MSFG.escHtml(s.formula) + '</span> = ';
+      }
+      html += '<strong>' + MSFG.escHtml(s.value) + '</strong></div>';
     });
     html += '</div></div>';
     return html;
@@ -638,6 +768,7 @@ const FhaCalc = (() => {
      =========================================================== */
   function populateRefundTable() {
     const tbody = el('fhaRefundTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     for (let i = 0; i < refundTable.length; i += 3) {
@@ -672,7 +803,8 @@ const FhaCalc = (() => {
     // Event delegation for refund table edits
     tbody.addEventListener('change', (e) => {
       if (e.target.tagName === 'INPUT' && e.target.dataset.idx !== undefined) {
-        refundTable[parseInt(e.target.dataset.idx)].refund = parseFloat(e.target.value) || 0;
+        refundTable[parseInt(e.target.dataset.idx, 10)].refund = parseFloat(e.target.value) || 0;
+        recalculate();
       }
     });
   }
@@ -680,6 +812,7 @@ const FhaCalc = (() => {
   function resetRefundTable() {
     refundTable = DEFAULT_REFUND_TABLE.map(r => Object.assign({}, r));
     populateRefundTable();
+    recalculate();
   }
 
   /* ===========================================================
@@ -691,12 +824,13 @@ const FhaCalc = (() => {
         const targetId = header.dataset.target;
         const body = el(targetId);
         const icon = header.querySelector('.fha-collapse-icon');
+        if (!body) return;
         if (body.classList.contains('collapsed')) {
           body.classList.remove('collapsed');
-          icon.classList.remove('collapsed');
+          if (icon) icon.classList.remove('collapsed');
         } else {
           body.classList.add('collapsed');
-          icon.classList.add('collapsed');
+          if (icon) icon.classList.add('collapsed');
         }
       });
     });
@@ -747,7 +881,7 @@ const FhaCalc = (() => {
         applyMISMOData(data);
         const dropZone = el('fhaMismoDrop');
         dropZone.classList.add('loaded');
-        dropZone.textContent = `MISMO loaded: ${file.name}`;
+        dropZone.textContent = 'MISMO loaded: ' + file.name;
       } catch (err) {
         const dropZone = el('fhaMismoDrop');
         dropZone.textContent = 'Error parsing MISMO file';
@@ -770,8 +904,7 @@ const FhaCalc = (() => {
       if (field.type === 'checkbox') {
         field.checked = !!value;
       } else if (field.tagName === 'SELECT') {
-        // Try matching by value first, then by text
-        const optByVal = field.querySelector(`option[value="${value}"]`);
+        const optByVal = field.querySelector('option[value="' + value + '"]');
         if (optByVal) {
           field.value = value;
         } else {
@@ -789,15 +922,13 @@ const FhaCalc = (() => {
       field.classList.add('mismo-populated');
     }
 
-    // Trigger closing costs display update
-    updateClosingCostsDisplay();
+    // Trigger recalculation after MISMO data is applied
+    recalculate();
   }
 
   /* ===========================================================
      Purchase / Refi Toggle
      =========================================================== */
-  let loanMode = 'purchase'; // 'purchase' or 'refi'
-
   function initLoanToggle() {
     const btns = document.querySelectorAll('.fha-toggle-btn');
     btns.forEach(btn => {
@@ -806,6 +937,7 @@ const FhaCalc = (() => {
         btn.classList.add('active');
         loanMode = btn.dataset.mode;
         applyLoanMode();
+        recalculate();
       });
     });
     applyLoanMode();
@@ -816,61 +948,127 @@ const FhaCalc = (() => {
     const refiEls = document.querySelectorAll('.fha-refi-only');
 
     if (loanMode === 'purchase') {
-      purchaseEls.forEach(e => e.style.display = '');
-      refiEls.forEach(e => e.style.display = 'none');
+      purchaseEls.forEach(e => { e.style.display = ''; });
+      refiEls.forEach(e => { e.style.display = 'none'; });
     } else {
-      purchaseEls.forEach(e => e.style.display = 'none');
-      refiEls.forEach(e => e.style.display = '');
-      // Clear purchase price when switching to refi
-      const pp = el('fhaPurchasePrice');
-      if (pp) pp.value = '';
+      purchaseEls.forEach(e => { e.style.display = 'none'; });
+      refiEls.forEach(e => { e.style.display = ''; });
     }
   }
 
   /* ===========================================================
-     Main Calculate
+     CalcActions — Print / Email Data Extractor
      =========================================================== */
-  function calculateAll() {
-    const state = readInputs();
-    const notes = [];
+  function registerCalcActions() {
+    if (!MSFG.CalcActions) return;
 
-    // Seasoning
-    const seasoning = validateSeasoning(state);
-    renderSeasoningStatus(seasoning);
+    MSFG.CalcActions.register(function () {
+      const g = (id) => { const e = el(id); return e ? e.textContent : '\u2014'; };
+      const sections = [];
 
-    // UFMIP Refund
-    const ufmipRefund = calculateUfmipRefund(state);
+      // Borrower & Property
+      const borrower = txt('fhaBorrowerName');
+      const caseId = txt('fhaCaseId');
+      const propRows = [];
+      if (borrower) propRows.push({ label: 'Borrower', value: borrower });
+      if (caseId) propRows.push({ label: 'FHA Case ID', value: caseId });
+      propRows.push(
+        { label: 'Appraised Value', value: val('fhaAppraisedValue') ? fmt(val('fhaAppraisedValue')) : '\u2014' },
+        { label: 'Purchase Price', value: val('fhaPurchasePrice') ? fmt(val('fhaPurchasePrice')) : 'N/A' },
+        { label: 'Occupancy', value: txt('fhaOccupancy') === 'secondHome' ? 'Second Home' : 'Owner Occupied' }
+      );
+      if (val('fhaCountyLimit') > 0) {
+        propRows.push({ label: 'County Loan Limit', value: fmt(val('fhaCountyLimit')) });
+      }
+      sections.push({ heading: 'Borrower & Property', rows: propRows });
 
-    // Closing costs display
-    updateClosingCostsDisplay();
+      // Current Loan (refi only)
+      if (loanMode === 'refi' && val('fhaCurrentUpb') > 0) {
+        const currentRows = [
+          { label: 'Current UPB', value: fmt(val('fhaCurrentUpb')) },
+          { label: 'Current Rate', value: val('fhaCurrentRate') ? val('fhaCurrentRate') + '%' : '\u2014' },
+          { label: 'Current P&I + MIP', value: val('fhaCurrentPayment') ? fmt(val('fhaCurrentPayment')) : '\u2014' },
+          { label: 'Current MIP Rate', value: val('fhaCurrentMipRate') ? val('fhaCurrentMipRate') + '%' : '\u2014' },
+          { label: 'Existing FHA', value: el('fhaIsExistingFha') && el('fhaIsExistingFha').checked ? 'Yes' : 'No' }
+        ];
+        sections.push({ heading: 'Current Loan', rows: currentRows });
+      }
 
-    // Scenarios
-    const purchase = state.purchasePrice > 0 ? calculatePurchase(state, notes) : null;
-    const refi = state.appraisedValue > 0 ? calculateFhaRefi(state, notes) : null;
-    const streamline = (state.isExistingFha && state.currentUpb > 0)
-      ? calculateStreamline(state, ufmipRefund, seasoning, notes) : null;
+      // New Loan Parameters
+      sections.push({
+        heading: 'New Loan Parameters',
+        rows: [
+          { label: 'Interest Rate', value: val('fhaNewRate') ? val('fhaNewRate') + '%' : '\u2014' },
+          { label: 'Loan Term', value: txt('fhaNewTerm') + ' years' },
+          { label: 'Loan Type', value: txt('fhaNewLoanType') === 'arm' ? 'ARM' : 'Fixed' },
+          { label: 'Finance UFMIP', value: el('fhaFinanceUfmip') && el('fhaFinanceUfmip').checked ? 'Yes' : 'No' }
+        ]
+      });
 
-    if (!purchase && !refi && !streamline) {
-      notes.push('Enter property/loan data to see scenario results.');
-    }
+      // Scenario results
+      const scenarioLabel = loanMode === 'purchase' ? 'Purchase'
+        : txt('fhaRefiTypeSelect') === 'cashOut' ? 'Cash-Out Refi'
+        : (el('fhaIsExistingFha') && el('fhaIsExistingFha').checked) ? 'Streamline' : 'Rate/Term Refi';
 
-    renderComparison(purchase, refi, streamline, notes);
-    renderCalcSteps(purchase, refi, streamline, state);
+      const resultRows = [
+        { label: 'Max Base Loan', value: g('fhaMaxBaseLoan') },
+        { label: 'Actual Base Loan', value: g('fhaActualBaseLoan') },
+        { label: 'UFMIP', value: g('fhaNewUfmipAmt') },
+        { label: 'Total Loan', value: g('fhaTotalLoanAmt'), isTotal: true },
+        { label: 'LTV', value: g('fhaLtv') },
+        { label: 'Annual MIP Rate', value: g('fhaMipRateDisplay') },
+        { label: 'Monthly P&I', value: g('fhaMonthlyPI') },
+        { label: 'Monthly MIP', value: g('fhaMonthlyMip') },
+        { label: 'Total Monthly', value: g('fhaTotalMonthly'), isTotal: true }
+      ];
+
+      if (loanMode === 'refi') {
+        resultRows.push({ label: 'Net Tangible Benefit', value: g('fhaNtbResult') });
+      }
+
+      resultRows.push({ label: 'Est. Cash to Close', value: g('fhaCashToClose'), isTotal: true });
+      sections.push({ heading: scenarioLabel + ' Results', rows: resultRows });
+
+      // Closing costs (if any)
+      if (sumClosingCosts() > 0) {
+        const costRows = [];
+        const costLabels = {
+          fhaCostOrigination: 'Origination', fhaCostProcessing: 'Processing',
+          fhaCostUnderwriting: 'Underwriting', fhaCostPoints: 'Discount Points',
+          fhaCostCredit: 'Credit Report', fhaCostFlood: 'Flood Cert',
+          fhaCostInspection: 'Inspection', fhaCostTitleSearch: 'Title Search',
+          fhaCostTitleInsurance: 'Title Insurance', fhaCostRecording: 'Recording',
+          fhaCostAttorney: 'Attorney', fhaCostSurvey: 'Survey',
+          fhaCostPest: 'Pest Inspection', fhaCostOther: 'Other'
+        };
+        for (const id of COST_IDS) {
+          const amount = val(id);
+          if (amount > 0) {
+            costRows.push({ label: costLabels[id] || id, value: fmt(amount) });
+          }
+        }
+        costRows.push({ label: 'Total Closing Costs', value: g('fhaTotalClosingCosts'), isTotal: true });
+        sections.push({ heading: 'Closing Costs', rows: costRows });
+      }
+
+      return { title: 'FHA Loan Analysis', sections: sections };
+    });
   }
 
   /* ===========================================================
-     Init
+     Init — DOMContentLoaded
      =========================================================== */
-  document.addEventListener('DOMContentLoaded', () => {
+  function init() {
+    // Default value styling
     MSFG.markDefaults('.calc-page');
     MSFG.bindDefaultClearing('.calc-page');
 
-    // Set current date
+    // Set current date to today
     const today = new Date().toISOString().split('T')[0];
     const cdEl = el('fhaCurrentDate');
     if (cdEl && !cdEl.value) cdEl.value = today;
 
-    // Populate refund table
+    // Populate UFMIP refund table
     populateRefundTable();
 
     // Collapsible sections
@@ -879,133 +1077,44 @@ const FhaCalc = (() => {
     // Purchase / Refi toggle
     initLoanToggle();
 
-    // Calculate button
-    el('fhaCalculateBtn').addEventListener('click', calculateAll);
+    // Live calculation: bind input event on calc page with debounce
+    const calcPage = document.querySelector('.calc-page');
+    if (calcPage) {
+      calcPage.addEventListener('input', debounce(recalculate, 100));
+    }
 
-    // Refi type dropdown triggers recalc
-    el('fhaRefiTypeSelect').addEventListener('change', () => {
-      if (!el('fhaResultsSection').classList.contains('u-hidden')) calculateAll();
-    });
-
-    // Seasoning validation on date changes
-    ['fhaEndorsementDate', 'fhaFirstPaymentDate', 'fhaCurrentDate'].forEach(id => {
-      el(id).addEventListener('change', () => {
-        const state = readInputs();
-        const seasoning = validateSeasoning(state);
-        renderSeasoningStatus(seasoning);
-      });
-    });
-
-    // Real-time closing costs total
-    COST_IDS.forEach(id => {
+    // Also bind change events for selects, checkboxes, and date inputs
+    const changeSelectors = [
+      'fhaPropertyType', 'fhaOccupancy', 'fhaNewTerm', 'fhaNewLoanType',
+      'fhaCurrentLoanType', 'fhaRefiTypeSelect',
+      'fhaEndorsementDate', 'fhaFirstPaymentDate', 'fhaCurrentDate'
+    ];
+    changeSelectors.forEach(id => {
       const e = el(id);
-      if (e) e.addEventListener('input', updateClosingCostsDisplay);
+      if (e) e.addEventListener('change', recalculate);
+    });
+
+    // Checkbox change events
+    const checkboxIds = ['fhaIsExistingFha', 'fhaFinanceUfmip'];
+    checkboxIds.forEach(id => {
+      const e = el(id);
+      if (e) e.addEventListener('change', recalculate);
     });
 
     // Reset refund table button
-    el('fhaResetRefundBtn').addEventListener('click', resetRefundTable);
+    const resetBtn = el('fhaResetRefundBtn');
+    if (resetBtn) resetBtn.addEventListener('click', resetRefundTable);
 
-    // MISMO
+    // MISMO integration
     initMISMODropZone();
 
     // Print / Email action bar
-    if (MSFG.CalcActions) {
-      MSFG.CalcActions.register(function () {
-        const g = (id) => { const e = el(id); return e ? e.textContent : '\u2014'; };
-        const hasPurch = !el('fhaPurchMaxLoan') || el('fhaPurchMaxLoan').classList.contains('fha-col-hidden') ? false : true;
-        const sections = [];
+    registerCalcActions();
 
-        // Borrower & Property
-        const borrower = txt('fhaBorrowerName');
-        const caseId = txt('fhaCaseId');
-        const propRows = [];
-        if (borrower) propRows.push({ label: 'Borrower', value: borrower });
-        if (caseId) propRows.push({ label: 'FHA Case ID', value: caseId });
-        propRows.push(
-          { label: 'Appraised Value', value: val('fhaAppraisedValue') ? fmt(val('fhaAppraisedValue')) : '\u2014' },
-          { label: 'Purchase Price', value: val('fhaPurchasePrice') ? fmt(val('fhaPurchasePrice')) : 'N/A' }
-        );
-        sections.push({ heading: 'Borrower & Property', rows: propRows });
+    // Initial calculation
+    recalculate();
+  }
 
-        // Current Loan
-        if (val('fhaCurrentUpb') > 0) {
-          sections.push({
-            heading: 'Current Loan',
-            rows: [
-              { label: 'Current UPB', value: fmt(val('fhaCurrentUpb')) },
-              { label: 'Current Rate', value: val('fhaCurrentRate') ? val('fhaCurrentRate') + '%' : '\u2014' },
-              { label: 'Current P&I + MIP', value: val('fhaCurrentPayment') ? fmt(val('fhaCurrentPayment')) : '\u2014' },
-              { label: 'Existing FHA', value: el('fhaIsExistingFha').checked ? 'Yes' : 'No' }
-            ]
-          });
-        }
+  document.addEventListener('DOMContentLoaded', init);
 
-        // New Loan Parameters
-        sections.push({
-          heading: 'New Loan Parameters',
-          rows: [
-            { label: 'Interest Rate', value: val('fhaNewRate') ? val('fhaNewRate') + '%' : '\u2014' },
-            { label: 'Loan Term', value: txt('fhaNewTerm') + ' years' },
-            { label: 'Finance UFMIP', value: el('fhaFinanceUfmip').checked ? 'Yes' : 'No' }
-          ]
-        });
-
-        // Purchase column (if visible)
-        if (hasPurch) {
-          sections.push({
-            heading: 'Purchase Scenario',
-            rows: [
-              { label: 'Max Base Loan', value: g('fhaPurchMaxLoan') },
-              { label: 'Actual Base Loan', value: g('fhaPurchActualLoan') },
-              { label: 'UFMIP', value: g('fhaPurchUfmip') },
-              { label: 'Total Loan', value: g('fhaPurchTotalLoan'), isTotal: true },
-              { label: 'LTV', value: g('fhaPurchLtv') },
-              { label: 'New P&I Payment', value: g('fhaPurchPayment') },
-              { label: 'Est. Cash to Close', value: g('fhaPurchCashToClose'), isTotal: true }
-            ]
-          });
-        }
-
-        // Refi column
-        const refiLabel = el('fhaRefiTypeSelect').value === 'cashOut' ? 'Cash-Out Refi' : 'Rate/Term Refi';
-        if (g('fhaRefiMaxLoan') !== '\u2014') {
-          sections.push({
-            heading: 'FHA ' + refiLabel,
-            rows: [
-              { label: 'Max Base Loan', value: g('fhaRefiMaxLoan') },
-              { label: 'Actual Base Loan', value: g('fhaRefiActualLoan') },
-              { label: 'UFMIP', value: g('fhaRefiUfmip') },
-              { label: 'Total Loan', value: g('fhaRefiTotalLoan'), isTotal: true },
-              { label: 'LTV', value: g('fhaRefiLtv') },
-              { label: 'New P&I Payment', value: g('fhaRefiPayment') },
-              { label: 'Net Tangible Benefit', value: g('fhaRefiNtb') },
-              { label: 'Est. Cash to Close', value: g('fhaRefiCashToClose'), isTotal: true }
-            ]
-          });
-        }
-
-        // Streamline column
-        if (g('fhaSlMaxLoan') !== '\u2014') {
-          sections.push({
-            heading: 'Streamline',
-            rows: [
-              { label: 'Base Loan', value: g('fhaSlMaxLoan') },
-              { label: 'Actual Base Loan', value: g('fhaSlActualLoan') },
-              { label: 'UFMIP Refund', value: g('fhaSlUfmipRefund') },
-              { label: 'New UFMIP', value: g('fhaSlNewUfmip') },
-              { label: 'Total Loan', value: g('fhaSlTotalLoan'), isTotal: true },
-              { label: 'New P&I Payment', value: g('fhaSlPayment') },
-              { label: 'Net Tangible Benefit', value: g('fhaSlNtb') },
-              { label: 'Seasoning', value: g('fhaSlSeasoning') },
-              { label: 'Est. Cash to Close', value: g('fhaSlCashToClose'), isTotal: true }
-            ]
-          });
-        }
-
-        return { title: 'FHA Loan Analysis', sections: sections };
-      });
-    }
-  });
-
-  return { calculateAll };
 })();

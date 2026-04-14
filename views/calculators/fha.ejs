@@ -34,21 +34,15 @@
       </div>
       <div class="form-grid u-mt-md">
         <div class="form-group">
-          <label>Appraised Value
-            <span class="help-icon" data-help="Current appraised value used to calculate LTV and max FHA loan amount.">?</span>
-          </label>
+          <label>Appraised Value</label>
           <input type="number" id="fhaAppraisedValue" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group fha-purchase-only">
-          <label>Purchase Price
-            <span class="help-icon" data-help="For purchases, FHA uses the lesser of purchase price or appraised value.">?</span>
-          </label>
+          <label>Purchase Price</label>
           <input type="number" id="fhaPurchasePrice" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group">
-          <label>Property Type
-            <span class="help-icon" data-help="Used for FHA guideline and investor overlay differences.">?</span>
-          </label>
+          <label>Property Type</label>
           <select id="fhaPropertyType">
             <option value="sfr">SFR / PUD</option>
             <option value="2to4">2-4 Unit</option>
@@ -56,11 +50,40 @@
           </select>
         </div>
       </div>
+      <div class="form-grid u-mt-md">
+        <div class="form-group">
+          <label>Occupancy
+            <span class="help-icon" data-help="Owner-occupied allows higher LTV (96.5% purchase, 97.75% R/T refi). Second home limited to 85%.">?</span>
+          </label>
+          <select id="fhaOccupancy">
+            <option value="oo" selected>Owner Occupied</option>
+            <option value="secondHome">Second Home</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>County Loan Limit
+            <span class="help-icon" data-help="FHA statutory loan limit for the county. Used as one of three max-mortgage calculations.">?</span>
+          </label>
+          <input type="number" id="fhaCountyLimit" step="1" placeholder="e.g. 498,257">
+        </div>
+      </div>
     </div>
 
-    <!-- Section 2: Current Loan -->
+    <!-- Section 2: Current Loan (refi only) -->
     <div class="calc-section fha-refi-only" style="display:none;">
       <h2>Current Loan</h2>
+
+      <div class="form-grid u-mb-md">
+        <div class="form-group">
+          <label>Refinance Type</label>
+          <select id="fhaRefiTypeSelect">
+            <option value="rateTerm">Rate/Term</option>
+            <option value="cashOut">Cash-Out</option>
+            <option value="streamline">Streamline</option>
+          </select>
+        </div>
+      </div>
+
       <div class="u-mb-md">
         <label class="form-check">
           <input type="checkbox" id="fhaIsExistingFha">
@@ -108,9 +131,17 @@
           <input type="number" id="fhaRemainingTerm" step="1" placeholder="e.g. 336">
         </div>
       </div>
+      <div class="form-grid u-mt-md">
+        <div class="form-group">
+          <label>Current Annual MIP Rate (%)
+            <span class="help-icon" data-help="Annual MIP rate on current FHA loan. Used for Combined Rate NTB calculation.">?</span>
+          </label>
+          <input type="number" id="fhaCurrentMipRate" step="0.001" placeholder="e.g. 0.550">
+        </div>
+      </div>
     </div>
 
-    <!-- Section 3: Dates & Seasoning -->
+    <!-- Section 3: Dates & Seasoning (refi only) -->
     <div class="calc-section fha-refi-only" style="display:none;">
       <h2>Loan Dates &amp; Seasoning</h2>
       <div class="form-grid">
@@ -148,7 +179,7 @@
       </div>
     </div>
 
-    <!-- Section 4: UFMIP Refund Table (collapsible) -->
+    <!-- Section 4: UFMIP Refund Table (refi only, collapsible) -->
     <div class="calc-section fha-refi-only" style="display:none;">
       <div class="fha-collapsible-header" data-target="fhaRefundBody">
         <h2>UFMIP Refund Table</h2>
@@ -177,7 +208,7 @@
       </div>
     </div>
 
-    <!-- Section 5: Closing Costs (collapsible sub-groups) -->
+    <!-- Section 5: Closing Costs (refi only, collapsible) -->
     <div class="calc-section fha-refi-only" style="display:none;">
       <div class="fha-collapsible-header" data-target="fhaCostsBody">
         <h2>Closing Costs (Itemized)</h2>
@@ -327,7 +358,26 @@
       </div>
     </div>
 
-    <!-- Section 7: Cash to Close Inputs -->
+    <!-- Section 7: Monthly Escrow & HOA -->
+    <div class="calc-section">
+      <h2>Monthly Escrow &amp; HOA</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Monthly Property Tax</label>
+          <input type="number" id="fhaMonthlyTax" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Monthly Homeowner's Insurance</label>
+          <input type="number" id="fhaMonthlyInsurance" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Monthly HOA</label>
+          <input type="number" id="fhaMonthlyHoa" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 8: Cash to Close Inputs -->
     <div class="calc-section">
       <h2>Cash to Close Inputs</h2>
       <div class="form-grid">
@@ -350,103 +400,102 @@
           <input type="number" id="fhaEscrowRefund" step="0.01" placeholder="0.00">
         </div>
       </div>
-
-      <div class="action-bar u-no-border-top u-mt-lg">
-        <button class="btn btn-primary" id="fhaCalculateBtn">Calculate All Scenarios</button>
-      </div>
     </div>
 
-    <!-- Section 8: Comparison Results -->
-    <div class="calc-section u-hidden" id="fhaResultsSection">
-      <h2>Scenario Comparison</h2>
+    <!-- Section 9: Results -->
+    <div class="calc-section" id="fhaResultsSection" style="display:none;">
+      <h2>Results</h2>
 
-      <div class="fha-results-wrap">
-        <table class="fha-results-table" id="fhaResultsTable">
-          <thead>
-            <tr>
-              <th></th>
-              <th id="fhaPurchColHeader" class="fha-purch-col fha-col-hidden">Purchase</th>
-              <th id="fhaRefiColHeader">
-                FHA Refi
-                <br>
-                <select class="fha-refi-type-select" id="fhaRefiTypeSelect">
-                  <option value="rateTerm">Rate/Term (97.75%)</option>
-                  <option value="cashOut">Cash-Out (80%)</option>
-                </select>
-              </th>
-              <th id="fhaSlColHeader" class="fha-sl-col">Streamline</th>
-            </tr>
-          </thead>
+      <!-- Three-Calculation Max Mortgage -->
+      <div class="fha-max-mortgage-grid">
+        <div class="fha-max-card">
+          <div class="fha-max-card__label">LTV Calculation</div>
+          <div class="fha-max-card__value" id="fhaLtvCalc">&mdash;</div>
+        </div>
+        <div class="fha-max-card fha-refi-only" style="display:none;">
+          <div class="fha-max-card__label">Existing Debt</div>
+          <div class="fha-max-card__value" id="fhaExistingDebtCalc">&mdash;</div>
+        </div>
+        <div class="fha-max-card">
+          <div class="fha-max-card__label">County Limit</div>
+          <div class="fha-max-card__value" id="fhaStatutoryLimit">&mdash;</div>
+        </div>
+      </div>
+      <div class="fha-max-result">
+        <span>Maximum Base Loan:</span>
+        <strong id="fhaMaxBaseLoan">&mdash;</strong>
+      </div>
+
+      <!-- Loan Breakdown -->
+      <div class="fha-results-wrap u-mt-md">
+        <table class="fha-results-table">
           <tbody>
-            <tr class="fha-section-row"><td colspan="4">Loan Amount</td></tr>
-            <tr>
-              <td>Max Base Loan</td>
-              <td id="fhaPurchMaxLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiMaxLoan">&mdash;</td>
-              <td id="fhaSlMaxLoan" class="fha-sl-col">&mdash;</td>
-            </tr>
+            <tr class="fha-section-row"><td colspan="2">Loan Amount</td></tr>
             <tr>
               <td>Actual Base Loan</td>
-              <td id="fhaPurchActualLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiActualLoan">&mdash;</td>
-              <td id="fhaSlActualLoan" class="fha-sl-col">&mdash;</td>
+              <td id="fhaActualBaseLoan">&mdash;</td>
             </tr>
-            <tr>
+            <tr class="fha-refi-only" style="display:none;">
               <td>UFMIP Refund</td>
-              <td id="fhaPurchUfmipRefund" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiUfmipRefund">&mdash;</td>
-              <td id="fhaSlUfmipRefund" class="fha-sl-col">&mdash;</td>
+              <td id="fhaUfmipRefundAmt">&mdash;</td>
             </tr>
             <tr>
               <td>New UFMIP (1.75%)</td>
-              <td id="fhaPurchUfmip" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiUfmip">&mdash;</td>
-              <td id="fhaSlNewUfmip" class="fha-sl-col">&mdash;</td>
+              <td id="fhaNewUfmipAmt">&mdash;</td>
             </tr>
             <tr class="fha-subtotal-row">
               <td>Total Loan Amount</td>
-              <td id="fhaPurchTotalLoan" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiTotalLoan">&mdash;</td>
-              <td id="fhaSlTotalLoan" class="fha-sl-col">&mdash;</td>
+              <td id="fhaTotalLoanAmt">&mdash;</td>
             </tr>
             <tr>
               <td>LTV</td>
-              <td id="fhaPurchLtv" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiLtv">&mdash;</td>
-              <td id="fhaSlLtv" class="fha-sl-col">&mdash;</td>
+              <td id="fhaLtv">&mdash;</td>
+            </tr>
+            <tr>
+              <td>Annual MIP Rate</td>
+              <td id="fhaMipRateDisplay">&mdash;</td>
             </tr>
 
-            <tr class="fha-section-row"><td colspan="4">Payment &amp; Benefit</td></tr>
+            <tr class="fha-section-row"><td colspan="2">Monthly Payment</td></tr>
             <tr>
-              <td>New P&amp;I Payment</td>
-              <td id="fhaPurchPayment" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiPayment">&mdash;</td>
-              <td id="fhaSlPayment" class="fha-sl-col">&mdash;</td>
+              <td>Principal &amp; Interest</td>
+              <td id="fhaMonthlyPI">&mdash;</td>
             </tr>
             <tr>
-              <td>Net Tangible Benefit</td>
-              <td id="fhaPurchNtb" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiNtb">&mdash;</td>
-              <td id="fhaSlNtb" class="fha-sl-col">&mdash;</td>
+              <td>Monthly MIP</td>
+              <td id="fhaMonthlyMip">&mdash;</td>
             </tr>
             <tr>
+              <td>Property Tax</td>
+              <td id="fhaMonthlyTaxOut">&mdash;</td>
+            </tr>
+            <tr>
+              <td>Homeowner's Insurance</td>
+              <td id="fhaMonthlyInsOut">&mdash;</td>
+            </tr>
+            <tr>
+              <td>HOA</td>
+              <td id="fhaMonthlyHoaOut">&mdash;</td>
+            </tr>
+            <tr class="fha-total-row">
+              <td>Total Monthly Payment</td>
+              <td id="fhaTotalMonthly">&mdash;</td>
+            </tr>
+
+            <tr class="fha-section-row fha-refi-only" style="display:none;"><td colspan="2">Net Tangible Benefit</td></tr>
+            <tr class="fha-refi-only" style="display:none;">
+              <td>NTB Status</td>
+              <td id="fhaNtbResult">&mdash;</td>
+            </tr>
+            <tr class="fha-refi-only" style="display:none;">
               <td>NTB Detail</td>
-              <td id="fhaPurchNtbDetail" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiNtbDetail">&mdash;</td>
-              <td id="fhaSlNtbDetail" class="fha-sl-col">&mdash;</td>
-            </tr>
-            <tr>
-              <td>Seasoning</td>
-              <td id="fhaPurchSeasoning" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiSeasoning">&mdash;</td>
-              <td id="fhaSlSeasoning" class="fha-sl-col">&mdash;</td>
+              <td id="fhaNtbDetail">&mdash;</td>
             </tr>
 
+            <tr class="fha-section-row"><td colspan="2">Cash to Close</td></tr>
             <tr class="fha-total-row">
               <td>Est. Cash to Close</td>
-              <td id="fhaPurchCashToClose" class="fha-purch-col fha-col-hidden">&mdash;</td>
-              <td id="fhaRefiCashToClose">&mdash;</td>
-              <td id="fhaSlCashToClose" class="fha-sl-col">&mdash;</td>
+              <td id="fhaCashToClose">&mdash;</td>
             </tr>
           </tbody>
         </table>
@@ -468,6 +517,7 @@
     <p>For internal guidance only. Actual eligibility subject to FHA Handbook, investor overlays, and AUS findings.</p>
     <p><strong>Seasoning:</strong> Streamline requires 6 payments AND 210 days since first payment.</p>
     <p><strong>UFMIP Refund:</strong> Only for loans endorsed after Sept 1, 1983.</p>
-    <p><strong>NTB:</strong> Net Tangible Benefit must be demonstrated per FHA/investor guidelines.</p>
+    <p><strong>NTB:</strong> Net Tangible Benefit uses Combined Rate method per FHA guidelines.</p>
+    <p><strong>MIP Rates:</strong> Based on current FHA annual MIP schedule. Subject to change.</p>
   </div>
 </div>

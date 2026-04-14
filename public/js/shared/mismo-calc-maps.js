@@ -294,6 +294,20 @@
     // Escrow refund from current loan (refi scenarios)
     if (escrow.initialBalance) m['fhaEscrowRefund'] = escrow.initialBalance;
 
+    // Occupancy (new field)
+    if (data.property.occupancy) {
+      var occMap = { 'PrimaryResidence': 'oo', 'SecondHome': 'secondHome', 'Investment': 'secondHome' };
+      if (occMap[data.property.occupancy]) m['fhaOccupancy'] = occMap[data.property.occupancy];
+    }
+
+    // Monthly escrow items (new fields)
+    if (escrow.taxMonthly) m['fhaMonthlyTax'] = escrow.taxMonthly;
+    if (escrow.insMonthly) m['fhaMonthlyInsurance'] = escrow.insMonthly;
+    if (data.housing && data.housing.hoa) m['fhaMonthlyHoa'] = data.housing.hoa;
+
+    // County loan limit (new field)
+    if (data.property.countyLimit) m['fhaCountyLimit'] = data.property.countyLimit;
+
     return m;
   });
 
