@@ -28,8 +28,8 @@
 
   /* ---- Max LTV by Occupancy / Scenario ---- */
   const MAX_LTV = {
-    purchase:  { oo: 0.965, secondHome: 0.85 },
-    rateTerm:  { oo: 0.9775, secondHome: 0.85 },
+    purchase:  { oo: 0.965 },
+    rateTerm:  { oo: 0.9775 },
     cashOut:   { oo: 0.80 }
   };
 
@@ -101,7 +101,7 @@
       appraisedValue:     val('fhaAppraisedValue'),
       purchasePrice:      val('fhaPurchasePrice'),
       propertyType:       txt('fhaPropertyType'),
-      occupancy:          txt('fhaOccupancy'),
+      occupancy:          'oo', // FHA requires owner-occupied
       countyLimit:        val('fhaCountyLimit'),
       isExistingFha:      el('fhaIsExistingFha') ? el('fhaIsExistingFha').checked : false,
       currentUpb:         val('fhaCurrentUpb'),
@@ -627,9 +627,7 @@
       notes.push('UFMIP of ' + fmt(ufmipAmt) + ' not financed \u2014 due at closing.');
     }
 
-    if (state.occupancy === 'secondHome' && isCashOut) {
-      notes.push('Cash-Out refinance not available for second homes.');
-    }
+    // FHA requires owner-occupied — no second home check needed
 
     const notesList = el('fhaResultNotes');
     if (notesList) {
@@ -974,8 +972,7 @@
       if (caseId) propRows.push({ label: 'FHA Case ID', value: caseId });
       propRows.push(
         { label: 'Appraised Value', value: val('fhaAppraisedValue') ? fmt(val('fhaAppraisedValue')) : '\u2014' },
-        { label: 'Purchase Price', value: val('fhaPurchasePrice') ? fmt(val('fhaPurchasePrice')) : 'N/A' },
-        { label: 'Occupancy', value: txt('fhaOccupancy') === 'secondHome' ? 'Second Home' : 'Owner Occupied' }
+        { label: 'Purchase Price', value: val('fhaPurchasePrice') ? fmt(val('fhaPurchasePrice')) : 'N/A' }
       );
       if (val('fhaCountyLimit') > 0) {
         propRows.push({ label: 'County Loan Limit', value: fmt(val('fhaCountyLimit')) });
@@ -1085,7 +1082,7 @@
 
     // Also bind change events for selects, checkboxes, and date inputs
     const changeSelectors = [
-      'fhaPropertyType', 'fhaOccupancy', 'fhaNewTerm', 'fhaNewLoanType',
+      'fhaPropertyType', 'fhaNewTerm', 'fhaNewLoanType',
       'fhaCurrentLoanType', 'fhaRefiTypeSelect',
       'fhaEndorsementDate', 'fhaFirstPaymentDate', 'fhaCurrentDate'
     ];
