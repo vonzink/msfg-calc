@@ -8,6 +8,7 @@
   let loanCount = 1;
   const MAX_LOANS = 4;
   const STATE_KEY = 'msfg-compare-state';
+  const STATE_VERSION = 2; // bump to invalidate stale sessionStorage
   const TEMPLATE_KEY = 'msfg-compare-templates';
   const UFMIP_RATE = 0.0175;
 
@@ -206,7 +207,7 @@
           const inp = input1.cloneNode(true);
           const key = rowKey.charAt(0).toUpperCase() + rowKey.slice(1);
           inp.id = 'cmp' + key + '_0';
-          if (inp.type === 'number') inp.value = rowKey === 'term' ? '360' : '0';
+          if (inp.type === 'number') inp.value = rowKey === 'term' ? '360' : '';
           else inp.value = '';
           inp.addEventListener('input', calculate);
           inp.addEventListener('change', calculate);
@@ -398,7 +399,7 @@
         const inp = input1.cloneNode(true);
         const key = rowKey.charAt(0).toUpperCase() + rowKey.slice(1);
         inp.id = 'cmp' + key + '_' + idx;
-        if (inp.type === 'number') inp.value = rowKey === 'term' ? '360' : '0';
+        if (inp.type === 'number') inp.value = rowKey === 'term' ? '360' : '';
         else inp.value = '';
         inp.className = input1.className;
         td.appendChild(inp);
@@ -695,6 +696,7 @@
   /* ---- State persistence ---- */
   function saveState() {
     const state = {
+      _v: STATE_VERSION,
       loanCount, loanMode, includeExisting,
       customItemCounter,
       customItems: customItems.map(ci => ({ id: ci.id, section: ci.section, name: ci.name, dataRow: ci.dataRow })),
@@ -745,6 +747,7 @@
     try {
       const state = JSON.parse(raw);
       if (!state || !state.loanCount) return false;
+      if (state._v !== STATE_VERSION) { sessionStorage.removeItem(STATE_KEY); return false; }
 
       // Restore mode
       if (state.loanMode) {
@@ -973,12 +976,12 @@
       const e = el('cmp' + key + '_1');
       if (!e) return;
       if (e.tagName === 'SELECT') e.selectedIndex = 0;
-      else if (e.type === 'number') e.value = key === 'Term' ? '360' : '0';
+      else if (e.type === 'number') e.value = key === 'Term' ? '360' : '';
       else e.value = '';
     });
 
     const apr1 = el('cmpAPR_1');
-    if (apr1) { apr1.value = '0'; apr1.classList.add('cmp-computed'); }
+    if (apr1) { apr1.value = ''; apr1.classList.add('cmp-computed'); }
     const notes1 = el('cmpNotes_1');
     if (notes1) notes1.value = '';
     const ufmip1 = el('cmpFinanceUfmip_1');

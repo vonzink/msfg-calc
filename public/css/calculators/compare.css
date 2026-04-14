@@ -294,6 +294,11 @@
   box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
+.cmp-input::placeholder {
+  color: var(--color-gray-300);
+  font-weight: 400;
+}
+
 .cmp-input--sm { width: 80px; }
 
 .cmp-input--rate {
