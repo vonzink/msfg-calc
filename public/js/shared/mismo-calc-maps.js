@@ -295,6 +295,17 @@
     if (escrow.insMonthly) m['fhaMonthlyInsurance'] = escrow.insMonthly;
     if (data.housing && data.housing.hoa) m['fhaMonthlyHoa'] = data.housing.hoa;
 
+    // Current rate (from existing mortgage if available — MISMO liabilities
+    // don't typically include rate, but future parser enhancements may add it)
+    if (data.existingMortgage.rate) m['fhaCurrentRate'] = data.existingMortgage.rate;
+
+    // Seller / Lender credits
+    var cfunds = data.closingCostFunds || {};
+    var totalCredits = 0;
+    if (cfunds.sellerCredits) totalCredits += cfunds.sellerCredits;
+    if (cfunds.lenderCredits) totalCredits += cfunds.lenderCredits;
+    if (totalCredits > 0) m['fhaTotalCredits'] = totalCredits;
+
     // County loan limit (new field)
     if (data.property.countyLimit) m['fhaCountyLimit'] = data.property.countyLimit;
 
