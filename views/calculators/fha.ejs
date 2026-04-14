@@ -191,20 +191,18 @@
       </div>
     </div>
 
-    <!-- Section 5: Closing Costs (refi only, collapsible) -->
-    <div class="calc-section fha-refi-only" style="display:none;">
+    <!-- Section 5: Closing Costs (collapsible) -->
+    <div class="calc-section">
       <div class="fha-collapsible-header" data-target="fhaCostsBody">
         <h2>Closing Costs (Itemized)</h2>
         <span class="fha-collapse-icon collapsed">&#9660;</span>
       </div>
       <div class="fha-collapsible-body collapsed" id="fhaCostsBody">
-        <p class="settings-help-sm u-mb-sm">
-          Itemize closing costs for streamline financing. For standard FHA refi, enter total in one field.
-        </p>
+        <p class="settings-help-sm u-mb-sm">Itemize closing costs. All values default to $0.</p>
 
-        <!-- Lender Fees -->
+        <!-- Origination Charges -->
         <div class="fha-cost-group">
-          <div class="fha-cost-group__title">Lender Fees</div>
+          <div class="fha-cost-group__title">Origination Charges</div>
           <div class="fha-cost-row">
             <label>Origination Fee</label>
             <input type="number" id="fhaCostOrigination" step="0.01" value="0" class="fha-cost-input">
@@ -223,9 +221,13 @@
           </div>
         </div>
 
-        <!-- Third Party Fees -->
+        <!-- Services You Cannot Shop For -->
         <div class="fha-cost-group">
-          <div class="fha-cost-group__title">Third Party Fees</div>
+          <div class="fha-cost-group__title">Services You Cannot Shop For</div>
+          <div class="fha-cost-row">
+            <label>Appraisal Fee</label>
+            <input type="number" id="fhaCostAppraisal" step="0.01" value="0" class="fha-cost-input">
+          </div>
           <div class="fha-cost-row">
             <label>Credit Report</label>
             <input type="number" id="fhaCostCredit" step="0.01" value="0" class="fha-cost-input">
@@ -235,14 +237,14 @@
             <input type="number" id="fhaCostFlood" step="0.01" value="0" class="fha-cost-input">
           </div>
           <div class="fha-cost-row">
-            <label>Inspection Fee</label>
-            <input type="number" id="fhaCostInspection" step="0.01" value="0" class="fha-cost-input">
+            <label>Tax Service Fee</label>
+            <input type="number" id="fhaCostTaxService" step="0.01" value="0" class="fha-cost-input">
           </div>
         </div>
 
-        <!-- Title & Recording -->
+        <!-- Services You Can Shop For -->
         <div class="fha-cost-group">
-          <div class="fha-cost-group__title">Title &amp; Recording</div>
+          <div class="fha-cost-group__title">Services You Can Shop For</div>
           <div class="fha-cost-row">
             <label>Title Search / Exam</label>
             <input type="number" id="fhaCostTitleSearch" step="0.01" value="0" class="fha-cost-input">
@@ -252,12 +254,33 @@
             <input type="number" id="fhaCostTitleInsurance" step="0.01" value="0" class="fha-cost-input">
           </div>
           <div class="fha-cost-row">
+            <label>Owner's Title Insurance</label>
+            <input type="number" id="fhaCostOwnersTitle" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Settlement / Closing Fee</label>
+            <input type="number" id="fhaCostSettlement" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
             <label>Recording Fees</label>
             <input type="number" id="fhaCostRecording" step="0.01" value="0" class="fha-cost-input">
           </div>
           <div class="fha-cost-row">
             <label>Attorney / Settlement</label>
             <input type="number" id="fhaCostAttorney" step="0.01" value="0" class="fha-cost-input">
+          </div>
+          <div class="fha-cost-row">
+            <label>Wire Transfer Fee</label>
+            <input type="number" id="fhaCostWire" step="0.01" value="0" class="fha-cost-input">
+          </div>
+        </div>
+
+        <!-- Government Fees -->
+        <div class="fha-cost-group">
+          <div class="fha-cost-group__title">Government Fees</div>
+          <div class="fha-cost-row">
+            <label>Transfer Taxes</label>
+            <input type="number" id="fhaCostTransferTax" step="0.01" value="0" class="fha-cost-input">
           </div>
         </div>
 
@@ -283,16 +306,20 @@
           <span class="fha-costs-total__value" id="fhaTotalClosingCosts">$0.00</span>
         </div>
 
-        <div class="fha-cost-row u-mt-md">
-          <label>Accrued Interest
-            <span class="help-icon" data-help="Only if payoff is on/after payment due date. Do NOT include per diem beyond payoff.">?</span>
-          </label>
-          <input type="number" id="fhaAccruedInterest" step="0.01" value="0">
+        <div class="fha-refi-only" style="display:none;">
+          <div class="fha-cost-row u-mt-md">
+            <label>Accrued Interest
+              <span class="help-icon" data-help="Only if payoff is on/after payment due date. Do NOT include per diem beyond payoff.">?</span>
+            </label>
+            <input type="number" id="fhaAccruedInterest" step="0.01" value="0">
+          </div>
         </div>
 
-        <p class="fha-costs-warning">
-          Streamline: CANNOT finance late fees, escrows, prepaids, or payoffs other than existing FHA loan.
-        </p>
+        <div class="fha-refi-only" style="display:none;">
+          <p class="fha-costs-warning">
+            Streamline: CANNOT finance late fees, escrows, prepaids, or payoffs other than existing FHA loan.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -341,16 +368,52 @@
       </div>
     </div>
 
-    <!-- Section 7: Cash to Close Inputs -->
+    <!-- Section 7: Prepaids, Escrow & Credits -->
     <div class="calc-section">
-      <h2>Cash to Close Inputs</h2>
+      <h2>Prepaids, Escrow &amp; Credits</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>Prepaids &amp; Escrow Deposits
-            <span class="help-icon" data-help="Prepaid interest + initial escrow deposits (tax & insurance cushion) paid at closing.">?</span>
-          </label>
-          <input type="number" id="fhaPrepaidsCash" step="0.01" placeholder="0.00">
+          <label>Monthly Property Tax</label>
+          <input type="number" id="fhaMonthlyTax" step="0.01" placeholder="0.00">
         </div>
+        <div class="form-group">
+          <label>Monthly Hazard Insurance</label>
+          <input type="number" id="fhaMonthlyInsurance" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Monthly HOA</label>
+          <input type="number" id="fhaMonthlyHoa" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-grid u-mt-md">
+        <div class="form-group">
+          <label>Homeowner's Insurance Premium
+            <span class="help-icon" data-help="Annual hazard insurance premium paid upfront at closing (typically 12 months).">?</span>
+          </label>
+          <input type="number" id="fhaHazardPremium" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Prepaid Interest
+            <span class="help-icon" data-help="Per-diem interest from closing date to first payment date.">?</span>
+          </label>
+          <input type="number" id="fhaPrepaidInterest" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-grid u-mt-md">
+        <div class="form-group">
+          <label>Tax Escrow (months)
+            <span class="help-icon" data-help="Number of months of property tax held in escrow reserve at closing.">?</span>
+          </label>
+          <input type="number" id="fhaTaxEscrowMonths" step="1" value="3" min="0" max="12">
+        </div>
+        <div class="form-group">
+          <label>Insurance Escrow (months)
+            <span class="help-icon" data-help="Number of months of hazard insurance held in escrow reserve at closing.">?</span>
+          </label>
+          <input type="number" id="fhaInsEscrowMonths" step="1" value="3" min="0" max="12">
+        </div>
+      </div>
+      <div class="form-grid u-mt-md">
         <div class="form-group">
           <label>Seller / Lender Credits
             <span class="help-icon" data-help="Seller concessions, lender credits, and other credits applied toward closing costs.">?</span>
@@ -421,8 +484,20 @@
                 <td>Monthly MIP</td>
                 <td id="fhaMonthlyMip">&mdash;</td>
               </tr>
+              <tr>
+                <td>Property Tax</td>
+                <td id="fhaMonthlyTaxDisplay">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Hazard Insurance</td>
+                <td id="fhaMonthlyInsDisplay">&mdash;</td>
+              </tr>
+              <tr>
+                <td>HOA</td>
+                <td id="fhaMonthlyHoaDisplay">&mdash;</td>
+              </tr>
               <tr class="fha-total-row">
-                <td>Total Monthly P&amp;I + MIP</td>
+                <td>Total Monthly (PITI)</td>
                 <td id="fhaTotalMonthly">&mdash;</td>
               </tr>
 
@@ -432,8 +507,16 @@
                 <td id="fhaDownPayment">&mdash;</td>
               </tr>
               <tr>
-                <td>Prepaids &amp; Escrow</td>
+                <td>Closing Costs</td>
+                <td id="fhaClosingCostsDisplay">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Prepaids</td>
                 <td id="fhaPrepaidsDisplay">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Escrow Reserves</td>
+                <td id="fhaEscrowDisplay">&mdash;</td>
               </tr>
               <tr id="fhaUfmipOopRow" style="display:none;">
                 <td>UFMIP (out of pocket)</td>
@@ -510,8 +593,26 @@
                 <td id="fhaCO_mip">&mdash;</td>
                 <td id="fhaSL_mip">&mdash;</td>
               </tr>
+              <tr>
+                <td>Property Tax</td>
+                <td id="fhaRT_tax">&mdash;</td>
+                <td id="fhaCO_tax">&mdash;</td>
+                <td id="fhaSL_tax">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Hazard Insurance</td>
+                <td id="fhaRT_ins">&mdash;</td>
+                <td id="fhaCO_ins">&mdash;</td>
+                <td id="fhaSL_ins">&mdash;</td>
+              </tr>
+              <tr>
+                <td>HOA</td>
+                <td id="fhaRT_hoa">&mdash;</td>
+                <td id="fhaCO_hoa">&mdash;</td>
+                <td id="fhaSL_hoa">&mdash;</td>
+              </tr>
               <tr class="fha-total-row">
-                <td>Total P&amp;I + MIP</td>
+                <td>Total Monthly (PITI)</td>
                 <td id="fhaRT_total">&mdash;</td>
                 <td id="fhaCO_total">&mdash;</td>
                 <td id="fhaSL_total">&mdash;</td>
@@ -545,10 +646,16 @@
                 <td id="fhaSL_closingCosts">&mdash;</td>
               </tr>
               <tr>
-                <td>Prepaids &amp; Escrow</td>
+                <td>Prepaids</td>
                 <td id="fhaRT_prepaids">&mdash;</td>
                 <td id="fhaCO_prepaids">&mdash;</td>
                 <td id="fhaSL_prepaids">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Escrow Reserves</td>
+                <td id="fhaRT_escrow">&mdash;</td>
+                <td id="fhaCO_escrow">&mdash;</td>
+                <td id="fhaSL_escrow">&mdash;</td>
               </tr>
               <tr>
                 <td>Accrued Interest</td>

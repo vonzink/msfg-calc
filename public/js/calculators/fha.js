@@ -75,8 +75,10 @@
 
   const COST_IDS = [
     'fhaCostOrigination', 'fhaCostProcessing', 'fhaCostUnderwriting', 'fhaCostPoints',
-    'fhaCostCredit', 'fhaCostFlood', 'fhaCostInspection',
-    'fhaCostTitleSearch', 'fhaCostTitleInsurance', 'fhaCostRecording', 'fhaCostAttorney',
+    'fhaCostAppraisal', 'fhaCostCredit', 'fhaCostFlood', 'fhaCostTaxService',
+    'fhaCostTitleSearch', 'fhaCostTitleInsurance', 'fhaCostOwnersTitle',
+    'fhaCostSettlement', 'fhaCostRecording', 'fhaCostAttorney', 'fhaCostWire',
+    'fhaCostTransferTax',
     'fhaCostSurvey', 'fhaCostPest', 'fhaCostOther'
   ];
 
@@ -93,6 +95,13 @@
     let total = 0;
     for (const id of COST_IDS) total += val(id);
     return total;
+  }
+
+  function calcPrepaidsAndEscrow(state) {
+    const prepaids = state.hazardPremium + state.prepaidInterest;
+    const escrow = (state.monthlyTax * state.taxEscrowMonths)
+      + (state.monthlyInsurance * state.insEscrowMonths);
+    return { prepaids, escrow, total: prepaids + escrow };
   }
 
   function readInputs() {
@@ -123,7 +132,14 @@
       newLoanType:        txt('fhaNewLoanType'),
       requestedLoanAmount: val('fhaRequestedLoanAmount'),
       financeUfmip:       el('fhaFinanceUfmip') ? el('fhaFinanceUfmip').checked : true,
-      prepaidsCash:       val('fhaPrepaidsCash'),
+      // Prepaids & Escrow (itemized)
+      monthlyTax:         val('fhaMonthlyTax'),
+      monthlyInsurance:   val('fhaMonthlyInsurance'),
+      monthlyHoa:         val('fhaMonthlyHoa'),
+      hazardPremium:      val('fhaHazardPremium'),
+      prepaidInterest:    val('fhaPrepaidInterest'),
+      taxEscrowMonths:    parseInt(txt('fhaTaxEscrowMonths'), 10) || 0,
+      insEscrowMonths:    parseInt(txt('fhaInsEscrowMonths'), 10) || 0,
       totalCredits:       val('fhaTotalCredits'),
       escrowRefund:       val('fhaEscrowRefund')
     };
@@ -165,8 +181,9 @@
     let existingDebtCalc = 0;
     if (scenario !== 'purchase' && state.currentUpb > 0) {
       const refundCredit = ufmipRefund ? ufmipRefund.refundAmount : 0;
+      const pe = calcPrepaidsAndEscrow(state);
       existingDebtCalc = state.currentUpb + state.totalClosingCosts
-        + state.prepaidsCash + state.accruedInterest
+        + pe.total + state.accruedInterest
         - refundCredit - state.totalCredits;
     }
 
@@ -480,17 +497,19 @@
       ? pmt(totalLoan, state.newRate / 100, state.newTerm)
       : 0;
 
-    // Total monthly = PI + MIP only
-    const totalMonthly = monthlyPI + monthlyMIP;
+    // Total monthly = PI + MIP + tax + insurance + HOA
+    const totalMonthly = monthlyPI + monthlyMIP + state.monthlyTax + state.monthlyInsurance + state.monthlyHoa;
 
     // NTB
     const ntb = evaluateNtb(state, scenario, monthlyPI, monthlyMIP, annualMipRate);
 
     // Cash to close — compute and keep breakdown
     let cashToClose;
+    const pe = calcPrepaidsAndEscrow(state);
     const ctcBreakdown = {
       downPayment: 0, ufmipOop: 0, payoff: 0,
-      closingCosts: 0, prepaids: state.prepaidsCash,
+      closingCosts: state.totalClosingCosts,
+      prepaids: pe.prepaids, escrow: pe.escrow,
       accrued: 0, loanCredit: 0,
       credits: state.totalCredits, escrowRefund: 0
     };
@@ -498,19 +517,18 @@
     if (scenario === 'purchase') {
       ctcBreakdown.downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
       ctcBreakdown.ufmipOop = state.financeUfmip ? 0 : ufmipAmt;
-      cashToClose = ctcBreakdown.downPayment + state.prepaidsCash
-        + ctcBreakdown.ufmipOop - state.totalCredits;
+      cashToClose = ctcBreakdown.downPayment + state.totalClosingCosts
+        + pe.prepaids + pe.escrow + ctcBreakdown.ufmipOop - state.totalCredits;
     } else if (isStreamline) {
       ctcBreakdown.escrowRefund = state.escrowRefund;
-      cashToClose = state.prepaidsCash - state.totalCredits - state.escrowRefund;
+      cashToClose = pe.prepaids + pe.escrow - state.totalCredits - state.escrowRefund;
     } else {
       ctcBreakdown.payoff = state.currentUpb || 0;
-      ctcBreakdown.closingCosts = state.totalClosingCosts;
       ctcBreakdown.accrued = state.accruedInterest;
       ctcBreakdown.loanCredit = totalLoan;
       ctcBreakdown.escrowRefund = state.escrowRefund;
       cashToClose = (ctcBreakdown.payoff + state.totalClosingCosts
-        + state.prepaidsCash + state.accruedInterest)
+        + pe.prepaids + pe.escrow + state.accruedInterest)
         - totalLoan - state.totalCredits - state.escrowRefund;
     }
 
@@ -533,11 +551,11 @@
   /* ===========================================================
      Render a refi scenario column
      =========================================================== */
-  function renderRefiColumn(prefix, r, ufmipRefund, isNA) {
+  function renderRefiColumn(prefix, r, ufmipRefund, isNA, state) {
     if (isNA) {
       const ids = ['maxLoan', 'ufmipRefund', 'ufmip', 'totalLoan', 'ltv',
-        'pi', 'mip', 'total', 'ntb', 'ntbDetail',
-        'payoff', 'closingCosts', 'prepaids', 'accrued', 'loanCredit',
+        'pi', 'mip', 'tax', 'ins', 'hoa', 'total', 'ntb', 'ntbDetail',
+        'payoff', 'closingCosts', 'prepaids', 'escrow', 'accrued', 'loanCredit',
         'credits', 'escrowRefund', 'cashToClose'];
       ids.forEach(id => setText(prefix + id, 'N/A'));
       return;
@@ -552,6 +570,9 @@
     setText(prefix + 'ltv', r.ltv > 0 ? MSFG.formatPercent(r.ltv * 100) : '\u2014');
     setText(prefix + 'pi', r.monthlyPI > 0 ? fmt(r.monthlyPI) : '\u2014');
     setText(prefix + 'mip', r.monthlyMIP > 0 ? fmt(r.monthlyMIP) : '\u2014');
+    setText(prefix + 'tax', state.monthlyTax > 0 ? fmt(state.monthlyTax) : '$0.00');
+    setText(prefix + 'ins', state.monthlyInsurance > 0 ? fmt(state.monthlyInsurance) : '$0.00');
+    setText(prefix + 'hoa', state.monthlyHoa > 0 ? fmt(state.monthlyHoa) : '$0.00');
     setText(prefix + 'total', r.totalMonthly > 0 ? fmt(r.totalMonthly) : '\u2014');
     setHtml(prefix + 'ntb', ntbPillHtml(r.ntb));
     setText(prefix + 'ntbDetail', r.ntb.detail || '');
@@ -561,6 +582,7 @@
     setText(prefix + 'payoff', b.payoff > 0 ? fmt(b.payoff) : '$0.00');
     setText(prefix + 'closingCosts', b.closingCosts > 0 ? fmt(b.closingCosts) : '$0.00');
     setText(prefix + 'prepaids', b.prepaids > 0 ? fmt(b.prepaids) : '$0.00');
+    setText(prefix + 'escrow', b.escrow > 0 ? fmt(b.escrow) : '$0.00');
     setText(prefix + 'accrued', b.accrued > 0 ? fmt(b.accrued) : '$0.00');
     setText(prefix + 'loanCredit', b.loanCredit > 0 ? '-' + fmt(b.loanCredit) : '$0.00');
     setText(prefix + 'credits', b.credits > 0 ? '-' + fmt(b.credits) : '$0.00');
@@ -657,11 +679,16 @@
       // Monthly breakdown
       setText('fhaMonthlyPI', r.monthlyPI > 0 ? fmt(r.monthlyPI) : '\u2014');
       setText('fhaMonthlyMip', r.monthlyMIP > 0 ? fmt(r.monthlyMIP) : '\u2014');
+      setText('fhaMonthlyTaxDisplay', state.monthlyTax > 0 ? fmt(state.monthlyTax) : '$0.00');
+      setText('fhaMonthlyInsDisplay', state.monthlyInsurance > 0 ? fmt(state.monthlyInsurance) : '$0.00');
+      setText('fhaMonthlyHoaDisplay', state.monthlyHoa > 0 ? fmt(state.monthlyHoa) : '$0.00');
       setText('fhaTotalMonthly', r.totalMonthly > 0 ? fmt(r.totalMonthly) : '\u2014');
 
       // Cash to close breakdown
       setText('fhaDownPayment', r.ctcBreakdown.downPayment > 0 ? fmt(r.ctcBreakdown.downPayment) : '$0.00');
+      setText('fhaClosingCostsDisplay', state.totalClosingCosts > 0 ? fmt(state.totalClosingCosts) : '$0.00');
       setText('fhaPrepaidsDisplay', r.ctcBreakdown.prepaids > 0 ? fmt(r.ctcBreakdown.prepaids) : '$0.00');
+      setText('fhaEscrowDisplay', r.ctcBreakdown.escrow > 0 ? fmt(r.ctcBreakdown.escrow) : '$0.00');
       setText('fhaCreditsDisplay', r.ctcBreakdown.credits > 0 ? '-' + fmt(r.ctcBreakdown.credits) : '$0.00');
       const ufmipOopRow = el('fhaUfmipOopRow');
       if (ufmipOopRow) {
@@ -715,13 +742,13 @@
         : null;
 
       // Render Rate/Term column
-      renderRefiColumn('fhaRT_', rtResult, ufmipRefund, false);
+      renderRefiColumn('fhaRT_', rtResult, ufmipRefund, false, state);
 
       // Render Cash-Out column
-      renderRefiColumn('fhaCO_', coResult, ufmipRefund, false);
+      renderRefiColumn('fhaCO_', coResult, ufmipRefund, false, state);
 
       // Render Streamline column
-      renderRefiColumn('fhaSL_', slResult, ufmipRefund, !slEligible);
+      renderRefiColumn('fhaSL_', slResult, ufmipRefund, !slEligible, state);
 
       // Seasoning summary for streamline
       const seasoningSummary = el('fhaSeasoningSummary');
@@ -1190,11 +1217,13 @@
         const costLabels = {
           fhaCostOrigination: 'Origination', fhaCostProcessing: 'Processing',
           fhaCostUnderwriting: 'Underwriting', fhaCostPoints: 'Discount Points',
-          fhaCostCredit: 'Credit Report', fhaCostFlood: 'Flood Cert',
-          fhaCostInspection: 'Inspection', fhaCostTitleSearch: 'Title Search',
-          fhaCostTitleInsurance: 'Title Insurance', fhaCostRecording: 'Recording',
-          fhaCostAttorney: 'Attorney', fhaCostSurvey: 'Survey',
-          fhaCostPest: 'Pest Inspection', fhaCostOther: 'Other'
+          fhaCostAppraisal: 'Appraisal', fhaCostCredit: 'Credit Report',
+          fhaCostFlood: 'Flood Cert', fhaCostTaxService: 'Tax Service',
+          fhaCostTitleSearch: 'Title Search', fhaCostTitleInsurance: 'Title Insurance',
+          fhaCostOwnersTitle: "Owner's Title", fhaCostSettlement: 'Settlement/Closing',
+          fhaCostRecording: 'Recording', fhaCostAttorney: 'Attorney',
+          fhaCostWire: 'Wire Transfer', fhaCostTransferTax: 'Transfer Taxes',
+          fhaCostSurvey: 'Survey', fhaCostPest: 'Pest Inspection', fhaCostOther: 'Other'
         };
         for (const id of COST_IDS) {
           const amount = val(id);

@@ -279,17 +279,13 @@
     var cplAmt = feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee', 'AttorneyFee');
     if (cplAmt) m['fhaCostAttorney'] = cplAmt;
 
-    // Prepaids & escrow deposits
+    // Prepaids & escrow deposits (itemized)
     var prepaids = data.prepaids || {};
     var escrow = data.escrow || {};
-    var prepaidTotal = 0;
-    if (prepaids.hazardInsurance) prepaidTotal += prepaids.hazardInsurance;
-    if (prepaids.interestTotal) prepaidTotal += prepaids.interestTotal;
-    if (escrow.taxDeposit) prepaidTotal += escrow.taxDeposit;
-    else if (escrow.taxMonthly && escrow.taxMonths) prepaidTotal += escrow.taxMonthly * escrow.taxMonths;
-    if (escrow.insDeposit) prepaidTotal += escrow.insDeposit;
-    else if (escrow.insMonthly && escrow.insMonths) prepaidTotal += escrow.insMonthly * escrow.insMonths;
-    if (prepaidTotal > 0) m['fhaPrepaidsCash'] = prepaidTotal;
+    if (prepaids.hazardInsurance) m['fhaHazardPremium'] = prepaids.hazardInsurance;
+    if (prepaids.interestTotal) m['fhaPrepaidInterest'] = prepaids.interestTotal;
+    if (escrow.taxMonths) m['fhaTaxEscrowMonths'] = escrow.taxMonths;
+    if (escrow.insMonths) m['fhaInsEscrowMonths'] = escrow.insMonths;
 
     // Escrow refund from current loan (refi scenarios)
     if (escrow.initialBalance) m['fhaEscrowRefund'] = escrow.initialBalance;
