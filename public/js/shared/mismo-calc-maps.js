@@ -228,7 +228,12 @@
 
     // Current loan
     if (data.existingMortgage.balance) m['fhaCurrentUpb'] = data.existingMortgage.balance;
-    if (data.existingMortgage.payment) m['fhaCurrentPayment'] = data.existingMortgage.payment;
+    // Current P&I + MIP: prefer summing projected P&I and MI from loan data
+    if (data.loan.piPayment || data.loan.miPayment) {
+      m['fhaCurrentPayment'] = (data.loan.piPayment || 0) + (data.loan.miPayment || 0);
+    } else if (data.existingMortgage.payment) {
+      m['fhaCurrentPayment'] = data.existingMortgage.payment;
+    }
     if (data.existingMortgage.remainingMonths) m['fhaRemainingTerm'] = data.existingMortgage.remainingMonths;
     if (data.loan.amount) m['fhaOriginalLoanAmount'] = data.loan.amount;
 
