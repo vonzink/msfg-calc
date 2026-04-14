@@ -93,6 +93,21 @@
       </div>
       <div class="form-grid u-mt-md">
         <div class="form-group">
+          <label>Accrued Interest
+            <span class="help-icon" data-help="Per-diem interest from last payment to payoff date. Added to UPB for total payoff.">?</span>
+          </label>
+          <input type="number" id="fhaAccruedInterest" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Total Payoff Amount
+            <span class="help-icon" data-help="UPB + accrued interest. Auto-calculated or enter actual payoff to override.">?</span>
+          </label>
+          <input type="number" id="fhaPayoffAmount" step="0.01" placeholder="Auto-calculated">
+          <small id="fhaPayoffNote"></small>
+        </div>
+      </div>
+      <div class="form-grid u-mt-md">
+        <div class="form-group">
           <label>Current Loan Type</label>
           <select id="fhaCurrentLoanType">
             <option value="fixed">Fixed Rate</option>
@@ -304,15 +319,6 @@
         <div class="fha-costs-total">
           <span class="fha-costs-total__label">Total Closing Costs</span>
           <span class="fha-costs-total__value" id="fhaTotalClosingCosts">$0.00</span>
-        </div>
-
-        <div class="fha-refi-only" style="display:none;">
-          <div class="fha-cost-row u-mt-md">
-            <label>Accrued Interest
-              <span class="help-icon" data-help="Only if payoff is on/after payment due date. Do NOT include per diem beyond payoff.">?</span>
-            </label>
-            <input type="number" id="fhaAccruedInterest" step="0.01" value="0">
-          </div>
         </div>
 
         <div class="fha-refi-only" style="display:none;">
@@ -634,7 +640,7 @@
 
               <tr class="fha-section-row"><td colspan="4">Cash to Close</td></tr>
               <tr>
-                <td>Current UPB (payoff)</td>
+                <td>Payoff Amount</td>
                 <td id="fhaRT_payoff">&mdash;</td>
                 <td id="fhaCO_payoff">&mdash;</td>
                 <td id="fhaSL_payoff">&mdash;</td>
@@ -656,12 +662,6 @@
                 <td id="fhaRT_escrow">&mdash;</td>
                 <td id="fhaCO_escrow">&mdash;</td>
                 <td id="fhaSL_escrow">&mdash;</td>
-              </tr>
-              <tr>
-                <td>Accrued Interest</td>
-                <td id="fhaRT_accrued">&mdash;</td>
-                <td id="fhaCO_accrued">&mdash;</td>
-                <td id="fhaSL_accrued">&mdash;</td>
               </tr>
               <tr>
                 <td>New Loan (credit)</td>
@@ -686,6 +686,25 @@
                 <td id="fhaRT_cashToClose">&mdash;</td>
                 <td id="fhaCO_cashToClose">&mdash;</td>
                 <td id="fhaSL_cashToClose">&mdash;</td>
+              </tr>
+              <tr class="fha-section-row"><td colspan="4">Requested vs. Max</td></tr>
+              <tr>
+                <td>Max Base Loan</td>
+                <td id="fhaRT_maxDisplay">&mdash;</td>
+                <td id="fhaCO_maxDisplay">&mdash;</td>
+                <td id="fhaSL_maxDisplay">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Actual Base Loan</td>
+                <td id="fhaRT_actualDisplay">&mdash;</td>
+                <td id="fhaCO_actualDisplay">&mdash;</td>
+                <td id="fhaSL_actualDisplay">&mdash;</td>
+              </tr>
+              <tr>
+                <td>Difference</td>
+                <td id="fhaRT_diff">&mdash;</td>
+                <td id="fhaCO_diff">&mdash;</td>
+                <td id="fhaSL_diff">&mdash;</td>
               </tr>
             </tbody>
           </table>

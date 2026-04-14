@@ -127,6 +127,7 @@
       currentDate:        txt('fhaCurrentDate'),
       totalClosingCosts:  sumClosingCosts(),
       accruedInterest:    val('fhaAccruedInterest'),
+      payoffAmount:       val('fhaPayoffAmount'),
       newRate:            val('fhaNewRate'),
       newTerm:            parseInt(txt('fhaNewTerm'), 10) || 30,
       newLoanType:        txt('fhaNewLoanType'),
@@ -470,6 +471,21 @@
     // Actual base loan
     let actualBase;
     let cappedNote = '';
+
+    // Rate/Term: max cash back is $150 (FHA rule)
+    if (scenario === 'rateTerm') {
+      const rtPayoff = state.payoffAmount > 0 ? state.payoffAmount : (state.currentUpb || 0) + state.accruedInterest;
+      if (rtPayoff > 0) {
+        const pe150 = calcPrepaidsAndEscrow(state);
+        const maxAllowedTotal = rtPayoff + state.totalClosingCosts + pe150.total + 150;
+        const rtCap = state.financeUfmip ? maxAllowedTotal / (1 + UFMIP_RATE) : maxAllowedTotal;
+        if (rtCap < maxBase) {
+          maxBase = Math.max(0, rtCap);
+          cappedNote = 'Rate/Term capped: max $150 cash back per FHA rules.';
+        }
+      }
+    }
+
     if (isStreamline) {
       actualBase = maxBase; // streamline is formula-driven
     } else if (state.requestedLoanAmount > 0 && state.requestedLoanAmount <= maxBase) {
@@ -510,9 +526,12 @@
       downPayment: 0, ufmipOop: 0, payoff: 0,
       closingCosts: state.totalClosingCosts,
       prepaids: pe.prepaids, escrow: pe.escrow,
-      accrued: 0, loanCredit: 0,
+      loanCredit: 0,
       credits: state.totalCredits, escrowRefund: 0
     };
+
+    // Payoff = explicit payoff amount, or UPB + accrued interest
+    const payoff = state.payoffAmount > 0 ? state.payoffAmount : (state.currentUpb || 0) + state.accruedInterest;
 
     if (scenario === 'purchase') {
       ctcBreakdown.downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
@@ -520,15 +539,17 @@
       cashToClose = ctcBreakdown.downPayment + state.totalClosingCosts
         + pe.prepaids + pe.escrow + ctcBreakdown.ufmipOop - state.totalCredits;
     } else if (isStreamline) {
-      ctcBreakdown.escrowRefund = state.escrowRefund;
-      cashToClose = pe.prepaids + pe.escrow - state.totalCredits - state.escrowRefund;
-    } else {
-      ctcBreakdown.payoff = state.currentUpb || 0;
-      ctcBreakdown.accrued = state.accruedInterest;
+      ctcBreakdown.payoff = payoff;
       ctcBreakdown.loanCredit = totalLoan;
       ctcBreakdown.escrowRefund = state.escrowRefund;
-      cashToClose = (ctcBreakdown.payoff + state.totalClosingCosts
-        + pe.prepaids + pe.escrow + state.accruedInterest)
+      cashToClose = (payoff + pe.prepaids + pe.escrow)
+        - totalLoan - state.totalCredits - state.escrowRefund;
+    } else {
+      ctcBreakdown.payoff = payoff;
+      ctcBreakdown.loanCredit = totalLoan;
+      ctcBreakdown.escrowRefund = state.escrowRefund;
+      cashToClose = (payoff + state.totalClosingCosts
+        + pe.prepaids + pe.escrow)
         - totalLoan - state.totalCredits - state.escrowRefund;
     }
 
@@ -555,8 +576,9 @@
     if (isNA) {
       const ids = ['maxLoan', 'ufmipRefund', 'ufmip', 'totalLoan', 'ltv',
         'pi', 'mip', 'tax', 'ins', 'hoa', 'total', 'ntb', 'ntbDetail',
-        'payoff', 'closingCosts', 'prepaids', 'escrow', 'accrued', 'loanCredit',
-        'credits', 'escrowRefund', 'cashToClose'];
+        'payoff', 'closingCosts', 'prepaids', 'escrow', 'loanCredit',
+        'credits', 'escrowRefund', 'cashToClose',
+        'maxDisplay', 'actualDisplay', 'diff'];
       ids.forEach(id => setText(prefix + id, 'N/A'));
       return;
     }
@@ -583,17 +605,23 @@
     setText(prefix + 'closingCosts', b.closingCosts > 0 ? fmt(b.closingCosts) : '$0.00');
     setText(prefix + 'prepaids', b.prepaids > 0 ? fmt(b.prepaids) : '$0.00');
     setText(prefix + 'escrow', b.escrow > 0 ? fmt(b.escrow) : '$0.00');
-    setText(prefix + 'accrued', b.accrued > 0 ? fmt(b.accrued) : '$0.00');
     setText(prefix + 'loanCredit', b.loanCredit > 0 ? '-' + fmt(b.loanCredit) : '$0.00');
     setText(prefix + 'credits', b.credits > 0 ? '-' + fmt(b.credits) : '$0.00');
     setText(prefix + 'escrowRefund', b.escrowRefund > 0 ? '-' + fmt(b.escrowRefund) : '$0.00');
     setText(prefix + 'cashToClose', formatCashToClose(r.cashToClose));
+
+    // Requested vs Max
+    setText(prefix + 'maxDisplay', r.maxBase > 0 ? fmt(r.maxBase) : '\u2014');
+    setText(prefix + 'actualDisplay', r.actualBase > 0 ? fmt(r.actualBase) : '\u2014');
+    const diff = r.maxBase - r.actualBase;
+    setText(prefix + 'diff', diff !== 0 ? fmt(diff) : '$0.00');
   }
 
   /* ===========================================================
      Auto-calculate Remaining Term from dates + original term
      =========================================================== */
   let remainingTermManual = false; // track if user manually edited
+  let payoffManual = false; // track if user manually edited payoff
 
   function autoCalcRemainingTerm() {
     if (remainingTermManual) return; // user overrode — don't touch
@@ -614,6 +642,19 @@
      =========================================================== */
   function recalculate() {
     autoCalcRemainingTerm();
+
+    // Auto-calculate payoff = UPB + accrued interest (unless manually overridden)
+    if (!payoffManual) {
+      const upb = val('fhaCurrentUpb');
+      const accrued = val('fhaAccruedInterest');
+      const payoffEl = el('fhaPayoffAmount');
+      const payoffNoteEl = el('fhaPayoffNote');
+      if (payoffEl && (upb > 0 || accrued > 0)) {
+        payoffEl.value = (upb + accrued).toFixed(2);
+        if (payoffNoteEl) payoffNoteEl.textContent = fmt(upb) + ' + ' + fmt(accrued) + ' accrued';
+      }
+    }
+
     const state = readInputs();
     const notes = [];
     const isRefi = loanMode === 'refi';
@@ -1087,6 +1128,7 @@
 
       // If MISMO provides remaining term, treat as manual override
       if (id === 'fhaRemainingTerm' && value) remainingTermManual = true;
+      if (id === 'fhaPayoffAmount' && value) payoffManual = true;
     }
 
     // Trigger recalculation after MISMO data is applied
@@ -1289,6 +1331,12 @@
     const remTermEl = el('fhaRemainingTerm');
     if (remTermEl) {
       remTermEl.addEventListener('focus', () => { remainingTermManual = true; });
+    }
+
+    // Track manual payoff edits
+    const payoffEl = el('fhaPayoffAmount');
+    if (payoffEl) {
+      payoffEl.addEventListener('focus', () => { payoffManual = true; });
     }
 
     // Reset refund table button

@@ -354,6 +354,11 @@
   border-bottom: none;
 }
 
+.fha-results-table .fha-section-row td:first-child,
+.fha-results-table .fha-section-row td:last-child {
+  color: #fff;
+}
+
 .fha-results-table .fha-total-row td {
   font-weight: 700;
   font-size: 0.9rem;
