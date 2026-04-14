@@ -485,24 +485,38 @@
     // NTB
     const ntb = evaluateNtb(state, scenario, monthlyPI, monthlyMIP, annualMipRate);
 
-    // Cash to close
+    // Cash to close — compute and keep breakdown
     let cashToClose;
+    const ctcBreakdown = {
+      downPayment: 0, ufmipOop: 0, payoff: 0,
+      closingCosts: 0, prepaids: state.prepaidsCash,
+      accrued: 0, loanCredit: 0,
+      credits: state.totalCredits, escrowRefund: 0
+    };
+
     if (scenario === 'purchase') {
-      const downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
-      const ufmipOop = state.financeUfmip ? 0 : ufmipAmt;
-      cashToClose = downPayment + state.prepaidsCash + ufmipOop - state.totalCredits;
+      ctcBreakdown.downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
+      ctcBreakdown.ufmipOop = state.financeUfmip ? 0 : ufmipAmt;
+      cashToClose = ctcBreakdown.downPayment + state.prepaidsCash
+        + ctcBreakdown.ufmipOop - state.totalCredits;
     } else if (isStreamline) {
+      ctcBreakdown.escrowRefund = state.escrowRefund;
       cashToClose = state.prepaidsCash - state.totalCredits - state.escrowRefund;
     } else {
-      const payoff = state.currentUpb || 0;
-      cashToClose = (payoff + state.totalClosingCosts + state.prepaidsCash + state.accruedInterest)
+      ctcBreakdown.payoff = state.currentUpb || 0;
+      ctcBreakdown.closingCosts = state.totalClosingCosts;
+      ctcBreakdown.accrued = state.accruedInterest;
+      ctcBreakdown.loanCredit = totalLoan;
+      ctcBreakdown.escrowRefund = state.escrowRefund;
+      cashToClose = (ctcBreakdown.payoff + state.totalClosingCosts
+        + state.prepaidsCash + state.accruedInterest)
         - totalLoan - state.totalCredits - state.escrowRefund;
     }
 
     return {
       threeWay, maxBase, actualBase, ufmipAmt, totalLoan, ltv,
       annualMipRate, monthlyPI, monthlyMIP, totalMonthly,
-      ntb, cashToClose, cappedNote
+      ntb, cashToClose, ctcBreakdown, cappedNote
     };
   }
 
@@ -521,7 +535,9 @@
   function renderRefiColumn(prefix, r, ufmipRefund, isNA) {
     if (isNA) {
       const ids = ['maxLoan', 'ufmipRefund', 'ufmip', 'totalLoan', 'ltv',
-        'pi', 'mip', 'total', 'ntb', 'ntbDetail', 'cashToClose'];
+        'pi', 'mip', 'total', 'ntb', 'ntbDetail',
+        'payoff', 'closingCosts', 'prepaids', 'accrued', 'loanCredit',
+        'credits', 'escrowRefund', 'cashToClose'];
       ids.forEach(id => setText(prefix + id, 'N/A'));
       return;
     }
@@ -538,6 +554,16 @@
     setText(prefix + 'total', r.totalMonthly > 0 ? fmt(r.totalMonthly) : '\u2014');
     setHtml(prefix + 'ntb', ntbPillHtml(r.ntb));
     setText(prefix + 'ntbDetail', r.ntb.detail || '');
+
+    // Cash to close breakdown
+    const b = r.ctcBreakdown;
+    setText(prefix + 'payoff', b.payoff > 0 ? fmt(b.payoff) : '$0.00');
+    setText(prefix + 'closingCosts', b.closingCosts > 0 ? fmt(b.closingCosts) : '$0.00');
+    setText(prefix + 'prepaids', b.prepaids > 0 ? fmt(b.prepaids) : '$0.00');
+    setText(prefix + 'accrued', b.accrued > 0 ? fmt(b.accrued) : '$0.00');
+    setText(prefix + 'loanCredit', b.loanCredit > 0 ? '-' + fmt(b.loanCredit) : '$0.00');
+    setText(prefix + 'credits', b.credits > 0 ? '-' + fmt(b.credits) : '$0.00');
+    setText(prefix + 'escrowRefund', b.escrowRefund > 0 ? '-' + fmt(b.escrowRefund) : '$0.00');
     setText(prefix + 'cashToClose', formatCashToClose(r.cashToClose));
   }
 
@@ -612,7 +638,19 @@
       setText('fhaMonthlyMip', r.monthlyMIP > 0 ? fmt(r.monthlyMIP) : '\u2014');
       setText('fhaTotalMonthly', r.totalMonthly > 0 ? fmt(r.totalMonthly) : '\u2014');
 
-      // Cash to close
+      // Cash to close breakdown
+      setText('fhaDownPayment', r.ctcBreakdown.downPayment > 0 ? fmt(r.ctcBreakdown.downPayment) : '$0.00');
+      setText('fhaPrepaidsDisplay', r.ctcBreakdown.prepaids > 0 ? fmt(r.ctcBreakdown.prepaids) : '$0.00');
+      setText('fhaCreditsDisplay', r.ctcBreakdown.credits > 0 ? '-' + fmt(r.ctcBreakdown.credits) : '$0.00');
+      const ufmipOopRow = el('fhaUfmipOopRow');
+      if (ufmipOopRow) {
+        if (r.ctcBreakdown.ufmipOop > 0) {
+          ufmipOopRow.style.display = '';
+          setText('fhaUfmipOop', fmt(r.ctcBreakdown.ufmipOop));
+        } else {
+          ufmipOopRow.style.display = 'none';
+        }
+      }
       setText('fhaCashToClose', formatCashToClose(r.cashToClose));
 
       // Notes
