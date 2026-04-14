@@ -106,10 +106,20 @@
           <input type="number" id="fhaOriginalLoanAmount" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group">
-          <label>Remaining Term (months)
-            <span class="help-icon" data-help="Months remaining on the existing loan.">?</span>
+          <label>Original Loan Term</label>
+          <select id="fhaOriginalTerm">
+            <option value="30" selected>30 Years</option>
+            <option value="25">25 Years</option>
+            <option value="20">20 Years</option>
+            <option value="15">15 Years</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Remaining Term
+            <span class="help-icon" data-help="Auto-calculated from Original Term, First Payment Date, and Current Date. You can override manually.">?</span>
           </label>
-          <input type="number" id="fhaRemainingTerm" step="1" placeholder="e.g. 336">
+          <input type="number" id="fhaRemainingTerm" step="1" placeholder="Auto-calculated">
+          <small id="fhaRemainingTermNote"></small>
         </div>
       </div>
     </div>

@@ -111,6 +111,7 @@
       currentLoanType:    txt('fhaCurrentLoanType'),
       currentMipRate:     0, // auto-calculated in recalculate()
       originalLoanAmount: val('fhaOriginalLoanAmount'),
+      originalTerm:       parseInt(txt('fhaOriginalTerm'), 10) || 30,
       remainingTerm:      val('fhaRemainingTerm'),
       endorsementDate:    txt('fhaEndorsementDate'),
       firstPaymentDate:   txt('fhaFirstPaymentDate'),
@@ -568,9 +569,29 @@
   }
 
   /* ===========================================================
+     Auto-calculate Remaining Term from dates + original term
+     =========================================================== */
+  let remainingTermManual = false; // track if user manually edited
+
+  function autoCalcRemainingTerm() {
+    if (remainingTermManual) return; // user overrode — don't touch
+    const fpd = txt('fhaFirstPaymentDate');
+    const cd  = txt('fhaCurrentDate');
+    const origYears = parseInt(txt('fhaOriginalTerm'), 10) || 30;
+    if (!fpd || !cd) return;
+    const elapsed = monthsBetweenDates(fpd, cd);
+    const remaining = Math.max(0, origYears * 12 - elapsed);
+    const remEl = el('fhaRemainingTerm');
+    if (remEl) remEl.value = remaining;
+    const noteEl = el('fhaRemainingTermNote');
+    if (noteEl) noteEl.textContent = origYears * 12 + ' mo − ' + elapsed + ' elapsed = ' + remaining + ' mo';
+  }
+
+  /* ===========================================================
      Main Recalculate — Live Calc
      =========================================================== */
   function recalculate() {
+    autoCalcRemainingTerm();
     const state = readInputs();
     const notes = [];
     const isRefi = loanMode === 'refi';
@@ -1036,6 +1057,9 @@
       }
       field.classList.remove('is-default');
       field.classList.add('mismo-populated');
+
+      // If MISMO provides remaining term, treat as manual override
+      if (id === 'fhaRemainingTerm' && value) remainingTermManual = true;
     }
 
     // Trigger recalculation after MISMO data is applied
@@ -1217,7 +1241,7 @@
     // Also bind change events for selects, checkboxes, and date inputs
     const changeSelectors = [
       'fhaPropertyType', 'fhaNewTerm', 'fhaNewLoanType',
-      'fhaCurrentLoanType',
+      'fhaCurrentLoanType', 'fhaOriginalTerm',
       'fhaEndorsementDate', 'fhaFirstPaymentDate', 'fhaCurrentDate'
     ];
     changeSelectors.forEach(id => {
@@ -1231,6 +1255,12 @@
       const e = el(id);
       if (e) e.addEventListener('change', recalculate);
     });
+
+    // Track manual remaining term edits (stop auto-calc if user overrides)
+    const remTermEl = el('fhaRemainingTerm');
+    if (remTermEl) {
+      remTermEl.addEventListener('focus', () => { remainingTermManual = true; });
+    }
 
     // Reset refund table button
     const resetBtn = el('fhaResetRefundBtn');
