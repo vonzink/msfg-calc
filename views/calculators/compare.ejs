@@ -6,9 +6,32 @@
 
   <div class="calc-page__body">
 
+    <!-- ============ Top Controls ============ -->
+    <div class="calc-section cmp-controls">
+      <div class="cmp-controls__row">
+        <div class="cmp-toggle">
+          <button type="button" class="cmp-toggle-btn active" data-mode="Purchase">Purchase</button>
+          <button type="button" class="cmp-toggle-btn" data-mode="Refinance">Refinance</button>
+        </div>
+        <label class="form-check cmp-existing-check">
+          <input type="checkbox" id="cmpIncludeExisting">
+          Include Existing Loan
+        </label>
+      </div>
+      <div class="cmp-controls__row cmp-controls__templates">
+        <div class="cmp-template-group">
+          <select id="cmpTemplateSelect">
+            <option value="">Load Template...</option>
+          </select>
+          <button type="button" class="btn btn-sm" id="cmpLoadTemplateBtn">Load</button>
+          <button type="button" class="btn btn-sm" id="cmpDeleteTemplateBtn" title="Delete selected template">&times;</button>
+        </div>
+        <button type="button" class="btn btn-sm btn-primary" id="cmpSaveTemplateBtn">Save Template</button>
+      </div>
+    </div>
+
     <!-- ============ Shared Info ============ -->
     <div class="calc-section">
-      <h2>Loan Information</h2>
       <div class="cmp-info-bar">
         <div class="form-group">
           <label for="cmpBorrower">Borrower(s)</label>
@@ -26,282 +49,332 @@
           <label for="cmpPrepDate">Preparation Date</label>
           <input type="date" id="cmpPrepDate">
         </div>
+        <div class="form-group">
+          <label for="cmpOccupancy">Occupancy</label>
+          <select id="cmpOccupancy">
+            <option value="Primary">Primary Residence</option>
+            <option value="Secondary">Second Home</option>
+            <option value="Investment">Investment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cmpPropType">Property Type</label>
+          <select id="cmpPropType">
+            <option value="SFR">Single Family</option>
+            <option value="Condo">Condo</option>
+            <option value="Townhome">Townhome</option>
+            <option value="2-4 Unit">2-4 Unit</option>
+            <option value="Manufactured">Manufactured</option>
+          </select>
+        </div>
       </div>
     </div>
 
     <!-- ============ Comparison Table ============ -->
-    <div class="calc-section">
-      <h2>Comparison</h2>
-      <div class="cmp-table-wrap">
-        <table class="cmp-table" id="cmpTable">
-          <thead>
-            <tr id="cmpHeaderRow">
-              <th></th>
-              <!-- Loan 1 column header -->
-              <th class="cmp-col-th" data-col="1">
-                <div class="cmp-col-header">
-                  <input type="text" class="cmp-col-label" id="cmpLabel_1" value="Loan 1">
-                </div>
-              </th>
-              <!-- Add Loan button column -->
-              <th class="cmp-add-col" id="cmpAddCol">
-                <button type="button" class="btn btn-primary btn-sm cmp-add-btn" id="cmpAddBtn">+ Add Loan</button>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="cmpBody">
+    <div class="cmp-table-wrap">
+      <table class="cmp-table" id="cmpTable">
+        <thead>
+          <tr id="cmpHeaderRow">
+            <th class="cmp-label-col"></th>
+            <th class="cmp-col-th" data-col="1">
+              <div class="cmp-col-header">
+                <input type="text" class="cmp-col-label" id="cmpLabel_1" value="Loan 1">
+              </div>
+            </th>
+            <th class="cmp-add-col" id="cmpAddCol">
+              <button type="button" class="btn btn-sm cmp-add-btn" id="cmpAddBtn">+ Add Loan</button>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="cmpBody">
 
-            <!-- ======== COMPACT: Key Metrics (always visible) ======== -->
-            <tr data-row="loanAmount">
-              <td>Loan Amount</td>
-              <td><input type="number" class="cmp-input" id="cmpLoanAmount_1" value="0" min="0" step="1000"></td>
-            </tr>
-            <tr data-row="propertyValue">
-              <td>Property Value</td>
-              <td><input type="number" class="cmp-input" id="cmpPropertyValue_1" value="0" min="0" step="1000"></td>
-            </tr>
-            <tr data-row="rate">
-              <td>Interest Rate (%)</td>
-              <td><input type="number" class="cmp-input cmp-input--sm" id="cmpRate_1" value="0" min="0" max="20" step="0.125"></td>
-            </tr>
-            <tr data-row="term">
-              <td>Term (Months)</td>
-              <td><input type="number" class="cmp-input cmp-input--sm" id="cmpTerm_1" value="360" min="0" max="600" step="1"></td>
-            </tr>
-            <tr data-row="product">
-              <td>Product</td>
-              <td><input type="text" class="cmp-input u-text-left" id="cmpProduct_1" placeholder="e.g. Conv 30yr"></td>
-            </tr>
-            <tr data-row="purpose">
-              <td>Loan Purpose</td>
-              <td>
-                <select class="cmp-input u-text-left" id="cmpPurpose_1">
-                  <option value="Purchase">Purchase</option>
-                  <option value="Refinance">Refinance</option>
-                  <option value="NoCashOutRefinance">No Cash Out Refinance</option>
-                  <option value="CashOutRefinance">Cash Out Refinance</option>
-                  <option value="Construction">Construction</option>
-                  <option value="ConstructionPerm">Construction-Perm</option>
-                </select>
-              </td>
-            </tr>
-            <tr class="cmp-subtotal-row" data-row="monthlyPI">
-              <td>Monthly P&I</td>
-              <td><input type="number" class="cmp-input cmp-computed" id="cmpMonthlyPI_1" value="0" min="0" step="0.01"></td>
-            </tr>
+          <!-- ═══════ LOAN SUMMARY ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">Loan Summary</td></tr>
+          <tr data-row="product">
+            <td>Product</td>
+            <td><input type="text" class="cmp-input u-text-left" id="cmpProduct_1" placeholder="e.g. Conv 30yr Fixed"></td>
+          </tr>
+          <tr data-row="propertyValue">
+            <td>Property Value</td>
+            <td><input type="number" class="cmp-input" id="cmpPropertyValue_1" value="0" min="0" step="1000"></td>
+          </tr>
+          <tr data-row="loanAmount">
+            <td>Base Loan Amount</td>
+            <td><input type="number" class="cmp-input" id="cmpLoanAmount_1" value="0" min="0" step="1000"></td>
+          </tr>
+          <tr data-row="fhaUfmip" class="cmp-fha-row">
+            <td>FHA UFMIP (1.75%)</td>
+            <td>
+              <div class="cmp-ufmip-cell">
+                <label class="cmp-ufmip-toggle"><input type="checkbox" id="cmpFinanceUfmip_1"> Finance</label>
+                <span class="cmp-computed" id="cmpUfmipAmount_1">$0</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="cmp-key-row" data-row="totalLoanAmount">
+            <td>Total Loan Amount</td>
+            <td><span class="cmp-computed cmp-key-value" id="cmpTotalLoanAmount_1">$0</span></td>
+          </tr>
+          <tr class="cmp-key-row" data-row="rate">
+            <td>Interest Rate (%)</td>
+            <td><input type="number" class="cmp-input cmp-input--rate" id="cmpRate_1" value="0" min="0" max="20" step="0.125"></td>
+          </tr>
+          <tr data-row="term">
+            <td>Term (Months)</td>
+            <td><input type="number" class="cmp-input cmp-input--sm" id="cmpTerm_1" value="360" min="0" max="600" step="1"></td>
+          </tr>
+          <tr data-row="ltv">
+            <td>LTV</td>
+            <td><span class="cmp-computed" id="cmpLtv_1">&mdash;</span></td>
+          </tr>
+          <tr class="cmp-key-row" data-row="monthlyPI">
+            <td>Monthly P&amp;I</td>
+            <td><span class="cmp-computed cmp-key-value" id="cmpMonthlyPI_1">$0</span></td>
+          </tr>
 
-            <!-- ======== DETAIL: Origination Fees ======== -->
-            <tr class="cmp-section-row" data-section="origination">
-              <td colspan="99">Origination Charges <span class="cmp-section-toggle">&#9660;</span></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="origFee">
-              <td>Origination Fee</td>
-              <td><input type="number" class="cmp-input" id="cmpOrigFee_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="discountPts">
-              <td>Discount Points</td>
-              <td><input type="number" class="cmp-input" id="cmpDiscountPts_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="processingFee">
-              <td>Processing Fee</td>
-              <td><input type="number" class="cmp-input" id="cmpProcessingFee_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="origination" data-row="underwritingFee">
-              <td>Underwriting Fee</td>
-              <td><input type="number" class="cmp-input" id="cmpUnderwritingFee_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="origination" data-row="origTotal">
-              <td>Origination Total</td>
-              <td><span class="cmp-computed" id="cmpOrigTotal_1">$0</span></td>
-            </tr>
+          <!-- ═══════ A. ORIGINATION CHARGES ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">A. Origination Charges</td></tr>
+          <tr data-row="origFee" data-section="origination">
+            <td>Origination Fee</td>
+            <td><input type="number" class="cmp-input" id="cmpOrigFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="discountPts" data-section="origination">
+            <td>Discount Points</td>
+            <td><input type="number" class="cmp-input" id="cmpDiscountPts_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="processingFee" data-section="origination">
+            <td>Processing Fee</td>
+            <td><input type="number" class="cmp-input" id="cmpProcessingFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="underwritingFee" data-section="origination">
+            <td>Underwriting Fee</td>
+            <td><input type="number" class="cmp-input" id="cmpUnderwritingFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row" data-row="origTotal" data-section="origination">
+            <td>Origination Total</td>
+            <td><span class="cmp-computed" id="cmpOrigTotal_1">$0</span></td>
+          </tr>
 
-            <!-- ======== DETAIL: Third-Party Fees ======== -->
-            <tr class="cmp-section-row" data-section="thirdParty">
-              <td colspan="99">Third-Party Fees <span class="cmp-section-toggle">&#9660;</span></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="appraisalFee">
-              <td>Appraisal Fee</td>
-              <td><input type="number" class="cmp-input" id="cmpAppraisalFee_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="creditReportFee">
-              <td>Credit Report Fee</td>
-              <td><input type="number" class="cmp-input" id="cmpCreditReportFee_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="titleFees">
-              <td>Title / Settlement</td>
-              <td><input type="number" class="cmp-input" id="cmpTitleFees_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="thirdParty" data-row="otherThirdParty">
-              <td>Other Third-Party</td>
-              <td><input type="number" class="cmp-input" id="cmpOtherThirdParty_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="thirdParty" data-row="thirdPartyTotal">
-              <td>Third-Party Total</td>
-              <td><span class="cmp-computed" id="cmpThirdPartyTotal_1">$0</span></td>
-            </tr>
+          <!-- ═══════ B. SERVICES YOU CANNOT SHOP FOR ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">B. Services You Cannot Shop For</td></tr>
+          <tr data-row="appraisalFee" data-section="cannotShop">
+            <td>Appraisal</td>
+            <td><input type="number" class="cmp-input" id="cmpAppraisalFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="creditReportFee" data-section="cannotShop">
+            <td>Credit Report</td>
+            <td><input type="number" class="cmp-input" id="cmpCreditReportFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="floodCert" data-section="cannotShop">
+            <td>Flood Certification</td>
+            <td><input type="number" class="cmp-input" id="cmpFloodCert_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="taxService" data-section="cannotShop">
+            <td>Tax Service Fee</td>
+            <td><input type="number" class="cmp-input" id="cmpTaxService_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row" data-row="cannotShopTotal" data-section="cannotShop">
+            <td>Cannot-Shop Total</td>
+            <td><span class="cmp-computed" id="cmpCannotShopTotal_1">$0</span></td>
+          </tr>
 
-            <!-- ======== DETAIL: Government Fees ======== -->
-            <tr class="cmp-section-row" data-section="government">
-              <td colspan="99">Government Fees <span class="cmp-section-toggle">&#9660;</span></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="government" data-row="recordingFee">
-              <td>Recording Fee</td>
-              <td><input type="number" class="cmp-input" id="cmpRecordingFee_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="government" data-row="transferTax">
-              <td>Transfer Tax</td>
-              <td><input type="number" class="cmp-input" id="cmpTransferTax_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="government" data-row="govTotal">
-              <td>Government Total</td>
-              <td><span class="cmp-computed" id="cmpGovTotal_1">$0</span></td>
-            </tr>
+          <!-- ═══════ C. SERVICES YOU CAN SHOP FOR ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">C. Services You Can Shop For</td></tr>
+          <tr data-row="titleSearch" data-section="canShop">
+            <td>Title Search / Exam</td>
+            <td><input type="number" class="cmp-input" id="cmpTitleSearch_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="titleInsurance" data-section="canShop">
+            <td>Title Insurance</td>
+            <td><input type="number" class="cmp-input" id="cmpTitleInsurance_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="settlementFee" data-section="canShop">
+            <td>Settlement / Closing Fee</td>
+            <td><input type="number" class="cmp-input" id="cmpSettlementFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="surveyFee" data-section="canShop">
+            <td>Survey</td>
+            <td><input type="number" class="cmp-input" id="cmpSurveyFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="pestInspection" data-section="canShop">
+            <td>Pest Inspection</td>
+            <td><input type="number" class="cmp-input" id="cmpPestInspection_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row" data-row="canShopTotal" data-section="canShop">
+            <td>Can-Shop Total</td>
+            <td><span class="cmp-computed" id="cmpCanShopTotal_1">$0</span></td>
+          </tr>
 
-            <!-- ======== DETAIL: Prepaids ======== -->
-            <tr class="cmp-section-row" data-section="prepaids">
-              <td colspan="99">Prepaids <span class="cmp-section-toggle">&#9660;</span></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="prepaids" data-row="prepaidInsurance">
-              <td>Prepaid Insurance</td>
-              <td><input type="number" class="cmp-input" id="cmpPrepaidInsurance_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="prepaids" data-row="prepaidInterest">
-              <td>Prepaid Interest</td>
-              <td><input type="number" class="cmp-input" id="cmpPrepaidInterest_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="prepaids" data-row="prepaidsTotal">
-              <td>Prepaids Total</td>
-              <td><span class="cmp-computed" id="cmpPrepaidsTotal_1">$0</span></td>
-            </tr>
+          <!-- ═══════ D. TAXES & GOVERNMENT FEES ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">D. Taxes &amp; Government Fees</td></tr>
+          <tr data-row="recordingFee" data-section="government">
+            <td>Recording Fee</td>
+            <td><input type="number" class="cmp-input" id="cmpRecordingFee_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="transferTax" data-section="government">
+            <td>Transfer Tax</td>
+            <td><input type="number" class="cmp-input" id="cmpTransferTax_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row" data-row="govTotal" data-section="government">
+            <td>Government Total</td>
+            <td><span class="cmp-computed" id="cmpGovTotal_1">$0</span></td>
+          </tr>
 
-            <!-- ======== DETAIL: Escrow ======== -->
-            <tr class="cmp-section-row" data-section="escrow">
-              <td colspan="99">Escrow Deposits <span class="cmp-section-toggle">&#9660;</span></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="escrow" data-row="escrowTax">
-              <td>Escrow Tax Deposit</td>
-              <td><input type="number" class="cmp-input" id="cmpEscrowTax_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="escrow" data-row="escrowInsurance">
-              <td>Escrow Insurance Deposit</td>
-              <td><input type="number" class="cmp-input" id="cmpEscrowInsurance_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="escrow" data-row="escrowTotal">
-              <td>Escrow Total</td>
-              <td><span class="cmp-computed" id="cmpEscrowTotal_1">$0</span></td>
-            </tr>
+          <!-- ═══════ E. PREPAIDS ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">E. Prepaids</td></tr>
+          <tr data-row="prepaidInsurance" data-section="prepaids">
+            <td>Homeowners Insurance</td>
+            <td><input type="number" class="cmp-input" id="cmpPrepaidInsurance_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="prepaidInterest" data-section="prepaids">
+            <td>Prepaid Interest</td>
+            <td><input type="number" class="cmp-input" id="cmpPrepaidInterest_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row" data-row="prepaidsTotal" data-section="prepaids">
+            <td>Prepaids Total</td>
+            <td><span class="cmp-computed" id="cmpPrepaidsTotal_1">$0</span></td>
+          </tr>
 
-            <!-- ======== DETAIL: Payoffs ======== -->
-            <tr class="cmp-section-row" data-section="payoffs">
-              <td colspan="99">Payoffs <span class="cmp-section-toggle">&#9660;</span></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="payoffs" data-row="payoff1stMortgage">
-              <td>1st Mortgage Payoff</td>
-              <td><input type="number" class="cmp-input" id="cmpPayoff1stMortgage_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="payoffs" data-row="payoff2ndMortgage">
-              <td>2nd Mortgage Payoff</td>
-              <td><input type="number" class="cmp-input" id="cmpPayoff2ndMortgage_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="payoffs" data-row="payoffOther">
-              <td>Other Payoffs</td>
-              <td><input type="number" class="cmp-input" id="cmpPayoffOther_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden cmp-subtotal-row" data-section="payoffs" data-row="payoffsTotal">
-              <td>Total Payoffs</td>
-              <td><span class="cmp-computed" id="cmpPayoffsTotal_1">$0</span></td>
-            </tr>
+          <!-- ═══════ F. INITIAL ESCROW ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">F. Initial Escrow Deposit</td></tr>
+          <tr data-row="escrowTax" data-section="escrow">
+            <td>Property Tax</td>
+            <td><input type="number" class="cmp-input" id="cmpEscrowTax_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="escrowInsurance" data-section="escrow">
+            <td>Homeowners Insurance</td>
+            <td><input type="number" class="cmp-input" id="cmpEscrowInsurance_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="escrowMI" data-section="escrow">
+            <td>Mortgage Insurance</td>
+            <td><input type="number" class="cmp-input" id="cmpEscrowMI_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row" data-row="escrowTotal" data-section="escrow">
+            <td>Escrow Total</td>
+            <td><span class="cmp-computed" id="cmpEscrowTotal_1">$0</span></td>
+          </tr>
 
-            <!-- ======== COMPACT: Closing Cost Summary ======== -->
-            <tr class="cmp-subtotal-row" data-row="totalClosing">
-              <td>Total Closing Costs</td>
-              <td><span class="cmp-computed" id="cmpTotalClosing_1">$0</span></td>
-            </tr>
-            <tr data-row="downPayment">
-              <td>Down Payment</td>
-              <td><input type="number" class="cmp-input" id="cmpDownPayment_1" value="0" min="0" step="1000"></td>
-            </tr>
-            <tr data-row="sellerCredits">
-              <td>Seller Credits</td>
-              <td><input type="number" class="cmp-input" id="cmpSellerCredits_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr data-row="lenderCredits">
-              <td>Lender Credits</td>
-              <td><input type="number" class="cmp-input" id="cmpLenderCredits_1" value="0" min="0" step="1"></td>
-            </tr>
-            <tr class="cmp-total-row" data-row="cashToClose">
-              <td>Cash to Close</td>
-              <td><span id="cmpCashToClose_1">$0</span></td>
-            </tr>
+          <!-- ═══════ G. OTHER ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">G. Other Costs</td></tr>
+          <tr data-row="otherFees" data-section="other">
+            <td>Other Fees</td>
+            <td><input type="number" class="cmp-input" id="cmpOtherFees_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row" data-row="otherTotal" data-section="other">
+            <td>Other Total</td>
+            <td><span class="cmp-computed" id="cmpOtherTotal_1">$0</span></td>
+          </tr>
 
-            <!-- ======== DETAIL: Monthly Breakdown ======== -->
-            <tr class="cmp-section-row" data-section="monthly">
-              <td colspan="99">Monthly Payment Breakdown <span class="cmp-section-toggle">&#9660;</span></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyTax">
-              <td>Property Tax</td>
-              <td><input type="number" class="cmp-input" id="cmpMonthlyTax_1" value="0" min="0" step="0.01"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyInsurance">
-              <td>Hazard Insurance</td>
-              <td><input type="number" class="cmp-input" id="cmpMonthlyInsurance_1" value="0" min="0" step="0.01"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyMI">
-              <td>Mortgage Insurance</td>
-              <td><input type="number" class="cmp-input" id="cmpMonthlyMI_1" value="0" min="0" step="0.01"></td>
-            </tr>
-            <tr class="cmp-detail-row cmp-detail-row--hidden" data-section="monthly" data-row="monthlyHOA">
-              <td>HOA</td>
-              <td><input type="number" class="cmp-input" id="cmpMonthlyHOA_1" value="0" min="0" step="0.01"></td>
-            </tr>
-            <tr class="cmp-total-row" data-row="totalMonthly">
-              <td>Total Monthly Payment</td>
-              <td><span id="cmpTotalMonthly_1">$0</span></td>
-            </tr>
+          <!-- ═══════ TOTAL CLOSING COSTS ═══════ -->
+          <tr class="cmp-grand-row" data-row="totalClosing">
+            <td>Total Closing Costs (A-G)</td>
+            <td><span class="cmp-computed" id="cmpTotalClosing_1">$0</span></td>
+          </tr>
 
-            <!-- ======== COMPACT: Totals ======== -->
-            <tr data-row="APR">
-              <td>APR (%)</td>
-              <td><input type="number" class="cmp-input cmp-input--sm cmp-computed" id="cmpAPR_1" value="0" min="0" max="100" step="0.001"></td>
-            </tr>
-            <tr data-row="notes">
-              <td>Notes</td>
-              <td class="cmp-loan-cell"><textarea class="cmp-notes" id="cmpNotes_1" rows="3" placeholder="Loan notes..."></textarea></td>
-            </tr>
+          <!-- ═══════ PAYOFFS (refi only) ═══════ -->
+          <tr class="cmp-section-hdr cmp-refi-only"><td colspan="99">Payoffs</td></tr>
+          <tr data-row="payoff1st" class="cmp-refi-only">
+            <td>1st Mortgage Payoff</td>
+            <td><input type="number" class="cmp-input" id="cmpPayoff1st_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="payoff2nd" class="cmp-refi-only">
+            <td>2nd Mortgage Payoff</td>
+            <td><input type="number" class="cmp-input" id="cmpPayoff2nd_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="payoffOther" class="cmp-refi-only">
+            <td>Other Payoffs</td>
+            <td><input type="number" class="cmp-input" id="cmpPayoffOther_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-sub-row cmp-refi-only" data-row="payoffsTotal">
+            <td>Total Payoffs</td>
+            <td><span class="cmp-computed" id="cmpPayoffsTotal_1">$0</span></td>
+          </tr>
 
-          </tbody>
-        </table>
-      </div>
+          <!-- ═══════ CASH TO CLOSE ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">Cash to Close</td></tr>
+          <tr data-row="downPayment" class="cmp-purchase-only">
+            <td>Down Payment</td>
+            <td><input type="number" class="cmp-input" id="cmpDownPayment_1" value="0" min="0" step="1000"></td>
+          </tr>
+          <tr data-row="earnestMoney" class="cmp-purchase-only">
+            <td>Earnest Money (credit)</td>
+            <td><input type="number" class="cmp-input" id="cmpEarnestMoney_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="lenderCredits">
+            <td>Lender Credits</td>
+            <td><input type="number" class="cmp-input" id="cmpLenderCredits_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="sellerConcessions">
+            <td>Seller / Agent Concessions</td>
+            <td><input type="number" class="cmp-input" id="cmpSellerConcessions_1" value="0" min="0" step="1"></td>
+          </tr>
+          <tr class="cmp-total-row" data-row="cashToClose">
+            <td>Est. Cash to Close</td>
+            <td><span class="cmp-key-value" id="cmpCashToClose_1">$0</span></td>
+          </tr>
+
+          <!-- ═══════ MONTHLY PAYMENT ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">Monthly Payment</td></tr>
+          <tr data-row="monthlyPIRow">
+            <td>Principal &amp; Interest</td>
+            <td><span class="cmp-computed" id="cmpMonthlyPIRow_1">$0</span></td>
+          </tr>
+          <tr data-row="monthlyTax">
+            <td>Property Tax</td>
+            <td><input type="number" class="cmp-input" id="cmpMonthlyTax_1" value="0" min="0" step="0.01"></td>
+          </tr>
+          <tr data-row="monthlyInsurance">
+            <td>Homeowners Insurance</td>
+            <td><input type="number" class="cmp-input" id="cmpMonthlyInsurance_1" value="0" min="0" step="0.01"></td>
+          </tr>
+          <tr data-row="monthlyMI">
+            <td>Mortgage Insurance</td>
+            <td><input type="number" class="cmp-input" id="cmpMonthlyMI_1" value="0" min="0" step="0.01"></td>
+          </tr>
+          <tr data-row="monthlyHOA">
+            <td>HOA</td>
+            <td><input type="number" class="cmp-input" id="cmpMonthlyHOA_1" value="0" min="0" step="0.01"></td>
+          </tr>
+          <tr class="cmp-total-row" data-row="totalMonthly">
+            <td>Total Monthly Payment</td>
+            <td><span class="cmp-key-value" id="cmpTotalMonthly_1">$0</span></td>
+          </tr>
+
+          <!-- ═══════ APR & NOTES ═══════ -->
+          <tr class="cmp-section-hdr"><td colspan="99">Additional</td></tr>
+          <tr class="cmp-key-row" data-row="APR">
+            <td>APR (%)</td>
+            <td><input type="number" class="cmp-input cmp-input--rate cmp-computed" id="cmpAPR_1" value="0" min="0" max="100" step="0.001"></td>
+          </tr>
+          <tr data-row="notes">
+            <td>Notes</td>
+            <td class="cmp-loan-cell"><textarea class="cmp-notes" id="cmpNotes_1" rows="2" placeholder="Loan notes..."></textarea></td>
+          </tr>
+
+        </tbody>
+      </table>
     </div>
 
     <!-- Add Custom Line Item -->
     <div class="cmp-add-item" id="cmpAddItemBar">
-      <h3>Add Custom Line Item</h3>
       <div class="cmp-add-item__form">
-        <div class="form-group">
-          <label for="cmpNewItemSection">Section</label>
-          <select id="cmpNewItemSection">
-            <option value="origination">Origination Charges</option>
-            <option value="thirdParty">Third-Party Fees</option>
-            <option value="government">Government Fees</option>
-            <option value="prepaids">Prepaids</option>
-            <option value="escrow">Escrow Deposits</option>
-            <option value="payoffs">Payoffs</option>
-            <option value="monthly">Monthly Payment</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="cmpNewItemName">Item Name</label>
-          <input type="text" id="cmpNewItemName" placeholder="e.g. Survey Fee">
-        </div>
-        <button type="button" class="btn btn-primary btn-sm" id="cmpAddItemBtn">+ Add Item</button>
+        <select id="cmpNewItemSection" class="cmp-add-item__select">
+          <option value="origination">A. Origination</option>
+          <option value="cannotShop">B. Cannot Shop</option>
+          <option value="canShop">C. Can Shop</option>
+          <option value="government">D. Government</option>
+          <option value="prepaids">E. Prepaids</option>
+          <option value="escrow">F. Escrow</option>
+          <option value="other">G. Other</option>
+          <option value="monthly">Monthly Payment</option>
+        </select>
+        <input type="text" id="cmpNewItemName" placeholder="Custom item name...">
+        <button type="button" class="btn btn-sm" id="cmpAddItemBtn">+ Add</button>
       </div>
     </div>
 
-    <!-- Action Bar -->
     <%- include('../partials/calc-actions') %>
 
-    <!-- Disclaimer -->
     <div class="cmp-disclaimer">
       <p><em>Your actual rate, payment, and cost could be higher. Get an official Loan Estimate before choosing a loan.</em></p>
     </div>
@@ -310,6 +383,6 @@
 
   <div class="calc-page__footer">
     <div class="calc-page__footer-title">Disclaimers</div>
-    <p>Information provided above reflects estimates only. Actual charges may vary. This is not a commitment to lend. Before closing, your interest rate, points, and lender credits can change unless you lock the interest rate.</p>
+    <p>Information provided reflects estimates only. Actual charges may vary. This is not a commitment to lend.</p>
   </div>
 </div>

@@ -2,6 +2,45 @@
 
 /* MISMO drop zone → uses shared .mismo-drop in components.css */
 
+/* ---- Purchase / Refi toggle ---- */
+.fha-loan-toggle {
+  display: inline-flex;
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.fha-toggle-btn {
+  padding: 8px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border: none;
+  background: #fff;
+  color: var(--brand-primary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.fha-toggle-btn + .fha-toggle-btn {
+  border-left: 2px solid var(--brand-primary);
+}
+
+.fha-toggle-btn.active {
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.fha-toggle-btn:hover:not(.active) {
+  background: var(--color-gray-100);
+}
+
+/* ---- Cash to close warning (rate/term > $150) ---- */
+.fha-cash-warning {
+  color: #c62828 !important;
+  font-weight: 700 !important;
+}
+
 /* ---- Notes heading ---- */
 .fha-notes-heading {
   font-size: 0.95rem;

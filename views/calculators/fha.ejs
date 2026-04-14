@@ -15,6 +15,13 @@
     <!-- Section 1: Borrower & Property -->
     <div class="calc-section">
       <h2>Borrower &amp; Property</h2>
+
+      <!-- Purchase / Refi Toggle -->
+      <div class="fha-loan-toggle u-mb-md">
+        <button type="button" class="fha-toggle-btn active" data-mode="purchase">Purchase</button>
+        <button type="button" class="fha-toggle-btn" data-mode="refi">Refinance</button>
+      </div>
+
       <div class="form-grid">
         <div class="form-group">
           <label>Borrower Name</label>
@@ -32,12 +39,11 @@
           </label>
           <input type="number" id="fhaAppraisedValue" step="0.01" placeholder="0.00">
         </div>
-        <div class="form-group">
+        <div class="form-group fha-purchase-only">
           <label>Purchase Price
             <span class="help-icon" data-help="For purchases, FHA uses the lesser of purchase price or appraised value.">?</span>
           </label>
           <input type="number" id="fhaPurchasePrice" step="0.01" placeholder="0.00">
-          <small>Leave blank if not a purchase</small>
         </div>
         <div class="form-group">
           <label>Property Type
@@ -53,7 +59,7 @@
     </div>
 
     <!-- Section 2: Current Loan -->
-    <div class="calc-section">
+    <div class="calc-section fha-refi-only" style="display:none;">
       <h2>Current Loan</h2>
       <div class="u-mb-md">
         <label class="form-check">
@@ -105,7 +111,7 @@
     </div>
 
     <!-- Section 3: Dates & Seasoning -->
-    <div class="calc-section">
+    <div class="calc-section fha-refi-only" style="display:none;">
       <h2>Loan Dates &amp; Seasoning</h2>
       <div class="form-grid">
         <div class="form-group">
@@ -143,7 +149,7 @@
     </div>
 
     <!-- Section 4: UFMIP Refund Table (collapsible) -->
-    <div class="calc-section">
+    <div class="calc-section fha-refi-only" style="display:none;">
       <div class="fha-collapsible-header" data-target="fhaRefundBody">
         <h2>UFMIP Refund Table</h2>
         <span class="fha-collapse-icon collapsed">&#9660;</span>
@@ -172,7 +178,7 @@
     </div>
 
     <!-- Section 5: Closing Costs (collapsible sub-groups) -->
-    <div class="calc-section">
+    <div class="calc-section fha-refi-only" style="display:none;">
       <div class="fha-collapsible-header" data-target="fhaCostsBody">
         <h2>Closing Costs (Itemized)</h2>
         <span class="fha-collapse-icon collapsed">&#9660;</span>
@@ -337,7 +343,7 @@
           </label>
           <input type="number" id="fhaTotalCredits" step="0.01" placeholder="0.00">
         </div>
-        <div class="form-group">
+        <div class="form-group fha-refi-only" style="display:none;">
           <label>Escrow Refund from Current Loan
             <span class="help-icon" data-help="Escrow balance refunded by your current servicer after payoff (refi only).">?</span>
           </label>

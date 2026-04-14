@@ -584,16 +584,7 @@
       if (data.loan.loanIdentifier) m['cmpFileNumber'] = data.loan.loanIdentifier;
     }
 
-    // Purpose
-    if (data.loan.purpose) {
-      var purposeMap = {
-        'Refinance': 'Refinance', 'Purchase': 'Purchase',
-        'NoCash-OutRefinance': 'NoCashOutRefinance', 'NoCashOutRefinance': 'NoCashOutRefinance',
-        'CashOutRefinance': 'CashOutRefinance', 'Cash-OutRefinance': 'CashOutRefinance',
-        'Construction': 'Construction', 'ConstructionToPermanent': 'ConstructionPerm', 'ConstructionPerm': 'ConstructionPerm'
-      };
-      if (purposeMap[data.loan.purpose]) m['cmpPurpose_' + idx] = purposeMap[data.loan.purpose];
-    }
+    // Purpose — no longer per-loan; set on the global toggle via JS if needed
 
     // Product
     if (data.loan.productName) {
@@ -629,25 +620,25 @@
     var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
     if (creditAmt) m['cmpCreditReportFee_' + idx] = creditAmt;
 
-    // Title & settlement combined
-    var titleTotal = 0;
-    titleTotal += feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
-    titleTotal += feeAmt(fees, 'SettlementFee', 'Settlement Fee', 'Title - Settlement Fee');
-    titleTotal += feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
-    titleTotal += feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
-    titleTotal += feeAmt(fees, 'TitleOwnersCoveragePremium', 'Title - Owners Coverage Premium');
-    if (titleTotal) m['cmpTitleFees_' + idx] = titleTotal;
+    // Services you cannot shop for — flood cert & tax service
+    var floodAmt = feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
+    if (floodAmt) m['cmpFloodCert_' + idx] = floodAmt;
+    var taxSvcAmt = feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
+    if (taxSvcAmt) m['cmpTaxService_' + idx] = taxSvcAmt;
 
-    // Other third-party
-    var otherTP = 0;
-    otherTP += feeAmt(fees, 'Technology Fee', 'TechnologyFee');
-    otherTP += feeAmt(fees, 'VerificationOfEmploymentFee', 'Verification Of Employment Fee');
-    otherTP += feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
-    otherTP += feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
-    otherTP += feeAmt(fees, 'MERSRegistrationFee', 'MERS Registration Fee');
-    otherTP += feeAmt(fees, 'WireTransferFee', 'Wire Transfer Fee');
-    otherTP += feeAmt(fees, 'E-Recording Fee', 'ERecordingFee');
-    if (otherTP) m['cmpOtherThirdParty_' + idx] = otherTP;
+    // Services you can shop for — title & settlement
+    var titleSearchAmt = 0;
+    titleSearchAmt += feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
+    titleSearchAmt += feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
+    if (titleSearchAmt) m['cmpTitleSearch_' + idx] = titleSearchAmt;
+
+    var titleInsAmt = 0;
+    titleInsAmt += feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
+    titleInsAmt += feeAmt(fees, 'TitleOwnersCoveragePremium', 'Title - Owners Coverage Premium');
+    if (titleInsAmt) m['cmpTitleInsurance_' + idx] = titleInsAmt;
+
+    var settlementAmt = feeAmt(fees, 'SettlementFee', 'Settlement Fee', 'Title - Settlement Fee');
+    if (settlementAmt) m['cmpSettlementFee_' + idx] = settlementAmt;
 
     // Government fees
     var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
@@ -657,7 +648,7 @@
 
     // Seller / Lender credits
     if (data.closingCostFunds) {
-      if (data.closingCostFunds.sellerCredits) m['cmpSellerCredits_' + idx] = data.closingCostFunds.sellerCredits;
+      if (data.closingCostFunds.sellerCredits) m['cmpSellerConcessions_' + idx] = data.closingCostFunds.sellerCredits;
       if (data.closingCostFunds.lenderCredits) m['cmpLenderCredits_' + idx] = data.closingCostFunds.lenderCredits;
     }
 
@@ -692,8 +683,8 @@
         else otherPayoffs += l.balance;
       }
     });
-    if (mortgagePayoffs.length >= 1) m['cmpPayoff1stMortgage_' + idx] = mortgagePayoffs[0];
-    if (mortgagePayoffs.length >= 2) m['cmpPayoff2ndMortgage_' + idx] = mortgagePayoffs[1];
+    if (mortgagePayoffs.length >= 1) m['cmpPayoff1st_' + idx] = mortgagePayoffs[0];
+    if (mortgagePayoffs.length >= 2) m['cmpPayoff2nd_' + idx] = mortgagePayoffs[1];
     if (otherPayoffs > 0) m['cmpPayoffOther_' + idx] = otherPayoffs;
 
     return m;

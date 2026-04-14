@@ -4,46 +4,58 @@
   const P = MSFG.parseNum;
   const fmt = MSFG.formatCurrency;
 
-  /* ---- State ---- */
+  /* ---- Constants ---- */
   let loanCount = 1;
   const MAX_LOANS = 4;
   const STATE_KEY = 'msfg-compare-state';
+  const TEMPLATE_KEY = 'msfg-compare-templates';
+  const UFMIP_RATE = 0.0175;
+
+  let loanMode = 'Purchase'; // 'Purchase' or 'Refinance'
+  let includeExisting = false;
 
   /* APR manual override per loan column */
   const aprManual = {};
 
-  /* All input field keys that exist per loan column */
+  /* Per-loan input field keys */
   const INPUT_KEYS = [
-    'LoanAmount', 'PropertyValue', 'Rate', 'Term', 'Product', 'Purpose',
+    'LoanAmount', 'PropertyValue', 'Rate', 'Term', 'Product',
     'OrigFee', 'DiscountPts', 'ProcessingFee', 'UnderwritingFee',
-    'AppraisalFee', 'CreditReportFee', 'TitleFees', 'OtherThirdParty',
+    'AppraisalFee', 'CreditReportFee', 'FloodCert', 'TaxService',
+    'TitleSearch', 'TitleInsurance', 'SettlementFee', 'SurveyFee', 'PestInspection',
     'RecordingFee', 'TransferTax',
     'PrepaidInsurance', 'PrepaidInterest',
-    'EscrowTax', 'EscrowInsurance',
-    'Payoff1stMortgage', 'Payoff2ndMortgage', 'PayoffOther',
-    'DownPayment', 'SellerCredits', 'LenderCredits',
+    'EscrowTax', 'EscrowInsurance', 'EscrowMI',
+    'OtherFees',
+    'Payoff1st', 'Payoff2nd', 'PayoffOther',
+    'DownPayment', 'EarnestMoney', 'LenderCredits', 'SellerConcessions',
     'MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA'
   ];
 
-  /* Fields that affect APR — changing these resets the manual APR override */
-  const APR_AFFECTING_KEYS = [
-    'LoanAmount', 'Rate', 'Term', 'DiscountPts', 'PrepaidInsurance', 'PrepaidInterest'
-  ];
+  /* Fields that reset APR manual override */
+  const APR_AFFECTING = ['LoanAmount', 'Rate', 'Term', 'DiscountPts', 'PrepaidInsurance', 'PrepaidInterest'];
 
   /* Custom line items */
   let customItems = [];
   let customItemCounter = 0;
 
-  /* Section insertion targets for custom items */
   const SECTION_INSERT = {
-    origination: '.cmp-subtotal-row[data-section="origination"]',
-    thirdParty: '.cmp-subtotal-row[data-section="thirdParty"]',
-    government: '.cmp-subtotal-row[data-section="government"]',
-    prepaids: '.cmp-subtotal-row[data-section="prepaids"]',
-    escrow: '.cmp-subtotal-row[data-section="escrow"]',
-    payoffs: '.cmp-subtotal-row[data-section="payoffs"]',
+    origination: '.cmp-sub-row[data-row="origTotal"]',
+    cannotShop: '.cmp-sub-row[data-row="cannotShopTotal"]',
+    canShop: '.cmp-sub-row[data-row="canShopTotal"]',
+    government: '.cmp-sub-row[data-row="govTotal"]',
+    prepaids: '.cmp-sub-row[data-row="prepaidsTotal"]',
+    escrow: '.cmp-sub-row[data-row="escrowTotal"]',
+    other: '.cmp-sub-row[data-row="otherTotal"]',
     monthly: '[data-row="totalMonthly"]'
   };
+
+  /* Rows relevant for existing loan (everything else gets "—") */
+  const EXISTING_ROWS = new Set([
+    'product', 'propertyValue', 'loanAmount', 'totalLoanAmount', 'rate', 'term',
+    'ltv', 'monthlyPI', 'monthlyPIRow', 'monthlyTax', 'monthlyInsurance',
+    'monthlyMI', 'monthlyHOA', 'totalMonthly', 'APR', 'notes'
+  ]);
 
   /* ---- Helpers ---- */
   function el(id) { return document.getElementById(id); }
@@ -57,19 +69,19 @@
   function setText(id, text) {
     const e = el(id);
     if (e) {
-      if (e.tagName === 'INPUT') e.value = text;
+      if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA') e.value = text;
       else e.textContent = text;
     }
   }
 
-  /* ---- Debounced state save ---- */
+  /* ---- Debounced save ---- */
   let saveTimer = null;
   function debouncedSave() {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(saveState, 300);
   }
 
-  /* ---- APR Calculation (Reg Z binary search) ---- */
+  /* ---- APR (Reg Z binary search) ---- */
   function calcPV(payment, annualRate, n) {
     if (payment <= 0 || n <= 0) return 0;
     if (annualRate === 0) return payment * n;
@@ -90,7 +102,6 @@
     return apr;
   }
 
-  /* ---- APR input binding ---- */
   function bindAprInput(idx) {
     const aprEl = el('cmpAPR_' + idx);
     if (!aprEl) return;
@@ -98,13 +109,11 @@
       aprManual[idx] = true;
       aprEl.classList.remove('cmp-computed');
     });
-    aprEl.addEventListener('change', function () {
-      debouncedSave();
-    });
+    aprEl.addEventListener('change', debouncedSave);
   }
 
   function bindAprResetters(idx) {
-    APR_AFFECTING_KEYS.forEach(key => {
+    APR_AFFECTING.forEach(key => {
       const e = el('cmp' + key + '_' + idx);
       if (!e) return;
       e.addEventListener('input', function () {
@@ -117,13 +126,148 @@
     });
   }
 
+  /* ---- Purchase / Refi toggle ---- */
+  function initModeToggle() {
+    document.querySelectorAll('.cmp-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cmp-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loanMode = btn.dataset.mode;
+        applyMode();
+        calculate();
+      });
+    });
+  }
+
+  function applyMode() {
+    const isPurchase = loanMode === 'Purchase';
+    document.querySelectorAll('.cmp-purchase-only').forEach(r => {
+      r.style.display = isPurchase ? '' : 'none';
+    });
+    document.querySelectorAll('.cmp-refi-only').forEach(r => {
+      r.style.display = isPurchase ? 'none' : '';
+    });
+  }
+
+  /* ---- Existing Loan ---- */
+  function initExistingToggle() {
+    const cb = el('cmpIncludeExisting');
+    if (!cb) return;
+    cb.addEventListener('change', () => {
+      if (cb.checked && !includeExisting) {
+        includeExisting = true;
+        addExistingColumn();
+      } else if (!cb.checked && includeExisting) {
+        includeExisting = false;
+        removeExistingColumn();
+      }
+      calculate();
+    });
+  }
+
+  function addExistingColumn() {
+    const headerRow = el('cmpHeaderRow');
+    const firstColTh = headerRow.querySelector('.cmp-col-th[data-col="1"]');
+
+    // Insert header
+    const th = document.createElement('th');
+    th.className = 'cmp-col-th cmp-existing-col-th';
+    th.dataset.col = '0';
+    th.innerHTML = '<div class="cmp-col-header"><span class="cmp-col-label" style="border-color:var(--color-gray-400);color:var(--color-gray-600);cursor:default;">Existing</span></div>';
+    headerRow.insertBefore(th, firstColTh);
+
+    // Add cells to body rows
+    const rows = el('cmpBody').querySelectorAll('tr');
+    rows.forEach(row => {
+      if (row.classList.contains('cmp-section-hdr')) {
+        row.querySelector('td').setAttribute('colspan', '99');
+        return;
+      }
+      const rowKey = row.dataset.row;
+      const firstCell = row.querySelector('td:nth-child(2)');
+      if (!firstCell) return;
+
+      const td = document.createElement('td');
+      td.classList.add('cmp-loan-cell', 'cmp-existing-cell');
+
+      if (EXISTING_ROWS.has(rowKey)) {
+        // Clone the input/span pattern
+        const input1 = firstCell.querySelector('input');
+        const span1 = firstCell.querySelector('span.cmp-computed');
+        const ta1 = firstCell.querySelector('textarea');
+        if (ta1) {
+          const ta = document.createElement('textarea');
+          ta.className = ta1.className;
+          ta.rows = ta1.rows;
+          ta.placeholder = 'Existing loan notes...';
+          ta.id = 'cmpNotes_0';
+          td.appendChild(ta);
+        } else if (input1 && !input1.closest('.cmp-ufmip-cell')) {
+          const inp = input1.cloneNode(true);
+          const key = rowKey.charAt(0).toUpperCase() + rowKey.slice(1);
+          inp.id = 'cmp' + key + '_0';
+          if (inp.type === 'number') inp.value = rowKey === 'term' ? '360' : '0';
+          else inp.value = '';
+          inp.addEventListener('input', calculate);
+          inp.addEventListener('change', calculate);
+          td.appendChild(inp);
+          if (rowKey === 'APR') bindAprInput(0);
+        } else if (span1) {
+          const sp = document.createElement('span');
+          sp.className = span1.className;
+          const key = rowKey.charAt(0).toUpperCase() + rowKey.slice(1);
+          sp.id = 'cmp' + key + '_0';
+          sp.textContent = '$0';
+          td.appendChild(sp);
+        } else {
+          td.innerHTML = '<span class="cmp-existing-na">&mdash;</span>';
+        }
+      } else {
+        td.innerHTML = '<span class="cmp-existing-na">&mdash;</span>';
+      }
+
+      // Insert before the Loan 1 cell (td at index 1)
+      row.insertBefore(td, firstCell);
+    });
+  }
+
+  function removeExistingColumn() {
+    // Remove header
+    const th = el('cmpHeaderRow').querySelector('[data-col="0"]');
+    if (th) th.remove();
+
+    // Remove cells
+    document.querySelectorAll('.cmp-existing-cell').forEach(td => td.remove());
+
+    // Reset section header colspans
+    el('cmpBody').querySelectorAll('.cmp-section-hdr td').forEach(td => {
+      td.setAttribute('colspan', '99');
+    });
+  }
+
+  /* ---- FHA UFMIP toggle ---- */
+  function showFhaRows() {
+    document.querySelectorAll('.cmp-fha-row').forEach(r => r.classList.add('cmp-fha-visible'));
+  }
+
+  function hideFhaRows() {
+    document.querySelectorAll('.cmp-fha-row').forEach(r => r.classList.remove('cmp-fha-visible'));
+  }
+
+  function updateFhaVisibility() {
+    let anyFha = false;
+    for (let i = (includeExisting ? 0 : 1); i <= loanCount; i++) {
+      const prod = (el('cmpProduct_' + i) || {}).value || '';
+      if (/fha/i.test(prod)) { anyFha = true; break; }
+    }
+    if (anyFha) showFhaRows(); else hideFhaRows();
+  }
+
   /* ---- Custom line items ---- */
   function sumCustomForSection(section, idx) {
     let total = 0;
     customItems.forEach(item => {
-      if (item.section === section) {
-        total += v('cmpCustom_' + item.id + '_' + idx);
-      }
+      if (item.section === section) total += v('cmpCustom_' + item.id + '_' + idx);
     });
     return total;
   }
@@ -137,36 +281,33 @@
     customItemCounter++;
     const itemId = customItemCounter;
     const dataRow = 'custom_' + itemId;
-
     customItems.push({ id: itemId, section: sectionKey, name: name, dataRow: dataRow });
 
-    // Build the <tr>
     const tr = document.createElement('tr');
     tr.className = 'cmp-detail-row cmp-detail-row--custom';
     tr.dataset.section = sectionKey;
     tr.dataset.row = dataRow;
     tr.dataset.customId = String(itemId);
 
-    // Label cell with remove button
     const labelTd = document.createElement('td');
     const nameSpan = document.createElement('span');
     nameSpan.className = 'cmp-custom-name';
     nameSpan.textContent = name;
     labelTd.appendChild(nameSpan);
-
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'cmp-custom-remove';
     removeBtn.title = 'Remove';
     removeBtn.innerHTML = '&times;';
-    removeBtn.addEventListener('click', function () { removeCustomItem(itemId); });
+    removeBtn.addEventListener('click', () => removeCustomItem(itemId));
     labelTd.appendChild(removeBtn);
     tr.appendChild(labelTd);
 
-    // One input cell per active loan column
-    for (let c = 1; c <= loanCount; c++) {
+    const startIdx = includeExisting ? 0 : 1;
+    for (let c = startIdx; c <= loanCount; c++) {
       const td = document.createElement('td');
       td.classList.add('cmp-loan-cell');
+      if (c === 0) td.classList.add('cmp-existing-cell');
       const inp = document.createElement('input');
       inp.type = 'number';
       inp.className = 'cmp-input';
@@ -180,21 +321,10 @@
       tr.appendChild(td);
     }
 
-    // Insert before section's subtotal row
     const selector = SECTION_INSERT[sectionKey];
     const anchor = selector ? el('cmpBody').querySelector(selector) : null;
-    if (anchor) {
-      anchor.parentNode.insertBefore(tr, anchor);
-    }
+    if (anchor) anchor.parentNode.insertBefore(tr, anchor);
 
-    // Auto-expand the section if collapsed
-    const sectionRows = document.querySelectorAll('.cmp-detail-row[data-section="' + sectionKey + '"]');
-    const headerRow = document.querySelector('.cmp-section-row[data-section="' + sectionKey + '"]');
-    const toggle = headerRow ? headerRow.querySelector('.cmp-section-toggle') : null;
-    sectionRows.forEach(r => r.classList.remove('cmp-detail-row--hidden'));
-    if (toggle) toggle.textContent = '\u25B2';
-
-    // Reset the add form
     nameInput.value = '';
     calculate();
   }
@@ -212,7 +342,7 @@
     loanCount++;
     const idx = loanCount;
 
-    // Add header column (before the Add button column)
+    // Header
     const headerRow = el('cmpHeaderRow');
     const addCol = el('cmpAddCol');
     const th = document.createElement('th');
@@ -225,31 +355,40 @@
       '</div>';
     headerRow.insertBefore(th, addCol);
 
-    // Add cells to each body row
+    // Body cells
     const rows = el('cmpBody').querySelectorAll('tr');
     rows.forEach(row => {
       const rowKey = row.dataset.row;
-
-      // Section header rows — update colspan
-      if (row.classList.contains('cmp-section-row')) {
-        const td = row.querySelector('td');
-        td.setAttribute('colspan', '99');
+      if (row.classList.contains('cmp-section-hdr')) {
+        row.querySelector('td').setAttribute('colspan', '99');
         return;
       }
 
-      // Data rows — clone the cell pattern from loan 1
-      const firstCell = row.querySelector('td:nth-child(2)');
-      if (!firstCell) return;
+      // Find the Loan 1 cell to clone pattern from
+      const loan1Cell = row.querySelector('td:nth-child(' + (includeExisting ? 3 : 2) + ')');
+      if (!loan1Cell) return;
+
       const td = document.createElement('td');
+      td.classList.add('cmp-loan-cell');
 
-      const input1 = firstCell.querySelector('input');
-      const select1 = firstCell.querySelector('select');
-      const textarea1 = firstCell.querySelector('textarea');
-      const span1 = firstCell.querySelector('span');
+      const input1 = loan1Cell.querySelector('input:not([type="checkbox"])');
+      const checkbox1 = loan1Cell.querySelector('input[type="checkbox"]');
+      const select1 = loan1Cell.querySelector('select');
+      const textarea1 = loan1Cell.querySelector('textarea');
+      const span1 = loan1Cell.querySelector('span.cmp-computed');
+      const ufmipCell = loan1Cell.querySelector('.cmp-ufmip-cell');
 
-      if (textarea1) {
+      if (ufmipCell) {
+        // Clone UFMIP cell structure
+        td.innerHTML =
+          '<div class="cmp-ufmip-cell">' +
+            '<label class="cmp-ufmip-toggle"><input type="checkbox" id="cmpFinanceUfmip_' + idx + '"> Finance</label>' +
+            '<span class="cmp-computed" id="cmpUfmipAmount_' + idx + '">$0</span>' +
+          '</div>';
+        td.querySelector('#cmpFinanceUfmip_' + idx).addEventListener('change', calculate);
+      } else if (textarea1) {
         const ta = document.createElement('textarea');
-        ta.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
+        ta.id = 'cmpNotes_' + idx;
         ta.className = textarea1.className;
         ta.rows = textarea1.rows;
         ta.placeholder = textarea1.placeholder;
@@ -257,53 +396,48 @@
         td.appendChild(ta);
       } else if (input1) {
         const inp = input1.cloneNode(true);
-        inp.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
-        // Reset value
-        if (inp.type === 'number') inp.value = rowKey === 'term' || rowKey === 'Term' ? '360' : '0';
+        const key = rowKey.charAt(0).toUpperCase() + rowKey.slice(1);
+        inp.id = 'cmp' + key + '_' + idx;
+        if (inp.type === 'number') inp.value = rowKey === 'term' ? '360' : '0';
         else inp.value = '';
-        // Copy classes
         inp.className = input1.className;
         td.appendChild(inp);
-        // APR input gets special binding (no auto-recalculate on type)
         if (rowKey === 'APR') {
           bindAprInput(idx);
         } else {
           inp.addEventListener('input', calculate);
           inp.addEventListener('change', calculate);
         }
-      } else if (select1) {
-        const sel = select1.cloneNode(true);
-        sel.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
-        td.appendChild(sel);
-        sel.addEventListener('change', calculate);
       } else if (span1) {
         const sp = document.createElement('span');
-        sp.id = 'cmp' + rowKey.charAt(0).toUpperCase() + rowKey.slice(1) + '_' + idx;
+        const key = rowKey.charAt(0).toUpperCase() + rowKey.slice(1);
+        sp.id = 'cmp' + key + '_' + idx;
         sp.className = span1.className;
         sp.textContent = '$0';
         td.appendChild(sp);
       }
 
-      td.classList.add('cmp-loan-cell');
       row.appendChild(td);
     });
 
-    // Bind remove button
+    // Bind remove + APR resetters
     th.querySelector('.cmp-remove-btn').addEventListener('click', function () {
       removeLoan(parseInt(this.dataset.col, 10));
     });
-
-    // Bind APR resetters for the new column
     bindAprResetters(idx);
 
-    // Disable add button if at max
-    if (loanCount >= MAX_LOANS) {
-      el('cmpAddBtn').disabled = true;
-    }
+    // Bind product change for FHA detection
+    const prodEl = el('cmpProduct_' + idx);
+    if (prodEl) prodEl.addEventListener('input', updateFhaVisibility);
 
-    // Copy Loan 1 data to the new column
+    // Bind finance UFMIP
+    const ufmipCb = el('cmpFinanceUfmip_' + idx);
+    if (ufmipCb) ufmipCb.addEventListener('change', calculate);
+
+    if (loanCount >= MAX_LOANS) el('cmpAddBtn').disabled = true;
+
+    // Copy Loan 1 data
     copyLoanToColumn(1, idx);
-
     calculate();
   }
 
@@ -312,24 +446,12 @@
       const src = el('cmp' + key + '_' + fromIdx);
       const dst = el('cmp' + key + '_' + toIdx);
       if (!src || !dst) return;
-      if (src.tagName === 'SELECT') {
-        dst.selectedIndex = src.selectedIndex;
-      } else {
-        dst.value = src.value;
-      }
+      dst.value = src.value;
     });
-
-    // Copy product text
-    const srcProduct = el('cmpProduct_' + fromIdx);
-    const dstProduct = el('cmpProduct_' + toIdx);
-    if (srcProduct && dstProduct) dstProduct.value = srcProduct.value;
-
-    // Copy notes
     const srcNotes = el('cmpNotes_' + fromIdx);
     const dstNotes = el('cmpNotes_' + toIdx);
     if (srcNotes && dstNotes) dstNotes.value = srcNotes.value;
 
-    // Copy APR (mark as manual if source was manual)
     const srcAPR = el('cmpAPR_' + fromIdx);
     const dstAPR = el('cmpAPR_' + toIdx);
     if (srcAPR && dstAPR) {
@@ -339,38 +461,37 @@
         dstAPR.classList.remove('cmp-computed');
       }
     }
+
+    // Copy Finance UFMIP checkbox
+    const srcUfmip = el('cmpFinanceUfmip_' + fromIdx);
+    const dstUfmip = el('cmpFinanceUfmip_' + toIdx);
+    if (srcUfmip && dstUfmip) dstUfmip.checked = srcUfmip.checked;
   }
 
   function removeLoan(colIdx) {
     if (loanCount <= 1) return;
 
-    // Remove header th
-    const th = el('cmpHeaderRow').querySelector('[data-col="' + colIdx + '"]');
+    const th = el('cmpHeaderRow').querySelector('.cmp-col-th[data-col="' + colIdx + '"]');
     if (th) th.remove();
 
-    // Remove cells from body rows
     const rows = el('cmpBody').querySelectorAll('tr');
     rows.forEach(row => {
-      if (row.classList.contains('cmp-section-row')) return;
-      const cells = row.querySelectorAll('td');
+      if (row.classList.contains('cmp-section-hdr')) return;
+      const cells = Array.from(row.querySelectorAll('td'));
       cells.forEach(td => {
         const child = td.querySelector('[id$="_' + colIdx + '"]');
-        if (child) td.remove();
+        if (child && !td.classList.contains('cmp-existing-cell')) td.remove();
       });
     });
 
-    // Clear APR manual flags (will rebuild after reindex)
     Object.keys(aprManual).forEach(k => delete aprManual[k]);
-
-    // Reindex remaining columns
     reindexColumns();
-
     el('cmpAddBtn').disabled = false;
     calculate();
   }
 
   function reindexColumns() {
-    const ths = el('cmpHeaderRow').querySelectorAll('.cmp-col-th');
+    const ths = el('cmpHeaderRow').querySelectorAll('.cmp-col-th:not(.cmp-existing-col-th)');
     loanCount = ths.length;
 
     ths.forEach((th, i) => {
@@ -378,9 +499,8 @@
       const oldIdx = parseInt(th.dataset.col, 10);
       th.dataset.col = newIdx;
 
-      // Reindex header elements
       const labelInput = th.querySelector('.cmp-col-label');
-      if (labelInput) {
+      if (labelInput && labelInput.tagName === 'INPUT') {
         labelInput.id = 'cmpLabel_' + newIdx;
         if (labelInput.value === 'Loan ' + oldIdx) labelInput.value = 'Loan ' + newIdx;
       }
@@ -391,20 +511,18 @@
     // Reindex body cells
     const rows = el('cmpBody').querySelectorAll('tr');
     rows.forEach(row => {
-      if (row.classList.contains('cmp-section-row')) return;
-      const cells = row.querySelectorAll('td');
+      if (row.classList.contains('cmp-section-hdr')) return;
+      const cells = row.querySelectorAll('td:not(.cmp-existing-cell)');
       // cells[0] = label, cells[1..N] = loan columns
       for (let c = 1; c < cells.length; c++) {
-        const child = cells[c].querySelector('[id]');
-        if (child) {
-          // Replace trailing _N with correct index
+        cells[c].querySelectorAll('[id]').forEach(child => {
           child.id = child.id.replace(/_\d+$/, '_' + c);
-        }
+        });
       }
     });
 
-    // Remove stale remove buttons on loan 1 (should never have one)
-    const firstTh = el('cmpHeaderRow').querySelector('[data-col="1"]');
+    // Loan 1 should not have a remove button
+    const firstTh = el('cmpHeaderRow').querySelector('.cmp-col-th[data-col="1"]');
     if (firstTh) {
       const btn = firstTh.querySelector('.cmp-remove-btn');
       if (btn) btn.remove();
@@ -413,7 +531,9 @@
 
   /* ---- Calculation ---- */
   function calculate() {
-    for (let i = 1; i <= loanCount; i++) {
+    updateFhaVisibility();
+    const startIdx = includeExisting ? 0 : 1;
+    for (let i = startIdx; i <= loanCount; i++) {
       calculateLoan(i);
     }
     highlightBest();
@@ -425,24 +545,48 @@
     const loanAmount = v('cmpLoanAmount_' + idx);
     const rate = v('cmpRate_' + idx);
     const term = v('cmpTerm_' + idx);
+    const propValue = v('cmpPropertyValue_' + idx);
 
-    // Monthly P&I
-    let monthlyPI = 0;
-    if (loanAmount > 0 && rate > 0 && term > 0) {
-      monthlyPI = MSFG.calcMonthlyPayment(loanAmount, rate / 100, term / 12);
+    // FHA UFMIP
+    const prod = (el('cmpProduct_' + idx) || {}).value || '';
+    const isFha = /fha/i.test(prod);
+    const financeUfmip = isFha && el('cmpFinanceUfmip_' + idx) && el('cmpFinanceUfmip_' + idx).checked;
+    const ufmipAmt = isFha ? loanAmount * UFMIP_RATE : 0;
+    setText('cmpUfmipAmount_' + idx, ufmipAmt > 0 ? fmt(ufmipAmt) : '$0');
+
+    const totalLoanAmount = financeUfmip ? loanAmount + ufmipAmt : loanAmount;
+    setText('cmpTotalLoanAmount_' + idx, totalLoanAmount > 0 ? fmt(totalLoanAmount) : '$0');
+
+    // LTV
+    if (propValue > 0 && loanAmount > 0) {
+      setText('cmpLtv_' + idx, ((loanAmount / propValue) * 100).toFixed(2) + '%');
+    } else {
+      setText('cmpLtv_' + idx, '\u2014');
     }
-    setText('cmpMonthlyPI_' + idx, monthlyPI.toFixed(2));
 
-    // Section subtotals (including custom items)
+    // Monthly P&I (uses totalLoanAmount to include financed UFMIP)
+    let monthlyPI = 0;
+    if (totalLoanAmount > 0 && rate > 0 && term > 0) {
+      monthlyPI = MSFG.calcMonthlyPayment(totalLoanAmount, rate / 100, term / 12);
+    }
+    setText('cmpMonthlyPI_' + idx, monthlyPI > 0 ? fmt(monthlyPI) : '$0');
+    setText('cmpMonthlyPIRow_' + idx, monthlyPI > 0 ? fmt(monthlyPI) : '$0');
+
+    // Section subtotals
     const origTotal = v('cmpOrigFee_' + idx) + v('cmpDiscountPts_' + idx) +
                       v('cmpProcessingFee_' + idx) + v('cmpUnderwritingFee_' + idx) +
                       sumCustomForSection('origination', idx);
     setText('cmpOrigTotal_' + idx, fmt(origTotal));
 
-    const thirdPartyTotal = v('cmpAppraisalFee_' + idx) + v('cmpCreditReportFee_' + idx) +
-                            v('cmpTitleFees_' + idx) + v('cmpOtherThirdParty_' + idx) +
-                            sumCustomForSection('thirdParty', idx);
-    setText('cmpThirdPartyTotal_' + idx, fmt(thirdPartyTotal));
+    const cannotShopTotal = v('cmpAppraisalFee_' + idx) + v('cmpCreditReportFee_' + idx) +
+                            v('cmpFloodCert_' + idx) + v('cmpTaxService_' + idx) +
+                            sumCustomForSection('cannotShop', idx);
+    setText('cmpCannotShopTotal_' + idx, fmt(cannotShopTotal));
+
+    const canShopTotal = v('cmpTitleSearch_' + idx) + v('cmpTitleInsurance_' + idx) +
+                         v('cmpSettlementFee_' + idx) + v('cmpSurveyFee_' + idx) +
+                         v('cmpPestInspection_' + idx) + sumCustomForSection('canShop', idx);
+    setText('cmpCanShopTotal_' + idx, fmt(canShopTotal));
 
     const govTotal = v('cmpRecordingFee_' + idx) + v('cmpTransferTax_' + idx) +
                      sumCustomForSection('government', idx);
@@ -453,29 +597,41 @@
     setText('cmpPrepaidsTotal_' + idx, fmt(prepaidsTotal));
 
     const escrowTotal = v('cmpEscrowTax_' + idx) + v('cmpEscrowInsurance_' + idx) +
-                        sumCustomForSection('escrow', idx);
+                        v('cmpEscrowMI_' + idx) + sumCustomForSection('escrow', idx);
     setText('cmpEscrowTotal_' + idx, fmt(escrowTotal));
 
-    const payoffsTotal = v('cmpPayoff1stMortgage_' + idx) + v('cmpPayoff2ndMortgage_' + idx) +
-                         v('cmpPayoffOther_' + idx) + sumCustomForSection('payoffs', idx);
-    setText('cmpPayoffsTotal_' + idx, fmt(payoffsTotal));
+    const otherTotal = v('cmpOtherFees_' + idx) + sumCustomForSection('other', idx);
+    setText('cmpOtherTotal_' + idx, fmt(otherTotal));
 
-    const totalClosing = origTotal + thirdPartyTotal + govTotal + prepaidsTotal + escrowTotal + payoffsTotal;
+    // TOTAL CLOSING COSTS — excludes payoffs
+    const totalClosing = origTotal + cannotShopTotal + canShopTotal + govTotal +
+                         prepaidsTotal + escrowTotal + otherTotal;
     setText('cmpTotalClosing_' + idx, fmt(totalClosing));
 
-    // Cash to close
-    const downPayment = v('cmpDownPayment_' + idx);
-    const sellerCredits = v('cmpSellerCredits_' + idx);
+    // Payoffs (separate)
+    const payoffsTotal = v('cmpPayoff1st_' + idx) + v('cmpPayoff2nd_' + idx) +
+                         v('cmpPayoffOther_' + idx);
+    setText('cmpPayoffsTotal_' + idx, fmt(payoffsTotal));
+
+    // Cash to Close
     const lenderCredits = v('cmpLenderCredits_' + idx);
-    const purposeEl = el('cmpPurpose_' + idx);
-    const purpose = purposeEl ? purposeEl.value : 'Purchase';
-    const isRefi = purpose.indexOf('Refinance') !== -1 || purpose === 'Refinance';
-    const cashToClose = isRefi
-      ? totalClosing - loanAmount - sellerCredits - lenderCredits
-      : downPayment + totalClosing - sellerCredits - lenderCredits;
+    const sellerConcessions = v('cmpSellerConcessions_' + idx);
+    const isPurchase = loanMode === 'Purchase';
+    let cashToClose;
+
+    if (isPurchase) {
+      const downPayment = v('cmpDownPayment_' + idx);
+      const earnestMoney = v('cmpEarnestMoney_' + idx);
+      // Non-financed UFMIP adds to cash needed
+      const ufmipCash = (isFha && !financeUfmip) ? ufmipAmt : 0;
+      cashToClose = downPayment + totalClosing + ufmipCash - lenderCredits - sellerConcessions - earnestMoney;
+    } else {
+      // Refi: (closing costs + payoffs) - total loan amount - credits
+      cashToClose = totalClosing + payoffsTotal - totalLoanAmount - lenderCredits - sellerConcessions;
+    }
     setText('cmpCashToClose_' + idx, fmt(cashToClose));
 
-    // Total monthly payment
+    // Monthly Payment
     const monthlyTax = v('cmpMonthlyTax_' + idx);
     const monthlyIns = v('cmpMonthlyInsurance_' + idx);
     const monthlyMI = v('cmpMonthlyMI_' + idx);
@@ -484,10 +640,10 @@
                          sumCustomForSection('monthly', idx);
     setText('cmpTotalMonthly_' + idx, fmt(totalMonthly));
 
-    // APR — skip if user manually overrode this loan's APR
+    // APR
     if (!aprManual[idx]) {
       const discountPts = v('cmpDiscountPts_' + idx);
-      const amtFinanced = loanAmount - discountPts - prepaidsTotal;
+      const amtFinanced = totalLoanAmount - discountPts - prepaidsTotal;
       let apr = 0;
       if (amtFinanced > 0 && monthlyPI > 0 && term > 0) {
         apr = calcAPR(monthlyPI, amtFinanced, term);
@@ -498,25 +654,21 @@
 
   /* ---- Best-value highlighting ---- */
   function highlightBest() {
-    if (loanCount < 2) {
-      // Clear all highlights when only 1 loan
-      document.querySelectorAll('.cmp-best, .cmp-best-cell').forEach(e => {
-        e.classList.remove('cmp-best', 'cmp-best-cell');
-      });
-      return;
-    }
+    document.querySelectorAll('.cmp-best, .cmp-best-cell').forEach(e => {
+      e.classList.remove('cmp-best', 'cmp-best-cell');
+    });
+    if (loanCount < 2) return;
 
-    const bestRows = {
+    const fields = {
       rate: 'Rate', totalClosing: 'TotalClosing', cashToClose: 'CashToClose',
       totalMonthly: 'TotalMonthly', apr: 'APR'
     };
 
-    Object.keys(bestRows).forEach(rowKey => {
-      const key = bestRows[rowKey];
+    Object.keys(fields).forEach(rowKey => {
+      const key = fields[rowKey];
       let bestVal = Infinity;
       let bestIdx = -1;
 
-      // Collect values
       for (let i = 1; i <= loanCount; i++) {
         const id = 'cmp' + key + '_' + i;
         const e = el(id);
@@ -524,13 +676,9 @@
         let val;
         if (e.tagName === 'INPUT') val = P(e.value) || 0;
         else val = P((e.textContent || '').replace(/[^0-9.-]/g, '')) || 0;
-        if (val > 0 && val < bestVal) {
-          bestVal = val;
-          bestIdx = i;
-        }
+        if (val > 0 && val < bestVal) { bestVal = val; bestIdx = i; }
       }
 
-      // Apply/remove highlights
       for (let i = 1; i <= loanCount; i++) {
         const id = 'cmp' + key + '_' + i;
         const e = el(id);
@@ -539,96 +687,82 @@
         if (i === bestIdx && bestVal < Infinity) {
           if (e.tagName === 'INPUT') e.classList.add('cmp-best');
           cell.classList.add('cmp-best-cell');
-        } else {
-          if (e.tagName === 'INPUT') e.classList.remove('cmp-best');
-          cell.classList.remove('cmp-best-cell');
         }
       }
     });
   }
 
-  /* ---- Section toggle ---- */
-  function toggleSection(section) {
-    const rows = document.querySelectorAll('.cmp-detail-row[data-section="' + section + '"]');
-    const headerRow = document.querySelector('.cmp-section-row[data-section="' + section + '"]');
-    const toggle = headerRow ? headerRow.querySelector('.cmp-section-toggle') : null;
-
-    const isHidden = rows.length > 0 && rows[0].classList.contains('cmp-detail-row--hidden');
-    rows.forEach(r => {
-      if (isHidden) r.classList.remove('cmp-detail-row--hidden');
-      else r.classList.add('cmp-detail-row--hidden');
-    });
-
-    if (toggle) toggle.textContent = isHidden ? '\u25B2' : '\u25BC';
-  }
-
-  /* ---- State persistence (sessionStorage) ---- */
+  /* ---- State persistence ---- */
   function saveState() {
     const state = {
-      loanCount: loanCount,
-      customItemCounter: customItemCounter,
+      loanCount, loanMode, includeExisting,
+      customItemCounter,
       customItems: customItems.map(ci => ({ id: ci.id, section: ci.section, name: ci.name, dataRow: ci.dataRow })),
       aprManual: {},
       values: {},
       labels: {}
     };
 
-    // Save APR manual flags
-    for (let i = 1; i <= loanCount; i++) {
+    for (let i = (includeExisting ? 0 : 1); i <= loanCount; i++) {
       if (aprManual[i]) state.aprManual[i] = true;
     }
 
-    // Shared fields
-    ['cmpBorrower', 'cmpProperty', 'cmpFileNumber', 'cmpPrepDate'].forEach(id => {
+    ['cmpBorrower', 'cmpProperty', 'cmpFileNumber', 'cmpPrepDate', 'cmpOccupancy', 'cmpPropType'].forEach(id => {
       const e = el(id);
       if (e) state.values[id] = e.value;
     });
 
-    for (let i = 1; i <= loanCount; i++) {
-      // Label
+    for (let i = (includeExisting ? 0 : 1); i <= loanCount; i++) {
       const label = el('cmpLabel_' + i);
-      if (label) state.labels[i] = label.value;
+      if (label && label.tagName === 'INPUT') state.labels[i] = label.value;
 
-      // Standard inputs
       INPUT_KEYS.forEach(key => {
         const e = el('cmp' + key + '_' + i);
         if (e) state.values['cmp' + key + '_' + i] = e.value;
       });
 
-      // APR, MonthlyPI, Notes
       const apr = el('cmpAPR_' + i);
       if (apr) state.values['cmpAPR_' + i] = apr.value;
-
-      const pi = el('cmpMonthlyPI_' + i);
-      if (pi) state.values['cmpMonthlyPI_' + i] = pi.value;
 
       const notes = el('cmpNotes_' + i);
       if (notes) state.values['cmpNotes_' + i] = notes.value;
 
-      // Custom item values
+      const ufmipCb = el('cmpFinanceUfmip_' + i);
+      if (ufmipCb) state.values['cmpFinanceUfmip_' + i] = ufmipCb.checked;
+
       customItems.forEach(item => {
         const e = el('cmpCustom_' + item.id + '_' + i);
         if (e) state.values['cmpCustom_' + item.id + '_' + i] = e.value;
       });
     }
 
-    try {
-      sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
-    } catch (e) { /* quota or private mode */ }
+    try { sessionStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (_) {}
   }
 
   function restoreState() {
     const raw = sessionStorage.getItem(STATE_KEY);
     if (!raw) return false;
-
     try {
       const state = JSON.parse(raw);
       if (!state || !state.loanCount) return false;
 
-      // Add extra loan columns (addLoan triggers calculate internally, but values will be overwritten)
-      for (let i = 2; i <= state.loanCount; i++) {
-        addLoan();
+      // Restore mode
+      if (state.loanMode) {
+        loanMode = state.loanMode;
+        document.querySelectorAll('.cmp-toggle-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.mode === loanMode);
+        });
       }
+
+      // Restore existing loan
+      if (state.includeExisting) {
+        includeExisting = true;
+        el('cmpIncludeExisting').checked = true;
+        addExistingColumn();
+      }
+
+      // Add extra loan columns
+      for (let i = 2; i <= state.loanCount; i++) addLoan();
 
       // Restore custom items
       if (state.customItems && state.customItems.length > 0) {
@@ -638,23 +772,18 @@
           addCustomItem();
         });
       }
+      if (state.customItemCounter) customItemCounter = state.customItemCounter;
 
-      // Restore custom item counter to maintain stable IDs
-      if (state.customItemCounter) {
-        customItemCounter = state.customItemCounter;
-      }
-
-      // Restore all values
+      // Restore values
       if (state.values) {
         Object.keys(state.values).forEach(id => {
           const e = el(id);
           if (!e) return;
-          if (e.tagName === 'SELECT') {
+          if (id.startsWith('cmpFinanceUfmip_')) {
+            e.checked = !!state.values[id];
+          } else if (e.tagName === 'SELECT') {
             for (let o = 0; o < e.options.length; o++) {
-              if (e.options[o].value === state.values[id]) {
-                e.selectedIndex = o;
-                break;
-              }
+              if (e.options[o].value === state.values[id]) { e.selectedIndex = o; break; }
             }
           } else {
             e.value = state.values[id];
@@ -662,15 +791,13 @@
         });
       }
 
-      // Restore labels
       if (state.labels) {
         Object.keys(state.labels).forEach(idx => {
           const label = el('cmpLabel_' + idx);
-          if (label) label.value = state.labels[idx];
+          if (label && label.tagName === 'INPUT') label.value = state.labels[idx];
         });
       }
 
-      // Restore APR manual flags
       if (state.aprManual) {
         Object.keys(state.aprManual).forEach(idx => {
           aprManual[idx] = true;
@@ -679,11 +806,110 @@
         });
       }
 
+      applyMode();
       calculate();
       return true;
-    } catch (e) {
-      return false;
+    } catch (_) { return false; }
+  }
+
+  /* ---- Templates (localStorage) ---- */
+  function getTemplates() {
+    try {
+      return JSON.parse(localStorage.getItem(TEMPLATE_KEY) || '{}');
+    } catch (_) { return {}; }
+  }
+
+  function populateTemplateDropdown() {
+    const sel = el('cmpTemplateSelect');
+    if (!sel) return;
+    const templates = getTemplates();
+    sel.innerHTML = '<option value="">Load Template...</option>';
+    Object.keys(templates).sort().forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function saveTemplate() {
+    const name = prompt('Template name:');
+    if (!name || !name.trim()) return;
+
+    // Build template from current Loan 1 values
+    const tmpl = {};
+    INPUT_KEYS.forEach(key => {
+      const e = el('cmp' + key + '_1');
+      if (e) tmpl[key] = e.value;
+    });
+    const notes = el('cmpNotes_1');
+    if (notes) tmpl.Notes = notes.value;
+    const apr = el('cmpAPR_1');
+    if (apr) tmpl.APR = apr.value;
+    const prod = el('cmpProduct_1');
+    if (prod) tmpl.Product = prod.value;
+    const ufmip = el('cmpFinanceUfmip_1');
+    if (ufmip) tmpl.FinanceUfmip = ufmip.checked;
+    tmpl.loanMode = loanMode;
+
+    // Shared fields
+    ['cmpBorrower', 'cmpProperty', 'cmpOccupancy', 'cmpPropType'].forEach(id => {
+      const e = el(id);
+      if (e) tmpl[id] = e.value;
+    });
+
+    const templates = getTemplates();
+    templates[name.trim()] = tmpl;
+    try { localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templates)); } catch (_) {}
+    populateTemplateDropdown();
+  }
+
+  function loadTemplate() {
+    const sel = el('cmpTemplateSelect');
+    if (!sel || !sel.value) return;
+    const templates = getTemplates();
+    const tmpl = templates[sel.value];
+    if (!tmpl) return;
+
+    // Apply to Loan 1
+    INPUT_KEYS.forEach(key => {
+      const e = el('cmp' + key + '_1');
+      if (e && tmpl[key] !== undefined) e.value = tmpl[key];
+    });
+    if (tmpl.Notes) { const e = el('cmpNotes_1'); if (e) e.value = tmpl.Notes; }
+    if (tmpl.APR) { const e = el('cmpAPR_1'); if (e) e.value = tmpl.APR; }
+    if (tmpl.Product) { const e = el('cmpProduct_1'); if (e) e.value = tmpl.Product; }
+    if (tmpl.FinanceUfmip !== undefined) {
+      const e = el('cmpFinanceUfmip_1');
+      if (e) e.checked = !!tmpl.FinanceUfmip;
     }
+
+    // Shared fields
+    ['cmpBorrower', 'cmpProperty', 'cmpOccupancy', 'cmpPropType'].forEach(id => {
+      const e = el(id);
+      if (e && tmpl[id] !== undefined) e.value = tmpl[id];
+    });
+
+    // Mode
+    if (tmpl.loanMode) {
+      loanMode = tmpl.loanMode;
+      document.querySelectorAll('.cmp-toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === loanMode);
+      });
+      applyMode();
+    }
+
+    calculate();
+  }
+
+  function deleteTemplate() {
+    const sel = el('cmpTemplateSelect');
+    if (!sel || !sel.value) return;
+    if (!confirm('Delete template "' + sel.value + '"?')) return;
+    const templates = getTemplates();
+    delete templates[sel.value];
+    try { localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templates)); } catch (_) {}
+    populateTemplateDropdown();
   }
 
   /* ---- MISMO prefill ---- */
@@ -692,6 +918,7 @@
       const raw = sessionStorage.getItem('msfg-mismo-data');
       if (!raw) return;
       const data = JSON.parse(raw);
+      if (!MSFG.MISMOParser) return;
       const mapFn = MSFG.MISMOParser.getCalcMap('compare');
       if (!mapFn) return;
       const fields = mapFn(data, colIdx);
@@ -700,10 +927,7 @@
         if (!e) return;
         if (e.tagName === 'SELECT') {
           for (let o = 0; o < e.options.length; o++) {
-            if (e.options[o].value === String(fields[id])) {
-              e.selectedIndex = o;
-              break;
-            }
+            if (e.options[o].value === String(fields[id])) { e.selectedIndex = o; break; }
           }
         } else {
           e.value = fields[id];
@@ -712,7 +936,7 @@
         e.classList.add('mismo-populated');
       });
 
-      // Also fill shared fields if this is the first loan
+      // Shared fields
       if (colIdx === 1) {
         if (data.borrowerName && el('cmpBorrower') && !el('cmpBorrower').value) {
           el('cmpBorrower').value = data.borrowerName;
@@ -723,55 +947,28 @@
           el('cmpProperty').classList.add('mismo-populated');
         }
       }
-      // Auto-expand fee sections that have populated values
-      const feeFields = {
-        origination: ['OrigFee', 'DiscountPts', 'ProcessingFee', 'UnderwritingFee'],
-        thirdParty: ['AppraisalFee', 'CreditReportFee', 'TitleFees', 'OtherThirdParty'],
-        government: ['RecordingFee', 'TransferTax'],
-        prepaids: ['PrepaidInsurance', 'PrepaidInterest'],
-        escrow: ['EscrowTax', 'EscrowInsurance'],
-        payoffs: ['Payoff1stMortgage', 'Payoff2ndMortgage', 'PayoffOther'],
-        monthly: ['MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA']
-      };
-      Object.keys(feeFields).forEach(section => {
-        const hasData = feeFields[section].some(key => {
-          const e = el('cmp' + key + '_' + colIdx);
-          return e && P(e.value) > 0;
-        });
-        if (hasData) {
-          const rows = document.querySelectorAll('.cmp-detail-row[data-section="' + section + '"]');
-          const headerRow = document.querySelector('.cmp-section-row[data-section="' + section + '"]');
-          const toggle = headerRow ? headerRow.querySelector('.cmp-section-toggle') : null;
-          rows.forEach(r => r.classList.remove('cmp-detail-row--hidden'));
-          if (toggle) toggle.textContent = '\u25B2';
-        }
-      });
-
-    } catch (e) {
-      // Silently ignore parse errors
-    }
+    } catch (_) {}
     calculate();
   }
 
   /* ---- Clear all ---- */
   function clearAll() {
-    // Remove extra loan columns
-    while (loanCount > 1) {
-      removeLoan(loanCount);
+    while (loanCount > 1) removeLoan(loanCount);
+
+    if (includeExisting) {
+      includeExisting = false;
+      el('cmpIncludeExisting').checked = false;
+      removeExistingColumn();
     }
 
-    // Remove all custom item rows
     customItems.forEach(item => {
       const row = el('cmpBody').querySelector('[data-custom-id="' + item.id + '"]');
       if (row) row.remove();
     });
     customItems = [];
     customItemCounter = 0;
-
-    // Clear APR manual flags
     Object.keys(aprManual).forEach(k => delete aprManual[k]);
 
-    // Reset loan 1 inputs
     INPUT_KEYS.forEach(key => {
       const e = el('cmp' + key + '_1');
       if (!e) return;
@@ -780,51 +977,48 @@
       else e.value = '';
     });
 
-    // Reset APR
     const apr1 = el('cmpAPR_1');
     if (apr1) { apr1.value = '0'; apr1.classList.add('cmp-computed'); }
-
-    // Reset notes
     const notes1 = el('cmpNotes_1');
     if (notes1) notes1.value = '';
+    const ufmip1 = el('cmpFinanceUfmip_1');
+    if (ufmip1) ufmip1.checked = false;
 
-    // Reset shared fields
     ['cmpBorrower', 'cmpProperty', 'cmpFileNumber'].forEach(id => {
-      const e = el(id);
-      if (e) e.value = '';
+      const e = el(id); if (e) e.value = '';
     });
     const prepDate = el('cmpPrepDate');
     if (prepDate) prepDate.value = '';
-
-    // Reset label
     const label1 = el('cmpLabel_1');
     if (label1) label1.value = 'Loan 1';
 
     el('cmpAddBtn').disabled = false;
-
-    // Clear saved state
     sessionStorage.removeItem(STATE_KEY);
 
+    loanMode = 'Purchase';
+    document.querySelectorAll('.cmp-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === 'Purchase');
+    });
+    applyMode();
     calculate();
   }
 
   /* ---- Workspace tally ---- */
   function sendTally() {
     if (window.top === window) return;
-    const monthlyPI = v('cmpMonthlyPI_1');
-    const loanAmount = v('cmpLoanAmount_1');
+    const totalMonthlyText = (el('cmpTotalMonthly_1') || {}).textContent || '0';
+    const cashText = (el('cmpCashToClose_1') || {}).textContent || '0';
     window.top.postMessage({
       type: 'msfg-tally-update',
       slug: 'compare',
-      monthlyPayment: monthlyPI + v('cmpMonthlyTax_1') + v('cmpMonthlyInsurance_1') + v('cmpMonthlyMI_1') + v('cmpMonthlyHOA_1'),
-      loanAmount: loanAmount,
-      cashToClose: P((el('cmpCashToClose_1') || {}).textContent || '0') || 0
+      monthlyPayment: P(totalMonthlyText.replace(/[^0-9.-]/g, '')) || 0,
+      loanAmount: v('cmpLoanAmount_1'),
+      cashToClose: P(cashText.replace(/[^0-9.-]/g, '')) || 0
     }, window.location.origin);
   }
 
   /* ---- Init ---- */
   function init() {
-    // Set default prep date
     const prepDate = el('cmpPrepDate');
     if (prepDate && !prepDate.value) {
       const today = new Date();
@@ -833,41 +1027,40 @@
         String(today.getDate()).padStart(2, '0');
     }
 
-    // Add loan-cell class to all Loan 1 data cells (second td in each row)
+    // Add loan-cell class to Loan 1 data cells
     el('cmpBody').querySelectorAll('tr').forEach(row => {
-      if (row.classList.contains('cmp-section-row')) return;
+      if (row.classList.contains('cmp-section-hdr')) return;
       const cells = row.querySelectorAll('td');
-      for (let c = 1; c < cells.length; c++) {
-        cells[c].classList.add('cmp-loan-cell');
-      }
+      for (let c = 1; c < cells.length; c++) cells[c].classList.add('cmp-loan-cell');
     });
 
-    // Bind all loan-1 inputs (except APR which gets special binding)
-    document.querySelectorAll('#cmpBody input, #cmpBody select').forEach(inp => {
-      if (inp.id === 'cmpAPR_1') return; // APR has special binding
+    // Bind inputs (except APR)
+    document.querySelectorAll('#cmpBody input:not([type="checkbox"]), #cmpBody select').forEach(inp => {
+      if (inp.id === 'cmpAPR_1') return;
       inp.addEventListener('input', calculate);
       inp.addEventListener('change', calculate);
     });
 
-    // Bind APR input and resetters for loan 1
+    // Bind checkboxes
+    const ufmip1 = el('cmpFinanceUfmip_1');
+    if (ufmip1) ufmip1.addEventListener('change', calculate);
+
+    // Product change for FHA detection
+    const prod1 = el('cmpProduct_1');
+    if (prod1) prod1.addEventListener('input', updateFhaVisibility);
+
     bindAprInput(1);
     bindAprResetters(1);
 
-    // Section toggle clicks
-    document.querySelectorAll('.cmp-section-row').forEach(row => {
-      row.addEventListener('click', () => {
-        toggleSection(row.dataset.section);
-      });
-    });
+    // Toggles
+    initModeToggle();
+    initExistingToggle();
+    applyMode();
 
-    // Add loan button
+    // Buttons
     el('cmpAddBtn').addEventListener('click', addLoan);
-
-    // Add custom item button
     const addItemBtn = el('cmpAddItemBtn');
     if (addItemBtn) addItemBtn.addEventListener('click', addCustomItem);
-
-    // Enter key on name input adds item
     const newItemName = el('cmpNewItemName');
     if (newItemName) {
       newItemName.addEventListener('keydown', e => {
@@ -875,28 +1068,24 @@
       });
     }
 
-    // Action buttons
-    const printBtn = el('cmpPrintBtn');
-    if (printBtn) printBtn.addEventListener('click', () => window.print());
+    // Templates
+    populateTemplateDropdown();
+    const saveBtn = el('cmpSaveTemplateBtn');
+    if (saveBtn) saveBtn.addEventListener('click', saveTemplate);
+    const loadBtn = el('cmpLoadTemplateBtn');
+    if (loadBtn) loadBtn.addEventListener('click', loadTemplate);
+    const delBtn = el('cmpDeleteTemplateBtn');
+    if (delBtn) delBtn.addEventListener('click', deleteTemplate);
 
-    const clearBtn = el('cmpClearBtn');
-    if (clearBtn) clearBtn.addEventListener('click', clearAll);
-
-    // Try to restore saved state first
+    // Restore state or MISMO
     const restored = restoreState();
+    if (!restored) prefillFromMISMO(1);
 
-    if (!restored) {
-      // Only MISMO prefill if no saved state
-      prefillFromMISMO(1);
-    }
-
-    // Save state before navigating away
     window.addEventListener('beforeunload', saveState);
-
     calculate();
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     init();
     MSFG.markDefaults('.calc-page');
     MSFG.bindDefaultClearing('.calc-page');
@@ -910,10 +1099,12 @@
           sections.push({
             heading: label,
             rows: [
-              { label: 'Loan Amount', value: fmt(P(g('cmpLoanAmount_' + i))) },
+              { label: 'Product', value: g('cmpProduct_' + i) || '\u2014' },
+              { label: 'Loan Amount', value: g('cmpTotalLoanAmount_' + i) },
               { label: 'Interest Rate', value: parseFloat(g('cmpRate_' + i) || 0).toFixed(3) + '%' },
               { label: 'Term', value: g('cmpTerm_' + i) + ' months' },
-              { label: 'Monthly P&I', value: fmt(P(g('cmpMonthlyPI_' + i))) },
+              { label: 'LTV', value: g('cmpLtv_' + i) },
+              { label: 'Monthly P&I', value: g('cmpMonthlyPI_' + i) },
               { label: 'Total Closing Costs', value: g('cmpTotalClosing_' + i) },
               { label: 'Cash to Close', value: g('cmpCashToClose_' + i), isTotal: true },
               { label: 'Total Monthly Payment', value: g('cmpTotalMonthly_' + i), isTotal: true },
@@ -921,10 +1112,7 @@
             ]
           });
         }
-        return {
-          title: 'Loan Comparison',
-          sections: sections
-        };
+        return { title: 'Loan Comparison', sections: sections };
       });
     }
   });

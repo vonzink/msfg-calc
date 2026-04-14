@@ -1,11 +1,83 @@
-/* Loan Comparison — page-specific styles */
+/* Loan Comparison — Worksheet-style redesign */
+
+/* ---- Top controls ---- */
+.cmp-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cmp-controls__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.cmp-controls__templates {
+  border-top: 1px solid var(--color-gray-200);
+  padding-top: var(--space-sm);
+}
+
+/* Purchase / Refi toggle */
+.cmp-toggle {
+  display: inline-flex;
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.cmp-toggle-btn {
+  padding: 7px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border: none;
+  background: #fff;
+  color: var(--brand-primary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.cmp-toggle-btn + .cmp-toggle-btn {
+  border-left: 2px solid var(--brand-primary);
+}
+
+.cmp-toggle-btn.active {
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.cmp-toggle-btn:hover:not(.active) {
+  background: var(--color-gray-100);
+}
+
+.cmp-existing-check {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+/* Template controls */
+.cmp-template-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmp-template-group select {
+  min-width: 180px;
+  padding: 5px 8px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+}
 
 /* ---- Shared info bar ---- */
 .cmp-info-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-sm);
-  margin-bottom: var(--space-md);
 }
 
 @media (max-width: 768px) {
@@ -20,61 +92,48 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin-bottom: var(--space-md);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius);
 }
 
 .cmp-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  min-width: 500px;
+  border-collapse: collapse;
+  min-width: 460px;
 }
 
 /* ---- Column header ---- */
 .cmp-table thead th {
-  padding: var(--space-sm) var(--space-md);
+  padding: 10px var(--space-md);
   font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
   background: var(--color-gray-50);
-  border-bottom: 2px solid var(--color-gray-200);
+  border-bottom: 2px solid var(--color-gray-300);
   white-space: nowrap;
 }
 
-.cmp-table thead th:first-child {
-  text-align: left;
-  background: transparent;
-  font-weight: 700;
-  width: 180px;
-  min-width: 160px;
+.cmp-label-col {
+  text-align: left !important;
+  background: transparent !important;
+  width: 200px;
+  min-width: 170px;
 }
 
-/* ---- Loan column borders ---- */
 .cmp-col-th {
-  border-left: 2px solid var(--color-gray-300);
-  border-right: 2px solid var(--color-gray-300);
-  border-top: 2px solid var(--color-gray-300);
-}
-
-/* Apply left/right borders to body cells under each loan column */
-.cmp-table tbody td.cmp-loan-cell {
-  border-left: 2px solid var(--color-gray-300);
-  border-right: 2px solid var(--color-gray-300);
-}
-
-/* Bottom border on the last data row's loan cells */
-.cmp-table tbody tr:last-child td.cmp-loan-cell {
-  border-bottom: 2px solid var(--color-gray-300);
+  min-width: 160px;
+  border-left: 1px solid var(--color-gray-200);
 }
 
 .cmp-col-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xs);
+  gap: 6px;
 }
 
 .cmp-col-label {
-  width: 110px;
+  width: 120px;
   padding: 4px 8px;
   border: 1px solid var(--brand-primary);
   border-radius: 4px;
@@ -91,6 +150,7 @@
   border-color: var(--brand-accent);
 }
 
+/* Remove button */
 .cmp-remove-btn {
   width: 22px;
   height: 22px;
@@ -114,11 +174,12 @@
   background: rgba(192, 57, 43, 0.08);
 }
 
-/* ---- Add column button in header ---- */
+/* Add column */
 .cmp-add-col {
-  min-width: 140px;
+  min-width: 120px;
   text-align: center;
   vertical-align: middle;
+  border-left: 1px solid var(--color-gray-200);
 }
 
 .cmp-add-btn {
@@ -127,10 +188,22 @@
   white-space: nowrap;
 }
 
-/* ---- Table rows ---- */
+/* ---- Section headers (flat, professional) ---- */
+.cmp-section-hdr td {
+  background: var(--brand-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px var(--space-md) !important;
+  border-bottom: none !important;
+}
+
+/* ---- Data rows ---- */
 .cmp-table tbody td {
-  padding: 5px var(--space-md);
-  font-size: 0.85rem;
+  padding: 4px var(--space-md);
+  font-size: 0.84rem;
   border-bottom: 1px solid var(--color-gray-100);
   text-align: center;
   vertical-align: middle;
@@ -139,85 +212,140 @@
 .cmp-table tbody td:first-child {
   text-align: left;
   font-weight: 500;
-  color: var(--color-gray-700);
+  color: var(--color-gray-600);
   white-space: nowrap;
-}
-
-/* ---- Section header rows ---- */
-.cmp-section-row td {
-  background: #e8f5e9;
-  color: #2e7d32;
-  font-weight: 700;
+  padding-left: 16px;
   font-size: 0.82rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 6px var(--space-md) !important;
-  border-bottom: 1px solid #a5d6a7 !important;
-  cursor: pointer;
-  user-select: none;
 }
 
-.cmp-section-row td:first-child {
-  color: #2e7d32;
+/* Loan cells get left border */
+.cmp-table tbody td.cmp-loan-cell {
+  border-left: 1px solid var(--color-gray-200);
 }
 
-.cmp-section-toggle {
-  float: right;
-  font-size: 0.75rem;
-  opacity: 0.8;
+/* ---- Key metric rows ---- */
+.cmp-key-row td {
+  background: #f8faf8;
 }
 
-/* ---- Detail rows (collapsible) ---- */
-.cmp-detail-row {
-  transition: opacity 0.2s;
-}
-
-.cmp-detail-row--hidden {
-  display: none;
+.cmp-key-value {
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: var(--brand-primary) !important;
 }
 
 /* ---- Subtotal rows ---- */
-.cmp-subtotal-row td {
-  font-weight: 700;
+.cmp-sub-row td {
+  font-weight: 600;
   background: var(--color-gray-50);
-  border-top: 2px solid var(--color-gray-300);
-  border-bottom: 2px solid var(--color-gray-200);
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200) !important;
+  font-size: 0.82rem;
+}
+
+.cmp-sub-row td:first-child {
+  font-weight: 700;
+  color: var(--color-gray-700);
 }
 
 /* ---- Grand total row ---- */
-.cmp-table tbody tr.cmp-total-row td {
+.cmp-grand-row td {
+  font-weight: 700;
+  font-size: 0.88rem;
+  background: #e8f0e8;
+  border-top: 2px solid var(--brand-primary);
+  border-bottom: 2px solid var(--brand-primary) !important;
+  padding: 8px var(--space-md) !important;
+}
+
+.cmp-grand-row td:first-child {
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
+/* ---- Cash to Close / Total Monthly row ---- */
+.cmp-total-row td {
   font-weight: 700;
   font-size: 0.9rem;
   background: var(--brand-primary);
   color: #fff;
-  border-bottom: none;
+  border-bottom: none !important;
   padding: 8px var(--space-md) !important;
+}
+
+.cmp-total-row td:first-child {
+  color: #fff;
+}
+
+.cmp-total-row .cmp-key-value {
+  color: #fff !important;
+  font-size: 1rem !important;
 }
 
 /* ---- Inputs ---- */
 .cmp-input {
-  width: 110px;
-  padding: 3px 6px;
+  width: 120px;
+  padding: 4px 8px;
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-family: var(--font-body);
   text-align: right;
+  background: #fff;
+  transition: border-color 0.15s;
 }
 
 .cmp-input:focus {
   outline: none;
   border-color: var(--brand-accent);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
 .cmp-input--sm { width: 80px; }
 
-/* Computed (auto-calculated) fields */
+.cmp-input--rate {
+  width: 90px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--brand-primary);
+}
+
+/* Computed fields */
 .cmp-computed {
-  background: var(--color-gray-50);
-  color: var(--color-gray-700);
   font-weight: 600;
-  border-color: var(--color-gray-200);
+  color: var(--color-gray-700);
+}
+
+/* ---- FHA UFMIP ---- */
+.cmp-fha-row {
+  display: none;
+}
+
+.cmp-fha-row.cmp-fha-visible {
+  display: table-row;
+}
+
+.cmp-ufmip-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.cmp-ufmip-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cmp-ufmip-toggle input {
+  margin: 0;
 }
 
 /* ---- Best-value highlight ---- */
@@ -230,7 +358,20 @@
   background: #e8f5e9;
 }
 
-/* ---- Add Custom Item bar ---- */
+/* ---- Existing loan column ---- */
+.cmp-existing-na {
+  color: var(--color-gray-300);
+  font-style: italic;
+  font-size: 0.78rem;
+}
+
+/* ---- Purchase / Refi visibility ---- */
+.cmp-purchase-only,
+.cmp-refi-only {
+  /* JS toggles display */
+}
+
+/* ---- Add Custom Item ---- */
 .cmp-add-item {
   margin-bottom: var(--space-md);
 }
@@ -238,14 +379,8 @@
 .cmp-add-item__form {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   flex-wrap: wrap;
-}
-
-.cmp-add-item__form label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-gray-700);
 }
 
 .cmp-add-item__form select,
@@ -253,17 +388,12 @@
   padding: 5px 10px;
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-family: var(--font-body);
 }
 
-.cmp-add-item__form select {
-  min-width: 140px;
-}
-
-.cmp-add-item__form input[type="text"] {
-  min-width: 180px;
-}
+.cmp-add-item__form select { min-width: 130px; }
+.cmp-add-item__form input[type="text"] { min-width: 180px; }
 
 .cmp-add-item__form select:focus,
 .cmp-add-item__form input[type="text"]:focus {
@@ -271,17 +401,17 @@
   border-color: var(--brand-accent);
 }
 
-/* ---- Custom row label with remove button ---- */
+/* Custom row remove button */
 .cmp-custom-name {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
 }
 
 .cmp-custom-name span {
   font-style: italic;
-  color: var(--color-gray-600);
+  color: var(--color-gray-500);
 }
 
 .cmp-custom-remove {
@@ -291,7 +421,7 @@
   border: none;
   background: transparent;
   color: var(--color-gray-400);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   line-height: 1;
   cursor: pointer;
   border-radius: 50%;
@@ -299,7 +429,6 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
 }
 
 .cmp-custom-remove:hover {
@@ -307,11 +436,11 @@
   background: rgba(192, 57, 43, 0.08);
 }
 
-/* ---- Notes textarea ---- */
+/* ---- Notes ---- */
 .cmp-notes {
   width: 100%;
   min-width: 110px;
-  padding: 5px 8px;
+  padding: 4px 8px;
   border: 1px solid var(--color-gray-300);
   border-radius: 4px;
   font-size: 0.8rem;
@@ -331,20 +460,19 @@
   font-style: italic;
 }
 
-/* Notes row label */
 tr[data-row="notes"] td:first-child {
   vertical-align: top;
-  padding-top: 10px;
+  padding-top: 8px;
 }
 
 /* ---- Disclaimer ---- */
 .cmp-disclaimer {
   margin-top: var(--space-lg);
-  padding: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   background: #fff3cd;
   border: 1px solid #ffc107;
   border-radius: var(--border-radius);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: #856404;
   text-align: center;
 }
@@ -353,22 +481,25 @@ tr[data-row="notes"] td:first-child {
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
-  .cmp-input { width: 90px; }
-  .cmp-col-label { width: 80px; }
+  .cmp-input { width: 100px; }
+  .cmp-input--rate { width: 80px; }
+  .cmp-col-label { width: 90px; }
+  .cmp-controls__row { flex-direction: column; align-items: flex-start; }
 }
 
-/* ---- Print styles ---- */
+/* ---- Print ---- */
 @media print {
   .cmp-add-col,
   .cmp-remove-btn,
   .cmp-custom-remove,
   .cmp-add-item,
   .cmp-disclaimer,
+  .cmp-controls__templates,
   .action-bar,
   .calc-page__header,
   .calc-page__footer { display: none !important; }
 
-  .cmp-table-wrap { overflow: visible; }
+  .cmp-table-wrap { overflow: visible; border: none; }
   .cmp-table { min-width: 0; }
 
   .cmp-input {
@@ -376,6 +507,7 @@ tr[data-row="notes"] td:first-child {
     background: transparent;
     font-weight: 600;
     padding: 0;
+    width: auto;
   }
 
   .cmp-col-label {
@@ -385,32 +517,27 @@ tr[data-row="notes"] td:first-child {
     background: transparent;
   }
 
-  .cmp-col-th,
-  .cmp-table tbody td.cmp-loan-cell {
-    border-left: 1px solid #999;
-    border-right: 1px solid #999;
-  }
-  .cmp-col-th { border-top: 1px solid #999; }
-  .cmp-table tbody tr:last-child td.cmp-loan-cell { border-bottom: 1px solid #999; }
-
-  .cmp-detail-row--hidden { display: table-row; }
-
   .cmp-notes {
     border: none;
     background: transparent;
     resize: none;
     padding: 0;
-    font-size: 0.8rem;
   }
 
-  /* Page-break control */
+  .cmp-section-hdr td {
+    background: #333 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cmp-total-row td {
+    background: #333 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .cmp-table tr {
     break-inside: avoid;
     page-break-inside: avoid;
-  }
-
-  .cmp-section-header {
-    break-after: avoid;
-    page-break-after: avoid;
   }
 }

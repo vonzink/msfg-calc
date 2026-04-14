@@ -423,6 +423,17 @@ const FhaCalc = (() => {
       fillCell('fhaRefiNtbDetail', refi.ntbDetail || '\u2014');
       fillCell('fhaRefiSeasoning', '\u2014');
       fillCell('fhaRefiCashToClose', formatCashToClose(refi.cashToClose));
+
+      // Rate/Term cash-to-close warning: > $150 exceeds max for rate/term
+      const refiCtcEl = el('fhaRefiCashToClose');
+      const refiType = txt('fhaRefiTypeSelect');
+      if (refiCtcEl) {
+        if (refiType === 'rateTerm' && refi.cashToClose > 150) {
+          refiCtcEl.classList.add('fha-cash-warning');
+        } else {
+          refiCtcEl.classList.remove('fha-cash-warning');
+        }
+      }
     } else {
       clearRefiColumn();
     }
@@ -783,6 +794,40 @@ const FhaCalc = (() => {
   }
 
   /* ===========================================================
+     Purchase / Refi Toggle
+     =========================================================== */
+  let loanMode = 'purchase'; // 'purchase' or 'refi'
+
+  function initLoanToggle() {
+    const btns = document.querySelectorAll('.fha-toggle-btn');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loanMode = btn.dataset.mode;
+        applyLoanMode();
+      });
+    });
+    applyLoanMode();
+  }
+
+  function applyLoanMode() {
+    const purchaseEls = document.querySelectorAll('.fha-purchase-only');
+    const refiEls = document.querySelectorAll('.fha-refi-only');
+
+    if (loanMode === 'purchase') {
+      purchaseEls.forEach(e => e.style.display = '');
+      refiEls.forEach(e => e.style.display = 'none');
+    } else {
+      purchaseEls.forEach(e => e.style.display = 'none');
+      refiEls.forEach(e => e.style.display = '');
+      // Clear purchase price when switching to refi
+      const pp = el('fhaPurchasePrice');
+      if (pp) pp.value = '';
+    }
+  }
+
+  /* ===========================================================
      Main Calculate
      =========================================================== */
   function calculateAll() {
@@ -830,6 +875,9 @@ const FhaCalc = (() => {
 
     // Collapsible sections
     initCollapsibles();
+
+    // Purchase / Refi toggle
+    initLoanToggle();
 
     // Calculate button
     el('fhaCalculateBtn').addEventListener('click', calculateAll);
