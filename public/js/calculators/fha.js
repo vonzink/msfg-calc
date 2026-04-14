@@ -831,15 +831,8 @@
         notes.push('UFMIP not financed \u2014 due at closing.');
       }
 
-      // Render calc steps using Rate/Term as primary
-      renderCalcSteps(state, {
-        scenario: 'rateTerm', value, maxBase: rtResult.maxBase, actualBase: rtResult.actualBase,
-        ufmipAmt: rtResult.ufmipAmt, totalLoan: rtResult.totalLoan, ltv: rtResult.ltv,
-        annualMipRate: rtResult.annualMipRate, monthlyPI: rtResult.monthlyPI, monthlyMIP: rtResult.monthlyMIP,
-        totalMonthly: rtResult.totalMonthly, cashToClose: rtResult.cashToClose,
-        ntb: rtResult.ntb, ufmipRefund: ufmipRefund, threeWay: rtResult.threeWay,
-        isStreamline: false, isCashOut: false
-      });
+      // Render calc steps for all three refi scenarios
+      renderCalcStepsRefi(state, rtResult, coResult, slResult, slEligible, ufmipRefund, value);
 
       // Workspace tally: send Rate/Term figures as primary
       if (window.top !== window) {
@@ -871,7 +864,71 @@
   function renderCalcSteps(state, r) {
     const container = el('calcSteps-fha');
     if (!container) return;
+    container.innerHTML = buildScenarioSteps(state, r);
+  }
 
+  function stepSection(title, steps) {
+    let html = '<div class="calc-step"><h4>' + MSFG.escHtml(title) + '</h4>';
+    html += '<div class="calc-step__formula">';
+    steps.forEach(s => {
+      html += '<div style="margin-bottom:4px;"><strong>'
+        + MSFG.escHtml(s.label) + ':</strong> ';
+      if (s.formula) {
+        html += '<span style="color:var(--color-gray-500)">'
+          + MSFG.escHtml(s.formula) + '</span> = ';
+      }
+      html += '<strong>' + MSFG.escHtml(s.value) + '</strong></div>';
+    });
+    html += '</div></div>';
+    return html;
+  }
+
+  function step(label, formula, value) {
+    return { label, formula, value };
+  }
+
+  function renderCalcStepsRefi(state, rtResult, coResult, slResult, slEligible, ufmipRefund, value) {
+    const container = el('calcSteps-fha');
+    if (!container) return;
+
+    let html = '';
+
+    // Rate/Term
+    html += buildScenarioSteps(state, {
+      scenario: 'rateTerm', value, maxBase: rtResult.maxBase, actualBase: rtResult.actualBase,
+      ufmipAmt: rtResult.ufmipAmt, totalLoan: rtResult.totalLoan, ltv: rtResult.ltv,
+      annualMipRate: rtResult.annualMipRate, monthlyPI: rtResult.monthlyPI, monthlyMIP: rtResult.monthlyMIP,
+      totalMonthly: rtResult.totalMonthly, cashToClose: rtResult.cashToClose,
+      ntb: rtResult.ntb, ufmipRefund: ufmipRefund, threeWay: rtResult.threeWay,
+      isStreamline: false, isCashOut: false
+    });
+
+    // Cash-Out
+    html += buildScenarioSteps(state, {
+      scenario: 'cashOut', value, maxBase: coResult.maxBase, actualBase: coResult.actualBase,
+      ufmipAmt: coResult.ufmipAmt, totalLoan: coResult.totalLoan, ltv: coResult.ltv,
+      annualMipRate: coResult.annualMipRate, monthlyPI: coResult.monthlyPI, monthlyMIP: coResult.monthlyMIP,
+      totalMonthly: coResult.totalMonthly, cashToClose: coResult.cashToClose,
+      ntb: coResult.ntb, ufmipRefund: ufmipRefund, threeWay: coResult.threeWay,
+      isStreamline: false, isCashOut: true
+    });
+
+    // Streamline
+    if (slEligible && slResult) {
+      html += buildScenarioSteps(state, {
+        scenario: 'streamline', value, maxBase: slResult.maxBase, actualBase: slResult.actualBase,
+        ufmipAmt: slResult.ufmipAmt, totalLoan: slResult.totalLoan, ltv: slResult.ltv,
+        annualMipRate: slResult.annualMipRate, monthlyPI: slResult.monthlyPI, monthlyMIP: slResult.monthlyMIP,
+        totalMonthly: slResult.totalMonthly, cashToClose: slResult.cashToClose,
+        ntb: slResult.ntb, ufmipRefund: ufmipRefund, threeWay: slResult.threeWay || {},
+        isStreamline: true, isCashOut: false
+      });
+    }
+
+    container.innerHTML = html;
+  }
+
+  function buildScenarioSteps(state, r) {
     const steps = [];
 
     if (r.scenario === 'purchase') {
@@ -891,8 +948,8 @@
       steps.push(step('Base Loan', 'UPB \u2212 UFMIP refund', fmt(r.maxBase)));
     } else {
       steps.push(step('LTV Calc',
-        fmt(state.appraisedValue) + ' \u00D7 ' + (r.threeWay.maxLtvPct * 100).toFixed(2) + '%',
-        fmt(r.threeWay.ltvCalc)));
+        fmt(state.appraisedValue) + ' \u00D7 ' + ((r.threeWay.maxLtvPct || 0) * 100).toFixed(2) + '%',
+        fmt(r.threeWay.ltvCalc || 0)));
       if (r.threeWay.existingDebtCalc > 0) {
         steps.push(step('Existing Debt Calc',
           'UPB + costs + prepaids + accrued int \u2212 refund \u2212 credits',
@@ -945,27 +1002,7 @@
       : r.isStreamline ? 'Streamline'
       : r.isCashOut ? 'Cash-Out Refi' : 'Rate/Term Refi';
 
-    container.innerHTML = stepSection(title + ' Calculation', steps);
-  }
-
-  function stepSection(title, steps) {
-    let html = '<div class="calc-step"><h4>' + MSFG.escHtml(title) + '</h4>';
-    html += '<div class="calc-step__formula">';
-    steps.forEach(s => {
-      html += '<div style="margin-bottom:4px;"><strong>'
-        + MSFG.escHtml(s.label) + ':</strong> ';
-      if (s.formula) {
-        html += '<span style="color:var(--color-gray-500)">'
-          + MSFG.escHtml(s.formula) + '</span> = ';
-      }
-      html += '<strong>' + MSFG.escHtml(s.value) + '</strong></div>';
-    });
-    html += '</div></div>';
-    return html;
-  }
-
-  function step(label, formula, value) {
-    return { label, formula, value };
+    return stepSection(title + ' Calculation', steps);
   }
 
   /* ===========================================================
