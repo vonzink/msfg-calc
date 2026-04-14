@@ -189,15 +189,17 @@
 }
 
 /* ---- Section headers (flat, professional) ---- */
-.cmp-section-hdr td {
-  background: var(--brand-primary);
-  color: #fff;
+.cmp-table .cmp-section-hdr td,
+.cmp-table .cmp-section-hdr td:first-child {
+  background: var(--color-gray-100);
+  color: var(--brand-primary);
   font-weight: 700;
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 6px var(--space-md) !important;
-  border-bottom: none !important;
+  padding: 7px var(--space-md) !important;
+  border-bottom: 2px solid var(--brand-primary) !important;
+  border-top: 1px solid var(--color-gray-200);
 }
 
 /* ---- Data rows ---- */
@@ -235,36 +237,31 @@
 }
 
 /* ---- Subtotal rows ---- */
-.cmp-sub-row td {
+.cmp-table .cmp-sub-row td,
+.cmp-table .cmp-sub-row td:first-child {
   font-weight: 600;
   background: var(--color-gray-50);
   border-top: 1px solid var(--color-gray-200);
   border-bottom: 1px solid var(--color-gray-200) !important;
   font-size: 0.82rem;
-}
-
-.cmp-sub-row td:first-child {
-  font-weight: 700;
   color: var(--color-gray-700);
 }
 
 /* ---- Grand total row ---- */
-.cmp-grand-row td {
+.cmp-table .cmp-grand-row td,
+.cmp-table .cmp-grand-row td:first-child {
   font-weight: 700;
   font-size: 0.88rem;
+  color: var(--brand-primary);
   background: #e8f0e8;
   border-top: 2px solid var(--brand-primary);
   border-bottom: 2px solid var(--brand-primary) !important;
   padding: 8px var(--space-md) !important;
 }
 
-.cmp-grand-row td:first-child {
-  color: var(--brand-primary);
-  font-weight: 700;
-}
-
 /* ---- Cash to Close / Total Monthly row ---- */
-.cmp-total-row td {
+.cmp-table .cmp-total-row td,
+.cmp-table .cmp-total-row td:first-child {
   font-weight: 700;
   font-size: 0.9rem;
   background: var(--brand-primary);
@@ -273,11 +270,7 @@
   padding: 8px var(--space-md) !important;
 }
 
-.cmp-total-row td:first-child {
-  color: #fff;
-}
-
-.cmp-total-row .cmp-key-value {
+.cmp-table .cmp-total-row .cmp-key-value {
   color: #fff !important;
   font-size: 1rem !important;
 }
