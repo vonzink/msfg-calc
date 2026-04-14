@@ -108,7 +108,7 @@
       currentRate:        val('fhaCurrentRate'),
       currentPayment:     val('fhaCurrentPayment'),
       currentLoanType:    txt('fhaCurrentLoanType'),
-      currentMipRate:     val('fhaCurrentMipRate'),
+      currentMipRate:     0, // auto-calculated in recalculate()
       originalLoanAmount: val('fhaOriginalLoanAmount'),
       remainingTerm:      val('fhaRemainingTerm'),
       endorsementDate:    txt('fhaEndorsementDate'),
@@ -526,6 +526,18 @@
     // Monthly totals
     const totalMonthly = monthlyPI + monthlyMIP + state.monthlyTax
       + state.monthlyInsurance + state.monthlyHoa;
+
+    // Auto-calculate current MIP rate from existing loan data for NTB
+    if (isRefi && state.isExistingFha && state.originalLoanAmount > 0) {
+      // Estimate the original LTV (original loan / appraised value as proxy)
+      const origValue = state.appraisedValue || state.originalLoanAmount;
+      const origLtv = origValue > 0 ? state.originalLoanAmount / origValue : 0.96;
+      // Use remaining term to estimate original term bracket
+      const origTermYears = state.remainingTerm > 0
+        ? Math.ceil(state.remainingTerm / 12) : 30;
+      const oldMipRate = lookupMipRate(state.originalLoanAmount, origLtv, origTermYears);
+      state.currentMipRate = oldMipRate * 100; // store as percent to match currentRate
+    }
 
     // NTB (refi modes only)
     let ntb = { met: null, detail: '' };
@@ -985,7 +997,6 @@
           { label: 'Current UPB', value: fmt(val('fhaCurrentUpb')) },
           { label: 'Current Rate', value: val('fhaCurrentRate') ? val('fhaCurrentRate') + '%' : '\u2014' },
           { label: 'Current P&I + MIP', value: val('fhaCurrentPayment') ? fmt(val('fhaCurrentPayment')) : '\u2014' },
-          { label: 'Current MIP Rate', value: val('fhaCurrentMipRate') ? val('fhaCurrentMipRate') + '%' : '\u2014' },
           { label: 'Existing FHA', value: el('fhaIsExistingFha') && el('fhaIsExistingFha').checked ? 'Yes' : 'No' }
         ];
         sections.push({ heading: 'Current Loan', rows: currentRows });
