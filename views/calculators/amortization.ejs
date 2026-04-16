@@ -257,7 +257,6 @@
     <!-- ===== 6. Amortization Schedule ===== -->
     <div class="calc-section u-hidden" id="scheduleSection">
       <h2><span class="section-number">6</span> Amortization Schedule</h2>
-      <%- include('../partials/calc-actions') %>
       <div class="amort-schedule-wrap">
         <table class="data-table amort-table" id="scheduleTable">
           <thead>
@@ -278,6 +277,9 @@
 
     <!-- ===== 7. Show Calculations ===== -->
     <%- include('../partials/show-calculations', { calcId: 'amortization' }) %>
+
+    <!-- ===== Print / Email ===== -->
+    <%- include('../partials/calc-actions') %>
 
   </div>
 
