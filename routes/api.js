@@ -222,7 +222,24 @@ const emailLimiter = rateLimit({
  * Build HTML email body from calculator data.
  *  calcData: { title, sections: [{ heading, rows: [{label, value}] }] }
  */
-function buildEmailHTML(calcData, personalMessage, siteConfig, format) {
+/**
+ * Sanitize user-provided HTML signature — strip script/style/iframe/object/embed tags,
+ * event handler attributes, and javascript: URLs. Uses a conservative regex filter
+ * sufficient for trusted employee-entered HTML (full DOMPurify would be overkill here).
+ */
+function sanitizeSignatureHtml(html) {
+  if (!html || typeof html !== 'string') return '';
+  return html
+    .replace(/<\s*(script|style|iframe|object|embed|meta|link)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+    .replace(/<\s*(script|style|iframe|object|embed|meta|link)[^>]*\/?\s*>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son[a-z]+\s*=\s*'[^']*'/gi, '')
+    .replace(/\son[a-z]+\s*=\s*[^\s>]+/gi, '')
+    .replace(/javascript\s*:/gi, '')
+    .replace(/data\s*:\s*text\/html/gi, '');
+}
+
+function buildEmailHTML(calcData, personalMessage, siteConfig, format, signatureHtml) {
   const sig = siteConfig.emailSignature || {};
   const siteName = siteConfig.siteName || 'MSFG Calculator Suite';
   const primaryColor = '#2d6a4f';
@@ -311,8 +328,18 @@ function buildEmailHTML(calcData, personalMessage, siteConfig, format) {
     });
   }
 
-  /* Signature */
-  if (includeSignature && sig.name) {
+  /* Signature — prefer user HTML signature from dashboard profile when provided */
+  if (includeSignature && signatureHtml) {
+    const safeSig = sanitizeSignatureHtml(signatureHtml);
+    if (safeSig) {
+      html += `
+<tr><td style="padding:24px 30px 0;">
+  <div style="border-top:1px solid #e0e0e0;padding-top:16px;font-family:${ff};font-size:${fs}px;color:${detailColor};">
+    ${safeSig}
+  </div>
+</td></tr>`;
+    }
+  } else if (includeSignature && sig.name) {
     html += `
 <tr><td style="padding:24px 30px 0;">
   <table cellpadding="0" cellspacing="0" style="border-top:1px solid #e0e0e0;padding-top:16px;width:100%;">
@@ -359,7 +386,7 @@ function escHTML(str) {
  */
 router.post('/email/send', emailLimiter, express.json(), async (req, res) => {
   try {
-    const { to, subject, message, calcData, format } = req.body;
+    const { to, subject, message, calcData, format, signatureHtml } = req.body;
 
     if (!to || !subject || !calcData) {
       return res.status(400).json({ success: false, message: 'Missing required fields (to, subject, calcData).' });
@@ -392,7 +419,7 @@ router.post('/email/send', emailLimiter, express.json(), async (req, res) => {
 
     const fromName = siteConfig.emailSignature?.name || siteConfig.siteName || 'MSFG Calculator';
     const fromEmail = smtp.from || smtp.user;
-    const htmlBody = buildEmailHTML(calcData, message, siteConfig, format);
+    const htmlBody = buildEmailHTML(calcData, message, siteConfig, format, signatureHtml);
 
     await transporter.sendMail({
       from: `"${fromName}" <${fromEmail}>`,

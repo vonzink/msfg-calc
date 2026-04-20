@@ -96,6 +96,44 @@
   loadFormatPrefs();
   updateFormatDisplays();
 
+  /* ---- Dashboard user signature (when calc is served from dashboard.msfgco.com/calc/) ---- */
+  let _userSignatureHtml = null;
+  let _userSignatureFetched = false;
+
+  function getAuthToken() {
+    try {
+      const fromStorage = localStorage.getItem('auth_token');
+      if (fromStorage) return fromStorage;
+      const m = document.cookie.match(/(?:^|;\s*)auth_token=([^;]*)/);
+      return m ? decodeURIComponent(m[1]) : null;
+    } catch (e) { return null; }
+  }
+
+  async function loadUserSignature() {
+    if (_userSignatureFetched) return _userSignatureHtml;
+    _userSignatureFetched = true;
+    const token = getAuthToken();
+    if (!token) return null;
+
+    // Build URL dynamically so nginx sub_filter doesn't rewrite the path to /calc/api/...
+    const apiPath = ['', 'api', 'me', 'profile'].join('/');
+    const url = window.location.origin + apiPath;
+
+    try {
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+        credentials: 'include'
+      });
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      _userSignatureHtml = data && data.email_signature ? String(data.email_signature) : null;
+      return _userSignatureHtml;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function openModal() {
     if (!overlay) return;
 
@@ -110,6 +148,15 @@
     if (statusEl) statusEl.textContent = '';
     if (previewWrap) previewWrap.classList.add('u-hidden');
     if (toInput) toInput.focus();
+
+    // Fire-and-forget: try to load the logged-in user's HTML signature
+    loadUserSignature().then(function (sig) {
+      // If preview is showing, refresh it so the signature appears
+      if (sig && previewWrap && !previewWrap.classList.contains('u-hidden') && _getEmailData) {
+        const data = _getEmailData();
+        if (previewContent) previewContent.innerHTML = buildPreviewHTML(data, getFormatOpts());
+      }
+    });
   }
 
   function closeModal() {
@@ -153,6 +200,14 @@
       });
       html += '</table>';
     });
+
+    // Append signature HTML if available and toggle is on
+    if (opts.includeSignature && _userSignatureHtml) {
+      html += '<div style="margin-top:' + (pad * 3) + 'px;padding-top:' + (pad * 2) + 'px;border-top:1px solid #e0e0e0;font-family:' + ff + ';font-size:' + fs + 'px;color:' + detailColor + ';">';
+      html += _userSignatureHtml;
+      html += '</div>';
+    }
+
     html += '</div>';
     return html;
   }
@@ -257,7 +312,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: to, subject: subject, message: message, calcData: data,
-          format: getFormatOpts()
+          format: getFormatOpts(),
+          signatureHtml: _userSignatureHtml || null
         })
       });
       const result = await resp.json();
