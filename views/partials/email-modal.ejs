@@ -18,6 +18,49 @@
         <label for="emailMessage">Personal Message <span class="text-muted">(optional)</span></label>
         <textarea id="emailMessage" rows="3" placeholder="Hi, here are the results from our analysis..."></textarea>
       </div>
+
+      <!-- Formatting controls -->
+      <details class="email-modal__formatting" id="emailFormattingPanel">
+        <summary>Formatting Options</summary>
+        <div class="email-format-grid">
+          <div class="email-format-field">
+            <label for="emailFontFamily">Font</label>
+            <select id="emailFontFamily">
+              <option value="Arial, Helvetica, sans-serif">Arial</option>
+              <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Times New Roman', Times, serif">Times New Roman</option>
+              <option value="'Segoe UI', Tahoma, sans-serif">Segoe UI</option>
+              <option value="Verdana, Geneva, sans-serif">Verdana</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+              <option value="'Courier New', monospace">Courier New</option>
+            </select>
+          </div>
+          <div class="email-format-field">
+            <label for="emailFontSize">Font size <span class="email-format-val" id="emailFontSizeVal">14px</span></label>
+            <input type="range" id="emailFontSize" min="11" max="18" step="1" value="14">
+          </div>
+          <div class="email-format-field">
+            <label for="emailRowSpacing">Row spacing <span class="email-format-val" id="emailRowSpacingVal">6px</span></label>
+            <input type="range" id="emailRowSpacing" min="2" max="14" step="1" value="6">
+          </div>
+          <div class="email-format-field email-format-field--check">
+            <label class="email-format-check">
+              <input type="checkbox" id="emailBoldLabels" checked>
+              <span>Bold condition labels</span>
+            </label>
+            <label class="email-format-check">
+              <input type="checkbox" id="emailBlackDetails" checked>
+              <span>Black detail text</span>
+            </label>
+            <label class="email-format-check">
+              <input type="checkbox" id="emailIncludeSignature" checked>
+              <span>Include my signature</span>
+            </label>
+          </div>
+        </div>
+      </details>
+
       <div class="email-modal__preview-toggle">
         <button type="button" class="btn btn-sm btn-ghost" id="emailPreviewToggle">Preview Email</button>
         <button type="button" class="btn btn-sm btn-ghost" id="emailCopyBtn">Copy to Clipboard</button>

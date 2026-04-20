@@ -222,28 +222,41 @@ const emailLimiter = rateLimit({
  * Build HTML email body from calculator data.
  *  calcData: { title, sections: [{ heading, rows: [{label, value}] }] }
  */
-function buildEmailHTML(calcData, personalMessage, siteConfig) {
+function buildEmailHTML(calcData, personalMessage, siteConfig, format) {
   const sig = siteConfig.emailSignature || {};
   const siteName = siteConfig.siteName || 'MSFG Calculator Suite';
   const primaryColor = '#2d6a4f';
 
+  const fmt = format || {};
+  const ff = fmt.fontFamily || 'Arial, Helvetica, sans-serif';
+  const fs = parseInt(fmt.fontSize, 10) || 14;
+  const pad = fmt.rowSpacing != null ? parseInt(fmt.rowSpacing, 10) : 8;
+  const boldLabels = fmt.boldLabels !== false;
+  const blackDetails = fmt.blackDetails !== false;
+  const includeSignature = fmt.includeSignature !== false;
+  const labelColor = boldLabels ? '#111' : '#555';
+  const labelWeight = boldLabels ? '700' : '500';
+  const detailColor = blackDetails ? '#000' : '#222';
+
+  const detailSmall = Math.max(10, fs - 2);
+
   let html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:${ff};">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:24px 0;">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
 <!-- Header -->
 <tr><td style="background:${primaryColor};padding:20px 30px;">
-  <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">${escHTML(calcData.title || 'Calculator Results')}</h1>
+  <h1 style="color:#fff;margin:0;font-size:${fs + 6}px;font-weight:700;">${escHTML(calcData.title || 'Calculator Results')}</h1>
 </td></tr>`;
 
   /* Personal message */
   if (personalMessage) {
     html += `
 <tr><td style="padding:20px 30px 0;">
-  <p style="color:#333;font-size:14px;line-height:1.5;margin:0;">${escHTML(personalMessage).replace(/\n/g, '<br>')}</p>
+  <p style="color:${detailColor};font-size:${fs}px;line-height:1.5;margin:0;">${escHTML(personalMessage).replace(/\n/g, '<br>')}</p>
 </td></tr>`;
   }
 
@@ -252,8 +265,8 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
     calcData.sections.forEach(function (sec) {
       html += `
 <tr><td style="padding:20px 30px 0;">
-  <h3 style="color:${primaryColor};font-size:15px;margin:0 0 10px;"><span style="padding-bottom:6px;border-bottom:2px solid ${primaryColor};">${escHTML(sec.heading)}</span></h3>
-  <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">`;
+  <h3 style="color:${primaryColor};font-size:${fs + 1}px;margin:0 0 10px;"><span style="padding-bottom:6px;border-bottom:2px solid ${primaryColor};">${escHTML(sec.heading)}</span></h3>
+  <table width="100%" cellpadding="0" cellspacing="0" style="font-size:${fs}px;">`;
 
       sec.rows.forEach(function (row, i) {
         const bg = i % 2 === 0 ? '#fafafa' : '#fff';
@@ -268,29 +281,29 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
             : '';
           html += `
     <tr style="background:${bg};">
-      <td colspan="2" style="padding:8px 12px ${row.value ? '1px' : '8px'};color:#333;font-size:13px;">${bullet}${escHTML(row.label)}</td>
+      <td colspan="2" style="padding:${pad}px 12px ${row.value ? '1px' : pad + 'px'};color:${labelColor};font-weight:${labelWeight};font-size:${fs}px;">${bullet}${escHTML(row.label)}</td>
     </tr>`;
           if (row.value) {
             html += `
     <tr style="background:${bg};">
-      <td colspan="2" style="padding:0 12px 8px ${row.bulletColor ? '28px' : '28px'};color:#888;font-size:11px;line-height:1.4;">${escHTML(row.value)}</td>
+      <td colspan="2" style="padding:0 12px ${pad}px ${row.bulletColor ? '28px' : '28px'};color:${detailColor};font-size:${detailSmall}px;line-height:1.4;">${escHTML(row.value)}</td>
     </tr>`;
           }
         } else if (useStacked) {
           // Long value: label on top, value below spanning full width
           html += `
     <tr style="background:${bg};${border}">
-      <td colspan="2" style="padding:8px 12px 2px;color:#555;${weight}font-size:13px;">${escHTML(row.label)}</td>
+      <td colspan="2" style="padding:${pad}px 12px 2px;color:${labelColor};font-weight:${labelWeight};${weight}font-size:${fs}px;">${escHTML(row.label)}</td>
     </tr>
     <tr style="background:${bg};">
-      <td colspan="2" style="padding:2px 12px 8px;color:#222;font-size:13px;line-height:1.4;">${escHTML(row.value)}</td>
+      <td colspan="2" style="padding:2px 12px ${pad}px;color:${detailColor};font-size:${fs}px;line-height:1.4;">${escHTML(row.value)}</td>
     </tr>`;
         } else {
-          const boldVal = row.bold ? 'font-weight:700;font-size:1.05em;' : '';
+          const boldVal = row.bold ? `font-weight:700;font-size:${fs + 1}px;` : '';
           html += `
     <tr style="background:${bg};${border}">
-      <td style="padding:8px 12px;color:#555;${weight}">${escHTML(row.label)}</td>
-      <td style="padding:8px 12px;text-align:right;color:#222;${weight}${boldVal}">${escHTML(row.value)}</td>
+      <td style="padding:${pad}px 12px;color:${labelColor};font-weight:${labelWeight};${weight}">${escHTML(row.label)}</td>
+      <td style="padding:${pad}px 12px;text-align:right;color:${detailColor};${weight}${boldVal}">${escHTML(row.value)}</td>
     </tr>`;
         }
       });
@@ -299,7 +312,7 @@ function buildEmailHTML(calcData, personalMessage, siteConfig) {
   }
 
   /* Signature */
-  if (sig.name) {
+  if (includeSignature && sig.name) {
     html += `
 <tr><td style="padding:24px 30px 0;">
   <table cellpadding="0" cellspacing="0" style="border-top:1px solid #e0e0e0;padding-top:16px;width:100%;">
@@ -346,7 +359,7 @@ function escHTML(str) {
  */
 router.post('/email/send', emailLimiter, express.json(), async (req, res) => {
   try {
-    const { to, subject, message, calcData } = req.body;
+    const { to, subject, message, calcData, format } = req.body;
 
     if (!to || !subject || !calcData) {
       return res.status(400).json({ success: false, message: 'Missing required fields (to, subject, calcData).' });
@@ -379,7 +392,7 @@ router.post('/email/send', emailLimiter, express.json(), async (req, res) => {
 
     const fromName = siteConfig.emailSignature?.name || siteConfig.siteName || 'MSFG Calculator';
     const fromEmail = smtp.from || smtp.user;
-    const htmlBody = buildEmailHTML(calcData, message, siteConfig);
+    const htmlBody = buildEmailHTML(calcData, message, siteConfig, format);
 
     await transporter.sendMail({
       from: `"${fromName}" <${fromEmail}>`,

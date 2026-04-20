@@ -32,6 +32,70 @@
   const subjectInput = document.getElementById('emailSubject');
   const messageInput = document.getElementById('emailMessage');
 
+  /* ---- Formatting controls ---- */
+  const fontFamilyInput = document.getElementById('emailFontFamily');
+  const fontSizeInput = document.getElementById('emailFontSize');
+  const fontSizeVal = document.getElementById('emailFontSizeVal');
+  const rowSpacingInput = document.getElementById('emailRowSpacing');
+  const rowSpacingVal = document.getElementById('emailRowSpacingVal');
+  const boldLabelsInput = document.getElementById('emailBoldLabels');
+  const blackDetailsInput = document.getElementById('emailBlackDetails');
+  const includeSigInput = document.getElementById('emailIncludeSignature');
+
+  const FORMAT_STORAGE_KEY = 'msfg-email-format-v1';
+
+  function loadFormatPrefs() {
+    try {
+      const raw = localStorage.getItem(FORMAT_STORAGE_KEY);
+      if (!raw) return;
+      const prefs = JSON.parse(raw);
+      if (fontFamilyInput && prefs.fontFamily) fontFamilyInput.value = prefs.fontFamily;
+      if (fontSizeInput && prefs.fontSize) fontSizeInput.value = prefs.fontSize;
+      if (rowSpacingInput && prefs.rowSpacing != null) rowSpacingInput.value = prefs.rowSpacing;
+      if (boldLabelsInput && typeof prefs.boldLabels === 'boolean') boldLabelsInput.checked = prefs.boldLabels;
+      if (blackDetailsInput && typeof prefs.blackDetails === 'boolean') blackDetailsInput.checked = prefs.blackDetails;
+      if (includeSigInput && typeof prefs.includeSignature === 'boolean') includeSigInput.checked = prefs.includeSignature;
+    } catch (e) { /* ignore */ }
+  }
+
+  function saveFormatPrefs() {
+    try {
+      localStorage.setItem(FORMAT_STORAGE_KEY, JSON.stringify(getFormatOpts()));
+    } catch (e) { /* ignore */ }
+  }
+
+  function getFormatOpts() {
+    return {
+      fontFamily: fontFamilyInput ? fontFamilyInput.value : 'Arial, Helvetica, sans-serif',
+      fontSize: fontSizeInput ? parseInt(fontSizeInput.value, 10) || 14 : 14,
+      rowSpacing: rowSpacingInput ? parseInt(rowSpacingInput.value, 10) : 6,
+      boldLabels: boldLabelsInput ? boldLabelsInput.checked : true,
+      blackDetails: blackDetailsInput ? blackDetailsInput.checked : true,
+      includeSignature: includeSigInput ? includeSigInput.checked : true
+    };
+  }
+
+  function updateFormatDisplays() {
+    if (fontSizeInput && fontSizeVal) fontSizeVal.textContent = fontSizeInput.value + 'px';
+    if (rowSpacingInput && rowSpacingVal) rowSpacingVal.textContent = rowSpacingInput.value + 'px';
+  }
+
+  function onFormatChange() {
+    updateFormatDisplays();
+    saveFormatPrefs();
+    // Refresh preview live if it's visible
+    if (previewWrap && !previewWrap.classList.contains('u-hidden') && _getEmailData) {
+      const data = _getEmailData();
+      if (previewContent) previewContent.innerHTML = buildPreviewHTML(data, getFormatOpts());
+    }
+  }
+
+  [fontFamilyInput, fontSizeInput, rowSpacingInput, boldLabelsInput, blackDetailsInput, includeSigInput]
+    .forEach(function (inp) { if (inp) inp.addEventListener('input', onFormatChange); });
+
+  loadFormatPrefs();
+  updateFormatDisplays();
+
   function openModal() {
     if (!overlay) return;
 
@@ -52,30 +116,39 @@
     if (overlay) overlay.classList.add('u-hidden');
   }
 
-  function buildPreviewHTML(data) {
+  function buildPreviewHTML(data, opts) {
     if (!data || !data.sections) return '<p>No calculator data available.</p>';
-    let html = '<div style="font-family: Arial, sans-serif; font-size: 13px;">';
-    html += '<h3 style="color:#2d6a4f; margin:0 0 12px;">' + MSFG.escHtml(data.title) + '</h3>';
+    opts = opts || getFormatOpts();
+    const ff = opts.fontFamily || 'Arial, Helvetica, sans-serif';
+    const fs = opts.fontSize || 14;
+    const pad = opts.rowSpacing != null ? opts.rowSpacing : 6;
+    const labelColor = opts.boldLabels ? '#111' : '#555';
+    const labelWeight = opts.boldLabels ? '700' : '500';
+    const detailColor = opts.blackDetails ? '#000' : '#222';
+    const detailSmall = Math.max(10, fs - 2);
+
+    let html = '<div style="font-family:' + ff + ';font-size:' + fs + 'px;color:' + detailColor + ';">';
+    html += '<h3 style="color:#2d6a4f;margin:0 0 12px;font-size:' + (fs + 4) + 'px;">' + MSFG.escHtml(data.title) + '</h3>';
     data.sections.forEach(function (sec) {
-      html += '<h4 style="color:#333; margin:12px 0 6px;"><span style="border-bottom:1px solid #e0e0e0; padding-bottom:4px;">' + MSFG.escHtml(sec.heading) + '</span></h4>';
-      html += '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
+      html += '<h4 style="color:#333;margin:' + (pad * 2) + 'px 0 ' + pad + 'px;font-size:' + (fs + 1) + 'px;"><span style="border-bottom:1px solid #e0e0e0;padding-bottom:4px;">' + MSFG.escHtml(sec.heading) + '</span></h4>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:' + fs + 'px;">';
       sec.rows.forEach(function (row) {
         var valueLong = row.value && row.value.length > 60;
         if (row.stacked) {
           var bullet = row.bulletColor
             ? '<span style="color:' + row.bulletColor + ';">&#9679;</span>&nbsp;&nbsp;'
             : '';
-          html += '<tr><td colspan="2" style="padding:4px 8px ' + (row.value ? '0' : '4px') + ' 0; color:#333; font-size:13px;">' + bullet + MSFG.escHtml(row.label) + '</td></tr>';
+          html += '<tr><td colspan="2" style="padding:' + pad + 'px 8px ' + (row.value ? '0' : pad + 'px') + ' 0;color:' + labelColor + ';font-weight:' + labelWeight + ';font-size:' + fs + 'px;">' + bullet + MSFG.escHtml(row.label) + '</td></tr>';
           if (row.value) {
-            html += '<tr><td colspan="2" style="padding:0 8px 4px ' + (row.bulletColor ? '22px' : '16px') + '; color:#999; font-size:11px; line-height:1.3;">' + MSFG.escHtml(row.value) + '</td></tr>';
+            html += '<tr><td colspan="2" style="padding:0 8px ' + pad + 'px ' + (row.bulletColor ? '22px' : '16px') + ';color:' + detailColor + ';font-size:' + detailSmall + 'px;line-height:1.35;">' + MSFG.escHtml(row.value) + '</td></tr>';
           }
         } else if (valueLong) {
-          html += '<tr><td colspan="2" style="padding:3px 8px 0 0; color:#555; font-size:12px;">' + MSFG.escHtml(row.label) + '</td></tr>';
-          html += '<tr><td colspan="2" style="padding:0 8px 4px 0; color:#222; line-height:1.4;">' + MSFG.escHtml(row.value) + '</td></tr>';
+          html += '<tr><td colspan="2" style="padding:' + pad + 'px 8px 0 0;color:' + labelColor + ';font-weight:' + labelWeight + ';font-size:' + fs + 'px;">' + MSFG.escHtml(row.label) + '</td></tr>';
+          html += '<tr><td colspan="2" style="padding:0 8px ' + pad + 'px 0;color:' + detailColor + ';line-height:1.4;font-size:' + fs + 'px;">' + MSFG.escHtml(row.value) + '</td></tr>';
         } else {
-          var boldStyle = row.bold ? 'font-weight:700;font-size:1.05em;' : '';
-          html += '<tr><td style="padding:3px 8px 3px 0; color:#555;">' + MSFG.escHtml(row.label) + '</td>';
-          html += '<td style="padding:3px 0; font-weight:600; text-align:right;' + boldStyle + '">' + MSFG.escHtml(row.value) + '</td></tr>';
+          var boldStyle = row.bold ? 'font-weight:700;font-size:' + (fs + 1) + 'px;' : '';
+          html += '<tr><td style="padding:' + pad + 'px 8px ' + pad + 'px 0;color:' + labelColor + ';font-weight:' + labelWeight + ';">' + MSFG.escHtml(row.label) + '</td>';
+          html += '<td style="padding:' + pad + 'px 0;font-weight:600;text-align:right;color:' + detailColor + ';' + boldStyle + '">' + MSFG.escHtml(row.value) + '</td></tr>';
         }
       });
       html += '</table>';
@@ -92,7 +165,7 @@
       if (previewToggle) previewToggle.textContent = 'Preview Email';
     } else {
       const data = _getEmailData ? _getEmailData() : null;
-      if (previewContent) previewContent.innerHTML = buildPreviewHTML(data);
+      if (previewContent) previewContent.innerHTML = buildPreviewHTML(data, getFormatOpts());
       previewWrap.classList.remove('u-hidden');
       if (previewToggle) previewToggle.textContent = 'Hide Preview';
     }
@@ -106,7 +179,7 @@
       setStatus('No calculator data to copy.', 'error');
       return;
     }
-    const html = buildPreviewHTML(data);
+    const html = buildPreviewHTML(data, getFormatOpts());
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
@@ -182,7 +255,10 @@
       const resp = await fetch('/api/email/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: to, subject: subject, message: message, calcData: data })
+        body: JSON.stringify({
+          to: to, subject: subject, message: message, calcData: data,
+          format: getFormatOpts()
+        })
       });
       const result = await resp.json();
 
