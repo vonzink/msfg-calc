@@ -91,7 +91,7 @@
   // ---- Category Colors ----
   const CATEGORY_COLORS = {
     milestone:   '#22c55e',
-    deadline:    '#f59e0b',
+    deadline:    '#ef4444',
     lock:        '#3b82f6',
     contingency: '#f87171',
     condition:   '#8b5cf6',
@@ -152,6 +152,11 @@
     // Default current month to today
     const now = new Date();
     state.currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Detect workspace iframe context — show stacked two-month calendar
+    if (window.parent !== window) {
+      document.body.classList.add('lt-in-workspace');
+    }
 
     // Init all event dates to null; visibility to true
     EVENT_DEFS.forEach(ev => {
@@ -579,6 +584,55 @@
       }
     }
 
+    // Approved & Clear to Close — from UNDERWRITING_DETAIL (LOS exports vary; best-effort)
+    const uwDetails = qnAll(root, 'UNDERWRITING_DETAIL');
+    for (const uw of uwDetails) {
+      const approvedDate =
+        txt(uw, 'UnderwritingApprovalDate') ||
+        txt(uw, 'FinalUnderwritingDecisionDate') ||
+        txt(uw, 'UnderwritingDecisionDate');
+      if (approvedDate && !state.events.approved) {
+        setEventDate('approved', approvedDate.substring(0, 10), true);
+      }
+      const ctcDate =
+        txt(uw, 'ClearToCloseDate') ||
+        txt(uw, 'LoanClearToCloseDate');
+      if (ctcDate && !state.events.clearToClose) {
+        setEventDate('clearToClose', ctcDate.substring(0, 10), true);
+      }
+    }
+    // Fallback: LOAN_DETAIL may carry ClearToCloseDate
+    if (!state.events.clearToClose && loan) {
+      const ctcLoan = txt(loan, 'LOAN_DETAIL/ClearToCloseDate') ||
+                      txt(loan, 'LOAN_DETAIL/LoanClearToCloseDate');
+      if (ctcLoan) setEventDate('clearToClose', ctcLoan.substring(0, 10), true);
+    }
+
+    // Appraisal & Financing Contingency — from SALES_CONTRACT_DETAIL (purchase only)
+    const salesDetails = qnAll(root, 'SALES_CONTRACT_DETAIL');
+    for (const sc of salesDetails) {
+      const apprCont = txt(sc, 'AppraisalContingencyExpirationDate');
+      if (apprCont && !state.events.appraisalContingency) {
+        setEventDate('appraisalContingency', apprCont.substring(0, 10), true);
+      }
+      const finCont = txt(sc, 'FinancingContingencyExpirationDate');
+      if (finCont && !state.events.financingContingency) {
+        setEventDate('financingContingency', finCont.substring(0, 10), true);
+      }
+    }
+    // Fallback: generic CONTINGENCY blocks (CONTINGENCY_DETAIL with type + expiration)
+    const contingencies = qnAll(root, 'CONTINGENCY_DETAIL');
+    for (const c of contingencies) {
+      const type = (txt(c, 'ContingencyType') || '').toLowerCase();
+      const exp = txt(c, 'ContingencyExpirationDate');
+      if (!exp) continue;
+      if (type.indexOf('appraisal') !== -1 && !state.events.appraisalContingency) {
+        setEventDate('appraisalContingency', exp.substring(0, 10), true);
+      } else if (type.indexOf('financ') !== -1 && !state.events.financingContingency) {
+        setEventDate('financingContingency', exp.substring(0, 10), true);
+      }
+    }
+
     // Product/program info
     const mtgTerms = qnAll(root, 'MORTGAGE_TERMS');
     if (mtgTerms.length > 0) {
@@ -662,14 +716,9 @@
   }
 
   // ---- Calendar Rendering ----
-  function renderCalendar() {
-    const grid = el('ltCalGrid');
-    const titleEl = el('ltCalTitle');
-    const year = state.currentMonth.getFullYear();
-    const month = state.currentMonth.getMonth();
-
-    titleEl.textContent = `${MONTHS[month]} ${year}`;
-
+  function renderMonthGrid(grid, monthDate) {
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay(); // 0=Su
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
@@ -677,7 +726,6 @@
 
     let html = '';
 
-    // Empty cells before 1st
     for (let i = 0; i < firstDay; i++) {
       html += '<div class="lt-day lt-day--empty"></div>';
     }
@@ -686,8 +734,6 @@
       const date = new Date(year, month, d);
       const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const isToday = sameDay(date, today);
-
-      // Find visible events on this day
       const dayEvents = visibleEvents.filter(ev => sameDay(ev.date, date));
 
       const classes = ['lt-day'];
@@ -711,13 +757,27 @@
 
     grid.innerHTML = html;
 
-    // Click handler for day cells — open custom date popup
     grid.querySelectorAll('.lt-day:not(.lt-day--empty)').forEach(cell => {
       cell.addEventListener('click', () => {
         const dateStr = cell.dataset.date;
         if (state._openPopup) state._openPopup(dateStr);
       });
     });
+  }
+
+  function renderCalendar() {
+    const month = state.currentMonth.getMonth();
+    const year = state.currentMonth.getFullYear();
+    el('ltCalTitle').textContent = `${MONTHS[month]} ${year}`;
+    renderMonthGrid(el('ltCalGrid'), state.currentMonth);
+
+    const nextGrid = el('ltCalGridNext');
+    const nextTitle = el('ltCalTitleNext');
+    if (nextGrid && nextTitle) {
+      const nextMonth = new Date(year, month + 1, 1);
+      nextTitle.textContent = `${MONTHS[nextMonth.getMonth()]} ${nextMonth.getFullYear()}`;
+      renderMonthGrid(nextGrid, nextMonth);
+    }
   }
 
   // ---- Timeline Rendering ----
