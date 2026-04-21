@@ -84,7 +84,7 @@
   transform: translate(-50%, -50%) scale(1.3);
 }
 .lt-timeline__dot--milestone    { background: var(--color-success); }
-.lt-timeline__dot--deadline     { background: #f59e0b; }
+.lt-timeline__dot--deadline     { background: #ef4444; }
 .lt-timeline__dot--lock         { background: #3b82f6; }
 .lt-timeline__dot--contingency  { background: #f87171; }
 .lt-timeline__dot--condition    { background: #8b5cf6; }
@@ -182,6 +182,22 @@
   grid-template-columns: repeat(7, 1fr);
 }
 
+/* Second month — always shown below the first to use available vertical space */
+.lt-calendar--next {
+  display: block;
+  margin-top: var(--space-sm);
+}
+.lt-calendar__subtitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-dark);
+  text-align: center;
+  padding: 6px 0;
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
 /* Calendar Day Cell */
 .lt-day {
   position: relative;
@@ -243,7 +259,7 @@
   flex-shrink: 0;
 }
 .lt-dot--milestone    { background: var(--color-success); }
-.lt-dot--deadline     { background: #f59e0b; }
+.lt-dot--deadline     { background: #ef4444; }
 .lt-dot--lock         { background: #3b82f6; }
 .lt-dot--contingency  { background: #f87171; }
 .lt-dot--condition    { background: #8b5cf6; }
