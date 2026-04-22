@@ -99,11 +99,31 @@
           <input type="number" id="fhaAccruedInterest" step="0.01" placeholder="0.00">
         </div>
         <div class="form-group">
+          <label>Late Charges
+            <span class="help-icon" data-help="Past-due late fees owed to the current servicer. Included in payoff and in Streamline Option 1 max base.">?</span>
+          </label>
+          <input type="number" id="fhaLateCharges" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
           <label>Total Payoff Amount
-            <span class="help-icon" data-help="UPB + accrued interest. Auto-calculated or enter actual payoff to override.">?</span>
+            <span class="help-icon" data-help="UPB + accrued interest + late charges. Auto-calculated; enter actual payoff to override.">?</span>
           </label>
           <input type="number" id="fhaPayoffAmount" step="0.01" placeholder="Auto-calculated">
           <small id="fhaPayoffNote"></small>
+        </div>
+      </div>
+      <div class="form-grid u-mt-md fha-refi-only" style="display:none;">
+        <div class="form-group">
+          <label>Escrow Shortage
+            <span class="help-icon" data-help="Deficiency in the current escrow account. Included in Streamline Option 1 max base per ML 2020-30.">?</span>
+          </label>
+          <input type="number" id="fhaEscrowShortage" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>MIP Due
+            <span class="help-icon" data-help="MIP portion owed on the existing mortgage (e.g. current month's MIP). Included in Streamline Option 1 max base.">?</span>
+          </label>
+          <input type="number" id="fhaMipDue" step="0.01" placeholder="0.00">
         </div>
       </div>
       <div class="form-grid u-mt-md">
@@ -116,9 +136,13 @@
         </div>
         <div class="form-group">
           <label>Original FHA Loan Amount
-            <span class="help-icon" data-help="Base loan amount from the original FHA loan (before UFMIP). Used to calculate UFMIP refund for streamline.">?</span>
+            <span class="help-icon" data-help="Base loan amount from the original FHA loan (before UFMIP). Used to calculate UFMIP refund and the Streamline Option 2 ceiling.">?</span>
           </label>
           <input type="number" id="fhaOriginalLoanAmount" step="0.01" placeholder="0.00">
+          <label class="u-mt-xs" style="font-weight:normal; font-size:0.85em; display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="fhaOriginalUfmipFinanced" checked>
+            UFMIP was financed into original loan
+          </label>
         </div>
         <div class="form-group">
           <label>Original Loan Term</label>
@@ -428,9 +452,13 @@
         </div>
         <div class="form-group fha-refi-only" style="display:none;">
           <label>Escrow Refund from Current Loan
-            <span class="help-icon" data-help="Escrow balance refunded by your current servicer after payoff (refi only).">?</span>
+            <span class="help-icon" data-help="Escrow balance refunded by your current servicer after payoff (refi only). By default this is NOT netted into cash-to-close — borrower receives it separately from the old servicer.">?</span>
           </label>
           <input type="number" id="fhaEscrowRefund" step="0.01" placeholder="0.00">
+          <label class="u-mt-xs" style="font-weight:normal; font-size:0.85em; display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="fhaNetEscrowRefund">
+            Net escrow refund against cash-to-close
+          </label>
         </div>
       </div>
     </div>

@@ -127,7 +127,12 @@
       currentDate:        txt('fhaCurrentDate'),
       totalClosingCosts:  sumClosingCosts(),
       accruedInterest:    val('fhaAccruedInterest'),
+      lateCharges:        val('fhaLateCharges'),
+      escrowShortage:     val('fhaEscrowShortage'),
+      mipDue:             val('fhaMipDue'),
       payoffAmount:       val('fhaPayoffAmount'),
+      originalUfmipFinanced: el('fhaOriginalUfmipFinanced') ? el('fhaOriginalUfmipFinanced').checked : true,
+      netEscrowRefund:    el('fhaNetEscrowRefund') ? el('fhaNetEscrowRefund').checked : false,
       newRate:            val('fhaNewRate'),
       newTerm:            parseInt(txt('fhaNewTerm'), 10) || 30,
       newLoanType:        txt('fhaNewLoanType'),
@@ -460,10 +465,25 @@
     // Three-way max mortgage
     const threeWay = calcThreeWayMax(state, scenario, value, ufmipRefund);
 
-    // For streamline, base loan = UPB - UFMIP refund (overrides three-way)
+    // Streamline per HUD ML 2020-30 / Handbook 4000.1:
+    //   Max Base = lesser of (Option 1, Option 2) − UFMIP refund
+    //   Option 1: UPB + interest due + late charges + escrow shortage + MIP due
+    //   Option 2: Original principal balance (incl. financed UFMIP, if financed)
     let maxBase;
+    let slBreakdown = null;
     if (isStreamline) {
-      maxBase = Math.max(0, state.currentUpb - ufmipRefund.refundAmount);
+      const option1 = (state.currentUpb || 0)
+        + (state.accruedInterest || 0)
+        + (state.lateCharges || 0)
+        + (state.escrowShortage || 0)
+        + (state.mipDue || 0);
+      const originalUfmip = state.originalUfmipFinanced
+        ? (state.originalLoanAmount || 0) * UFMIP_RATE
+        : 0;
+      const option2 = (state.originalLoanAmount || 0) + originalUfmip;
+      const lesser = (option2 > 0) ? Math.min(option1, option2) : option1;
+      maxBase = Math.max(0, lesser - ufmipRefund.refundAmount);
+      slBreakdown = { option1, option2, originalUfmip, lesser };
     } else {
       maxBase = threeWay.maxBase;
     }
@@ -530,8 +550,14 @@
       credits: state.totalCredits, escrowRefund: 0
     };
 
-    // Payoff = explicit payoff amount, or UPB + accrued interest
-    const payoff = state.payoffAmount > 0 ? state.payoffAmount : (state.currentUpb || 0) + state.accruedInterest;
+    // Payoff = explicit payoff amount, or UPB + accrued interest + late charges
+    const payoff = state.payoffAmount > 0
+      ? state.payoffAmount
+      : (state.currentUpb || 0) + (state.accruedInterest || 0) + (state.lateCharges || 0);
+
+    // Escrow refund only reduces cash-to-close when explicitly toggled on.
+    // Default: refund comes separately from old servicer and doesn't offset CTC.
+    const escrowRefundOffset = state.netEscrowRefund ? (state.escrowRefund || 0) : 0;
 
     if (scenario === 'purchase') {
       ctcBreakdown.downPayment = Math.max(0, (state.purchasePrice || value) - actualBase);
@@ -541,22 +567,22 @@
     } else if (isStreamline) {
       ctcBreakdown.payoff = payoff;
       ctcBreakdown.loanCredit = totalLoan;
-      ctcBreakdown.escrowRefund = state.escrowRefund;
+      ctcBreakdown.escrowRefund = escrowRefundOffset;
       cashToClose = (payoff + pe.prepaids + pe.escrow)
-        - totalLoan - state.totalCredits - state.escrowRefund;
+        - totalLoan - state.totalCredits - escrowRefundOffset;
     } else {
       ctcBreakdown.payoff = payoff;
       ctcBreakdown.loanCredit = totalLoan;
-      ctcBreakdown.escrowRefund = state.escrowRefund;
+      ctcBreakdown.escrowRefund = escrowRefundOffset;
       cashToClose = (payoff + state.totalClosingCosts
         + pe.prepaids + pe.escrow)
-        - totalLoan - state.totalCredits - state.escrowRefund;
+        - totalLoan - state.totalCredits - escrowRefundOffset;
     }
 
     return {
       threeWay, maxBase, actualBase, ufmipAmt, totalLoan, ltv,
       annualMipRate, monthlyPI, monthlyMIP, totalMonthly,
-      ntb, cashToClose, ctcBreakdown, cappedNote
+      ntb, cashToClose, ctcBreakdown, cappedNote, slBreakdown
     };
   }
 
@@ -643,15 +669,21 @@
   function recalculate() {
     autoCalcRemainingTerm();
 
-    // Auto-calculate payoff = UPB + accrued interest (unless manually overridden)
+    // Auto-calculate payoff = UPB + accrued interest + late charges (unless manually overridden)
     if (!payoffManual) {
       const upb = val('fhaCurrentUpb');
       const accrued = val('fhaAccruedInterest');
+      const late = val('fhaLateCharges');
       const payoffEl = el('fhaPayoffAmount');
       const payoffNoteEl = el('fhaPayoffNote');
-      if (payoffEl && (upb > 0 || accrued > 0)) {
-        payoffEl.value = (upb + accrued).toFixed(2);
-        if (payoffNoteEl) payoffNoteEl.textContent = fmt(upb) + ' + ' + fmt(accrued) + ' accrued';
+      if (payoffEl && (upb > 0 || accrued > 0 || late > 0)) {
+        payoffEl.value = (upb + accrued + late).toFixed(2);
+        if (payoffNoteEl) {
+          const parts = [fmt(upb)];
+          if (accrued > 0) parts.push(fmt(accrued) + ' accrued');
+          if (late > 0) parts.push(fmt(late) + ' late');
+          payoffNoteEl.textContent = parts.join(' + ');
+        }
       }
     }
 
@@ -811,7 +843,7 @@
       notes.push('Rate/Term: max LTV ' + (rtResult.threeWay.maxLtvPct * 100).toFixed(2) + '% of appraised value.');
       notes.push('Cash-Out: max LTV ' + (coResult.threeWay.maxLtvPct * 100).toFixed(2) + '% of appraised value.');
       if (slEligible) {
-        notes.push('Streamline: base loan = UPB \u2212 UFMIP refund.');
+        notes.push('Streamline: max base = lesser of (UPB + carrying charges) or (original principal incl. financed UFMIP), minus UFMIP refund.');
         if (ufmipRefund.refundAmount > 0) {
           notes.push('UFMIP Refund: ' + fmt(ufmipRefund.refundAmount)
             + ' (' + ufmipRefund.refundPercent + '% at month ' + ufmipRefund.monthsSince + ').');
@@ -921,6 +953,7 @@
         annualMipRate: slResult.annualMipRate, monthlyPI: slResult.monthlyPI, monthlyMIP: slResult.monthlyMIP,
         totalMonthly: slResult.totalMonthly, cashToClose: slResult.cashToClose,
         ntb: slResult.ntb, ufmipRefund: ufmipRefund, threeWay: slResult.threeWay || {},
+        slBreakdown: slResult.slBreakdown,
         isStreamline: true, isCashOut: false
       });
     }
@@ -939,13 +972,27 @@
         'Value \u00D7 ' + (r.threeWay.maxLtvPct * 100).toFixed(2) + '%',
         fmt(r.threeWay.ltvCalc)));
     } else if (r.isStreamline) {
-      steps.push(step('Current UPB', '', fmt(state.currentUpb)));
+      const sl = r.slBreakdown || {};
+      steps.push(step('Option 1 — UPB + carrying charges',
+        'UPB ' + fmt(state.currentUpb)
+          + ' + accrued int ' + fmt(state.accruedInterest)
+          + ' + late ' + fmt(state.lateCharges || 0)
+          + ' + escrow shortage ' + fmt(state.escrowShortage || 0)
+          + ' + MIP due ' + fmt(state.mipDue || 0),
+        fmt(sl.option1 || 0)));
+      const ufmipPhrase = state.originalUfmipFinanced
+        ? ' + financed UFMIP ' + fmt(sl.originalUfmip || 0)
+        : ' (UFMIP not financed)';
+      steps.push(step('Option 2 — Original principal',
+        'Original loan ' + fmt(state.originalLoanAmount || 0) + ufmipPhrase,
+        fmt(sl.option2 || 0)));
+      steps.push(step('Lesser of Option 1, Option 2', '', fmt(sl.lesser || 0)));
       if (r.ufmipRefund.refundAmount > 0) {
         steps.push(step('UFMIP Refund',
           fmt(r.ufmipRefund.originalUfmip) + ' \u00D7 ' + r.ufmipRefund.refundPercent + '%',
           '-' + fmt(r.ufmipRefund.refundAmount)));
       }
-      steps.push(step('Base Loan', 'UPB \u2212 UFMIP refund', fmt(r.maxBase)));
+      steps.push(step('Max Base Loan', 'Lesser \u2212 UFMIP refund', fmt(r.maxBase)));
     } else {
       steps.push(step('LTV Calc',
         fmt(state.appraisedValue) + ' \u00D7 ' + ((r.threeWay.maxLtvPct || 0) * 100).toFixed(2) + '%',
