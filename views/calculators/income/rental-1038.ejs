@@ -43,11 +43,11 @@
     <div class="calc-section">
       <h2>Select Calculation Method</h2>
       <div class="method-selector">
-        <div class="method-btn active" onclick="selectMethod('scheduleE')">
+        <div class="method-btn active" data-method="scheduleE" role="button" tabindex="0">
           <h4>Method A: Schedule E</h4>
           <p>Use tax return Schedule E data</p>
         </div>
-        <div class="method-btn" onclick="selectMethod('lease')">
+        <div class="method-btn" data-method="lease" role="button" tabindex="0">
           <h4>Method B: Lease Agreement</h4>
           <p>Use lease or Form 1007/1025</p>
         </div>
@@ -64,7 +64,7 @@
         <p class="text-muted text-sm u-mb-sm">Number of months the property was rented during the tax year (from Schedule E fair rental days).</p>
         <div class="input-row">
           <label for="methodA_months">Months in service</label>
-          <input type="number" id="methodA_months" value="12" min="1" max="12" step="1" oninput="calculate()">
+          <input type="number" id="methodA_months" value="12" min="1" max="12" step="1">
         </div>
       </div>
 
@@ -74,42 +74,42 @@
 
         <div class="input-row add-row">
           <label for="methodA_rents">A1. Total rents received</label>
-          <input type="number" id="methodA_rents" value="0" oninput="calculate()">
+          <input type="number" id="methodA_rents" value="0">
         </div>
 
         <div class="input-row subtract-row">
           <label for="methodA_expenses">A2. Total expenses</label>
-          <input type="number" id="methodA_expenses" value="0" oninput="calculate()">
+          <input type="number" id="methodA_expenses" value="0">
         </div>
 
         <div class="input-row add-row">
           <label for="methodA_insurance">A3. Insurance (add back)</label>
-          <input type="number" id="methodA_insurance" value="0" oninput="calculate()">
+          <input type="number" id="methodA_insurance" value="0">
         </div>
 
         <div class="input-row add-row">
           <label for="methodA_mortint">A4. Mortgage interest (add back)</label>
-          <input type="number" id="methodA_mortint" value="0" oninput="calculate()">
+          <input type="number" id="methodA_mortint" value="0">
         </div>
 
         <div class="input-row add-row">
           <label for="methodA_taxes">A5. Taxes (add back)</label>
-          <input type="number" id="methodA_taxes" value="0" oninput="calculate()">
+          <input type="number" id="methodA_taxes" value="0">
         </div>
 
         <div class="input-row add-row">
           <label for="methodA_hoa">A6. HOA dues (add back)</label>
-          <input type="number" id="methodA_hoa" value="0" oninput="calculate()">
+          <input type="number" id="methodA_hoa" value="0">
         </div>
 
         <div class="input-row add-row">
           <label for="methodA_deprec">A7. Depreciation (add back)</label>
-          <input type="number" id="methodA_deprec" value="0" oninput="calculate()">
+          <input type="number" id="methodA_deprec" value="0">
         </div>
 
         <div class="input-row add-row">
           <label for="methodA_onetime">A8. One-time expense (add back)</label>
-          <input type="number" id="methodA_onetime" value="0" oninput="calculate()">
+          <input type="number" id="methodA_onetime" value="0">
         </div>
 
         <div class="adjusted-result">
@@ -124,7 +124,7 @@
 
         <div class="input-row subtract-row">
           <label for="methodA_pitia">A10. Proposed PITIA</label>
-          <input type="number" id="methodA_pitia" value="0" oninput="calculate()">
+          <input type="number" id="methodA_pitia" value="0">
         </div>
 
         <div class="result-highlight u-mt-md">
@@ -146,7 +146,7 @@
 
         <div class="input-row add-row">
           <label for="methodB_grossrent">B1. Gross monthly rent</label>
-          <input type="number" id="methodB_grossrent" value="0" oninput="calculate()">
+          <input type="number" id="methodB_grossrent" value="0">
         </div>
 
         <div class="adjusted-result">
@@ -161,7 +161,7 @@
 
         <div class="input-row subtract-row">
           <label for="methodB_pitia">B3. Proposed PITIA</label>
-          <input type="number" id="methodB_pitia" value="0" oninput="calculate()">
+          <input type="number" id="methodB_pitia" value="0">
         </div>
 
         <div class="result-highlight u-mt-md">

@@ -378,6 +378,21 @@ function clearAll() {
 // =====================================================
 
 document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-method]').forEach(function (btn) {
+    var method = btn.getAttribute('data-method');
+
+    btn.addEventListener('click', function () {
+      selectMethod(method);
+    });
+
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectMethod(method);
+      }
+    });
+  });
+
   IncomeUpload.init({
     slug:     'income-rental-1038',
     label:    'Schedule E',

@@ -93,6 +93,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // Income calculators run under a CSP that blocks inline oninput handlers.
+  // Delegate recalculation here so all income pages update when fields change.
+  const recalculateIncomePage = function(e) {
+    const main = document.querySelector('.site-main');
+    const slug = main && main.dataset ? main.dataset.calcSlug : '';
+    const target = e.target;
+
+    if (!slug || slug.indexOf('income/') !== 0) return;
+    if (!target || !target.closest || !target.closest('.calc-page')) return;
+    if (target.matches && target.matches('input[type="file"]')) return;
+    if (typeof window.calculate === 'function') window.calculate();
+  };
+
+  document.addEventListener('input', recalculateIncomePage);
+  document.addEventListener('change', recalculateIncomePage);
+
   // Read calculator metadata from data attributes (replaces inline script)
   const main = document.querySelector('.site-main');
   if (main) {
