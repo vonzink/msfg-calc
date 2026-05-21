@@ -1,7 +1,7 @@
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>APR Calculator</h1>
-    <p>Calculate the Annual Percentage Rate including interest rate, discount points, and fees.</p>
+    <p>Calculate the Annual Percentage Rate per Reg Z, with loan-type-aware fee classification.</p>
   </div>
 
   <div class="calc-page__body">
@@ -11,7 +11,15 @@
       <h2>Loan Information</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label for="loanAmount">Loan Amount ($)</label>
+          <label for="aprLoanType">Loan Type</label>
+          <select id="aprLoanType">
+            <option value="CONV" selected>Conventional</option>
+            <option value="FHA">FHA</option>
+            <option value="VA">VA</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="loanAmount">Base Loan Amount ($)</label>
           <input type="number" id="loanAmount" value="0" min="0" step="1000" placeholder="Loan amount">
         </div>
         <div class="form-group">
@@ -32,76 +40,30 @@
           <label for="discountPoints">Discount Points (%)</label>
           <input type="number" id="discountPoints" value="0" min="0" max="10" step="0.125">
         </div>
-      </div>
-    </div>
-
-    <!-- Financed Fees -->
-    <div class="calc-section">
-      <h2>Financed Fees</h2>
-      <p class="text-muted text-sm u-mb-md"Fees rolled into the loan balance that affect the APR calculation.</p>
-      <div class="form-grid u-grid-1-auto">
         <div class="form-group">
-          <label for="financedFees">Total Financed Fees ($)</label>
-          <input type="number" id="financedFees" value="0" min="0" step="100">
-        </div>
-      </div>
-      <button type="button" class="btn btn-sm btn-ghost u-mt-sm" data-action="toggle-fees" data-target="financed">
-        <span id="financedToggleText">Show Fee Breakdown</span>
-      </button>
-      <div id="financedFeeBreakdown" class="fee-breakdown u-hidden">
-        <div class="fee-section">
-          <h4>APR Fees (Included in APR)</h4>
-          <div class="fee-grid">
-            <div class="fee-item"><label for="originationFee">Origination Fee ($)</label><input type="number" id="originationFee" value="0" data-fee-group="financed"></div>
-            <div class="fee-item"><label for="processingFee">Processing Fee ($)</label><input type="number" id="processingFee" value="0" data-fee-group="financed"></div>
-            <div class="fee-item"><label for="underwritingFee">Underwriting Fee ($)</label><input type="number" id="underwritingFee" value="0" data-fee-group="financed"></div>
-            <div class="fee-item"><label for="applicationFee">Application Fee ($)</label><input type="number" id="applicationFee" value="0" data-fee-group="financed"></div>
-            <div class="fee-item"><label for="otherFinancedFees">Other APR Fees ($)</label><input type="number" id="otherFinancedFees" value="0" data-fee-group="financed"></div>
-          </div>
-        </div>
-        <div class="fee-section">
-          <h4>Non-APR Fees</h4>
-          <div class="fee-grid">
-            <div class="fee-item"><label for="creditReportFee">Credit Report ($)</label><input type="number" id="creditReportFee" value="0"></div>
-            <div class="fee-item"><label for="floodCertFee">Flood Certificate ($)</label><input type="number" id="floodCertFee" value="0"></div>
-            <div class="fee-item"><label for="taxServiceFee">Tax Service ($)</label><input type="number" id="taxServiceFee" value="0"></div>
-          </div>
+          <label for="propertyValue">Property Value ($) <span class="text-muted">(optional)</span></label>
+          <input type="number" id="propertyValue" value="0" min="0" step="1000" placeholder="For LTV / MI">
         </div>
       </div>
     </div>
 
-    <!-- Prepaid Fees -->
+    <!-- Dynamic Fee Groups (rendered by apr.js) -->
+    <div id="aprFeeGroups"></div>
+
+    <!-- Credits -->
     <div class="calc-section">
-      <h2>Prepaid Fees</h2>
-      <p class="text-muted text-sm u-mb-md"Fees paid at closing that affect the APR.</p>
-      <div class="form-grid u-grid-1-auto">
+      <h2>Credits</h2>
+      <div class="form-grid">
         <div class="form-group">
-          <label for="prepaidFees">Total Prepaid Fees ($)</label>
-          <input type="number" id="prepaidFees" value="0" min="0" step="100">
+          <label for="lenderCredit">Lender Credit ($)</label>
+          <input type="number" id="lenderCredit" value="0" min="0" step="100">
+        </div>
+        <div class="form-group">
+          <label for="sellerCredit">Seller Credit ($)</label>
+          <input type="number" id="sellerCredit" value="0" min="0" step="100">
         </div>
       </div>
-      <button type="button" class="btn btn-sm btn-ghost u-mt-sm" data-action="toggle-fees" data-target="prepaid">
-        <span id="prepaidToggleText">Show Fee Breakdown</span>
-      </button>
-      <div id="prepaidFeeBreakdown" class="fee-breakdown u-hidden">
-        <div class="fee-section">
-          <h4>APR Fees (Included in APR)</h4>
-          <div class="fee-grid">
-            <div class="fee-item"><label for="prepaidInterest">Prepaid Interest ($)</label><input type="number" id="prepaidInterest" value="0" data-fee-group="prepaid"></div>
-            <div class="fee-item"><label for="mortgageInsurance">Mortgage Insurance ($)</label><input type="number" id="mortgageInsurance" value="0" data-fee-group="prepaid"></div>
-            <div class="fee-item"><label for="monthlyMI">Monthly MI ($)</label><input type="number" id="monthlyMI" value="0" data-fee-group="prepaid"></div>
-            <div class="fee-item"><label for="otherPrepaidFees">Other APR Prepaid ($)</label><input type="number" id="otherPrepaidFees" value="0" data-fee-group="prepaid"></div>
-          </div>
-        </div>
-        <div class="fee-section">
-          <h4>Non-APR Fees</h4>
-          <div class="fee-grid">
-            <div class="fee-item"><label for="escrowReserves">Escrow Reserves ($)</label><input type="number" id="escrowReserves" value="0"></div>
-            <div class="fee-item"><label for="titleInsurance">Title Insurance ($)</label><input type="number" id="titleInsurance" value="0"></div>
-            <div class="fee-item"><label for="recordingFees">Recording Fees ($)</label><input type="number" id="recordingFees" value="0"></div>
-          </div>
-        </div>
-      </div>
+      <p class="text-muted text-sm">Lender credits reduce APR-classified fees dollar-for-dollar. Seller credits do not affect APR unless individual fees are marked seller-paid.</p>
     </div>
 
     <!-- Results -->
@@ -109,7 +71,7 @@
       <h2>Results</h2>
       <div class="results-grid">
         <div class="result-card">
-          <div class="result-card__label">Monthly Payment (P&I)</div>
+          <div class="result-card__label">Monthly P&amp;I</div>
           <div class="result-card__value" id="monthlyPayment">$0.00</div>
         </div>
         <div class="result-card">
@@ -131,7 +93,6 @@
         <div class="result-highlight__value" id="aprResult">0.000%</div>
       </div>
 
-      <!-- APR vs Note Rate Comparison -->
       <div class="apr-comparison">
         <h3>APR vs Note Rate</h3>
         <div class="comparison-grid">
@@ -146,7 +107,7 @@
         </div>
         <div class="cost-of-fees">
           <div class="cost-row"><span class="cost-label">APR Spread:</span><span class="cost-value" id="aprSpread">+0.000%</span></div>
-          <div class="cost-row"><span class="cost-label">Total Upfront Costs:</span><span class="cost-value" id="totalUpfrontCosts">$0.00</span></div>
+          <div class="cost-row"><span class="cost-label">Total APR Fees:</span><span class="cost-value" id="totalUpfrontCosts">$0.00</span></div>
           <div class="cost-row"><span class="cost-label">Effective Monthly Cost:</span><span class="cost-value" id="monthlyFeeCost">$0.00/mo</span></div>
         </div>
       </div>
@@ -159,6 +120,6 @@
 
   <div class="calc-page__footer">
     <div class="calc-page__footer-title">APR Calculation Method</div>
-    <p>The APR is calculated using an iterative bisection method per Reg Z. Actual APR may differ based on compounding conventions and lender policies.</p>
+    <p>APR solved via bisection per Reg Z. Fee classification follows the MSFG fee catalog for Conventional, FHA, and VA. Monthly MI is included in the payment stream for the months it applies. Click any APR pill to manually override classification.</p>
   </div>
 </div>

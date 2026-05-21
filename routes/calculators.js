@@ -10,7 +10,7 @@ function findCalc(slug) {
 /* ---- General & Government Calculators ---- */
 
 const generalCalcs = [
-  { slug: 'apr',             view: 'calculators/apr',             title: 'APR Calculator',                css: 'apr' },
+  { slug: 'apr',             view: 'calculators/apr',             title: 'APR Calculator',                css: 'apr', preScripts: ['/js/shared/apr-fee-catalog.js', '/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
   { slug: 'fha',             view: 'calculators/fha',             title: 'FHA Loan Calculator', css: 'fha', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
   { slug: 'va-prequal',      view: 'calculators/va-prequal',      title: 'VA Pre-Qualification Worksheet', css: 'va-prequal' },
   { slug: 'blended-rate',    view: 'calculators/blended-rate',    title: 'Blended Rate Calculator' },

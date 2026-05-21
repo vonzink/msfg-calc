@@ -90,6 +90,162 @@
   border-color: var(--brand-accent);
 }
 
+/* --- Fee Groups (catalog-driven) --- */
+.apr-fee-group { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+.apr-fee-group > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  user-select: none;
+}
+.apr-fee-group > summary::-webkit-details-marker { display: none; }
+.apr-fee-group > summary::before {
+  content: '\25B6';
+  font-size: 0.7rem;
+  color: var(--color-gray-400);
+  transition: transform 0.15s ease;
+  display: inline-block;
+}
+.apr-fee-group[open] > summary::before { transform: rotate(90deg); }
+.apr-fee-group > summary h2 { margin: 0; flex: 1; display: flex; align-items: center; gap: var(--space-sm); }
+.apr-fee-group__total {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-gray-500);
+  margin-left: auto;
+}
+.apr-fee-group > .apr-fee-group__rows { margin-top: var(--space-md); }
+
+
+.apr-fee-group__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.apr-fee-row {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.apr-fee-row__main {
+  display: grid;
+  grid-template-columns: 1fr 130px 80px;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.apr-fee-row__main label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  margin: 0;
+}
+
+.apr-fee-row__main input.apr-fee-input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.apr-fee-row__main input.apr-fee-input:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+}
+
+/* APR Pill */
+.apr-pill {
+  display: inline-block;
+  min-width: 64px;
+  text-align: center;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.08s ease;
+}
+
+.apr-pill:hover { transform: scale(1.05); }
+
+.apr-pill--yes {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.apr-pill--no {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+  border: 1px solid var(--color-gray-300);
+}
+
+.apr-pill--override {
+  outline: 2px dotted var(--brand-accent);
+  outline-offset: 1px;
+}
+
+/* Advanced expander */
+.apr-fee-row__advanced {
+  margin-top: 4px;
+}
+
+.apr-fee-row__advanced summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--color-gray-500);
+  user-select: none;
+  list-style: none;
+  padding-top: 2px;
+}
+.apr-fee-row__advanced[open] summary {
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--color-gray-200);
+}
+.apr-fee-row__advanced summary::-webkit-details-marker { display: none; }
+.apr-fee-row__advanced summary::before {
+  content: '+';
+  margin-right: 4px;
+}
+.apr-fee-row__advanced[open] summary::before { content: '-'; }
+
+.apr-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--color-gray-700);
+  margin-right: var(--space-md);
+  margin-top: var(--space-xs);
+}
+
+.apr-flag--child {
+  margin-left: var(--space-sm);
+  color: var(--color-gray-500);
+}
+
+/* MISMO populated highlight (matches other calculators) */
+.apr-fee-input.mismo-populated,
+input.mismo-populated {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+@media (max-width: 640px) {
+  .apr-fee-row__main {
+    grid-template-columns: 1fr;
+    gap: var(--space-xs);
+  }
+}
+
 /* --- Print styles --- */
 @media print {
   .fee-item input {

@@ -115,76 +115,81 @@
     return m;
   });
 
-  /* ---- APR Calculator ---- */
+  /* ---- APR Calculator ----
+     Thin translator: maps MISMO loan fields + raw fee dictionary through
+     AprFeeCatalog.mismoKeyToFeeId to catalog fee IDs. The catalog resolver
+     then handles APR vs Non-APR classification in apr.js.
+  */
   reg('apr', function (data) {
     var m = {};
+
+    // Loan scalars
     if (data.loan.amount) m['loanAmount'] = data.loan.amount;
     if (data.loan.rate) m['interestRate'] = data.loan.rate;
     if (data.loan.termMonths) m['loanTerm'] = data.loan.termMonths / 12;
     if (data.loan.discountPoints) m['discountPoints'] = data.loan.discountPoints;
+    if (data.property && data.property.value) m['propertyValue'] = data.property.value;
 
-    var fees = data.fees || {};
-
-    // Financed fees
-    var origAmt = feeAmt(fees, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
-    if (origAmt) m['originationFee'] = origAmt;
-
-    var uwAmt = feeAmt(fees, 'Underwriting Fee', 'UnderwritingFee');
-    if (uwAmt) m['underwritingFee'] = uwAmt;
-
-    var procAmt = feeAmt(fees, 'Processing Fee', 'ProcessingFee');
-    if (procAmt) m['processingFee'] = procAmt;
-
-    var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
-    if (creditAmt) m['creditReportFee'] = creditAmt;
-
-    var floodAmt = feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
-    if (floodAmt) m['floodCertFee'] = floodAmt;
-
-    var taxSvcAmt = feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
-    if (taxSvcAmt) m['taxServiceFee'] = taxSvcAmt;
-
-    // Compute other financed fees (technology, VOE, wire transfer, MERS, etc.)
-    var otherFinanced = 0;
-    var techAmt = feeAmt(fees, 'Technology Fee', 'TechnologyFee');
-    if (techAmt) otherFinanced += techAmt;
-    var voeAmt = feeAmt(fees, 'VerificationOfEmploymentFee', 'Verification Of Employment Fee');
-    if (voeAmt) otherFinanced += voeAmt;
-    var wireAmt = feeAmt(fees, 'WireTransferFee', 'Wire Transfer Fee');
-    if (wireAmt) otherFinanced += wireAmt;
-    var mersAmt = feeAmt(fees, 'MERSRegistrationFee', 'MERS Registration Fee');
-    if (mersAmt) otherFinanced += mersAmt;
-    if (otherFinanced > 0) m['otherFinancedFees'] = otherFinanced;
-
-    // Prepaid fees
-    var prepaids = data.prepaids || {};
-    if (prepaids.interestTotal || prepaids.interestPerDiem) {
-      m['prepaidInterest'] = prepaids.interestTotal || prepaids.interestPerDiem;
+    // Loan type
+    if (data.loan.mortgageType) {
+      var typeMap = {
+        'Conventional': 'CONV',
+        'FHA': 'FHA', 'FederalHousingAdministration': 'FHA',
+        'VA': 'VA', 'VeteransAffairs': 'VA'
+      };
+      var lt = typeMap[data.loan.mortgageType];
+      if (lt) m['aprLoanType'] = lt;
     }
 
-    // MI
-    if (data.loan.miPayment) m['monthlyMI'] = data.loan.miPayment;
-    else if (data.housing.mi) m['monthlyMI'] = data.housing.mi;
+    // Fees via catalog alias index
+    var catalog = (typeof MSFG !== 'undefined' && MSFG.AprFeeCatalog) ? MSFG.AprFeeCatalog : null;
+    var fees = data.fees || {};
+    if (catalog) {
+      Object.keys(fees).forEach(function (key) {
+        if (key.charAt(0) === '_') return; // skip section summaries
+        var fee = fees[key];
+        if (!fee || !fee.amount) return;
+        var feeId = catalog.mismoKeyToFeeId(key);
+        if (!feeId) {
+          // Try the underlying FeeType if otherDesc was used as the key
+          if (fee.type) feeId = catalog.mismoKeyToFeeId(fee.type);
+        }
+        if (feeId) {
+          m['fee_' + feeId] = (m['fee_' + feeId] || 0) + fee.amount;
+        }
+      });
+    }
 
-    // Escrow reserves
-    if (data.escrow.initialBalance) m['escrowReserves'] = data.escrow.initialBalance;
-
-    // Title & Recording
-    var titleAmt = feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
-    var settlementAmt = feeAmt(fees, 'SettlementFee', 'Settlement Fee');
-    var cplAmt = feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
-    var taxCertAmt = feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
-    var totalTitle = titleAmt + settlementAmt + cplAmt + taxCertAmt;
-    if (totalTitle > 0) m['titleInsurance'] = totalTitle;
-
-    var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
-    var eRecAmt = feeAmt(fees, 'E-Recording Fee', 'ERecordingFee');
-    var totalRecording = recordingAmt + eRecAmt;
-    if (totalRecording > 0) m['recordingFees'] = totalRecording;
-
-    // Prepaid hazard insurance
+    // Prepaids
+    var prepaids = data.prepaids || {};
+    if (prepaids.interestTotal || prepaids.interestPerDiem) {
+      m['fee_prepaid_interest'] = prepaids.interestTotal || prepaids.interestPerDiem;
+    }
     if (prepaids.hazardInsurance) {
-      m['otherPrepaidFees'] = (m['otherPrepaidFees'] || 0) + prepaids.hazardInsurance;
+      m['fee_hazard_insurance_premium'] = prepaids.hazardInsurance;
+    }
+
+    // Escrow deposits
+    if (data.escrow) {
+      if (data.escrow.taxMonthly && data.escrow.taxMonths) {
+        m['fee_initial_escrow_taxes'] = data.escrow.taxMonthly * data.escrow.taxMonths;
+      }
+      if (data.escrow.insMonthly && data.escrow.insMonths) {
+        m['fee_initial_escrow_hazard_insurance'] = data.escrow.insMonthly * data.escrow.insMonths;
+      }
+    }
+
+    // Monthly MI → routed to FHA or Conv based on loan type
+    var monthlyMI = (data.loan && data.loan.miPayment) || (data.housing && data.housing.mi) || 0;
+    if (monthlyMI > 0) {
+      if (m['aprLoanType'] === 'FHA') m['fee_fha_annual_mip'] = monthlyMI;
+      else if (m['aprLoanType'] !== 'VA') m['fee_monthly_borrower_paid_pmi'] = monthlyMI;
+    }
+
+    // Credits
+    if (data.closingCostFunds) {
+      if (data.closingCostFunds.lenderCredits) m['lenderCredit'] = data.closingCostFunds.lenderCredits;
+      if (data.closingCostFunds.sellerCredits) m['sellerCredit'] = data.closingCostFunds.sellerCredits;
     }
 
     return m;
