@@ -1,23 +1,47 @@
-<div class="calc-page">
+<div class="calc-page apr-page">
   <div class="calc-page__header">
     <h1>APR Calculator</h1>
-    <p>Calculate the Annual Percentage Rate per Reg Z, with loan-type-aware fee classification.</p>
+    <p>Annual Percentage Rate per Reg Z with loan-type-aware fee classification.</p>
+  </div>
+
+  <!-- Sticky Results Strip -->
+  <div class="apr-sticky">
+    <div class="apr-sticky__cell">
+      <span class="apr-sticky__label">APR</span>
+      <span class="apr-sticky__value apr-sticky__value--lg" id="aprResult">0.000%</span>
+    </div>
+    <div class="apr-sticky__cell">
+      <span class="apr-sticky__label">Note Rate</span>
+      <span class="apr-sticky__value" id="noteRateDisplay">0.000%</span>
+    </div>
+    <div class="apr-sticky__cell">
+      <span class="apr-sticky__label">Spread</span>
+      <span class="apr-sticky__value" id="aprSpread">+0.000%</span>
+    </div>
+    <div class="apr-sticky__cell">
+      <span class="apr-sticky__label">Monthly P&amp;I</span>
+      <span class="apr-sticky__value" id="monthlyPayment">$0.00</span>
+    </div>
+    <div class="apr-sticky__cell">
+      <span class="apr-sticky__label">Amount Financed</span>
+      <span class="apr-sticky__value" id="amountFinanced">$0.00</span>
+    </div>
   </div>
 
   <div class="calc-page__body">
+
+    <!-- Loan Type Segmented Control -->
+    <div class="apr-loan-type" role="tablist" aria-label="Loan Type">
+      <button type="button" class="apr-loan-type__btn is-active" data-loan-type="CONV" role="tab" aria-selected="true">Conventional</button>
+      <button type="button" class="apr-loan-type__btn" data-loan-type="FHA" role="tab" aria-selected="false">FHA</button>
+      <button type="button" class="apr-loan-type__btn" data-loan-type="VA" role="tab" aria-selected="false">VA</button>
+    </div>
+    <input type="hidden" id="aprLoanType" value="CONV">
 
     <!-- Loan Information -->
     <div class="calc-section">
       <h2>Loan Information</h2>
       <div class="form-grid">
-        <div class="form-group">
-          <label for="aprLoanType">Loan Type</label>
-          <select id="aprLoanType">
-            <option value="CONV" selected>Conventional</option>
-            <option value="FHA">FHA</option>
-            <option value="VA">VA</option>
-          </select>
-        </div>
         <div class="form-group">
           <label for="loanAmount">Base Loan Amount ($)</label>
           <input type="number" id="loanAmount" value="0" min="0" step="1000" placeholder="Loan amount">
@@ -44,10 +68,27 @@
           <label for="propertyValue">Property Value ($) <span class="text-muted">(optional)</span></label>
           <input type="number" id="propertyValue" value="0" min="0" step="1000" placeholder="For LTV / MI">
         </div>
+        <div class="form-group" id="vaUsageGroup" style="display:none">
+          <label for="vaUsage">VA Usage</label>
+          <select id="vaUsage">
+            <option value="first">First-time use</option>
+            <option value="subsequent">Subsequent use</option>
+            <option value="exempt">Exempt</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <!-- Dynamic Fee Groups (rendered by apr.js) -->
+    <!-- Fee Group Filter Toolbar -->
+    <div class="apr-fee-toolbar">
+      <label class="apr-fee-toolbar__toggle">
+        <input type="checkbox" id="aprFilterNonZero">
+        Show only fees with values
+      </label>
+      <span class="apr-fee-toolbar__hint" id="aprFeeHint"></span>
+    </div>
+
+    <!-- Dynamic Fee Groups -->
     <div id="aprFeeGroups"></div>
 
     <!-- Credits -->
@@ -66,31 +107,11 @@
       <p class="text-muted text-sm">Lender credits reduce APR-classified fees dollar-for-dollar. Seller credits do not affect APR unless individual fees are marked seller-paid.</p>
     </div>
 
-    <!-- Results -->
+    <!-- Detailed Results / Cost Analysis -->
     <div class="calc-section">
-      <h2>Results</h2>
-      <div class="results-grid">
-        <div class="result-card">
-          <div class="result-card__label">Monthly P&amp;I</div>
-          <div class="result-card__value" id="monthlyPayment">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Amount Financed</div>
-          <div class="result-card__value" id="amountFinanced">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Total Finance Charges</div>
-          <div class="result-card__value" id="financeCharges">$0.00</div>
-        </div>
-      </div>
-
+      <h2>Cost Analysis</h2>
       <div id="aprWarning" class="apr-warning u-hidden">
         <strong>Warning:</strong> The APR is significantly higher than the note rate.
-      </div>
-
-      <div class="result-highlight u-mt-lg">
-        <div class="result-highlight__label">Annual Percentage Rate (APR)</div>
-        <div class="result-highlight__value" id="aprResult">0.000%</div>
       </div>
 
       <div class="apr-comparison">
@@ -98,7 +119,7 @@
         <div class="comparison-grid">
           <div class="comparison-item">
             <h4>Note Rate</h4>
-            <div class="value" id="noteRateDisplay">0.000%</div>
+            <div class="value" id="noteRateDisplay2">0.000%</div>
           </div>
           <div class="comparison-item">
             <h4>APR</h4>
@@ -106,8 +127,9 @@
           </div>
         </div>
         <div class="cost-of-fees">
-          <div class="cost-row"><span class="cost-label">APR Spread:</span><span class="cost-value" id="aprSpread">+0.000%</span></div>
+          <div class="cost-row"><span class="cost-label">APR Spread:</span><span class="cost-value" id="aprSpread2">+0.000%</span></div>
           <div class="cost-row"><span class="cost-label">Total APR Fees:</span><span class="cost-value" id="totalUpfrontCosts">$0.00</span></div>
+          <div class="cost-row"><span class="cost-label">Total Finance Charges:</span><span class="cost-value" id="financeCharges">$0.00</span></div>
           <div class="cost-row"><span class="cost-label">Effective Monthly Cost:</span><span class="cost-value" id="monthlyFeeCost">$0.00/mo</span></div>
         </div>
       </div>

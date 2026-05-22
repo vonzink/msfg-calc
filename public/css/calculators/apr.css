@@ -45,53 +45,135 @@
 .cost-value { font-weight: 700; color: var(--brand-primary); }
 .cost-value.negative { color: var(--color-danger); }
 
-/* Fee breakdown toggle */
-.fee-breakdown {
-  margin-top: var(--space-md);
-  padding: var(--space-lg);
-  background: var(--color-gray-50);
-  border-radius: var(--border-radius);
+/* =============================================
+   Sticky Results Strip
+   ============================================= */
+.apr-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;
+  gap: 0;
+  background: var(--brand-primary, #1f4e3d);
+  color: var(--color-white);
+  padding: 10px 24px;
+  border-bottom: 3px solid var(--brand-accent, #76b04e);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
-.fee-section { margin-bottom: var(--space-lg); }
-.fee-section:last-child { margin-bottom: 0; }
+.apr-sticky__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 12px;
+  border-right: 1px solid rgba(255,255,255,0.12);
+}
 
-.fee-section h4 {
+.apr-sticky__cell:last-child { border-right: none; }
+
+.apr-sticky__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+  font-weight: 500;
+}
+
+.apr-sticky__value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.apr-sticky__value--lg {
+  font-size: 1.5rem;
+  color: var(--brand-accent, #b4dc99);
+}
+
+@media (max-width: 900px) {
+  .apr-sticky {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 8px 12px;
+  }
+  .apr-sticky__cell { padding: 2px 6px; border-right: none; }
+  .apr-sticky__value { font-size: 0.92rem; }
+  .apr-sticky__value--lg { font-size: 1.2rem; }
+}
+
+/* =============================================
+   Loan Type Segmented Control
+   ============================================= */
+.apr-loan-type {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: var(--space-md) 0;
+  padding: 4px;
+  background: var(--color-gray-100);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.apr-loan-type__btn {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.apr-loan-type__btn:hover { color: var(--color-gray-800); }
+
+.apr-loan-type__btn.is-active {
+  background: var(--brand-primary);
+  color: var(--color-white);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* =============================================
+   Fee Toolbar
+   ============================================= */
+.apr-fee-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin: var(--space-md) 0 var(--space-sm);
+  padding: var(--space-xs) 0;
+}
+
+.apr-fee-toolbar__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.85rem;
   color: var(--color-gray-700);
-  margin-bottom: var(--space-sm);
+  cursor: pointer;
+  user-select: none;
 }
 
-.fee-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-sm);
-}
-
-.fee-item label {
-  display: block;
+.apr-fee-toolbar__hint {
   font-size: 0.8rem;
-  font-weight: 500;
   color: var(--color-gray-500);
-  margin-bottom: 2px;
 }
 
-.fee-item input {
-  width: 100%;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--color-gray-300);
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-family: var(--font-body);
+/* =============================================
+   Fee Groups (catalog-driven, collapsible)
+   ============================================= */
+.apr-fee-group {
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-md);
 }
 
-.fee-item input:focus {
-  outline: none;
-  border-color: var(--brand-accent);
-}
-
-/* --- Fee Groups (catalog-driven) --- */
-.apr-fee-group { padding-top: var(--space-md); padding-bottom: var(--space-md); }
 .apr-fee-group > summary {
   cursor: pointer;
   list-style: none;
@@ -100,7 +182,9 @@
   gap: var(--space-sm);
   user-select: none;
 }
+
 .apr-fee-group > summary::-webkit-details-marker { display: none; }
+
 .apr-fee-group > summary::before {
   content: '\25B6';
   font-size: 0.7rem;
@@ -108,16 +192,26 @@
   transition: transform 0.15s ease;
   display: inline-block;
 }
+
 .apr-fee-group[open] > summary::before { transform: rotate(90deg); }
-.apr-fee-group > summary h2 { margin: 0; flex: 1; display: flex; align-items: center; gap: var(--space-sm); }
+
+.apr-fee-group > summary h2 {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 1rem;
+}
+
 .apr-fee-group__total {
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--color-gray-500);
   margin-left: auto;
 }
-.apr-fee-group > .apr-fee-group__rows { margin-top: var(--space-md); }
 
+.apr-fee-group > .apr-fee-group__rows { margin-top: var(--space-md); }
 
 .apr-fee-group__rows {
   display: flex;
@@ -125,6 +219,9 @@
   gap: 6px;
 }
 
+/* =============================================
+   Fee Row
+   ============================================= */
 .apr-fee-row {
   background: var(--color-white);
   border: 1px solid var(--color-gray-200);
@@ -132,9 +229,11 @@
   padding: 6px 10px;
 }
 
+.apr-fee-row.is-zero-hidden { display: none; }
+
 .apr-fee-row__main {
   display: grid;
-  grid-template-columns: 1fr 130px 80px;
+  grid-template-columns: 1fr 130px 68px;
   align-items: center;
   gap: var(--space-sm);
 }
@@ -152,6 +251,7 @@
   border-radius: 4px;
   font-size: 0.9rem;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .apr-fee-row__main input.apr-fee-input:focus {
@@ -159,41 +259,70 @@
   border-color: var(--brand-accent);
 }
 
-/* APR Pill */
+/* =============================================
+   APR Pill (quieter, clickable affordance)
+   ============================================= */
 .apr-pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   min-width: 64px;
-  text-align: center;
-  padding: 3px 10px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   border-radius: 999px;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.08s ease;
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: inherit;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
 }
 
-.apr-pill:hover { transform: scale(1.05); }
-
-.apr-pill--yes {
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #34d399;
+.apr-pill::after {
+  content: '\270E';
+  font-size: 0.65rem;
+  opacity: 0.5;
 }
 
-.apr-pill--no {
-  background: var(--color-gray-100);
-  color: var(--color-gray-500);
-  border: 1px solid var(--color-gray-300);
+.apr-pill:hover {
+  background: var(--color-gray-50);
 }
 
-.apr-pill--override {
-  outline: 2px dotted var(--brand-accent);
+.apr-pill:focus-visible {
+  outline: 2px solid var(--brand-accent);
   outline-offset: 1px;
 }
 
-/* Advanced expander */
+.apr-pill--yes {
+  color: #047857;
+  border-color: #a7f3d0;
+  background: rgba(167, 243, 208, 0.18);
+}
+
+.apr-pill--yes:hover {
+  background: rgba(167, 243, 208, 0.35);
+}
+
+.apr-pill--no {
+  color: var(--color-gray-600);
+  border-color: var(--color-gray-200);
+}
+
+.apr-pill--no:hover {
+  background: var(--color-gray-100);
+}
+
+.apr-pill--override {
+  border-style: dashed;
+  border-color: var(--brand-accent);
+}
+
+/* =============================================
+   Advanced expander (per fee row)
+   ============================================= */
 .apr-fee-row__advanced {
   margin-top: 4px;
 }
@@ -201,21 +330,30 @@
 .apr-fee-row__advanced summary {
   cursor: pointer;
   font-size: 0.72rem;
-  color: var(--color-gray-500);
+  color: var(--color-gray-400);
   user-select: none;
   list-style: none;
   padding-top: 2px;
 }
+
 .apr-fee-row__advanced[open] summary {
   padding-bottom: 4px;
+  color: var(--color-gray-600);
   border-bottom: 1px dashed var(--color-gray-200);
 }
+
 .apr-fee-row__advanced summary::-webkit-details-marker { display: none; }
+
 .apr-fee-row__advanced summary::before {
   content: '+';
   margin-right: 4px;
 }
+
 .apr-fee-row__advanced[open] summary::before { content: '-'; }
+
+.apr-fee-row__advanced .apr-flag-grid {
+  padding-top: 6px;
+}
 
 .apr-flag {
   display: inline-flex;
@@ -244,17 +382,20 @@ input.mismo-populated {
     grid-template-columns: 1fr;
     gap: var(--space-xs);
   }
+  .apr-loan-type {
+    max-width: 100%;
+  }
 }
 
 /* --- Print styles --- */
 @media print {
-  .fee-item input {
+  .apr-sticky { position: static; box-shadow: none; }
+  .apr-fee-row input {
     border: none !important;
     background: none !important;
     padding: 0 !important;
     font-weight: 600;
   }
-
   .result-card,
   .result-highlight {
     break-inside: avoid;

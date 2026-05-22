@@ -18,6 +18,54 @@
   // Loan type
   let loanType = 'CONV';
 
+  // UI state
+  let filterNonZero = false;
+  // Tracks fee IDs that the user manually edited so we don't auto-overwrite
+  const manuallyEditedFees = {};
+
+  /* ---- Auto-calc helpers ---- */
+  function fhaUfmipFactor() { return 0.0175; }
+
+  function vaFundingFeeFactor(usage, downPct) {
+    // Simplified table — purchase loans, regular military. Refine later.
+    // Values from VA funding fee chart effective 2023.
+    if (usage === 'exempt') return 0;
+    const dp = downPct || 0;
+    if (usage === 'subsequent') {
+      if (dp >= 0.10) return 0.0125;
+      if (dp >= 0.05) return 0.0150;
+      return 0.0330;
+    }
+    // first-time use
+    if (dp >= 0.10) return 0.0125;
+    if (dp >= 0.05) return 0.0150;
+    return 0.0215;
+  }
+
+  function autoUpdateFinancedMI(inp) {
+    if (loanType === 'FHA') {
+      // Only auto-populate if user hasn't manually edited
+      if (!manuallyEditedFees['fha_ufmip'] && inp.loanAmount > 0) {
+        const amt = +(inp.loanAmount * fhaUfmipFactor()).toFixed(2);
+        feeState['fha_ufmip'] = feeState['fha_ufmip'] || {};
+        feeState['fha_ufmip'].amount = amt;
+        const el = document.getElementById('fee_fha_ufmip');
+        if (el && document.activeElement !== el) el.value = amt;
+      }
+    } else if (loanType === 'VA') {
+      if (!manuallyEditedFees['va_funding_fee'] && inp.loanAmount > 0) {
+        const usage = (document.getElementById('vaUsage') || {}).value || 'first';
+        const dpPct = inp.propertyValue > 0 ? (inp.propertyValue - inp.loanAmount) / inp.propertyValue : 0;
+        const factor = vaFundingFeeFactor(usage, dpPct);
+        const amt = +(inp.loanAmount * factor).toFixed(2);
+        feeState['va_funding_fee'] = feeState['va_funding_fee'] || {};
+        feeState['va_funding_fee'].amount = amt;
+        const el = document.getElementById('fee_va_funding_fee');
+        if (el && document.activeElement !== el) el.value = amt;
+      }
+    }
+  }
+
   /* ---- Fee Group Rendering ---- */
 
   function feeRowHtml(feeId) {
@@ -32,9 +80,9 @@
         '<div class="apr-fee-row__main">' +
           '<label for="fee_' + esc(feeId) + '">' + esc(def.displayName) + ' ($)</label>' +
           '<input type="number" id="fee_' + esc(feeId) + '" data-fee-id="' + esc(feeId) + '" value="' + amount + '" min="0" step="50" class="apr-fee-input">' +
-          '<span class="apr-pill" data-fee-id="' + esc(feeId) + '" title="Click to override">APR</span>' +
+          '<button type="button" class="apr-pill" data-fee-id="' + esc(feeId) + '" aria-label="Toggle APR classification">APR</button>' +
         '</div>' +
-        (flagsHtml ? '<details class="apr-fee-row__advanced"><summary>Advanced</summary>' + flagsHtml + '</details>' : '') +
+        (flagsHtml ? '<details class="apr-fee-row__advanced"><summary>Advanced</summary><div class="apr-flag-grid">' + flagsHtml + '</div></details>' : '') +
       '</div>'
     );
   }
@@ -104,6 +152,7 @@
 
     container.innerHTML = html;
     updateAllPills();
+    applyFilterNonZero();
   }
 
   /* ---- Pill / Override ---- */
@@ -188,7 +237,8 @@
       loanTerm: P(document.getElementById('loanTerm').value),
       discountPointsPct: P(document.getElementById('discountPoints').value) / 100,
       lenderCredit: P(document.getElementById('lenderCredit').value),
-      sellerCredit: P(document.getElementById('sellerCredit').value)
+      sellerCredit: P(document.getElementById('sellerCredit').value),
+      propertyValue: P(document.getElementById('propertyValue').value)
     };
   }
 
@@ -242,8 +292,12 @@
     if (inp.loanAmount <= 0) {
       document.getElementById('monthlyPayment').textContent = fmt(0);
       document.getElementById('aprResult').textContent = pct(0);
+      document.getElementById('noteRateDisplay').textContent = pct(inp.interestRate * 100);
       return;
     }
+
+    // Auto-fill UFMIP / VA Funding Fee based on loan type + amount + property value
+    autoUpdateFinancedMI(inp);
 
     const cls = classifyFees(inp.loanAmount);
     const pointsAmt = inp.loanAmount * inp.discountPointsPct;
@@ -273,15 +327,20 @@
     const aprSpread = (apr - inp.interestRate) * 100;
     const totalUpfrontApr = pointsAmt + cls.aprPrepaidTotal + cls.aprFinancedFromFees;
 
-    document.getElementById('monthlyPayment').textContent = fmt(ps.pi);
-    document.getElementById('amountFinanced').textContent = fmt(Math.max(0, amtFinanced));
-    document.getElementById('financeCharges').textContent = fmt(Math.max(0, finChg));
-    document.getElementById('aprResult').textContent = pct(apr * 100);
-    document.getElementById('noteRateDisplay').textContent = pct(inp.interestRate * 100);
-    document.getElementById('aprDisplay').textContent = pct(apr * 100);
-    document.getElementById('aprSpread').textContent = (aprSpread >= 0 ? '+' : '') + aprSpread.toFixed(3) + '%';
-    document.getElementById('totalUpfrontCosts').textContent = fmt(totalUpfrontApr);
-    document.getElementById('monthlyFeeCost').textContent = fmt(totalUpfrontApr / n) + '/mo';
+    const spreadTxt = (aprSpread >= 0 ? '+' : '') + aprSpread.toFixed(3) + '%';
+    const setText = function (id, val) { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    setText('monthlyPayment', fmt(ps.pi));
+    setText('amountFinanced', fmt(Math.max(0, amtFinanced)));
+    setText('financeCharges', fmt(Math.max(0, finChg)));
+    setText('aprResult', pct(apr * 100));
+    setText('noteRateDisplay', pct(inp.interestRate * 100));
+    setText('noteRateDisplay2', pct(inp.interestRate * 100));
+    setText('aprDisplay', pct(apr * 100));
+    setText('aprSpread', spreadTxt);
+    setText('aprSpread2', spreadTxt);
+    setText('totalUpfrontCosts', fmt(totalUpfrontApr));
+    setText('monthlyFeeCost', fmt(totalUpfrontApr / n) + '/mo');
     document.getElementById('aprWarning').classList.toggle('u-hidden', aprSpread <= 0.5);
 
     updateMathSteps(inp, noteAmount, ps.pi, pointsAmt, amtFinanced, n, totalPmts, finChg, apr, cls);
@@ -317,6 +376,27 @@
 
   /* ---- Event Wiring ---- */
 
+  function applyFilterNonZero() {
+    document.querySelectorAll('.apr-fee-row').forEach(function (row) {
+      const feeId = row.dataset.feeId;
+      const amt = (feeState[feeId] && feeState[feeId].amount) || 0;
+      const focused = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.feeId === feeId;
+      const hide = filterNonZero && amt <= 0 && !focused;
+      row.classList.toggle('is-zero-hidden', hide);
+    });
+    updateFeeHint();
+  }
+
+  function updateFeeHint() {
+    const hint = document.getElementById('aprFeeHint');
+    if (!hint) return;
+    const total = document.querySelectorAll('.apr-fee-row').length;
+    const visible = total - document.querySelectorAll('.apr-fee-row.is-zero-hidden').length;
+    hint.textContent = filterNonZero
+      ? visible + ' of ' + total + ' fees with values'
+      : total + ' available fees';
+  }
+
   function bindFeeGroupEvents() {
     const root = document.getElementById('aprFeeGroups');
     if (!root) return;
@@ -327,6 +407,7 @@
         const feeId = t.dataset.feeId;
         feeState[feeId] = feeState[feeId] || {};
         feeState[feeId].amount = P(t.value);
+        manuallyEditedFees[feeId] = true;
         updateAllPills();
         calculate();
       }
@@ -372,13 +453,18 @@
     if (!mapFn) return;
     const fieldMap = mapFn(data);
 
-    // Loan type from MISMO
+    // Loan type from MISMO — update both hidden input and segmented control
     if (fieldMap.aprLoanType) {
-      const sel = document.getElementById('aprLoanType');
-      if (sel) {
-        sel.value = fieldMap.aprLoanType;
-        loanType = fieldMap.aprLoanType;
-      }
+      loanType = fieldMap.aprLoanType;
+      const hidden = document.getElementById('aprLoanType');
+      if (hidden) hidden.value = loanType;
+      document.querySelectorAll('.apr-loan-type__btn').forEach(function (btn) {
+        const active = btn.dataset.loanType === loanType;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      const vaG = document.getElementById('vaUsageGroup');
+      if (vaG) vaG.style.display = loanType === 'VA' ? '' : 'none';
       delete fieldMap.aprLoanType;
     }
 
@@ -470,18 +556,44 @@
     if (params.has('dp')) document.getElementById('discountPoints').value = P(params.get('dp')) || 0;
     if (params.has('lpt')) {
       const lpt = params.get('lpt');
-      if (['CONV','FHA','VA'].indexOf(lpt) !== -1) {
-        loanType = lpt;
-        document.getElementById('aprLoanType').value = lpt;
-      }
+      if (['CONV','FHA','VA'].indexOf(lpt) !== -1) loanType = lpt;
     }
 
-    // Loan type change
-    document.getElementById('aprLoanType').addEventListener('change', function (e) {
-      loanType = e.target.value;
+    // Loan type segmented control
+    function setLoanType(newType) {
+      loanType = newType;
+      document.getElementById('aprLoanType').value = newType;
+      document.querySelectorAll('.apr-loan-type__btn').forEach(function (btn) {
+        const active = btn.dataset.loanType === newType;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      const vaGroup = document.getElementById('vaUsageGroup');
+      if (vaGroup) vaGroup.style.display = newType === 'VA' ? '' : 'none';
       renderFeeGroups();
       calculate();
+    }
+    document.querySelectorAll('.apr-loan-type__btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { setLoanType(btn.dataset.loanType); });
     });
+
+    // VA usage triggers funding fee recompute
+    const vaUsage = document.getElementById('vaUsage');
+    if (vaUsage) {
+      vaUsage.addEventListener('change', function () {
+        manuallyEditedFees['va_funding_fee'] = false;
+        calculate();
+      });
+    }
+
+    // Filter toggle
+    const filterCb = document.getElementById('aprFilterNonZero');
+    if (filterCb) {
+      filterCb.addEventListener('change', function () {
+        filterNonZero = filterCb.checked;
+        applyFilterNonZero();
+      });
+    }
 
     // Main input listeners
     ['loanAmount','interestRate','loanTerm','discountPoints','lenderCredit','sellerCredit','propertyValue'].forEach(function (id) {
@@ -490,6 +602,15 @@
       el.addEventListener('input', calculate);
       el.addEventListener('change', calculate);
     });
+
+    // Reflect initial loanType into segmented control
+    document.querySelectorAll('.apr-loan-type__btn').forEach(function (btn) {
+      const active = btn.dataset.loanType === loanType;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    const vaGroupInit = document.getElementById('vaUsageGroup');
+    if (vaGroupInit) vaGroupInit.style.display = loanType === 'VA' ? '' : 'none';
 
     renderFeeGroups();
     bindFeeGroupEvents();
