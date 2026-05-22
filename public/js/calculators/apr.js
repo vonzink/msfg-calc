@@ -24,6 +24,77 @@
   const manuallyEditedFees = {};
 
   /* ---- Auto-calc helpers ---- */
+
+  // Apply catalog defaultAmount to any fee that isn't already populated.
+  // Skips fees the user has manually edited.
+  function applyCatalogDefaults() {
+    Object.keys(Catalog.FEES).forEach(function (feeId) {
+      const def = Catalog.FEES[feeId];
+      if (typeof def.defaultAmount !== 'number') return;
+      if (def.appliesTo.indexOf(loanType) === -1) return;
+      if (manuallyEditedFees[feeId]) return;
+      const current = (feeState[feeId] && feeState[feeId].amount) || 0;
+      if (current > 0) return;
+      feeState[feeId] = feeState[feeId] || {};
+      feeState[feeId].amount = def.defaultAmount;
+      const el = document.getElementById('fee_' + feeId);
+      if (el) el.value = def.defaultAmount;
+    });
+  }
+
+  // 15 days of prepaid interest = loan × rate × 15 / 365
+  function autoCalcPrepaidInterest(inp) {
+    if (manuallyEditedFees['prepaid_interest']) return;
+    if (inp.loanAmount <= 0 || inp.interestRate <= 0) return;
+    const amt = +(inp.loanAmount * inp.interestRate * 15 / 365).toFixed(2);
+    feeState['prepaid_interest'] = feeState['prepaid_interest'] || {};
+    feeState['prepaid_interest'].amount = amt;
+    const el = document.getElementById('fee_prepaid_interest');
+    if (el && document.activeElement !== el) el.value = amt;
+  }
+
+  // PMI factor by LTV (rough industry averages, configurable later)
+  function pmiAnnualFactor(ltv) {
+    if (ltv <= 0.80) return 0;
+    if (ltv <= 0.85) return 0.0032;
+    if (ltv <= 0.90) return 0.0045;
+    if (ltv <= 0.95) return 0.0062;
+    return 0.0085;
+  }
+
+  // FHA annual MIP factor by LTV and term (post-March 2023 chart, simplified)
+  function fhaAnnualMipFactor(ltv, termYears) {
+    if (termYears > 15) {
+      if (ltv <= 0.90) return 0.0050;
+      return 0.0055;
+    }
+    if (ltv <= 0.90) return 0.0015;
+    return 0.0040;
+  }
+
+  function autoCalcMonthlyMI(inp) {
+    if (inp.loanAmount <= 0 || inp.propertyValue <= 0) return;
+    const ltv = inp.loanAmount / inp.propertyValue;
+
+    if (loanType === 'CONV') {
+      if (manuallyEditedFees['monthly_borrower_paid_pmi']) return;
+      const factor = pmiAnnualFactor(ltv);
+      const monthly = +((inp.loanAmount * factor) / 12).toFixed(2);
+      feeState['monthly_borrower_paid_pmi'] = feeState['monthly_borrower_paid_pmi'] || {};
+      feeState['monthly_borrower_paid_pmi'].amount = monthly;
+      const el = document.getElementById('fee_monthly_borrower_paid_pmi');
+      if (el && document.activeElement !== el) el.value = monthly;
+    } else if (loanType === 'FHA') {
+      if (manuallyEditedFees['fha_annual_mip']) return;
+      const factor = fhaAnnualMipFactor(ltv, inp.loanTerm);
+      const monthly = +((inp.loanAmount * factor) / 12).toFixed(2);
+      feeState['fha_annual_mip'] = feeState['fha_annual_mip'] || {};
+      feeState['fha_annual_mip'].amount = monthly;
+      const el = document.getElementById('fee_fha_annual_mip');
+      if (el && document.activeElement !== el) el.value = monthly;
+    }
+  }
+
   function fhaUfmipFactor() { return 0.0175; }
 
   function vaFundingFeeFactor(usage, downPct) {
@@ -299,6 +370,10 @@
     // Auto-fill UFMIP / VA Funding Fee based on loan type + amount + property value
     autoUpdateFinancedMI(inp);
 
+    // Auto-fill 15 days prepaid interest and monthly MI
+    autoCalcPrepaidInterest(inp);
+    autoCalcMonthlyMI(inp);
+
     const cls = classifyFees(inp.loanAmount);
     const pointsAmt = inp.loanAmount * inp.discountPointsPct;
 
@@ -570,6 +645,7 @@
       });
       const vaGroup = document.getElementById('vaUsageGroup');
       if (vaGroup) vaGroup.style.display = newType === 'VA' ? '' : 'none';
+      applyCatalogDefaults();
       renderFeeGroups();
       calculate();
     }
@@ -612,6 +688,8 @@
     const vaGroupInit = document.getElementById('vaUsageGroup');
     if (vaGroupInit) vaGroupInit.style.display = loanType === 'VA' ? '' : 'none';
 
+    // Pre-populate fees with catalog defaults so the page is useful out of the box
+    applyCatalogDefaults();
     renderFeeGroups();
     bindFeeGroupEvents();
 

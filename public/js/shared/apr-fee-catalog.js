@@ -30,6 +30,7 @@
       displayName: 'Underwriting Fee',
       aprFlagDefault: 'APR_YES',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 1195,
       mismoAliases: ['Underwriting Fee','UnderwritingFee']
     },
     processing_fee: {
@@ -61,6 +62,7 @@
       displayName: 'Tax Service Fee',
       aprFlagDefault: 'APR_YES',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 85,
       conditionCodes: ['LIFE_OF_LOAN_MONITORING'],
       mismoAliases: ['TaxRelatedServiceFee','Tax Related Service Fee','TaxServiceFee','Tax Service Fee']
     },
@@ -75,13 +77,22 @@
       displayName: 'Technology / E-Doc Fee',
       aprFlagDefault: 'APR_YES',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 100,
       mismoAliases: ['Technology Fee','TechnologyFee','ElectronicDocumentFee','E-Doc Fee']
     },
     mers_registration_fee: {
       displayName: 'MERS Registration Fee',
       aprFlagDefault: 'APR_CONDITIONAL',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 24.95,
       mismoAliases: ['MERSRegistrationFee','MERS Registration Fee']
+    },
+    courier_fee: {
+      displayName: 'Courier Fee',
+      aprFlagDefault: 'APR_CONDITIONAL',
+      appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 210,
+      mismoAliases: ['CourierFee','Courier Fee','OvernightFee']
     },
     other_lender_fees: {
       displayName: 'Other Lender Fees',
@@ -133,6 +144,7 @@
       displayName: "Lender's Title Insurance",
       aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 650,
       conditionCodes: ['BONA_FIDE_REASONABLE'],
       mismoAliases: ['TitleLendersCoveragePremium','Title - Lenders Coverage Premium']
     },
@@ -146,15 +158,33 @@
       displayName: 'Settlement / Closing Fee',
       aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 250,
       conditionCodes: ['BONA_FIDE_REASONABLE'],
       mismoAliases: ['SettlementFee','Settlement Fee','Title - Settlement Fee']
     },
     title_search_fee: {
-      displayName: 'Title Search / Exam',
+      displayName: 'Title Search Fee',
       aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 250,
       conditionCodes: ['BONA_FIDE_REASONABLE'],
-      mismoAliases: ['TitleSearchFee','Title Search Fee','TitleExamFee']
+      mismoAliases: ['TitleSearchFee','Title Search Fee','Title - Title Search Fee']
+    },
+    title_examination_fee: {
+      displayName: 'Title Examination Fee',
+      aprFlagDefault: 'APR_NO',
+      appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 150,
+      conditionCodes: ['BONA_FIDE_REASONABLE'],
+      mismoAliases: ['TitleExamFee','TitleExaminationFee','Title - Examination Fee','Title Examination Fee']
+    },
+    title_location_report: {
+      displayName: 'Title Location Report',
+      aprFlagDefault: 'APR_NO',
+      appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 150,
+      conditionCodes: ['BONA_FIDE_REASONABLE'],
+      mismoAliases: ['TitleLocationReport','Title - Location Report']
     },
     attorney_closing_fee: {
       displayName: 'Attorney / Doc Prep',
@@ -166,6 +196,7 @@
       displayName: 'CPL / Closing Protection Letter',
       aprFlagDefault: 'APR_CONDITIONAL',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 0,
       mismoAliases: ['TitleClosingProtectionLetterFee','Title - Closing Protection Letter Fee']
     },
     title_endorsements: {
@@ -185,6 +216,7 @@
       displayName: 'Wire Transfer Fee',
       aprFlagDefault: 'APR_CONDITIONAL',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 60,
       mismoAliases: ['WireTransferFee','Wire Transfer Fee']
     },
     other_title_fees: {
@@ -200,6 +232,7 @@
       displayName: 'Appraisal Fee',
       aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 700,
       conditionCodes: ['BONA_FIDE_REASONABLE'],
       mismoAliases: ['AppraisalFee','Appraisal Fee']
     },
@@ -207,6 +240,7 @@
       displayName: 'Credit Report',
       aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 136,
       conditionCodes: ['BONA_FIDE_REASONABLE'],
       mismoAliases: ['CreditReportFee','Credit Report Fee']
     },
@@ -214,6 +248,7 @@
       displayName: 'Initial Flood Determination',
       aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 8,
       conditionCodes: ['BONA_FIDE_REASONABLE'],
       mismoAliases: ['FloodCertification','FloodCertificationFee','Flood Certification']
     },
@@ -221,6 +256,7 @@
       displayName: 'Verification of Employment',
       aprFlagDefault: 'APR_YES',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 105,
       mismoAliases: ['VerificationOfEmploymentFee','Verification Of Employment Fee']
     },
     aus_fee: {
@@ -246,11 +282,12 @@
 
     // ----- Government Recording & Taxes -----
     recording_fee_mortgage: {
-      displayName: 'Recording Fee',
+      displayName: 'Recording Fee (Deed of Trust)',
       aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 100,
       conditionCodes: ['PUBLIC_OFFICIAL_FEE'],
-      mismoAliases: ['RecordingFeeForDeed','Recording Fee For Deed','RecordingFee']
+      mismoAliases: ['RecordingFeeForDeed','Recording Fee For Deed','RecordingFee','DeedOfTrustRecordingFee']
     },
     transfer_tax_deed: {
       displayName: 'Transfer Tax',
@@ -270,6 +307,7 @@
       displayName: 'E-Recording Fee',
       aprFlagDefault: 'APR_CONDITIONAL',
       appliesTo: ['CONV','FHA','VA'],
+      defaultAmount: 20,
       mismoAliases: ['E-Recording Fee','ERecordingFee']
     },
 
@@ -319,7 +357,7 @@
         'origination_fee','underwriting_fee','processing_fee','admin_fee',
         'application_fee_conditional','rate_lock_fee','tax_service_fee',
         'flood_monitoring_fee','electronic_doc_fee','mers_registration_fee',
-        'other_lender_fees'
+        'courier_fee','other_lender_fees'
       ]
     },
     {
@@ -335,7 +373,8 @@
       label: 'Title & Settlement',
       feeIds: [
         'lenders_title_insurance','owners_title_insurance','settlement_closing_fee',
-        'title_search_fee','attorney_closing_fee','closing_protection_letter',
+        'title_search_fee','title_examination_fee','title_location_report',
+        'attorney_closing_fee','closing_protection_letter',
         'title_endorsements','notary_fee','title_wire_fee','other_title_fees'
       ]
     },
