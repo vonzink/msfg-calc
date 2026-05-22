@@ -22,12 +22,17 @@
   let filterNonZero = false;
   // Tracks fee IDs that the user manually edited so we don't auto-overwrite
   const manuallyEditedFees = {};
+  // True once a MISMO file has been applied; defaults are then suppressed
+  // because the MISMO file is the source of truth for fees.
+  let mismoLoaded = false;
 
   /* ---- Auto-calc helpers ---- */
 
   // Apply catalog defaultAmount to any fee that isn't already populated.
   // Skips fees the user has manually edited.
+  // Skipped entirely once MISMO has been loaded — MISMO is then the source of truth.
   function applyCatalogDefaults() {
+    if (mismoLoaded) return;
     Object.keys(Catalog.FEES).forEach(function (feeId) {
       const def = Catalog.FEES[feeId];
       if (typeof def.defaultAmount !== 'number') return;
@@ -543,6 +548,14 @@
       delete fieldMap.aprLoanType;
     }
 
+    // MISMO supersedes catalog defaults. Clear any pre-filled default amounts
+    // so only MISMO-supplied fees (and user manual edits) remain.
+    mismoLoaded = true;
+    Object.keys(feeState).forEach(function (feeId) {
+      if (manuallyEditedFees[feeId]) return;
+      if (feeState[feeId]) feeState[feeId].amount = 0;
+    });
+
     // Re-render fee groups for the (possibly new) loan type
     renderFeeGroups();
 
@@ -613,6 +626,11 @@
     document.getElementById('sellerCredit').value = 0;
     document.getElementById('propertyValue').value = 0;
     Object.keys(feeState).forEach(function (k) { delete feeState[k]; });
+    Object.keys(manuallyEditedFees).forEach(function (k) { delete manuallyEditedFees[k]; });
+    // Reset MISMO flag so catalog defaults come back
+    mismoLoaded = false;
+    sessionStorage.removeItem('msfg-mismo-data');
+    applyCatalogDefaults();
     renderFeeGroups();
     calculate();
   }
