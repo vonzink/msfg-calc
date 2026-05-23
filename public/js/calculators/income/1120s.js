@@ -70,8 +70,10 @@
     const meals2 = pn(prefix + '_meals2');
     const own    = pn(prefix + '_owner') / 100;
 
-    const year1 = net1 + oth1 + dep1 + depl1 + amort1 - mort1 - meals1;
-    const year2 = net2 + oth2 + dep2 + depl2 + amort2 - mort2 - meals2;
+    const sum1 = net1 + oth1 + dep1 + depl1 + amort1;
+    const sum2 = net2 + oth2 + dep2 + depl2 + amort2;
+    const year1 = sum1 - mort1 - meals1;
+    const year2 = sum2 - mort2 - meals2;
 
     const hasYr2 = [net2, oth2, dep2, depl2, amort2, mort2, meals2]
       .some(v => v !== 0);
@@ -81,7 +83,7 @@
     const monthly = result.monthly * own;
 
     return {
-      year1, year2,
+      year1, year2, sum1, sum2,
       monthly, method: result.method,
       mort1, mort2, meals1, meals2,
       own: own * 100
@@ -160,20 +162,17 @@
   }
 
   function buildCorpStep(label, c) {
-    const sub1 = c.year1 + c.mort1 + c.meals1;
-    const sub2 = c.year2 + c.mort2 + c.meals2;
-
     let html = '<div class="math-step">';
     html += '<h4>' + label + ' Calculation</h4>';
     html += '<div class="math-formula">';
-    html += 'Subtotal Year 1: ' + fmt(sub1) + '<br>';
-    html += 'Subtotal Year 2: ' + fmt(sub2) + '<br>';
+    html += 'Subtotal Year 1: ' + fmt(c.sum1) + '<br>';
+    html += 'Subtotal Year 2: ' + fmt(c.sum2) + '<br>';
     html += 'Less Mortgages: ' + fmt(c.mort1) + ' / ' + fmt(c.mort2) + '<br>';
     html += 'Less Meals: ' + fmt(c.meals1) + ' / ' + fmt(c.meals2) + '<br>';
     html += 'Ownership: ' + c.own + '%<br>';
     html += '<div class="math-values">';
-    html += 'Year 1 = ' + fmt(sub1) + ' &minus; ' + fmt(c.mort1) + ' &minus; ' + fmt(c.meals1) + ' = ' + fmt(c.year1) + '<br>';
-    html += 'Year 2 = ' + fmt(sub2) + ' &minus; ' + fmt(c.mort2) + ' &minus; ' + fmt(c.meals2) + ' = ' + fmt(c.year2) + '<br>';
+    html += 'Year 1 = ' + fmt(c.sum1) + ' &minus; ' + fmt(c.mort1) + ' &minus; ' + fmt(c.meals1) + ' = ' + fmt(c.year1) + '<br>';
+    html += 'Year 2 = ' + fmt(c.sum2) + ' &minus; ' + fmt(c.mort2) + ' &minus; ' + fmt(c.meals2) + ' = ' + fmt(c.year2) + '<br>';
     html += 'Method: ' + IC.methodLabel(c.method) + '<br>';
     html += '<strong>Monthly: ' + fmt(c.monthly) + '</strong>';
     html += '</div></div></div>';

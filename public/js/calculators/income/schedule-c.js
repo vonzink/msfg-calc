@@ -70,8 +70,10 @@
     const amort1 = pn(prefix + '_amort1');
     const amort2 = pn(prefix + '_amort2');
 
-    const year1 = np1 + oth1 + depl1 + depr1 + home1 + mile1 + amort1 - meals1;
-    const year2 = np2 + oth2 + depl2 + depr2 + home2 + mile2 + amort2 - meals2;
+    const sum1 = np1 + oth1 + depl1 + depr1 + home1 + mile1 + amort1;
+    const sum2 = np2 + oth2 + depl2 + depr2 + home2 + mile2 + amort2;
+    const year1 = sum1 - meals1;
+    const year2 = sum2 - meals2;
 
     const hasYr2 = [np2, oth2, depl2, depr2, meals2, home2, mile2, amort2]
       .some(v => v !== 0);
@@ -79,7 +81,7 @@
     const result = IC.policyCalc(year1, hasYr2 ? year2 : 0);
 
     return {
-      year1, year2,
+      year1, year2, sum1, sum2,
       monthly: result.monthly, method: result.method,
       meals1, meals2
     };
@@ -160,18 +162,15 @@
   }
 
   function buildBizStep(label, d) {
-    const sub1 = d.year1 + d.meals1;
-    const sub2 = d.year2 + d.meals2;
-
     let html = '<div class="math-step">';
     html += '<h4>' + label + ' Calculation</h4>';
     html += '<div class="math-formula">';
-    html += 'Subtotal Year 1: ' + fmt(sub1) + '<br>';
-    html += 'Subtotal Year 2: ' + fmt(sub2) + '<br>';
+    html += 'Subtotal Year 1: ' + fmt(d.sum1) + '<br>';
+    html += 'Subtotal Year 2: ' + fmt(d.sum2) + '<br>';
     html += 'Less Meals: ' + fmt(d.meals1) + ' / ' + fmt(d.meals2) + '<br>';
     html += '<div class="math-values">';
-    html += 'Year 1 = ' + fmt(sub1) + ' &minus; ' + fmt(d.meals1) + ' = ' + fmt(d.year1) + '<br>';
-    html += 'Year 2 = ' + fmt(sub2) + ' &minus; ' + fmt(d.meals2) + ' = ' + fmt(d.year2) + '<br>';
+    html += 'Year 1 = ' + fmt(d.sum1) + ' &minus; ' + fmt(d.meals1) + ' = ' + fmt(d.year1) + '<br>';
+    html += 'Year 2 = ' + fmt(d.sum2) + ' &minus; ' + fmt(d.meals2) + ' = ' + fmt(d.year2) + '<br>';
     html += 'Method: ' + IC.methodLabel(d.method) + '<br>';
     html += '<strong>Monthly: ' + fmt(d.monthly) + '</strong>';
     html += '</div></div></div>';
