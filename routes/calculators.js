@@ -98,6 +98,7 @@ incomeCalcs.forEach(ic => {
       calc: findCalc(`income/${ic.slug}`),
       extraHead: extraHeadParts.join(''),
       extraScripts: `<script src="/js/shared/income-upload${ext}?v=${ver}"></script>` +
+                    `<script src="/js/shared/income-calc-base${ext}?v=${ver}"></script>` +
                     `<script src="/js/calculators/${ic.view}${ext}?v=${ver}"></script>`
     });
   });
