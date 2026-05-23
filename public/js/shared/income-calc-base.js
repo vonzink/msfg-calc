@@ -24,12 +24,16 @@ MSFG.IncomeCalc = (function () {
 
   /**
    * Standard 2-year income averaging policy.
-   * IF Year 2 provided AND Year 1 > Year 2 → 24-month average
-   * ELSE → Year 1 / 12
+   *
+   * - If year2 === 0, returns year1 / 12 regardless of caller intent.
+   *   Callers that distinguish "no Y2 data" from "Y2 data summing to zero"
+   *   must pre-filter and pass 0 explicitly when no Y2 data exists.
+   * - If year2 is non-zero AND year1 > year2, returns (year1 + year2) / 24.
+   * - Otherwise returns year1 / 12.
    *
    * @param {number} year1 - Most recent year total
    * @param {number} year2 - Prior year total (0 if not provided)
-   * @returns {{ monthly: number, method: string, formula: string }}
+   * @returns {{ monthly: number, method: 'average'|'recent', formula: string }}
    */
   function policyCalc(year1, year2) {
     const hasYr2 = year2 !== 0;
