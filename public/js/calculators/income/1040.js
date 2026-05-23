@@ -110,12 +110,6 @@
   // MATH STEPS
   // =====================================================
 
-  function methodNote(method) {
-    return method === 'average'
-      ? '(Year 1 > Year 2, using 24-month average)'
-      : '(Using most recent year / 12)';
-  }
-
   function updateMathSteps(data) {
     const stepsEl = document.getElementById('calcSteps-income-1040');
     if (!stepsEl) return;
@@ -140,7 +134,7 @@
     html += '<div class="math-formula">';
     html += 'Year 1 Total: ' + fmt(data.w2.y1) + '<br>';
     html += 'Year 2 Total: ' + fmt(data.w2.y2) + '<br>';
-    html += '<span class="math-note">' + methodNote(data.w2.result.method) + '</span>';
+    html += '<span class="math-note">' + IC.methodLabel(data.w2.result.method) + '</span>';
     html += '<div class="math-values">' + data.w2.result.formula + '</div>';
     html += '</div></div>';
 
@@ -151,7 +145,7 @@
       html += '<div class="math-formula">';
       html += 'Year 1: ' + fmt(data.alimony.y1) + '<br>';
       html += 'Year 2: ' + fmt(data.alimony.y2) + '<br>';
-      html += '<span class="math-note">' + methodNote(data.alimony.result.method) + '</span>';
+      html += '<span class="math-note">' + IC.methodLabel(data.alimony.result.method) + '</span>';
       html += '<div class="math-values">' + data.alimony.result.formula + '</div>';
       html += '</div></div>';
     }
@@ -162,7 +156,7 @@
     html += '<div class="math-formula">';
     html += 'Year 1 Total: ' + fmt(data.pension.y1) + '<br>';
     html += 'Year 2 Total: ' + fmt(data.pension.y2) + '<br>';
-    html += '<span class="math-note">' + methodNote(data.pension.result.method) + '</span>';
+    html += '<span class="math-note">' + IC.methodLabel(data.pension.result.method) + '</span>';
     html += '<div class="math-values">' + data.pension.result.formula + '</div>';
     html += '</div></div>';
 
@@ -173,7 +167,7 @@
       html += '<div class="math-formula">';
       html += 'Year 1: ' + fmt(data.unemp.y1) + '<br>';
       html += 'Year 2: ' + fmt(data.unemp.y2) + '<br>';
-      html += '<span class="math-note">' + methodNote(data.unemp.result.method) + '</span>';
+      html += '<span class="math-note">' + IC.methodLabel(data.unemp.result.method) + '</span>';
       html += '<div class="math-values">' + data.unemp.result.formula + '</div>';
       html += '</div></div>';
     }
@@ -184,7 +178,7 @@
     html += '<div class="math-formula">';
     html += 'Year 1 Total: ' + fmt(data.ss.y1) + '<br>';
     html += 'Year 2 Total: ' + fmt(data.ss.y2) + '<br>';
-    html += '<span class="math-note">' + methodNote(data.ss.result.method) + '</span>';
+    html += '<span class="math-note">' + IC.methodLabel(data.ss.result.method) + '</span>';
     html += '<div class="math-values">' + data.ss.result.formula + '</div>';
     html += '</div></div>';
 
