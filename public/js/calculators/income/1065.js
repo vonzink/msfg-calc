@@ -88,7 +88,7 @@
     const result = IC.policyCalc(total1, hasYr2 ? total2 : 0);
 
     return {
-      sum1, sum2, total1, total2,
+      sum1, sum2, total1, total2, hasYr2,
       monthly: result.monthly, method: result.method,
       mort1, mort2, meals1, meals2,
       own: own * 100
@@ -168,13 +168,19 @@
     html += '<h4>' + label + ' Calculation</h4>';
     html += '<div class="math-formula">';
     html += 'Subtotal Year 1: ' + fmt(p.sum1) + '<br>';
-    html += 'Subtotal Year 2: ' + fmt(p.sum2) + '<br>';
-    html += 'Less Mortgages: ' + fmt(p.mort1) + ' / ' + fmt(p.mort2) + '<br>';
-    html += 'Less Meals: ' + fmt(p.meals1) + ' / ' + fmt(p.meals2) + '<br>';
+    if (p.hasYr2) html += 'Subtotal Year 2: ' + fmt(p.sum2) + '<br>';
+    html += 'Less Mortgages: ' + fmt(p.mort1);
+    if (p.hasYr2) html += ' / ' + fmt(p.mort2);
+    html += '<br>';
+    html += 'Less Meals: ' + fmt(p.meals1);
+    if (p.hasYr2) html += ' / ' + fmt(p.meals2);
+    html += '<br>';
     html += 'Ownership: ' + p.own + '%<br>';
     html += '<div class="math-values">';
     html += 'Year 1 = (' + fmt(p.sum1) + ' &minus; ' + fmt(p.mort1) + ' &minus; ' + fmt(p.meals1) + ') &times; ' + p.own + '% = ' + fmt(p.total1) + '<br>';
-    html += 'Year 2 = (' + fmt(p.sum2) + ' &minus; ' + fmt(p.mort2) + ' &minus; ' + fmt(p.meals2) + ') &times; ' + p.own + '% = ' + fmt(p.total2) + '<br>';
+    if (p.hasYr2) {
+      html += 'Year 2 = (' + fmt(p.sum2) + ' &minus; ' + fmt(p.mort2) + ' &minus; ' + fmt(p.meals2) + ') &times; ' + p.own + '% = ' + fmt(p.total2) + '<br>';
+    }
     html += 'Method: ' + IC.methodLabel(p.method) + '<br>';
     html += '<strong>Monthly: ' + fmt(p.monthly) + '</strong>';
     html += '</div></div></div>';

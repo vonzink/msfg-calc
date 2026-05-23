@@ -83,7 +83,7 @@
     const monthly = result.monthly * own;
 
     return {
-      year1, year2, sum1, sum2,
+      year1, year2, sum1, sum2, hasYr2,
       monthly, method: result.method,
       mort1, mort2, meals1, meals2,
       own: own * 100
@@ -166,13 +166,19 @@
     html += '<h4>' + label + ' Calculation</h4>';
     html += '<div class="math-formula">';
     html += 'Subtotal Year 1: ' + fmt(c.sum1) + '<br>';
-    html += 'Subtotal Year 2: ' + fmt(c.sum2) + '<br>';
-    html += 'Less Mortgages: ' + fmt(c.mort1) + ' / ' + fmt(c.mort2) + '<br>';
-    html += 'Less Meals: ' + fmt(c.meals1) + ' / ' + fmt(c.meals2) + '<br>';
+    if (c.hasYr2) html += 'Subtotal Year 2: ' + fmt(c.sum2) + '<br>';
+    html += 'Less Mortgages: ' + fmt(c.mort1);
+    if (c.hasYr2) html += ' / ' + fmt(c.mort2);
+    html += '<br>';
+    html += 'Less Meals: ' + fmt(c.meals1);
+    if (c.hasYr2) html += ' / ' + fmt(c.meals2);
+    html += '<br>';
     html += 'Ownership: ' + c.own + '%<br>';
     html += '<div class="math-values">';
     html += 'Year 1 = ' + fmt(c.sum1) + ' &minus; ' + fmt(c.mort1) + ' &minus; ' + fmt(c.meals1) + ' = ' + fmt(c.year1) + '<br>';
-    html += 'Year 2 = ' + fmt(c.sum2) + ' &minus; ' + fmt(c.mort2) + ' &minus; ' + fmt(c.meals2) + ' = ' + fmt(c.year2) + '<br>';
+    if (c.hasYr2) {
+      html += 'Year 2 = ' + fmt(c.sum2) + ' &minus; ' + fmt(c.mort2) + ' &minus; ' + fmt(c.meals2) + ' = ' + fmt(c.year2) + '<br>';
+    }
     html += 'Method: ' + IC.methodLabel(c.method) + '<br>';
     html += '<strong>Monthly: ' + fmt(c.monthly) + '</strong>';
     html += '</div></div></div>';

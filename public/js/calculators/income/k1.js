@@ -71,7 +71,7 @@
     const result = IC.policyCalc(year1, hasYr2 ? year2 : 0);
 
     return {
-      year1, year2,
+      year1, year2, hasYr2,
       monthly: result.monthly, method: result.method,
       ord1, ord2, rent1, rent2, other1, other2, guar1, guar2
     };
@@ -156,13 +156,23 @@
     let html = '<div class="math-step">';
     html += '<h4>K-1 #' + num + ' Calculation</h4>';
     html += '<div class="math-formula">';
-    html += 'Ordinary Income: ' + fmt(k.ord1) + ' / ' + fmt(k.ord2) + '<br>';
-    html += 'Rental Real Estate: ' + fmt(k.rent1) + ' / ' + fmt(k.rent2) + '<br>';
-    html += 'Other Rental: ' + fmt(k.other1) + ' / ' + fmt(k.other2) + '<br>';
-    html += 'Guaranteed Payments: ' + fmt(k.guar1) + ' / ' + fmt(k.guar2) + '<br>';
+    html += 'Ordinary Income: ' + fmt(k.ord1);
+    if (k.hasYr2) html += ' / ' + fmt(k.ord2);
+    html += '<br>';
+    html += 'Rental Real Estate: ' + fmt(k.rent1);
+    if (k.hasYr2) html += ' / ' + fmt(k.rent2);
+    html += '<br>';
+    html += 'Other Rental: ' + fmt(k.other1);
+    if (k.hasYr2) html += ' / ' + fmt(k.other2);
+    html += '<br>';
+    html += 'Guaranteed Payments: ' + fmt(k.guar1);
+    if (k.hasYr2) html += ' / ' + fmt(k.guar2);
+    html += '<br>';
     html += '<div class="math-values">';
     html += 'Year 1 = ' + fmt(k.ord1) + ' + ' + fmt(k.rent1) + ' + ' + fmt(k.other1) + ' + ' + fmt(k.guar1) + ' = ' + fmt(k.year1) + '<br>';
-    html += 'Year 2 = ' + fmt(k.ord2) + ' + ' + fmt(k.rent2) + ' + ' + fmt(k.other2) + ' + ' + fmt(k.guar2) + ' = ' + fmt(k.year2) + '<br>';
+    if (k.hasYr2) {
+      html += 'Year 2 = ' + fmt(k.ord2) + ' + ' + fmt(k.rent2) + ' + ' + fmt(k.other2) + ' + ' + fmt(k.guar2) + ' = ' + fmt(k.year2) + '<br>';
+    }
     html += 'Method: ' + IC.methodLabel(k.method) + '<br>';
     html += '<strong>Monthly: ' + fmt(k.monthly) + '</strong>';
     html += '</div></div></div>';

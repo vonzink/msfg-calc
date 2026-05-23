@@ -146,19 +146,21 @@
     html += 'Year 1 = (' + fmt(d.sum1) + ' &minus; ' + fmt(d.tax1) + ' &minus; ' + fmt(d.mort1) + ' &minus; ' + fmt(d.meals1) + ') &times; ' + d.ownership + '% &minus; ' + fmt(d.div1) + ' = <strong>' + fmt(d.total1) + '</strong>';
     html += '</div></div></div>';
 
-    // Year 2 calculation
-    html += '<div class="math-step">';
-    html += '<h4>Year 2 Calculation</h4>';
-    html += '<div class="math-formula">';
-    html += 'Subtotal: ' + fmt(d.sum2) + '<br>';
-    html += 'Less Tax: ' + fmt(d.tax2) + '<br>';
-    html += 'Less Mortgages: ' + fmt(d.mort2) + '<br>';
-    html += 'Less Meals: ' + fmt(d.meals2) + '<br>';
-    html += '&times; Ownership: ' + d.ownership + '%<br>';
-    html += 'Less Dividends: ' + fmt(d.div2);
-    html += '<div class="math-values">';
-    html += 'Year 2 = <strong>' + fmt(d.total2) + '</strong>';
-    html += '</div></div></div>';
+    // Year 2 calculation (only when Y2 data is present)
+    if (d.hasYr2) {
+      html += '<div class="math-step">';
+      html += '<h4>Year 2 Calculation</h4>';
+      html += '<div class="math-formula">';
+      html += 'Subtotal: ' + fmt(d.sum2) + '<br>';
+      html += 'Less Tax: ' + fmt(d.tax2) + '<br>';
+      html += 'Less Mortgages: ' + fmt(d.mort2) + '<br>';
+      html += 'Less Meals: ' + fmt(d.meals2) + '<br>';
+      html += '&times; Ownership: ' + d.ownership + '%<br>';
+      html += 'Less Dividends: ' + fmt(d.div2);
+      html += '<div class="math-values">';
+      html += 'Year 2 = <strong>' + fmt(d.total2) + '</strong>';
+      html += '</div></div></div>';
+    }
 
     // Monthly result
     html += '<div class="math-step highlight">';

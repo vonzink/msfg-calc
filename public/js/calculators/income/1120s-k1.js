@@ -68,7 +68,7 @@
     const result = IC.policyCalc(year1, hasYr2 ? year2 : 0);
 
     return {
-      year1, year2,
+      year1, year2, hasYr2,
       monthly: result.monthly, method: result.method,
       ord1, ord2, rent1, rent2, other1, other2
     };
@@ -153,12 +153,20 @@
     let html = '<div class="math-step">';
     html += '<h4>K-1 #' + num + ' Calculation</h4>';
     html += '<div class="math-formula">';
-    html += 'Ordinary Income: ' + fmt(d.ord1) + ' / ' + fmt(d.ord2) + '<br>';
-    html += 'Rental RE Income: ' + fmt(d.rent1) + ' / ' + fmt(d.rent2) + '<br>';
-    html += 'Other Rental: ' + fmt(d.other1) + ' / ' + fmt(d.other2) + '<br>';
+    html += 'Ordinary Income: ' + fmt(d.ord1);
+    if (d.hasYr2) html += ' / ' + fmt(d.ord2);
+    html += '<br>';
+    html += 'Rental RE Income: ' + fmt(d.rent1);
+    if (d.hasYr2) html += ' / ' + fmt(d.rent2);
+    html += '<br>';
+    html += 'Other Rental: ' + fmt(d.other1);
+    if (d.hasYr2) html += ' / ' + fmt(d.other2);
+    html += '<br>';
     html += '<div class="math-values">';
     html += 'Year 1 = ' + fmt(d.ord1) + ' + ' + fmt(d.rent1) + ' + ' + fmt(d.other1) + ' = ' + fmt(d.year1) + '<br>';
-    html += 'Year 2 = ' + fmt(d.ord2) + ' + ' + fmt(d.rent2) + ' + ' + fmt(d.other2) + ' = ' + fmt(d.year2) + '<br>';
+    if (d.hasYr2) {
+      html += 'Year 2 = ' + fmt(d.ord2) + ' + ' + fmt(d.rent2) + ' + ' + fmt(d.other2) + ' = ' + fmt(d.year2) + '<br>';
+    }
     html += 'Method: ' + IC.methodLabel(d.method) + '<br>';
     html += '<strong>Monthly: ' + fmt(d.monthly) + '</strong>';
     html += '</div></div></div>';

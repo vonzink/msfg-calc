@@ -81,7 +81,7 @@
     const result = IC.policyCalc(year1, hasYr2 ? year2 : 0);
 
     return {
-      year1, year2, sum1, sum2,
+      year1, year2, sum1, sum2, hasYr2,
       monthly: result.monthly, method: result.method,
       meals1, meals2
     };
@@ -166,11 +166,15 @@
     html += '<h4>' + label + ' Calculation</h4>';
     html += '<div class="math-formula">';
     html += 'Subtotal Year 1: ' + fmt(d.sum1) + '<br>';
-    html += 'Subtotal Year 2: ' + fmt(d.sum2) + '<br>';
-    html += 'Less Meals: ' + fmt(d.meals1) + ' / ' + fmt(d.meals2) + '<br>';
+    if (d.hasYr2) html += 'Subtotal Year 2: ' + fmt(d.sum2) + '<br>';
+    html += 'Less Meals: ' + fmt(d.meals1);
+    if (d.hasYr2) html += ' / ' + fmt(d.meals2);
+    html += '<br>';
     html += '<div class="math-values">';
     html += 'Year 1 = ' + fmt(d.sum1) + ' &minus; ' + fmt(d.meals1) + ' = ' + fmt(d.year1) + '<br>';
-    html += 'Year 2 = ' + fmt(d.sum2) + ' &minus; ' + fmt(d.meals2) + ' = ' + fmt(d.year2) + '<br>';
+    if (d.hasYr2) {
+      html += 'Year 2 = ' + fmt(d.sum2) + ' &minus; ' + fmt(d.meals2) + ' = ' + fmt(d.year2) + '<br>';
+    }
     html += 'Method: ' + IC.methodLabel(d.method) + '<br>';
     html += '<strong>Monthly: ' + fmt(d.monthly) + '</strong>';
     html += '</div></div></div>';
