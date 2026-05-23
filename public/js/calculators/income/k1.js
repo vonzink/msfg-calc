@@ -14,9 +14,6 @@
 
   const K1_COUNT = 4;
 
-  // Track which K-1 slot the AI data should fill
-  let aiTargetK1 = 1;
-
   // =====================================================
   // FIELD MAPPING — AI → Form Fields
   // =====================================================
@@ -30,7 +27,7 @@
 
   /** Clear only the fields that AI auto-fills */
   function clearAiFields() {
-    const prefix = 'k' + aiTargetK1;
+    const prefix = 'k1';
     const fields = ['ord', 'rent', 'other', 'guar'];
     fields.forEach(f => {
       const el1 = document.getElementById(prefix + '_' + f + '1');
@@ -42,7 +39,7 @@
 
   /** Map docStore entries to form fields. Index 0 = most recent = Year 1. */
   function syncFieldsFromDocs() {
-    const prefix = 'k' + aiTargetK1;
+    const prefix = 'k1';
     IncomeUpload.getDocStore().forEach((doc, i) => {
       const ySuffix = (i === 0) ? '1' : '2';
       Object.keys(AI_FIELD_MAP).forEach(aiKey => {

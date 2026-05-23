@@ -12,9 +12,6 @@
   const pn  = MSFG.parseNumById;
   const IC  = MSFG.IncomeCalc;
 
-  // Track which Business slot the AI data should fill
-  let aiTargetBusiness = 'b1';
-
   // =====================================================
   // FIELD MAPPING — AI → Form Fields
   // =====================================================
@@ -30,7 +27,7 @@
 
   /** Clear only the fields that AI auto-fills */
   function clearAiFields() {
-    const prefix = aiTargetBusiness;
+    const prefix = 'b1';
     const fields = ['np', 'oth', 'depl', 'depr', 'meals', 'home'];
     fields.forEach(f => {
       const el1 = document.getElementById(prefix + '_' + f + '1');
@@ -42,7 +39,7 @@
 
   /** Map docStore entries to form fields. Index 0 = most recent = Year 1. */
   function syncFieldsFromDocs() {
-    const prefix = aiTargetBusiness;
+    const prefix = 'b1';
     IncomeUpload.getDocStore().forEach((doc, i) => {
       const ySuffix = (i === 0) ? '1' : '2';
       Object.keys(AI_FIELD_MAP).forEach(aiKey => {

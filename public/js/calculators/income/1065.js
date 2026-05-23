@@ -12,9 +12,6 @@
   const pn  = MSFG.parseNumById;
   const IC  = MSFG.IncomeCalc;
 
-  // Track which partnership slot the AI data should fill
-  let aiTargetPartnership = 'p1';
-
   // =====================================================
   // FIELD MAPPING — AI → Form Fields
   // =====================================================
@@ -33,7 +30,7 @@
 
   /** Clear only the fields that AI auto-fills */
   function clearAiFields() {
-    const prefix = aiTargetPartnership;
+    const prefix = 'p1';
     const fields = ['ord', 'farm', 'gain', 'oth', 'dep', 'depl', 'amort', 'mort', 'meals'];
     fields.forEach(f => {
       const el1 = document.getElementById(prefix + '_' + f + '1');
@@ -45,7 +42,7 @@
 
   /** Map docStore entries to form fields. Index 0 = most recent = Year 1. */
   function syncFieldsFromDocs() {
-    const prefix = aiTargetPartnership;
+    const prefix = 'p1';
     IncomeUpload.getDocStore().forEach((doc, i) => {
       const ySuffix = (i === 0) ? '1' : '2';
       Object.keys(AI_FIELD_MAP).forEach(aiKey => {
