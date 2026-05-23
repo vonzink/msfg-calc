@@ -101,19 +101,19 @@
 
   function calculate() {
     const p1 = computePartnership('p1');
-    document.getElementById('p1_year1').textContent = fmt(p1.total1);
-    document.getElementById('p1_year2').textContent = fmt(p1.total2);
-    document.getElementById('p1_month').textContent = fmt(p1.monthly);
-    document.getElementById('result_p1').textContent = fmt(p1.monthly);
+    IC.setResult('p1_year1', p1.total1);
+    IC.setResult('p1_year2', p1.total2);
+    IC.setResult('p1_month', p1.monthly);
+    IC.setResult('result_p1', p1.monthly);
 
     const p2 = computePartnership('p2');
-    document.getElementById('p2_year1').textContent = fmt(p2.total1);
-    document.getElementById('p2_year2').textContent = fmt(p2.total2);
-    document.getElementById('p2_month').textContent = fmt(p2.monthly);
-    document.getElementById('result_p2').textContent = fmt(p2.monthly);
+    IC.setResult('p2_year1', p2.total1);
+    IC.setResult('p2_year2', p2.total2);
+    IC.setResult('p2_month', p2.monthly);
+    IC.setResult('result_p2', p2.monthly);
 
     const combined = p1.monthly + p2.monthly;
-    document.getElementById('combined1065').textContent = fmt(combined);
+    IC.setResult('combined1065', combined);
 
     updateMathSteps(p1, p2, combined);
   }

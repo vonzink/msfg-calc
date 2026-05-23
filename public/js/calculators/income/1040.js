@@ -56,15 +56,15 @@
     const w2_y1 = pn('w2_1_y1') + pn('w2_2_y1') + pn('w2_3_y1') + pn('w2_4_y1');
     const w2_y2 = pn('w2_1_y2') + pn('w2_2_y2') + pn('w2_3_y2') + pn('w2_4_y2');
     const w2_result = IC.policyCalc(w2_y1, w2_y2);
-    document.getElementById('w2_month').textContent = fmt(w2_result.monthly);
-    document.getElementById('result_w2').textContent = fmt(w2_result.monthly);
+    IC.setResult('w2_month', w2_result.monthly);
+    IC.setResult('result_w2', w2_result.monthly);
 
     // Alimony
     const al_y1 = pn('alimony1');
     const al_y2 = pn('alimony2');
     const al_result = IC.policyCalc(al_y1, al_y2);
-    document.getElementById('alimony_month').textContent = fmt(al_result.monthly);
-    document.getElementById('result_alimony').textContent = fmt(al_result.monthly);
+    IC.setResult('alimony_month', al_result.monthly);
+    IC.setResult('result_alimony', al_result.monthly);
 
     // Pension/annuity (3 pension slots, each with IRA + Pensions lines)
     const pen_y1 = pn('pen1_15_y1') + pn('pen1_16_y1') +
@@ -74,27 +74,27 @@
                    pn('pen2_15_y2') + pn('pen2_16_y2') +
                    pn('pen3_15_y2') + pn('pen3_16_y2');
     const pen_result = IC.policyCalc(pen_y1, pen_y2);
-    document.getElementById('pension_month').textContent = fmt(pen_result.monthly);
-    document.getElementById('result_pension').textContent = fmt(pen_result.monthly);
+    IC.setResult('pension_month', pen_result.monthly);
+    IC.setResult('result_pension', pen_result.monthly);
 
     // Unemployment
     const un_y1 = pn('unemp1');
     const un_y2 = pn('unemp2');
     const un_result = IC.policyCalc(un_y1, un_y2);
-    document.getElementById('unemp_month').textContent = fmt(un_result.monthly);
-    document.getElementById('result_unemp').textContent = fmt(un_result.monthly);
+    IC.setResult('unemp_month', un_result.monthly);
+    IC.setResult('result_unemp', un_result.monthly);
 
     // Social Security
     const ss_y1 = pn('ss1');
     const ss_y2 = pn('ss2');
     const ss_result = IC.policyCalc(ss_y1, ss_y2);
-    document.getElementById('ss_month').textContent = fmt(ss_result.monthly);
-    document.getElementById('result_ss').textContent = fmt(ss_result.monthly);
+    IC.setResult('ss_month', ss_result.monthly);
+    IC.setResult('result_ss', ss_result.monthly);
 
     // Combined
     const combined = w2_result.monthly + al_result.monthly + pen_result.monthly +
                      un_result.monthly + ss_result.monthly;
-    document.getElementById('combined1040').textContent = fmt(combined);
+    IC.setResult('combined1040', combined);
 
     updateMathSteps({
       w2:      { y1: w2_y1,  y2: w2_y2,  result: w2_result },

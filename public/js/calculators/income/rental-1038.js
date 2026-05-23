@@ -104,11 +104,8 @@
     const monthlyAdjusted = adjustedIncome / months;
     const finalResult = monthlyAdjusted - pitia;
 
-    const adjEl = document.getElementById('methodA_adjusted');
-    if (adjEl) adjEl.textContent = fmt(monthlyAdjusted);
-
-    const resEl = document.getElementById('methodA_result');
-    if (resEl) resEl.textContent = fmt(finalResult);
+    IC.setResult('methodA_adjusted', monthlyAdjusted);
+    IC.setResult('methodA_result', finalResult);
 
     updateMathSteps({
       method: 'A',
@@ -124,11 +121,8 @@
     const adjustedMonthly = grossRent * 0.75;
     const finalResult = adjustedMonthly - pitia;
 
-    const adjEl = document.getElementById('methodB_adjusted');
-    if (adjEl) adjEl.textContent = fmt(adjustedMonthly);
-
-    const resEl = document.getElementById('methodB_result');
-    if (resEl) resEl.textContent = fmt(finalResult);
+    IC.setResult('methodB_adjusted', adjustedMonthly);
+    IC.setResult('methodB_result', finalResult);
 
     updateMathSteps({
       method: 'B',

@@ -96,19 +96,19 @@
 
   function calculate() {
     const c1 = computeCorp('c1');
-    document.getElementById('c1_year1').textContent = fmt(c1.year1);
-    document.getElementById('c1_year2').textContent = fmt(c1.year2);
-    document.getElementById('c1_month').textContent = fmt(c1.monthly);
-    document.getElementById('result_c1').textContent = fmt(c1.monthly);
+    IC.setResult('c1_year1', c1.year1);
+    IC.setResult('c1_year2', c1.year2);
+    IC.setResult('c1_month', c1.monthly);
+    IC.setResult('result_c1', c1.monthly);
 
     const c2 = computeCorp('c2');
-    document.getElementById('c2_year1').textContent = fmt(c2.year1);
-    document.getElementById('c2_year2').textContent = fmt(c2.year2);
-    document.getElementById('c2_month').textContent = fmt(c2.monthly);
-    document.getElementById('result_c2').textContent = fmt(c2.monthly);
+    IC.setResult('c2_year1', c2.year1);
+    IC.setResult('c2_year2', c2.year2);
+    IC.setResult('c2_month', c2.monthly);
+    IC.setResult('result_c2', c2.monthly);
 
     const combined = c1.monthly + c2.monthly;
-    document.getElementById('combined1120s').textContent = fmt(combined);
+    IC.setResult('combined1120s', combined);
 
     updateMathSteps(c1, c2, combined);
   }

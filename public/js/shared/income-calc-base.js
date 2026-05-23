@@ -64,6 +64,34 @@ MSFG.IncomeCalc = (function () {
       : 'Year 1 / 12';
   }
 
+  // ---- Result display ----
+
+  /**
+   * Return the CSS class to apply to a monthly-result display element
+   * based on the sign of its value. Treats 0 as positive.
+   *
+   * @param {number} value
+   * @returns {'income-result--negative'|'income-result--positive'}
+   */
+  function resultClass(value) {
+    return value < 0 ? 'income-result--negative' : 'income-result--positive';
+  }
+
+  /**
+   * Set a result-display element's text and signed-color class in one call.
+   * Safe to call with a missing element (no-op).
+   *
+   * @param {string|HTMLElement} idOrEl - Element ID or DOM node
+   * @param {number} value - Numeric value to display (formatted via formatCurrency)
+   */
+  function setResult(idOrEl, value) {
+    const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+    if (!el) return;
+    el.textContent = fmt(value);
+    el.classList.remove('income-result--negative', 'income-result--positive');
+    el.classList.add(resultClass(value));
+  }
+
   // ---- CSV export ----
 
   /**
@@ -214,7 +242,9 @@ MSFG.IncomeCalc = (function () {
     downloadCSV,
     clearAll,
     registerEmailProvider,
-    initPage
+    initPage,
+    resultClass,
+    setResult
   };
 
 })();

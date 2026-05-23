@@ -406,3 +406,15 @@
     page-break-inside: avoid;
   }
 }
+
+/* =====================================================
+   Result coloring (shared by all income calculators)
+   ===================================================== */
+
+.income-result--negative {
+  color: var(--color-danger);
+}
+
+.income-result--positive {
+  /* default text color — no override needed */
+}

@@ -89,15 +89,15 @@
       const k = computeK1(i);
       results.push(k);
 
-      document.getElementById('k' + i + '_yr1').textContent  = fmt(k.year1);
-      document.getElementById('k' + i + '_yr2').textContent  = fmt(k.year2);
-      document.getElementById('k' + i + '_month').textContent = fmt(k.monthly);
-      document.getElementById('resultK' + i).textContent      = fmt(k.monthly);
+      IC.setResult('k' + i + '_yr1', k.year1);
+      IC.setResult('k' + i + '_yr2', k.year2);
+      IC.setResult('k' + i + '_month', k.monthly);
+      IC.setResult('resultK' + i, k.monthly);
 
       combined += k.monthly;
     }
 
-    document.getElementById('combinedK1').textContent = fmt(combined);
+    IC.setResult('combinedK1', combined);
 
     updateMathSteps(results, combined);
   }

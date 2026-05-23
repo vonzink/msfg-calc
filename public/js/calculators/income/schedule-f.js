@@ -96,9 +96,9 @@
     const hasYr2 = [np2, coop2, other2, dep2, amort2, home2, meals2].some(v => v !== 0);
     const result = IC.policyCalc(year1, hasYr2 ? year2 : 0);
 
-    document.getElementById('f_total1').textContent = fmt(year1);
-    document.getElementById('f_total2').textContent = fmt(year2);
-    document.getElementById('f_monthly').textContent = fmt(result.monthly);
+    IC.setResult('f_total1', year1);
+    IC.setResult('f_total2', year2);
+    IC.setResult('f_monthly', result.monthly);
 
     updateMathSteps({
       np1, np2, coop1, coop2, other1, other2,

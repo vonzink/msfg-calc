@@ -94,10 +94,10 @@
     const result = IC.policyCalc(total1, hasYr2 ? total2 : 0);
 
     // Update displays
-    document.getElementById('yr1_total').textContent = fmt(total1);
-    document.getElementById('yr2_total').textContent = fmt(total2);
-    document.getElementById('monthly_income').textContent = fmt(result.monthly);
-    document.getElementById('combined1120').textContent = fmt(result.monthly);
+    IC.setResult('yr1_total', total1);
+    IC.setResult('yr2_total', total2);
+    IC.setResult('monthly_income', result.monthly);
+    IC.setResult('combined1120', result.monthly);
 
     updateMathSteps({
       sum1, sum2, tax1, tax2, mort1, mort2, meals1, meals2,

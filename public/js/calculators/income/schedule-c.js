@@ -93,19 +93,19 @@
 
   function calculate() {
     const b1 = computeBusiness('b1');
-    document.getElementById('b1_year1').textContent = fmt(b1.year1);
-    document.getElementById('b1_year2').textContent = fmt(b1.year2);
-    document.getElementById('b1_month').textContent = fmt(b1.monthly);
-    document.getElementById('result_b1').textContent = fmt(b1.monthly);
+    IC.setResult('b1_year1', b1.year1);
+    IC.setResult('b1_year2', b1.year2);
+    IC.setResult('b1_month', b1.monthly);
+    IC.setResult('result_b1', b1.monthly);
 
     const b2 = computeBusiness('b2');
-    document.getElementById('b2_year1').textContent = fmt(b2.year1);
-    document.getElementById('b2_year2').textContent = fmt(b2.year2);
-    document.getElementById('b2_month').textContent = fmt(b2.monthly);
-    document.getElementById('result_b2').textContent = fmt(b2.monthly);
+    IC.setResult('b2_year1', b2.year1);
+    IC.setResult('b2_year2', b2.year2);
+    IC.setResult('b2_month', b2.monthly);
+    IC.setResult('result_b2', b2.monthly);
 
     const combined = b1.monthly + b2.monthly;
-    document.getElementById('combined_c').textContent = fmt(combined);
+    IC.setResult('combined_c', combined);
 
     updateMathSteps({ b1, b2, combined });
   }

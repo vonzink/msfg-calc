@@ -83,7 +83,7 @@
     // SUBTRACT monthly payment — unique to this calculator
     const finalResult = monthlyAvg - monthlyPmt;
 
-    document.getElementById('prop1_result').textContent = fmt(finalResult);
+    IC.setResult('prop1_result', finalResult);
 
     updateMathSteps({
       rents1, rents2, royalties1, royalties2,

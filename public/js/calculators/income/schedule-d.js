@@ -60,9 +60,9 @@
     const result = IC.policyCalc(total1, total2);
 
     // Display results
-    document.getElementById('d_total1').textContent = fmt(total1);
-    document.getElementById('d_total2').textContent = fmt(stcg2 + ltcg2);
-    document.getElementById('d_monthly').textContent = fmt(result.monthly);
+    IC.setResult('d_total1', total1);
+    IC.setResult('d_total2', stcg2 + ltcg2);
+    IC.setResult('d_monthly', result.monthly);
 
     updateMathSteps({
       stcg1, stcg2, ltcg1, ltcg2,

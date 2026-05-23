@@ -76,9 +76,9 @@
       .some(v => v !== 0);
     const result = IC.policyCalc(y1.total, hasYr2 ? y2.total : 0);
 
-    document.getElementById('sr_total1').textContent = fmt(y1.total);
-    document.getElementById('sr_total2').textContent = fmt(y2.total);
-    document.getElementById('sr_avg').textContent = fmt(result.monthly);
+    IC.setResult('sr_total1', y1.total);
+    IC.setResult('sr_total2', y2.total);
+    IC.setResult('sr_avg', result.monthly);
 
     updateMathSteps({ y1, y2, hasYr2, monthly: result.monthly, method: result.method });
   }

@@ -64,9 +64,9 @@
 
     const result = IC.policyCalc(totalY1, totalY2);
 
-    document.getElementById('totalYear1').textContent = fmt(totalY1);
-    document.getElementById('totalYear2').textContent = fmt(totalY2);
-    document.getElementById('incomeToUse').textContent = fmt(result.monthly);
+    IC.setResult('totalYear1', totalY1);
+    IC.setResult('totalYear2', totalY2);
+    IC.setResult('incomeToUse', result.monthly);
 
     updateMathSteps({
       totalY1, totalY2,
