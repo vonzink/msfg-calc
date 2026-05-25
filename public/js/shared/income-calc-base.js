@@ -169,8 +169,50 @@ MSFG.IncomeCalc = (function () {
   // ---- Email data provider ----
 
   /**
+   * Format a numeric input value as a currency string for email display.
+   * Returns null if the value is missing, empty, or zero.
+   */
+  function fmtInputValue(val) {
+    if (val === null || val === undefined || val === '') return null;
+    const num = parseFloat(val);
+    if (!isFinite(num) || num === 0) return null;
+    return '$' + num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  /**
+   * Extract row data from one <tr> inside a .income-table.
+   * - label: text of the first non-empty <td>
+   * - y1/y2: values of the first/second number inputs in row order
+   * Returns { label, value } or null if no values were entered.
+   */
+  function extractTableRow(tr) {
+    const cells = tr.querySelectorAll('td');
+    if (!cells.length) return null;
+    const label = cells[0].textContent.trim();
+    if (!label) return null;
+
+    const inputs = tr.querySelectorAll('input[type="number"]');
+    const y1 = inputs[0] ? fmtInputValue(inputs[0].value) : null;
+    const y2 = inputs[1] ? fmtInputValue(inputs[1].value) : null;
+
+    if (!y1 && !y2) return null;
+
+    let value;
+    if (y1 && y2) value = 'Y1: ' + y1 + ' / Y2: ' + y2;
+    else if (y1) value = y1;
+    else value = 'Y2: ' + y2;
+
+    return { label, value };
+  }
+
+  /**
    * Register the standard CalcActions email data provider.
-   * Gathers form-row inputs and total-row values for email summary.
+   *
+   * Scans the income-calculator markup (.calc-section > .income-table) and
+   * builds a sections array suitable for the email modal. Each .calc-section
+   * with an <h2> heading and an .income-table becomes one section in the
+   * payload; result cards and the result-highlight roll up into a final
+   * "Results" section.
    */
   function registerEmailProvider() {
     if (!MSFG.CalcActions) return;
@@ -178,37 +220,47 @@ MSFG.IncomeCalc = (function () {
       const title = document.querySelector('.calc-page__header h1');
       const sections = [];
 
-      // Gather all form-row data
-      const formRows = [];
-      document.querySelectorAll('.form-row').forEach(row => {
-        const label = row.querySelector('label');
-        const input = row.querySelector('input, select');
-        if (label && input) {
-          const val = input.value;
-          if (val && val !== '0' && val !== '') {
-            formRows.push({
-              label: label.textContent.trim(),
-              value: '$' + parseFloat(val || 0).toLocaleString()
-            });
-          }
+      // Per-section input data (one section per .calc-section that has a table)
+      document.querySelectorAll('.calc-section').forEach(section => {
+        const heading = section.querySelector('h2');
+        const table = section.querySelector('.income-table');
+        if (!heading || !table) return;
+
+        const rows = [];
+        table.querySelectorAll('tbody tr').forEach(tr => {
+          const row = extractTableRow(tr);
+          if (row) rows.push(row);
+        });
+        if (rows.length) {
+          sections.push({ heading: heading.textContent.trim(), rows });
         }
       });
-      if (formRows.length) sections.push({ heading: 'Income Details', rows: formRows });
 
-      // Gather total rows
-      const totalRows = [];
-      document.querySelectorAll('.total-row').forEach(row => {
-        const label = row.querySelector('label');
-        const val = row.querySelector('.total-value');
+      // Results section: result-card pairs + final result-highlight
+      const resultRows = [];
+      document.querySelectorAll('.result-card').forEach(card => {
+        const label = card.querySelector('.result-card__label');
+        const val   = card.querySelector('.result-card__value');
         if (label && val) {
-          totalRows.push({
+          resultRows.push({
+            label: label.textContent.trim(),
+            value: val.textContent.trim()
+          });
+        }
+      });
+      const highlight = document.querySelector('.result-highlight');
+      if (highlight) {
+        const label = highlight.querySelector('.result-highlight__label');
+        const val   = highlight.querySelector('.result-highlight__value');
+        if (label && val) {
+          resultRows.push({
             label: label.textContent.trim(),
             value: val.textContent.trim(),
             isTotal: true
           });
         }
-      });
-      if (totalRows.length) sections.push({ heading: 'Results', rows: totalRows });
+      }
+      if (resultRows.length) sections.push({ heading: 'Results', rows: resultRows });
 
       return {
         title: title ? title.textContent.trim() : 'Income Calculator',
