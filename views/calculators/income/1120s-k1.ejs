@@ -1,7 +1,7 @@
 <div class="calc-page">
   <div class="calc-page__header">
     <h1>1120S K-1 Income Calculator</h1>
-    <p>Calculate monthly income from S-Corporation K-1 distributions (Schedule K-1, Form 1120S) across up to four K-1 entities.</p>
+    <p>Calculate monthly income from S-Corporation K-1 distributions (Schedule K-1, Form 1120S).</p>
   </div>
 
   <div class="calc-page__body">
@@ -46,10 +46,10 @@
       </div>
     </div>
 
-    <!-- K-1 #1 -->
+    <!-- 1120S K-1 -->
     <div class="calc-section">
-      <h2>K-1 #1</h2>
-      <p class="text-muted text-sm u-mb-sm">Enter line items from the shareholder's Schedule K-1 (Form 1120S).</p>
+      <h2>1120S K-1</h2>
+      <p class="text-muted text-sm u-mb-sm">Enter line items from the shareholder's Schedule K-1 (Form 1120S). Positive values are added; negative values reduce income.</p>
 
       <table class="income-table">
         <thead>
@@ -71,230 +71,28 @@
           </tr>
           <tr>
             <td>Net Rental Real Estate Income/Loss</td>
-            <td class="line-number">2/3</td>
+            <td class="line-number">2</td>
             <td class="sign-col add">+/&minus;</td>
             <td><input type="number" id="k1_rent1" value="0"></td>
             <td><input type="number" id="k1_rent2" value="0"></td>
           </tr>
           <tr>
             <td>Other Net Rental Income/Loss</td>
-            <td class="line-number">&mdash;</td>
+            <td class="line-number">3</td>
             <td class="sign-col add">+/&minus;</td>
             <td><input type="number" id="k1_other1" value="0"></td>
             <td><input type="number" id="k1_other2" value="0"></td>
           </tr>
         </tbody>
       </table>
-
-      <div class="corp-results">
-        <div class="corp-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="k1_yr1">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="k1_yr2">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="k1_month">$0.00</div>
-        </div>
-      </div>
     </div>
 
-    <!-- K-1 #2 -->
+    <!-- Result -->
     <div class="calc-section">
-      <h2>K-1 #2 (Optional)</h2>
-      <p class="text-muted text-sm u-mb-sm">Use this section if the borrower has a second K-1 from another S-Corporation.</p>
-
-      <table class="income-table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Line #</th>
-            <th>Sign</th>
-            <th>Year 1 (Most Recent)</th>
-            <th>Year 2 (Prior)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Ordinary Business Income or Loss</td>
-            <td class="line-number">1</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k2_ord1" value="0"></td>
-            <td><input type="number" id="k2_ord2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Net Rental Real Estate Income/Loss</td>
-            <td class="line-number">2/3</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k2_rent1" value="0"></td>
-            <td><input type="number" id="k2_rent2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Other Net Rental Income/Loss</td>
-            <td class="line-number">&mdash;</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k2_other1" value="0"></td>
-            <td><input type="number" id="k2_other2" value="0"></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="corp-results">
-        <div class="corp-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="k2_yr1">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="k2_yr2">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="k2_month">$0.00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- K-1 #3 -->
-    <div class="calc-section">
-      <h2>K-1 #3 (Optional)</h2>
-      <p class="text-muted text-sm u-mb-sm">Use this section if the borrower has a third K-1 from another S-Corporation.</p>
-
-      <table class="income-table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Line #</th>
-            <th>Sign</th>
-            <th>Year 1 (Most Recent)</th>
-            <th>Year 2 (Prior)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Ordinary Business Income or Loss</td>
-            <td class="line-number">1</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k3_ord1" value="0"></td>
-            <td><input type="number" id="k3_ord2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Net Rental Real Estate Income/Loss</td>
-            <td class="line-number">2/3</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k3_rent1" value="0"></td>
-            <td><input type="number" id="k3_rent2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Other Net Rental Income/Loss</td>
-            <td class="line-number">&mdash;</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k3_other1" value="0"></td>
-            <td><input type="number" id="k3_other2" value="0"></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="corp-results">
-        <div class="corp-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="k3_yr1">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="k3_yr2">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="k3_month">$0.00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- K-1 #4 -->
-    <div class="calc-section">
-      <h2>K-1 #4 (Optional)</h2>
-      <p class="text-muted text-sm u-mb-sm">Use this section if the borrower has a fourth K-1 from another S-Corporation.</p>
-
-      <table class="income-table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Line #</th>
-            <th>Sign</th>
-            <th>Year 1 (Most Recent)</th>
-            <th>Year 2 (Prior)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Ordinary Business Income or Loss</td>
-            <td class="line-number">1</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k4_ord1" value="0"></td>
-            <td><input type="number" id="k4_ord2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Net Rental Real Estate Income/Loss</td>
-            <td class="line-number">2/3</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k4_rent1" value="0"></td>
-            <td><input type="number" id="k4_rent2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Other Net Rental Income/Loss</td>
-            <td class="line-number">&mdash;</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="k4_other1" value="0"></td>
-            <td><input type="number" id="k4_other2" value="0"></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="corp-results">
-        <div class="corp-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="k4_yr1">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="k4_yr2">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="k4_month">$0.00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Combined Results -->
-    <div class="calc-section">
-      <h2>Combined Results</h2>
-
-      <div class="results-grid">
-        <div class="result-card">
-          <div class="result-card__label">K-1 #1</div>
-          <div class="result-card__value" id="resultK1">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">K-1 #2</div>
-          <div class="result-card__value" id="resultK2">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">K-1 #3</div>
-          <div class="result-card__value" id="resultK3">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">K-1 #4</div>
-          <div class="result-card__value" id="resultK4">$0.00</div>
-        </div>
-      </div>
+      <h2>Result</h2>
 
       <div class="result-highlight u-mt-lg">
-        <div class="result-highlight__label">Total Monthly K-1 Income</div>
+        <div class="result-highlight__label">Monthly K-1 Income</div>
         <div class="result-highlight__value" id="combinedK1">$0.00</div>
       </div>
 
@@ -306,14 +104,13 @@
   </div>
 
   <div class="calc-page__footer">
-    <div class="calc-page__footer-title">K-1 (1120S) Guidelines</div>
+    <div class="calc-page__footer-title">1120S K-1 Guidelines</div>
     <p>
-      S-Corporation income passes through to shareholders via Schedule K-1 (Form 1120S).
-      Qualifying income includes ordinary business income/loss (Line 1) and rental
-      income/loss (Lines 2/3). S-Corporation shareholders receive compensation as W-2
-      wages rather than guaranteed payments. If two years are provided and Year 1
-      exceeds Year 2, income is averaged over 24 months. Otherwise, only the most
-      recent year is used (Year 1 / 12).
+      Schedule K-1 (Form 1120S) reports each shareholder's share of S-Corporation income.
+      Qualifying income includes ordinary business income/loss and rental real estate income/loss.
+      S-Corporation shareholders receive wages separately via W-2 — those are entered in the 1040
+      calculator, not here. If two years are provided and Year 1 exceeds Year 2, both years are
+      averaged over 24 months; otherwise only the most recent year is used.
     </p>
   </div>
 </div>

@@ -4,15 +4,13 @@
   /* =====================================================
      1120S K-1 Income Calculator
      — AI upload via shared IncomeUpload module
-     — field sync, 4-entity K-1 calculation
+     — field sync, single-entity K-1 calculation
      — shared utilities via MSFG.IncomeCalc
      ===================================================== */
 
   const fmt = MSFG.formatCurrency;
   const pn  = MSFG.parseNumById;
   const IC  = MSFG.IncomeCalc;
-
-  const K1_COUNT = 4;
 
   // =====================================================
   // FIELD MAPPING — AI → Form Fields
@@ -79,79 +77,41 @@
   // =====================================================
 
   function calculate() {
-    const results = [];
-    let combined = 0;
-
-    for (let i = 1; i <= K1_COUNT; i++) {
-      const k = computeK1(i);
-      results.push(k);
-
-      IC.setResult('k' + i + '_yr1', k.year1);
-      IC.setResult('k' + i + '_yr2', k.year2);
-      IC.setResult('k' + i + '_month', k.monthly);
-      IC.setResult('resultK' + i, k.monthly);
-
-      combined += k.monthly;
-    }
-
-    IC.setResult('combinedK1', combined);
-
-    updateMathSteps(results, combined);
+    const k = computeK1(1);
+    IC.setResult('combinedK1', k.monthly);
+    updateMathSteps(k);
   }
 
   // =====================================================
   // MATH STEPS
   // =====================================================
 
-  function updateMathSteps(results, combined) {
+  function updateMathSteps(k) {
     const stepsEl = document.getElementById('calcSteps-income-1120s-k1');
     if (!stepsEl) return;
 
     let html = '<div class="math-steps">';
 
-    // Formula reference
     html += '<div class="math-step">';
     html += '<h4>1120S K-1 Income Formula</h4>';
     html += '<div class="math-formula">';
-    html += '<span class="math-note">For each K-1 entity:</span>';
     html += '<div class="math-values">';
-    html += 'Annual = Ordinary Income + Rental RE Income + Other Rental Income<br><br>';
+    html += 'Annual = Ordinary + Rental RE + Other Rental<br><br>';
     html += 'IF Year 2 provided AND Year 1 &gt; Year 2:<br>';
     html += '&nbsp;&nbsp;Monthly = (Year 1 + Year 2) / 24<br>';
     html += 'ELSE:<br>';
     html += '&nbsp;&nbsp;Monthly = Year 1 / 12';
     html += '</div></div></div>';
 
-    // Per-entity steps
-    for (let i = 0; i < K1_COUNT; i++) {
-      const d = results[i];
-      const hasData = d.year1 !== 0 || d.year2 !== 0;
-      if (hasData) {
-        html += buildK1Step(i + 1, d);
-      }
-    }
-
-    // Combined total
-    html += '<div class="math-step highlight">';
-    html += '<h4>Total Monthly K-1 Income</h4>';
-    html += '<div class="math-formula">';
-    for (let j = 0; j < K1_COUNT; j++) {
-      const r = results[j];
-      const hasVal = r.year1 !== 0 || r.year2 !== 0;
-      if (hasVal) {
-        html += (j > 0 ? '+ ' : '') + 'K-1 #' + (j + 1) + ': ' + fmt(r.monthly) + '<br>';
-      }
-    }
-    html += '<div class="math-values"><strong>Total Monthly: ' + fmt(combined) + '</strong></div>';
-    html += '</div></div>';
+    html += buildK1Step(k);
 
     html += '</div>';
     stepsEl.innerHTML = html;
   }
 
-  function buildK1Step(num, d) {
+  function buildK1Step(d) {
     let html = '<div class="math-step">';
-    html += '<h4>K-1 #' + num + ' Calculation</h4>';
+    html += '<h4>K-1 Calculation</h4>';
     html += '<div class="math-formula">';
     html += 'Ordinary Income: ' + fmt(d.ord1);
     if (d.hasYr2) html += ' / ' + fmt(d.ord2);
@@ -178,25 +138,17 @@
   // =====================================================
 
   function exportCSV() {
-    const rows = [
+    const k = computeK1(1);
+
+    IC.downloadCSV([
       ['1120S K-1 Income Calculator'],
       [''],
-      ['K-1 Entity', 'Year 1 Income', 'Year 2 Income', 'Monthly Income']
-    ];
-
-    let combined = 0;
-    for (let i = 1; i <= K1_COUNT; i++) {
-      const k = computeK1(i);
-      rows.push(['K-1 #' + i, k.year1, k.year2, k.monthly]);
-      combined += k.monthly;
-    }
-
-    rows.push(['']);
-    rows.push(['Total Monthly K-1 Income', '', '', combined]);
-    rows.push(['']);
-    rows.push(['Generated', new Date().toLocaleString()]);
-
-    IC.downloadCSV(rows, '1120s-k1-income-');
+      ['Year 1 Income', k.year1],
+      ['Year 2 Income', k.year2],
+      ['Monthly Income', k.monthly],
+      [''],
+      ['Generated', new Date().toLocaleString()]
+    ], '1120s-k1-income-');
   }
 
   // =====================================================
