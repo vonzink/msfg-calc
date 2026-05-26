@@ -10,6 +10,38 @@
   let activePanels = [];
   const DEFAULT_ZOOM = 85;
 
+  function genInstanceId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return 'wsi-' + window.crypto.randomUUID();
+    }
+    return 'wsi-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  }
+
+  function escAttr(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function updateSelectorCounts() {
+    const counts = {};
+    activePanels.forEach((p) => { counts[p.slug] = (counts[p.slug] || 0) + 1; });
+    document.querySelectorAll('.workspace__selector-btn').forEach((btn) => {
+      const slug = btn.getAttribute('data-slug');
+      const n = counts[slug] || 0;
+      let badge = btn.querySelector('.workspace__selector-count');
+      if (n > 1) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'workspace__selector-count';
+          btn.appendChild(badge);
+        }
+        badge.textContent = '×' + n;
+      } else if (badge) {
+        badge.remove();
+      }
+      btn.classList.toggle('active', n >= 1);
+    });
+  }
+
   // Map income calculator slugs to their total monthly income element IDs
   const INCOME_ELEMENT_MAP = {
     'income/1040': 'combined1040',
@@ -56,18 +88,16 @@
       });
     });
 
-    // Selector buttons
+    // Selector buttons — each click adds a new instance
     document.querySelectorAll('.workspace__selector-btn').forEach((btn) => {
       btn.addEventListener('click', function() {
         const slug = this.getAttribute('data-slug');
-        if (this.classList.contains('active')) {
-          removePanel(slug);
-          this.classList.remove('active');
-        } else {
-          addPanel(slug, this.querySelector('.workspace__selector-name').textContent,
-                   this.querySelector('.workspace__selector-icon').textContent);
-          this.classList.add('active');
-        }
+        const nameEl = this.querySelector('.workspace__selector-name');
+        const iconEl = this.querySelector('.workspace__selector-icon');
+        const name = nameEl ? nameEl.textContent : slug;
+        const icon = iconEl ? iconEl.textContent : '\u{1F4DD}';
+        addPanel(slug, name, icon);
+        this.classList.add('active');
       });
     });
 
@@ -109,14 +139,13 @@
       const slugsToAdd = addParam.split(',').map((s) => s.trim()).filter(Boolean);
       slugsToAdd.forEach((slug) => {
         const btn = document.querySelector('.workspace__selector-btn[data-slug="' + slug + '"]');
-        if (btn && !btn.classList.contains('active')) {
-          const nameEl = btn.querySelector('.workspace__selector-name');
-          const iconEl = btn.querySelector('.workspace__selector-icon');
-          const name = nameEl ? nameEl.textContent : slug;
-          const icon = iconEl ? iconEl.textContent : '\u{1F4DD}';
-          addPanel(slug, name, icon);
-          btn.classList.add('active');
-        }
+        if (!btn) return;
+        const nameEl = btn.querySelector('.workspace__selector-name');
+        const iconEl = btn.querySelector('.workspace__selector-icon');
+        const name = nameEl ? nameEl.textContent : slug;
+        const icon = iconEl ? iconEl.textContent : '\u{1F4DD}';
+        addPanel(slug, name, icon);
+        btn.classList.add('active');
       });
       if (window.history.replaceState) {
         window.history.replaceState({}, '', '/workspace');
@@ -129,32 +158,37 @@
 
   /* ---- Panel management ---- */
 
-  function addPanel(slug, name, icon) {
-    if (activePanels.find((p) => p.slug === slug)) return;
+  function addPanel(slug, name, icon, opts) {
+    opts = opts || {};
+    const instanceId = opts.instanceId || genInstanceId();
+    const panelLabel = (opts.label != null && opts.label !== '') ? opts.label : name;
+    const zoom = opts.zoom || DEFAULT_ZOOM;
 
     const panel = {
+      instanceId: instanceId,
       slug: slug,
       name: name,
+      label: panelLabel,
       icon: icon,
-      zoom: DEFAULT_ZOOM,
+      zoom: zoom,
       tally: { monthlyPayment: 0, loanAmount: 0, cashToClose: 0, monthlyIncome: 0 }
     };
     activePanels.push(panel);
 
     const el = document.createElement('div');
     el.className = 'ws-panel';
-    el.id = 'ws-panel-' + slug;
+    el.id = 'ws-panel-' + instanceId;
 
     el.innerHTML =
-      '<div class="ws-panel__header" data-slug="' + slug + '">' +
+      '<div class="ws-panel__header" data-slug="' + slug + '" data-instance="' + instanceId + '">' +
         '<span class="ws-panel__icon">' + icon + '</span>' +
-        '<h3 class="ws-panel__title">' + name + '</h3>' +
+        '<span class="ws-panel__label" contenteditable="true" spellcheck="false" data-default="' + escAttr(name) + '">' + escAttr(panelLabel) + '</span>' +
         '<div class="ws-panel__zoom">' +
           '<svg class="ws-panel__zoom-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">' +
             '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>' +
           '</svg>' +
-          '<input type="range" class="ws-panel__zoom-slider" min="50" max="100" value="' + DEFAULT_ZOOM + '" step="5" />' +
-          '<span class="ws-panel__zoom-label">' + DEFAULT_ZOOM + '%</span>' +
+          '<input type="range" class="ws-panel__zoom-slider" min="50" max="100" value="' + zoom + '" step="5" />' +
+          '<span class="ws-panel__zoom-label">' + zoom + '%</span>' +
         '</div>' +
         '<div class="ws-panel__actions">' +
           '<button class="ws-panel__btn ws-panel__btn--report" title="Add to Report">' +
@@ -164,12 +198,12 @@
           '<button class="ws-panel__btn ws-panel__btn--collapse" title="Collapse">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>' +
           '</button>' +
-          '<button class="ws-panel__btn ws-panel__btn--remove" title="Remove" data-slug="' + slug + '">' +
+          '<button class="ws-panel__btn ws-panel__btn--remove" title="Remove" data-instance="' + instanceId + '">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
           '</button>' +
         '</div>' +
       '</div>' +
-      '<div class="ws-panel__body" id="ws-body-' + slug + '">' +
+      '<div class="ws-panel__body" id="ws-body-' + instanceId + '">' +
         '<iframe class="ws-panel__iframe" src="/calculators/' + slug + '?embed=1" loading="lazy"></iframe>' +
       '</div>';
 
@@ -193,7 +227,7 @@
     iframe.addEventListener('load', () => {
       MSFG.WS.applyZoomToIframe(iframe, panel.zoom);
       MSFG.WorkspaceMISMO.schedulePopulate(iframe, slug);
-      scheduleRestore(iframe, slug);
+      scheduleRestore(iframe, panel.instanceId);
     });
 
     // Collapse toggle
@@ -203,11 +237,47 @@
       body.classList.toggle('collapsed');
     });
 
-    // Header click also toggles collapse
-    el.querySelector('.ws-panel__header').addEventListener('click', () => {
+    // Header click also toggles collapse (but not clicks on the editable label or its buttons)
+    el.querySelector('.ws-panel__header').addEventListener('click', (e) => {
+      if (e.target.closest('.ws-panel__label') ||
+          e.target.closest('.ws-panel__zoom') ||
+          e.target.closest('.ws-panel__actions')) {
+        return;
+      }
       const body = el.querySelector('.ws-panel__body');
       body.classList.toggle('collapsed');
     });
+
+    // Editable label handlers
+    const labelEl = el.querySelector('.ws-panel__label');
+    if (labelEl) {
+      labelEl.addEventListener('click', (e) => { e.stopPropagation(); });
+      labelEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          labelEl.blur();
+        }
+      });
+      labelEl.addEventListener('blur', () => {
+        let val = (labelEl.textContent || '').trim();
+        if (val.length > 80) val = val.slice(0, 80);
+        if (!val) val = labelEl.getAttribute('data-default') || panel.name;
+        labelEl.textContent = val;
+        panel.label = val;
+        savePanels();
+      });
+      labelEl.addEventListener('input', () => {
+        if ((labelEl.textContent || '').length > 80) {
+          labelEl.textContent = labelEl.textContent.slice(0, 80);
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(labelEl);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      });
+    }
 
     // Report capture (structured data extraction)
     const reportBtn = el.querySelector('.ws-panel__btn--report');
@@ -244,19 +314,37 @@
     // Remove
     el.querySelector('.ws-panel__btn--remove').addEventListener('click', (e) => {
       e.stopPropagation();
-      removePanel(slug);
-      const selectorBtn = document.querySelector('.workspace__selector-btn[data-slug="' + slug + '"]');
-      if (selectorBtn) selectorBtn.classList.remove('active');
+      removePanel(panel.instanceId);
     });
 
     panelsContainer.appendChild(el);
     updateState();
   }
 
-  function removePanel(slug) {
-    activePanels = activePanels.filter((p) => p.slug !== slug);
-    const el = document.getElementById('ws-panel-' + slug);
+  function removePanel(instanceId) {
+    const panel = activePanels.find((p) => p.instanceId === instanceId);
+    activePanels = activePanels.filter((p) => p.instanceId !== instanceId);
+    const el = document.getElementById('ws-panel-' + instanceId);
     if (el) el.remove();
+    // Un-active selector button only if no other instances of this slug remain
+    if (panel) {
+      const stillHasSlug = activePanels.some((p) => p.slug === panel.slug);
+      if (!stillHasSlug) {
+        const selectorBtn = document.querySelector('.workspace__selector-btn[data-slug="' + panel.slug + '"]');
+        if (selectorBtn) selectorBtn.classList.remove('active');
+      }
+    }
+    // Also drop input data for this instance
+    try {
+      const stored = sessionStorage.getItem('msfg-workspace-inputs');
+      if (stored) {
+        const all = JSON.parse(stored);
+        if (all && all[instanceId] !== undefined) {
+          delete all[instanceId];
+          sessionStorage.setItem('msfg-workspace-inputs', JSON.stringify(all));
+        }
+      }
+    } catch (e) { /* skip */ }
     updateState();
   }
 
@@ -266,16 +354,24 @@
     emptyState.classList.toggle('u-hidden', count !== 0);
     tallyBar.classList.toggle('u-hidden', count === 0);
     savePanels();
+    updateSelectorCounts();
     updateTally();
   }
 
   /* ---- Persist/restore active panels across navigation ---- */
 
   function savePanels() {
-    const data = activePanels.map((p) => {
-      return { slug: p.slug, name: p.name, icon: p.icon, zoom: p.zoom };
-    });
-    sessionStorage.setItem('msfg-workspace-panels', JSON.stringify(data));
+    const data = activePanels.map((p) => ({
+      instanceId: p.instanceId,
+      slug: p.slug,
+      name: p.name,
+      label: p.label,
+      icon: p.icon,
+      zoom: p.zoom
+    }));
+    try {
+      sessionStorage.setItem('msfg-workspace-panels', JSON.stringify(data));
+    } catch (e) { /* quota */ }
   }
 
   function restorePanels() {
@@ -286,23 +382,15 @@
       if (!Array.isArray(data) || data.length === 0) return;
       data.forEach((p) => {
         if (!p.slug) return;
-        addPanel(p.slug, p.name, p.icon);
-        if (p.zoom && p.zoom !== DEFAULT_ZOOM) {
-          const panelEl = document.getElementById('ws-panel-' + p.slug);
-          if (panelEl) {
-            const slider = panelEl.querySelector('.ws-panel__zoom-slider');
-            const label = panelEl.querySelector('.ws-panel__zoom-label');
-            if (slider) {
-              slider.value = p.zoom;
-              label.textContent = p.zoom + '%';
-              const panel = activePanels.find((ap) => ap.slug === p.slug);
-              if (panel) panel.zoom = p.zoom;
-            }
-          }
-        }
+        // Migrate old slug-keyed entries (no instanceId): use slug as instanceId, name as label
+        const instanceId = p.instanceId || p.slug;
+        const label = p.label || p.name;
+        addPanel(p.slug, p.name, p.icon, { instanceId, label, zoom: p.zoom });
         const btn = document.querySelector('.workspace__selector-btn[data-slug="' + p.slug + '"]');
         if (btn) btn.classList.add('active');
       });
+      // Persist back under the new shape so any migrated entries get rewritten
+      savePanels();
     } catch (e) { /* corrupted data, skip */ }
   }
 
@@ -311,16 +399,16 @@
   function saveAllInputs() {
     const data = {};
     activePanels.forEach((panel) => {
-      const inputs = extractPanelInputs(panel.slug);
-      if (inputs) data[panel.slug] = inputs;
+      const inputs = extractPanelInputs(panel.instanceId);
+      if (inputs) data[panel.instanceId] = inputs;
     });
     try {
       sessionStorage.setItem('msfg-workspace-inputs', JSON.stringify(data));
     } catch (e) { /* quota exceeded or private mode */ }
   }
 
-  function extractPanelInputs(slug) {
-    const panelEl = document.getElementById('ws-panel-' + slug);
+  function extractPanelInputs(instanceId) {
+    const panelEl = document.getElementById('ws-panel-' + instanceId);
     if (!panelEl) return null;
     const iframe = panelEl.querySelector('.ws-panel__iframe');
     if (!iframe) return null;
@@ -362,12 +450,12 @@
     }
   }
 
-  function scheduleRestore(iframe, slug) {
+  function scheduleRestore(iframe, instanceId) {
     const stored = sessionStorage.getItem('msfg-workspace-inputs');
     if (!stored) return;
     try {
       const allData = JSON.parse(stored);
-      if (!allData[slug]) return;
+      if (!allData[instanceId]) return;
     } catch (e) { return; }
 
     function tryRestore(attempt) {
@@ -380,31 +468,31 @@
           try { nestedDoc = nested.contentDocument || nested.contentWindow.document; } catch (_e) { /* cross-origin */ }
           if (!nestedDoc || !nestedDoc.body || !nestedDoc.body.innerHTML) {
             nested.addEventListener('load', () => {
-              setTimeout(() => { restorePanelInputs(slug); }, 600);
+              setTimeout(() => { restorePanelInputs(instanceId); }, 600);
             });
             return;
           }
         }
       } catch (e) { /* skip */ }
-      restorePanelInputs(slug);
+      restorePanelInputs(instanceId);
     }
 
     setTimeout(() => { tryRestore(0); }, 1200);
   }
 
-  function restorePanelInputs(slug) {
+  function restorePanelInputs(instanceId) {
     const stored = sessionStorage.getItem('msfg-workspace-inputs');
     if (!stored) return;
     try {
       const allData = JSON.parse(stored);
-      const panelData = allData[slug];
+      const panelData = allData[instanceId];
       if (!panelData) return;
-      applyPanelInputs(slug, panelData);
+      applyPanelInputs(instanceId, panelData);
     } catch (e) { /* corrupted */ }
   }
 
-  function applyPanelInputs(slug, panelData) {
-    const panelEl = document.getElementById('ws-panel-' + slug);
+  function applyPanelInputs(instanceId, panelData) {
+    const panelEl = document.getElementById('ws-panel-' + instanceId);
     if (!panelEl) return;
     const iframe = panelEl.querySelector('.ws-panel__iframe');
     if (!iframe) return;
@@ -488,7 +576,7 @@
       const elementId = INCOME_ELEMENT_MAP[panel.slug];
       if (!elementId) return;
 
-      const panelEl = document.getElementById('ws-panel-' + panel.slug);
+      const panelEl = document.getElementById('ws-panel-' + panel.instanceId);
       if (!panelEl) return;
 
       const iframe = panelEl.querySelector('.ws-panel__iframe');
