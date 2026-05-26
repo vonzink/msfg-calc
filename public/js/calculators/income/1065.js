@@ -100,72 +100,42 @@
   // =====================================================
 
   function calculate() {
-    const p1 = computePartnership('p1');
-    IC.setResult('p1_year1', p1.total1);
-    IC.setResult('p1_year2', p1.total2);
-    IC.setResult('p1_month', p1.monthly);
-    IC.setResult('result_p1', p1.monthly);
-
-    const p2 = computePartnership('p2');
-    IC.setResult('p2_year1', p2.total1);
-    IC.setResult('p2_year2', p2.total2);
-    IC.setResult('p2_month', p2.monthly);
-    IC.setResult('result_p2', p2.monthly);
-
-    const combined = p1.monthly + p2.monthly;
-    IC.setResult('combined1065', combined);
-
-    updateMathSteps(p1, p2, combined);
+    const p = computePartnership('p1');
+    IC.setResult('combined1065', p.monthly);
+    updateMathSteps(p);
   }
 
   // =====================================================
   // MATH STEPS
   // =====================================================
 
-  function updateMathSteps(p1, p2, combined) {
+  function updateMathSteps(p) {
     const stepsEl = document.getElementById('calcSteps-income-1065');
     if (!stepsEl) return;
 
     let html = '<div class="math-steps">';
 
-    // Formula reference
     html += '<div class="math-step">';
     html += '<h4>Partnership Income Formula</h4>';
     html += '<div class="math-formula">';
-    html += '<span class="math-note">For each partnership:</span>';
     html += '<div class="math-values">';
     html += 'Subtotal = Ordinary + Farm + Gain + Other + Depreciation + Depletion + Amortization<br>';
-    html += 'Annual Income = (Subtotal &minus; Mortgages &minus; Meals) &times; Ownership %<br><br>';
+    html += 'Annual = (Subtotal &minus; Mortgages &minus; Meals) &times; Ownership %<br><br>';
     html += 'IF Year 2 provided AND Year 1 &gt; Year 2:<br>';
     html += '&nbsp;&nbsp;Monthly = (Year 1 + Year 2) / 24<br>';
     html += 'ELSE:<br>';
     html += '&nbsp;&nbsp;Monthly = Year 1 / 12';
     html += '</div></div></div>';
 
-    html += buildPartnershipStep('Partnership 1', p1);
-
-    const p2HasData = p2.sum1 !== 0 || p2.sum2 !== 0 || p2.mort1 !== 0 || p2.meals1 !== 0;
-    if (p2HasData) {
-      html += buildPartnershipStep('Partnership 2', p2);
-    }
-
-    html += '<div class="math-step highlight">';
-    html += '<h4>Total Monthly Income</h4>';
-    html += '<div class="math-formula">';
-    html += 'Partnership 1: ' + fmt(p1.monthly) + '<br>';
-    if (p2HasData) {
-      html += '+ Partnership 2: ' + fmt(p2.monthly) + '<br>';
-    }
-    html += '<div class="math-values"><strong>Total Monthly: ' + fmt(combined) + '</strong></div>';
-    html += '</div></div>';
+    html += buildPartnershipStep(p);
 
     html += '</div>';
     stepsEl.innerHTML = html;
   }
 
-  function buildPartnershipStep(label, p) {
+  function buildPartnershipStep(p) {
     let html = '<div class="math-step">';
-    html += '<h4>' + label + ' Calculation</h4>';
+    html += '<h4>Partnership Calculation</h4>';
     html += '<div class="math-formula">';
     html += 'Subtotal Year 1: ' + fmt(p.sum1) + '<br>';
     if (p.hasYr2) html += 'Subtotal Year 2: ' + fmt(p.sum2) + '<br>';
@@ -192,18 +162,15 @@
   // =====================================================
 
   function exportCSV() {
-    const p1 = computePartnership('p1');
-    const p2 = computePartnership('p2');
-    const combined = p1.monthly + p2.monthly;
+    const p = computePartnership('p1');
 
     IC.downloadCSV([
       ['Form 1065 Partnership Income Calculator'],
       [''],
-      ['Partnership', 'Year 1 Income', 'Year 2 Income', 'Ownership %', 'Monthly Income'],
-      ['Partnership 1', p1.total1, p1.total2, p1.own, p1.monthly],
-      ['Partnership 2', p2.total1, p2.total2, p2.own, p2.monthly],
-      [''],
-      ['Total Monthly Income', '', '', '', combined],
+      ['Year 1 Income', p.total1],
+      ['Year 2 Income', p.total2],
+      ['Ownership %', p.own],
+      ['Monthly Income', p.monthly],
       [''],
       ['Generated', new Date().toLocaleString()]
     ], 'form1065-income-');

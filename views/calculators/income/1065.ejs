@@ -39,9 +39,9 @@
       </div>
     </div>
 
-    <!-- Partnership 1 -->
+    <!-- Form 1065 Partnership -->
     <div class="calc-section">
-      <h2>Partnership 1</h2>
+      <h2>Form 1065 Partnership</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from the partnership's Form 1065. Positive values are added; negative values reduce income.</p>
 
       <table class="income-table">
@@ -126,144 +126,14 @@
         <input type="number" id="p1_owner" value="100" min="0" max="100" step="0.01">
         <span>%</span>
       </div>
-
-      <div class="partnership-results">
-        <div class="partnership-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="p1_year1">$0.00</div>
-        </div>
-        <div class="partnership-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="p1_year2">$0.00</div>
-        </div>
-        <div class="partnership-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="p1_month">$0.00</div>
-        </div>
-      </div>
     </div>
 
-    <!-- Partnership 2 -->
+    <!-- Result -->
     <div class="calc-section">
-      <h2>Partnership 2 (Optional)</h2>
-      <p class="text-muted text-sm u-mb-sm">Use this section if the borrower has income from a second partnership.</p>
-
-      <table class="income-table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Line #</th>
-            <th>Sign</th>
-            <th>Year 1 (Most Recent)</th>
-            <th>Year 2 (Prior)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Ordinary Income/Loss</td>
-            <td class="line-number">4</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="p2_ord1" value="0"></td>
-            <td><input type="number" id="p2_ord2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Net Farm Profit/Loss</td>
-            <td class="line-number">5</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="p2_farm1" value="0"></td>
-            <td><input type="number" id="p2_farm2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Net Gain/Loss</td>
-            <td class="line-number">6</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="p2_gain1" value="0"></td>
-            <td><input type="number" id="p2_gain2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Other Income/Loss</td>
-            <td class="line-number">7</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="p2_oth1" value="0"></td>
-            <td><input type="number" id="p2_oth2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Depreciation</td>
-            <td class="line-number">16a</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="p2_dep1" value="0"></td>
-            <td><input type="number" id="p2_dep2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Depletion</td>
-            <td class="line-number">17</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="p2_depl1" value="0"></td>
-            <td><input type="number" id="p2_depl2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Amortization/Casualty Loss</td>
-            <td class="line-number">20</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="p2_amort1" value="0"></td>
-            <td><input type="number" id="p2_amort2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Mortgages/Notes Payable &lt; 1 Year</td>
-            <td class="line-number">Sch L ln 16</td>
-            <td class="sign-col subtract">&minus;</td>
-            <td><input type="number" id="p2_mort1" value="0"></td>
-            <td><input type="number" id="p2_mort2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Meals &amp; Entertainment Exclusion</td>
-            <td class="line-number">Sch M-1 4b</td>
-            <td class="sign-col subtract">&minus;</td>
-            <td><input type="number" id="p2_meals1" value="0"></td>
-            <td><input type="number" id="p2_meals2" value="0"></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="ownership-row">
-        <label for="p2_owner">Ownership Percentage:</label>
-        <input type="number" id="p2_owner" value="100" min="0" max="100" step="0.01">
-        <span>%</span>
-      </div>
-
-      <div class="partnership-results">
-        <div class="partnership-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="p2_year1">$0.00</div>
-        </div>
-        <div class="partnership-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="p2_year2">$0.00</div>
-        </div>
-        <div class="partnership-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="p2_month">$0.00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Combined Results -->
-    <div class="calc-section">
-      <h2>Combined Results</h2>
-
-      <div class="results-grid">
-        <div class="result-card">
-          <div class="result-card__label">Partnership 1</div>
-          <div class="result-card__value" id="result_p1">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Partnership 2</div>
-          <div class="result-card__value" id="result_p2">$0.00</div>
-        </div>
-      </div>
+      <h2>Result</h2>
 
       <div class="result-highlight u-mt-lg">
-        <div class="result-highlight__label">Total Monthly Income</div>
+        <div class="result-highlight__label">Monthly Partnership Income</div>
         <div class="result-highlight__value" id="combined1065">$0.00</div>
       </div>
 
