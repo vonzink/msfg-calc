@@ -92,33 +92,18 @@
   // =====================================================
 
   function calculate() {
-    const b1 = computeBusiness('b1');
-    IC.setResult('b1_year1', b1.year1);
-    IC.setResult('b1_year2', b1.year2);
-    IC.setResult('b1_month', b1.monthly);
-    IC.setResult('result_b1', b1.monthly);
-
-    const b2 = computeBusiness('b2');
-    IC.setResult('b2_year1', b2.year1);
-    IC.setResult('b2_year2', b2.year2);
-    IC.setResult('b2_month', b2.monthly);
-    IC.setResult('result_b2', b2.monthly);
-
-    const combined = b1.monthly + b2.monthly;
-    IC.setResult('combined_c', combined);
-
-    updateMathSteps({ b1, b2, combined });
+    const b = computeBusiness('b1');
+    IC.setResult('combined_c', b.monthly);
+    updateMathSteps(b);
   }
 
   // =====================================================
   // MATH STEPS
   // =====================================================
 
-  function updateMathSteps(data) {
+  function updateMathSteps(b) {
     const stepsEl = document.getElementById('calcSteps-income-schedule-c');
     if (!stepsEl) return;
-
-    const { b1, b2, combined } = data;
 
     let html = '<div class="math-steps">';
 
@@ -126,7 +111,6 @@
     html += '<div class="math-step">';
     html += '<h4>Schedule C Income Formula</h4>';
     html += '<div class="math-formula">';
-    html += '<span class="math-note">For each business:</span>';
     html += '<div class="math-values">';
     html += 'Annual = Net Profit + Other Income + Depletion + Depreciation<br>';
     html += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + Business Use of Home + Mileage Depr + Amortization<br>';
@@ -137,33 +121,15 @@
     html += '&nbsp;&nbsp;Monthly = Year 1 / 12';
     html += '</div></div></div>';
 
-    // Business 1
-    html += buildBizStep('Business 1', b1);
-
-    // Business 2 (only if has values)
-    const b2HasData = b2.year1 !== 0 || b2.year2 !== 0;
-    if (b2HasData) {
-      html += buildBizStep('Business 2', b2);
-    }
-
-    // Combined total
-    html += '<div class="math-step highlight">';
-    html += '<h4>Total Monthly Income</h4>';
-    html += '<div class="math-formula">';
-    html += 'Business 1: ' + fmt(b1.monthly) + '<br>';
-    if (b2HasData) {
-      html += '+ Business 2: ' + fmt(b2.monthly) + '<br>';
-    }
-    html += '<div class="math-values"><strong>Total Monthly: ' + fmt(combined) + '</strong></div>';
-    html += '</div></div>';
+    html += buildBizStep(b);
 
     html += '</div>';
     stepsEl.innerHTML = html;
   }
 
-  function buildBizStep(label, d) {
+  function buildBizStep(d) {
     let html = '<div class="math-step">';
-    html += '<h4>' + label + ' Calculation</h4>';
+    html += '<h4>Schedule C Calculation</h4>';
     html += '<div class="math-formula">';
     html += 'Subtotal Year 1: ' + fmt(d.sum1) + '<br>';
     if (d.hasYr2) html += 'Subtotal Year 2: ' + fmt(d.sum2) + '<br>';
@@ -186,18 +152,14 @@
   // =====================================================
 
   function exportCSV() {
-    const b1 = computeBusiness('b1');
-    const b2 = computeBusiness('b2');
-    const combined = b1.monthly + b2.monthly;
+    const b = computeBusiness('b1');
 
     IC.downloadCSV([
       ['Schedule C Sole Proprietorship Income Calculator'],
       [''],
-      ['Business', 'Year 1 Income', 'Year 2 Income', 'Monthly Income'],
-      ['Business 1', b1.year1, b1.year2, b1.monthly],
-      ['Business 2', b2.year1, b2.year2, b2.monthly],
-      [''],
-      ['Total Monthly Income', '', '', combined],
+      ['Year 1 Income', b.year1],
+      ['Year 2 Income', b.year2],
+      ['Monthly Income', b.monthly],
       [''],
       ['Generated', new Date().toLocaleString()]
     ], 'schedule-c-income-');

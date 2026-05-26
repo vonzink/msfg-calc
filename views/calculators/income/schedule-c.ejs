@@ -41,9 +41,9 @@
       </div>
     </div>
 
-    <!-- Business 1 -->
+    <!-- Schedule C -->
     <div class="calc-section">
-      <h2>Business 1</h2>
+      <h2>Schedule C</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from the borrower's Schedule C. Positive values are added; negative values reduce income.</p>
 
       <table class="income-table">
@@ -115,131 +115,14 @@
           </tr>
         </tbody>
       </table>
-
-      <div class="corp-results">
-        <div class="corp-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="b1_year1">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="b1_year2">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="b1_month">$0.00</div>
-        </div>
-      </div>
     </div>
 
-    <!-- Business 2 -->
+    <!-- Result -->
     <div class="calc-section">
-      <h2>Business 2 (Optional)</h2>
-      <p class="text-muted text-sm u-mb-sm">Use this section if the borrower has income from a second sole proprietorship.</p>
-
-      <table class="income-table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Line #</th>
-            <th>Sign</th>
-            <th>Year 1 (Most Recent)</th>
-            <th>Year 2 (Prior)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Net Profit or Loss</td>
-            <td class="line-number">31</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="b2_np1" value="0"></td>
-            <td><input type="number" id="b2_np2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Other Income or Loss (non-recurring)</td>
-            <td class="line-number">6</td>
-            <td class="sign-col add">+/&minus;</td>
-            <td><input type="number" id="b2_oth1" value="0"></td>
-            <td><input type="number" id="b2_oth2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Depletion</td>
-            <td class="line-number">12</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="b2_depl1" value="0"></td>
-            <td><input type="number" id="b2_depl2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Depreciation</td>
-            <td class="line-number">13</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="b2_depr1" value="0"></td>
-            <td><input type="number" id="b2_depr2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Meal &amp; Entertainment Exclusion</td>
-            <td class="line-number">24b</td>
-            <td class="sign-col subtract">&minus;</td>
-            <td><input type="number" id="b2_meals1" value="0"></td>
-            <td><input type="number" id="b2_meals2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Business Use of Home</td>
-            <td class="line-number">30</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="b2_home1" value="0"></td>
-            <td><input type="number" id="b2_home2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Mileage Depreciation</td>
-            <td class="line-number">&mdash;</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="b2_mile1" value="0"></td>
-            <td><input type="number" id="b2_mile2" value="0"></td>
-          </tr>
-          <tr>
-            <td>Amortization/Casualty Loss</td>
-            <td class="line-number">&mdash;</td>
-            <td class="sign-col add">+</td>
-            <td><input type="number" id="b2_amort1" value="0"></td>
-            <td><input type="number" id="b2_amort2" value="0"></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="corp-results">
-        <div class="corp-result-item">
-          <div class="label">Year 1 Income</div>
-          <div class="value" id="b2_year1">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Year 2 Income</div>
-          <div class="value" id="b2_year2">$0.00</div>
-        </div>
-        <div class="corp-result-item">
-          <div class="label">Monthly Income</div>
-          <div class="value" id="b2_month">$0.00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Combined Results -->
-    <div class="calc-section">
-      <h2>Combined Results</h2>
-
-      <div class="results-grid">
-        <div class="result-card">
-          <div class="result-card__label">Business 1</div>
-          <div class="result-card__value" id="result_b1">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Business 2</div>
-          <div class="result-card__value" id="result_b2">$0.00</div>
-        </div>
-      </div>
+      <h2>Result</h2>
 
       <div class="result-highlight u-mt-lg">
-        <div class="result-highlight__label">Total Monthly Income</div>
+        <div class="result-highlight__label">Monthly Schedule C Income</div>
         <div class="result-highlight__value" id="combined_c">$0.00</div>
       </div>
 
