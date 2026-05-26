@@ -95,39 +95,24 @@
   // =====================================================
 
   function calculate() {
-    const c1 = computeCorp('c1');
-    IC.setResult('c1_year1', c1.year1);
-    IC.setResult('c1_year2', c1.year2);
-    IC.setResult('c1_month', c1.monthly);
-    IC.setResult('result_c1', c1.monthly);
-
-    const c2 = computeCorp('c2');
-    IC.setResult('c2_year1', c2.year1);
-    IC.setResult('c2_year2', c2.year2);
-    IC.setResult('c2_month', c2.monthly);
-    IC.setResult('result_c2', c2.monthly);
-
-    const combined = c1.monthly + c2.monthly;
-    IC.setResult('combined1120s', combined);
-
-    updateMathSteps(c1, c2, combined);
+    const c = computeCorp('c1');
+    IC.setResult('combined1120s', c.monthly);
+    updateMathSteps(c);
   }
 
   // =====================================================
   // MATH STEPS
   // =====================================================
 
-  function updateMathSteps(c1, c2, combined) {
+  function updateMathSteps(c) {
     const stepsEl = document.getElementById('calcSteps-income-1120s');
     if (!stepsEl) return;
 
     let html = '<div class="math-steps">';
 
-    // Formula reference
     html += '<div class="math-step">';
     html += '<h4>S-Corporation Income Formula</h4>';
     html += '<div class="math-formula">';
-    html += '<span class="math-note">For each S-Corporation:</span>';
     html += '<div class="math-values">';
     html += 'Subtotal = Net Gain + Other + Depreciation + Depletion + Amortization<br>';
     html += 'Annual = Subtotal &minus; Mortgages &minus; Meals<br><br>';
@@ -137,33 +122,15 @@
     html += '&nbsp;&nbsp;Monthly = (Year 1 / 12) &times; Ownership %';
     html += '</div></div></div>';
 
-    // S-Corp 1
-    html += buildCorpStep('S-Corporation 1', c1);
-
-    // S-Corp 2 (only if has values)
-    const c2HasData = c2.year1 !== 0 || c2.year2 !== 0;
-    if (c2HasData) {
-      html += buildCorpStep('S-Corporation 2', c2);
-    }
-
-    // Combined total
-    html += '<div class="math-step highlight">';
-    html += '<h4>Total Monthly Income</h4>';
-    html += '<div class="math-formula">';
-    html += 'S-Corp 1: ' + fmt(c1.monthly) + '<br>';
-    if (c2HasData) {
-      html += '+ S-Corp 2: ' + fmt(c2.monthly) + '<br>';
-    }
-    html += '<div class="math-values"><strong>Total Monthly: ' + fmt(combined) + '</strong></div>';
-    html += '</div></div>';
+    html += buildCorpStep(c);
 
     html += '</div>';
     stepsEl.innerHTML = html;
   }
 
-  function buildCorpStep(label, c) {
+  function buildCorpStep(c) {
     let html = '<div class="math-step">';
-    html += '<h4>' + label + ' Calculation</h4>';
+    html += '<h4>S-Corporation Calculation</h4>';
     html += '<div class="math-formula">';
     html += 'Subtotal Year 1: ' + fmt(c.sum1) + '<br>';
     if (c.hasYr2) html += 'Subtotal Year 2: ' + fmt(c.sum2) + '<br>';
@@ -190,18 +157,15 @@
   // =====================================================
 
   function exportCSV() {
-    const c1 = computeCorp('c1');
-    const c2 = computeCorp('c2');
-    const combined = c1.monthly + c2.monthly;
+    const c = computeCorp('c1');
 
     IC.downloadCSV([
       ['Form 1120S S-Corporation Income Calculator'],
       [''],
-      ['Corporation', 'Year 1 Income', 'Year 2 Income', 'Ownership %', 'Monthly Income'],
-      ['S-Corp 1', c1.year1, c1.year2, c1.own, c1.monthly],
-      ['S-Corp 2', c2.year1, c2.year2, c2.own, c2.monthly],
-      [''],
-      ['Total Monthly Income', '', '', '', combined],
+      ['Year 1 Income', c.year1],
+      ['Year 2 Income', c.year2],
+      ['Ownership %', c.own],
+      ['Monthly Income', c.monthly],
       [''],
       ['Generated', new Date().toLocaleString()]
     ], 'form1120s-income-');
