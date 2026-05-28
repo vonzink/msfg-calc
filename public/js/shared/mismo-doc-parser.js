@@ -86,7 +86,8 @@
       hasHOA: false,
       borrowerCount: 0,
       totalIncomeTypes: 0,
-      complexityFlags: []       // Portfolio/complexity indicators
+      complexityFlags: [],      // Portfolio/complexity indicators
+      estimatedClosingDate: null // Parsed closing/disbursement date (Date or null)
     };
 
     // ---- Loan terms ----
@@ -96,6 +97,27 @@
       data.loanPurpose = textOf(first(terms, 'LoanPurposeType')) || null;
       data.mortgageType = textOf(first(terms, 'MortgageType')) || null;
     }
+
+    // ---- Estimated closing date ----
+    // MISMO exports vary; try a small set of candidate element local-names.
+    (function () {
+      const candidates = [
+        'EstimatedClosingDate',
+        'ClosingDate',
+        'EstimatedClosingDateTime',
+        'LoanScheduledClosingDate',
+        'DisbursementDate',
+        'ClosingDateTime'
+      ];
+      for (let i = 0; i < candidates.length; i++) {
+        const node = first(doc, candidates[i]);
+        const txt = textOf(node);
+        if (txt) {
+          const d = parseDate(txt);
+          if (d) { data.estimatedClosingDate = d; break; }
+        }
+      }
+    })();
 
     // Classify loan type
     const mt = (data.mortgageType || '').toLowerCase();
