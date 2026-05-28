@@ -145,6 +145,25 @@
   border-left: 4px solid transparent;
   transition: background 0.15s;
 }
+.mismo-doc-item--urgent      { background: #3a0d0d; border-left-color: #ff1744; }
+.mismo-doc-item--urgent .mismo-doc-item__name,
+.mismo-doc-item--urgent .mismo-doc-item__reason {
+  color: #ff5252;
+  background: transparent;
+}
+.mismo-doc-item--urgent .mismo-doc-item__name:hover,
+.mismo-doc-item--urgent .mismo-doc-item__reason:hover,
+.mismo-doc-item--urgent .mismo-doc-item__name:focus,
+.mismo-doc-item--urgent .mismo-doc-item__reason:focus {
+  background: rgba(255,255,255,0.08);
+  border-color: #ff5252;
+  color: #ff8a80;
+}
+.mismo-doc-item--urgent .mismo-doc-item__status {
+  color: #c62828;
+  background: rgba(255,255,255,0.9);
+}
+.mismo-doc-item--urgent .mismo-doc-item__remove { color: #ff8a80; }
 .mismo-doc-item--required    { background: #ffebee; border-left-color: #c62828; }
 .mismo-doc-item--conditional { background: #fff3e0; border-left-color: #e65100; }
 .mismo-doc-item--incomplete  { background: #e3f2fd; border-left-color: #1565c0; }

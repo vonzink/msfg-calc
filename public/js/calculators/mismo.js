@@ -40,6 +40,9 @@
     elm.style.height = (elm.scrollHeight) + 'px';
   }
 
+  const STATUS_RANK = { urgent: 0, required: 1, conditional: 2, incomplete: 3, ok: 4 };
+  function statusRank(s) { return STATUS_RANK[s] != null ? STATUS_RANK[s] : 5; }
+
   /* ======================================================
      File Upload
      ====================================================== */
@@ -274,7 +277,10 @@
     }
 
     container.innerHTML = '';
-    items.forEach(function (item) {
+    const ordered = items.slice().sort(function (a, b) {
+      return statusRank(a.status) - statusRank(b.status);
+    });
+    ordered.forEach(function (item) {
       container.appendChild(createItemRow(item, sectionKey));
     });
   }
@@ -284,10 +290,12 @@
       const countEl = el(SECTION_MAP[key] + 'Count');
       if (!countEl) return;
       const items = checklistState[key];
+      const urgent = items.filter(function (i) { return i.status === 'urgent'; }).length;
       const required = items.filter(function (i) { return i.status === 'required'; }).length;
       const conditional = items.filter(function (i) { return i.status === 'conditional'; }).length;
       const incomplete = items.filter(function (i) { return i.status === 'incomplete'; }).length;
       const parts = [];
+      if (urgent > 0) parts.push(urgent + ' urgent');
       if (required > 0) parts.push(required + ' required');
       if (conditional > 0) parts.push(conditional + ' conditional');
       if (incomplete > 0) parts.push(incomplete + ' incomplete');
@@ -303,8 +311,8 @@
     // Status select
     const statusSelect = document.createElement('select');
     statusSelect.className = 'mismo-doc-item__status';
-    var statusLabels = { required: 'Required', conditional: 'Conditional', incomplete: 'Incomplete', ok: 'Cleared' };
-    ['required', 'conditional', 'incomplete', 'ok'].forEach(function (s) {
+    var statusLabels = { urgent: 'Urgent', required: 'Required', conditional: 'Conditional', incomplete: 'Incomplete', ok: 'Cleared' };
+    ['urgent', 'required', 'conditional', 'incomplete', 'ok'].forEach(function (s) {
       const opt = document.createElement('option');
       opt.value = s;
       opt.textContent = statusLabels[s];
