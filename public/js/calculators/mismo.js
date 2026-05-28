@@ -35,6 +35,11 @@
     if (node) node.textContent = value || '\u2014';
   }
 
+  function autoGrow(elm) {
+    elm.style.height = 'auto';
+    elm.style.height = (elm.scrollHeight) + 'px';
+  }
+
   /* ======================================================
      File Upload
      ====================================================== */
@@ -312,19 +317,19 @@
       updateSectionCounts();
     });
 
-    // Name input
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
+    // Name field (auto-growing textarea)
+    const nameInput = document.createElement('textarea');
+    nameInput.rows = 1;
     nameInput.className = 'mismo-doc-item__name';
     nameInput.value = item.name;
-    nameInput.addEventListener('input', function () { item.name = this.value; });
+    nameInput.addEventListener('input', function () { item.name = this.value; autoGrow(this); });
 
-    // Reason input
-    const reasonInput = document.createElement('input');
-    reasonInput.type = 'text';
+    // Reason field (auto-growing textarea)
+    const reasonInput = document.createElement('textarea');
+    reasonInput.rows = 1;
     reasonInput.className = 'mismo-doc-item__reason';
     reasonInput.value = item.reason;
-    reasonInput.addEventListener('input', function () { item.reason = this.value; });
+    reasonInput.addEventListener('input', function () { item.reason = this.value; autoGrow(this); });
 
     // Delete button
     const removeBtn = document.createElement('button');
@@ -349,6 +354,7 @@
     row.appendChild(nameInput);
     row.appendChild(reasonInput);
     row.appendChild(removeBtn);
+    setTimeout(function () { autoGrow(nameInput); autoGrow(reasonInput); }, 0);
     return row;
   }
 
