@@ -11,6 +11,13 @@
     }).format(num);
   }
 
+  function firstName(full) {
+    if (!full) return '';
+    const token = String(full).trim().split(/\s+/)[0] || '';
+    if (!token) return '';
+    return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+  }
+
   /* ---- FHA-Specific Documentation ---- */
   function generateFHADocs(data, general, credit) {
     general.push({
@@ -265,7 +272,7 @@
 
     // Per-borrower documentation
     data.borrowers.forEach(function (b) {
-      const tag = b.name + ':';
+      const tag = firstName(b.name) + ':';
 
       general.push({ name: tag + ' Government-issued photo ID (unexpired)', status: 'required',
         reason: 'Required per borrower for identity verification.' });
