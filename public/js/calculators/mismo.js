@@ -42,7 +42,7 @@
   }
 
   const STATUS_RANK = { urgent: 0, required: 1, conditional: 2, incomplete: 3, ok: 4 };
-  function statusRank(s) { return STATUS_RANK[s] != null ? STATUS_RANK[s] : 5; }
+  function statusRank(s) { return STATUS_RANK[s] !== undefined ? STATUS_RANK[s] : 5; }
 
   /* ======================================================
      File Upload
