@@ -526,3 +526,22 @@
     page-break-before: auto;
   }
 }
+
+/* --- Days to Closing cell --- */
+.mismo-closing-input {
+  font: inherit;
+  padding: 2px 4px;
+  border: 1px solid var(--color-gray-300, #ccc);
+  border-radius: 4px;
+  max-width: 100%;
+}
+.mismo-closing-edit {
+  margin-left: 6px;
+  border: none;
+  background: transparent;
+  color: var(--brand-primary, #2d6a4f);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}

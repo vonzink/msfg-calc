@@ -11,6 +11,7 @@
   let parsedData = null;
   let checklistState = { income: [], general: [], assets: [], credit: [] };
   let itemCounter = 0;
+  let closingDateOverride = null; // ISO yyyy-mm-dd string set via the editable fallback
 
   const SECTION_MAP = {
     income:  'incomeChecklist',
@@ -104,6 +105,7 @@
      ====================================================== */
 
   function processXML(xmlDoc) {
+    closingDateOverride = null; // fresh file: let its parsed closing date take precedence
     parsedData = MSFG.MISMODocParser.parseMISMO(xmlDoc);
 
     // Income docs per borrower — now pass loan-level data
@@ -146,6 +148,62 @@
      Loan Summary + Status Chips
      ====================================================== */
 
+  function fmtMonthDay(d) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[d.getMonth()] + ' ' + d.getDate();
+  }
+
+  function toISODate(d) {
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function effectiveClosingDate(data) {
+    if (closingDateOverride) {
+      const d = new Date(closingDateOverride + 'T00:00:00');
+      if (!isNaN(d.getTime())) return d;
+    }
+    if (data && data.estimatedClosingDate instanceof Date && !isNaN(data.estimatedClosingDate.getTime())) {
+      return data.estimatedClosingDate;
+    }
+    return null;
+  }
+
+  function renderClosingCell(data) {
+    const cell = el('kvClosing');
+    if (!cell) return;
+    const closing = effectiveClosingDate(data);
+
+    if (closing) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const days = Math.ceil((closing.getTime() - today.getTime()) / 86400000);
+      const label = days < 0
+        ? 'Past due (' + fmtMonthDay(closing) + ')'
+        : days + ' day' + (days === 1 ? '' : 's') + ' (' + fmtMonthDay(closing) + ')';
+      cell.innerHTML = '<span class="mismo-closing-text">' + label + '</span>' +
+                       ' <button type="button" class="mismo-closing-edit" title="Change closing date">edit</button>';
+      const editBtn = cell.querySelector('.mismo-closing-edit');
+      if (editBtn) editBtn.addEventListener('click', function () { showClosingInput(data); });
+    } else {
+      showClosingInput(data);
+    }
+  }
+
+  function showClosingInput(data) {
+    const cell = el('kvClosing');
+    if (!cell) return;
+    cell.innerHTML = '<input type="date" class="mismo-closing-input" id="kvClosingInput">';
+    const input = el('kvClosingInput');
+    if (!input) return;
+    if (closingDateOverride) input.value = closingDateOverride;
+    input.addEventListener('change', function () {
+      closingDateOverride = this.value || null;
+      renderClosingCell(data);
+    });
+    input.focus();
+  }
+
   function updateLoanSummary(data) {
     const names = data.borrowers.map(function (b) { return b.name; }).join(', ');
     setKV('kvBorrower', names);
@@ -154,7 +212,7 @@
     setKV('kvAmount', data.baseLoanAmount ? MSFG.formatCurrency(data.baseLoanAmount, 0) : null);
 
     // Enhanced fields
-    setKV('kvPropertyType', data.propertyType);
+    renderClosingCell(data);
     setKV('kvOccupancy', formatOccupancy(data.occupancyType));
     setKV('kvLTV', data.ltv ? data.ltv.toFixed(1) + '%' : null);
 
@@ -400,9 +458,11 @@
     itemCounter = 0;
 
     // Reset summary
-    ['kvBorrower', 'kvPurpose', 'kvType', 'kvAmount', 'kvPropertyType', 'kvOccupancy', 'kvLTV', 'kvProperty'].forEach(function (id) {
+    ['kvBorrower', 'kvPurpose', 'kvType', 'kvAmount', 'kvOccupancy', 'kvLTV', 'kvProperty'].forEach(function (id) {
       setKV(id, null);
     });
+    closingDateOverride = null;
+    setKV('kvClosing', null);
 
     // Reset chips
     ['chipEmp', 'chipRes', 'chipREO', 'chipDec', 'chipProgram', 'chipGaps'].forEach(function (id) {
@@ -463,7 +523,7 @@
   window.__calcState = {
     save: function () {
       // Collect summary KV text values
-      var kvIds = ['kvBorrower', 'kvPurpose', 'kvType', 'kvAmount', 'kvPropertyType', 'kvOccupancy', 'kvLTV', 'kvProperty'];
+      var kvIds = ['kvBorrower', 'kvPurpose', 'kvType', 'kvAmount', 'kvOccupancy', 'kvLTV', 'kvProperty'];
       var summary = {};
       kvIds.forEach(function (id) {
         var node = el(id);
@@ -488,12 +548,15 @@
         });
       }
 
+      var effClosing = effectiveClosingDate(parsedData);
       return {
         checklistState: JSON.parse(JSON.stringify(checklistState)),
         itemCounter: itemCounter,
         summary: summary,
         chips: chips,
         complexityFlags: complexityFlags,
+        closingDateOverride: closingDateOverride,
+        closingDateISO: effClosing ? toISODate(effClosing) : null,
         hasData: !el('mismoResults').classList.contains('u-hidden')
       };
     },
@@ -504,6 +567,7 @@
       // Restore state variables
       checklistState = data.checklistState || { income: [], general: [], assets: [], credit: [] };
       itemCounter = data.itemCounter || 0;
+      closingDateOverride = data.closingDateOverride || null;
 
       // Restore summary KV values
       if (data.summary) {
@@ -537,6 +601,8 @@
 
       // Render checklists from restored state
       renderAllChecklists();
+      const restoredClosing = data.closingDateISO ? new Date(data.closingDateISO + 'T00:00:00') : null;
+      renderClosingCell({ estimatedClosingDate: restoredClosing });
 
       // Show results and action bar
       el('mismoResults').classList.remove('u-hidden');
