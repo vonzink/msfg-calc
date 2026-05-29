@@ -545,3 +545,32 @@
   text-decoration: underline;
   padding: 0;
 }
+
+/* --- Color legend (one line) --- */
+.mismo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  align-items: center;
+  margin: 0 0 0.75rem;
+  font-size: 0.74rem;
+  color: var(--text-muted, #666);
+}
+.mismo-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+.mismo-legend__item::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.mismo-legend__item--urgent::before      { background: #8b0000; }
+.mismo-legend__item--required::before    { background: #c62828; }
+.mismo-legend__item--conditional::before { background: #b8960c; }
+.mismo-legend__item--ok::before          { background: #2e7d32; }
+.mismo-legend__item--incomplete::before  { background: #1565c0; }

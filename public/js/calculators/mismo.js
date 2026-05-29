@@ -662,6 +662,14 @@
         if (ltv) amtParts.push(ltv + ' LTV');
         if (propType) amtParts.push(propType);
         if (amtParts.length) summaryRows.push({ label: 'Amount / LTV / Property', value: amtParts.join('  \u00B7  ') });
+        // One-line color legend (appears before Loan Summary)
+        sections.push({
+          heading: 'Legend',
+          rows: [{
+            label: '🔴 Urgent   🔴 Required   🟡 Conditional   🟢 Received   🔵 Incomplete',
+            value: ''
+          }]
+        });
         if (summaryRows.length > 0) {
           sections.push({ heading: 'Loan Summary', rows: summaryRows });
         }
@@ -671,21 +679,27 @@
           const items = checklistState[sectionKey];
           if (!items || items.length === 0) return;
           const rows = [];
-          // Count summary as first row
+          const urgent = items.filter(function (i) { return i.status === 'urgent'; }).length;
           const required = items.filter(function (i) { return i.status === 'required'; }).length;
           const conditional = items.filter(function (i) { return i.status === 'conditional'; }).length;
           const ok = items.filter(function (i) { return i.status === 'ok'; }).length;
           const countParts = [];
+          if (urgent > 0) countParts.push(urgent + ' urgent');
           if (required > 0) countParts.push(required + ' required');
           if (conditional > 0) countParts.push(conditional + ' conditional');
           if (ok > 0) countParts.push(ok + ' received');
-          rows.push({ label: heading, value: countParts.join('  \u00B7  ') || 'None', isTotal: true });
-          items.forEach(function (item) {
+          // Count-only row (no repeated section name \u2014 heading already carries it)
+          rows.push({ label: countParts.join('  \u00B7  ') || 'None', value: '', isTotal: true });
+          const ordered = items.slice().sort(function (a, b) {
+            return statusRank(a.status) - statusRank(b.status);
+          });
+          ordered.forEach(function (item) {
             rows.push({
               label: item.name,
               value: item.reason ? '\u2014 ' + item.reason : '',
               stacked: true,
-              bulletColor: item.status === 'required' ? '#c62828' :
+              bulletColor: item.status === 'urgent' ? '#8b0000' :
+                           item.status === 'required' ? '#c62828' :
                            item.status === 'conditional' ? '#b8960c' :
                            item.status === 'ok' ? '#2e7d32' :
                            item.status === 'incomplete' ? '#1565c0' : '#666'
