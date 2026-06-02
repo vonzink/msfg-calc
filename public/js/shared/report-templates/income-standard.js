@@ -55,7 +55,7 @@
     }
     return {
       sections: [
-        Object.assign({ title: 'Business 1' }, biz('b1')),
+        Object.assign({ title: txt(doc,'entityName') || 'Business 1' }, biz('b1')),
         Object.assign({ title: 'Business 2' }, biz('b2'))
       ],
       totalMonthly: val(doc,'combined_c')
@@ -83,7 +83,7 @@
     }
     return {
       sections: [
-        Object.assign({ title: 'Partnership 1' }, part('p1')),
+        Object.assign({ title: txt(doc,'entityName') || 'Partnership 1' }, part('p1')),
         Object.assign({ title: 'Partnership 2' }, part('p2'))
       ],
       totalMonthly: val(doc,'combined1065')
@@ -94,7 +94,7 @@
   RT.registerIncomeType('income/1120', function (doc) {
     return {
       sections: [{
-        title: 'Form 1120 C-Corporation',
+        title: txt(doc,'entityName') || 'Form 1120 C-Corporation',
         rows: [
           { label: 'Capital Gain Net Income', y1: val(doc,'cap1'),      y2: val(doc,'cap2') },
           { label: 'Net Gain/Loss',           y1: val(doc,'net1'),      y2: val(doc,'net2') },
@@ -136,7 +136,7 @@
     }
     return {
       sections: [
-        Object.assign({ title: 'S-Corporation 1' }, corp('c1')),
+        Object.assign({ title: txt(doc,'entityName') || 'S-Corporation 1' }, corp('c1')),
         Object.assign({ title: 'S-Corporation 2' }, corp('c2'))
       ],
       totalMonthly: val(doc,'combined_s')
@@ -158,7 +158,7 @@
     }
     return {
       sections: [
-        Object.assign({ title: 'K-1 #1' }, k('k1')),
+        Object.assign({ title: txt(doc,'entityName') || 'K-1 #1' }, k('k1')),
         Object.assign({ title: 'K-1 #2' }, k('k2')),
         Object.assign({ title: 'K-1 #3' }, k('k3')),
         Object.assign({ title: 'K-1 #4' }, k('k4'))
@@ -181,7 +181,7 @@
     }
     return {
       sections: [
-        Object.assign({ title: 'K-1 #1' }, k('k1')),
+        Object.assign({ title: txt(doc,'entityName') || 'K-1 #1' }, k('k1')),
         Object.assign({ title: 'K-1 #2' }, k('k2')),
         Object.assign({ title: 'K-1 #3' }, k('k3')),
         Object.assign({ title: 'K-1 #4' }, k('k4'))
@@ -218,7 +218,7 @@
   RT.registerIncomeType('income/schedule-d', function (doc) {
     return {
       sections: [{
-        title: 'Capital Gains / Losses',
+        title: txt(doc,'entityName') || 'Capital Gains / Losses',
         rows: [
           { label: 'Short-Term Capital Gain/Loss', y1: val(doc,'d_stcg1'), y2: val(doc,'d_stcg2') },
           { label: 'Long-Term Capital Gain/Loss',  y1: val(doc,'d_ltcg1'), y2: val(doc,'d_ltcg2') }
@@ -277,7 +277,7 @@
   RT.registerIncomeType('income/schedule-f', function (doc) {
     return {
       sections: [{
-        title: 'Farm Income',
+        title: txt(doc,'entityName') || 'Farm Income',
         rows: [
           { label: 'Net Profit/Loss',       y1: val(doc,'f_np1'),    y2: val(doc,'f_np2') },
           { label: 'Coop & CCC Payments',   y1: val(doc,'f_coop1'),  y2: val(doc,'f_coop2') },

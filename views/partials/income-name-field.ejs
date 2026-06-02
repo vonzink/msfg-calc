@@ -1,0 +1,11 @@
+<%
+/* Optional borrower/entity name for this income calculator.
+   Read at report-capture time via doc.getElementById('entityName').
+   Pass { nameLabel: 'Partnership Name' } to customize the label. */
+var _nameLabel = (typeof nameLabel !== 'undefined' && nameLabel) ? nameLabel : 'Borrower / Entity Name';
+%>
+<div class="calc-name-field">
+  <label for="entityName" class="calc-name-field__label"><%= _nameLabel %></label>
+  <input type="text" id="entityName" class="calc-name-field__input" maxlength="80" autocomplete="off" placeholder="e.g. ABC Holdings LLC">
+  <span class="calc-name-field__hint">Shown as this calculator's label in the session report (optional).</span>
+</div>

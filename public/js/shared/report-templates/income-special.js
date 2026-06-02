@@ -9,7 +9,7 @@
     function (doc) {
       return {
         methodA: {
-          address: txt(doc,'methodA_address'),
+          address: txt(doc,'methodA_address') || txt(doc,'entityName'),
           months: val(doc,'methodA_months'),
           rents: val(doc,'methodA_rents'),
           expenses: val(doc,'methodA_expenses'),

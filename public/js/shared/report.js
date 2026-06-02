@@ -354,8 +354,16 @@
           return Promise.reject(new Error('Extraction returned null'));
         }
 
+        // Optional per-calculator name field (income calcs) feeds the report heading.
+        let finalName = calcName;
+        const nameField = calcDoc.getElementById('entityName');
+        const entity = nameField && nameField.value ? nameField.value.trim() : '';
+        if (entity && finalName.indexOf(entity) === -1) {
+          finalName = finalName + ' — ' + entity;
+        }
+
         return self.addItem({
-          name: calcName,
+          name: finalName,
           icon: calcIcon,
           slug: slug,
           data: data

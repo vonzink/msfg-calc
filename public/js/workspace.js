@@ -298,7 +298,7 @@
         return;
       }
 
-      MSFG.Report.captureStructured(slug, name, icon, baseDoc).then(() => {
+      MSFG.Report.captureStructured(slug, panel.label || name, icon, baseDoc).then(() => {
         reportBtn.disabled = false;
         reportBtn.style.opacity = '';
         reportBtn.style.color = 'var(--brand-primary)';
