@@ -11,6 +11,7 @@
   const pct = MSFG.formatPercent;
   const esc = MSFG.escHtml;
   const Catalog = MSFG.AprFeeCatalog;
+  const MiMatrix = MSFG.AprMiMatrix;
 
   // In-memory per-fee state: { [feeId]: { amount, manualOverride, flags } }
   const feeState = {};
@@ -58,23 +59,21 @@
     if (el && document.activeElement !== el) el.value = amt;
   }
 
-  // PMI factor by LTV (rough industry averages, configurable later)
-  function pmiAnnualFactor(ltv) {
-    if (ltv <= 0.80) return 0;
-    if (ltv <= 0.85) return 0.0032;
-    if (ltv <= 0.90) return 0.0045;
-    if (ltv <= 0.95) return 0.0062;
-    return 0.0085;
-  }
+  // Conventional PMI uses the editable credit×LTV matrix (MSFG.AprMiMatrix).
 
-  // FHA annual MIP factor by LTV and term (post-March 2023 chart, simplified)
-  function fhaAnnualMipFactor(ltv, termYears) {
+  // FHA annual MIP factor by LTV, term, and base loan amount.
+  // Source: standard FHA MIP schedule (high-balance threshold $726,200).
+  function fhaAnnualMipFactor(ltv, termYears, baseLoanAmount) {
+    const highBalance = baseLoanAmount > 726200;
     if (termYears > 15) {
-      if (ltv <= 0.90) return 0.0050;
-      return 0.0055;
+      if (!highBalance) return ltv <= 0.95 ? 0.0050 : 0.0055;
+      return ltv <= 0.95 ? 0.0070 : 0.0075;
     }
-    if (ltv <= 0.90) return 0.0015;
-    return 0.0040;
+    // Term ≤ 15 years
+    if (!highBalance) return ltv <= 0.90 ? 0.0015 : 0.0040;
+    if (ltv <= 0.78) return 0.0015;
+    if (ltv <= 0.90) return 0.0040;
+    return 0.0065;
   }
 
   function autoCalcMonthlyMI(inp) {
@@ -83,7 +82,7 @@
 
     if (loanType === 'CONV') {
       if (manuallyEditedFees['monthly_borrower_paid_pmi']) return;
-      const factor = pmiAnnualFactor(ltv);
+      const factor = MiMatrix.lookup({ ltv: ltv, creditScore: inp.creditScore, termYears: inp.loanTerm });
       const monthly = +((inp.loanAmount * factor) / 12).toFixed(2);
       feeState['monthly_borrower_paid_pmi'] = feeState['monthly_borrower_paid_pmi'] || {};
       feeState['monthly_borrower_paid_pmi'].amount = monthly;
@@ -91,7 +90,7 @@
       if (el && document.activeElement !== el) el.value = monthly;
     } else if (loanType === 'FHA') {
       if (manuallyEditedFees['fha_annual_mip']) return;
-      const factor = fhaAnnualMipFactor(ltv, inp.loanTerm);
+      const factor = fhaAnnualMipFactor(ltv, inp.loanTerm, inp.loanAmount);
       const monthly = +((inp.loanAmount * factor) / 12).toFixed(2);
       feeState['fha_annual_mip'] = feeState['fha_annual_mip'] || {};
       feeState['fha_annual_mip'].amount = monthly;
@@ -279,6 +278,23 @@
     return { stream: stream, pi: pi };
   }
 
+  // Number of scheduled payments until the amortizing balance first reaches
+  // `threshold` × propertyValue. Used for conventional PMI auto-termination
+  // at 78% of the original property value (HPA). Returns n if never reached.
+  function monthsToLtvThreshold(principal, annualRate, n, propertyValue, threshold) {
+    if (propertyValue <= 0 || principal <= 0) return n;
+    const target = threshold * propertyValue;
+    if (principal <= target) return 0;
+    const r = annualRate / 12;
+    const pi = (r === 0) ? principal / n : principal * r / (1 - Math.pow(1 + r, -n));
+    let bal = principal;
+    for (let i = 1; i <= n; i++) {
+      bal -= (pi - bal * r);
+      if (bal <= target) return i;
+    }
+    return n;
+  }
+
   function pvStream(stream, annualRate) {
     if (annualRate === 0) return stream.reduce(function (a, b) { return a + b; }, 0);
     const r = annualRate / 12;
@@ -314,7 +330,8 @@
       discountPointsPct: P(document.getElementById('discountPoints').value) / 100,
       lenderCredit: P(document.getElementById('lenderCredit').value),
       sellerCredit: P(document.getElementById('sellerCredit').value),
-      propertyValue: P(document.getElementById('propertyValue').value)
+      propertyValue: P(document.getElementById('propertyValue').value),
+      creditScore: P(((document.getElementById('creditScore') || {}).value) || '')
     };
   }
 
@@ -386,11 +403,17 @@
     const noteAmount = inp.loanAmount + cls.aprFinancedFromFees;
     const n = inp.loanTerm * 12;
 
-    // MI duration: simple defaults
-    // FHA monthly MIP: life of loan for >90% LTV (default 360); 11yrs otherwise
-    // PMI: until 78% LTV (rough est: 60 months default)
+    // MI duration:
+    // FHA annual MIP: 11 years (132 pmts) when LTV ≤ 90% (≥10% down); life of loan otherwise
+    // Conventional PMI: auto-cancels when scheduled balance reaches 78% of original value (HPA)
     let miDuration = n;
-    if (loanType === 'CONV') miDuration = Math.min(n, 60);
+    if (loanType === 'CONV') {
+      miDuration = monthsToLtvThreshold(noteAmount, inp.interestRate, n, inp.propertyValue, 0.78);
+    } else if (loanType === 'FHA') {
+      const ltv = inp.propertyValue > 0 ? inp.loanAmount / inp.propertyValue : 1;
+      // ≥10% down (LTV ≤ 90%) → MIP drops after 132 payments; otherwise life of loan
+      if (ltv <= 0.90) miDuration = Math.min(n, 132);
+    }
 
     // Build payment stream from note amount at note rate
     const ps = buildPaymentStream(noteAmount, inp.interestRate, n, cls.monthlyMI, miDuration);
@@ -423,11 +446,11 @@
     setText('monthlyFeeCost', fmt(totalUpfrontApr / n) + '/mo');
     document.getElementById('aprWarning').classList.toggle('u-hidden', aprSpread <= 0.5);
 
-    updateMathSteps(inp, noteAmount, ps.pi, pointsAmt, amtFinanced, n, totalPmts, finChg, apr, cls);
+    updateMathSteps(inp, noteAmount, ps.pi, pointsAmt, amtFinanced, n, totalPmts, finChg, apr, cls, miDuration);
     updateURL(inp);
   }
 
-  function updateMathSteps(inp, noteAmount, pi, pointsAmt, amtFinanced, n, totalPmts, finChg, apr, cls) {
+  function updateMathSteps(inp, noteAmount, pi, pointsAmt, amtFinanced, n, totalPmts, finChg, apr, cls, miDuration) {
     const container = document.getElementById('calcSteps-apr');
     if (!container) return;
 
@@ -436,7 +459,14 @@
     html += '<div class="calc-step"><h4>Step 1: Note Amount</h4><div class="calc-step__formula">Base Loan + Financed APR Fees<br><span class="calc-step__values">= ' + fmt(inp.loanAmount) + ' + ' + fmt(cls.aprFinancedFromFees) + ' = <strong>' + fmt(noteAmount) + '</strong></span></div></div>';
     html += '<div class="calc-step"><h4>Step 2: Monthly P&amp;I</h4><div class="calc-step__formula">Payment based on Note Amount at Note Rate<br><span class="calc-step__values">= <strong>' + fmt(pi) + '</strong></span></div></div>';
     if (cls.monthlyMI > 0) {
-      html += '<div class="calc-step"><h4>Step 2b: Monthly MI</h4><div class="calc-step__formula">Added to payment stream while active<br><span class="calc-step__values">= <strong>' + fmt(cls.monthlyMI) + '/mo</strong></span></div></div>';
+      const miDurLabel = (miDuration >= n)
+        ? 'life of loan (' + n + ' pmts)'
+        : miDuration + ' pmts (' + Math.round(miDuration / 12) + ' yrs)';
+      let miNote = '';
+      if (loanType === 'CONV' && MiMatrix && !MiMatrix.hasScore(inp.creditScore)) {
+        miNote = '<br><span class="calc-step__hint">Conventional MI assumes 740–759 — enter a credit score for an exact factor.</span>';
+      }
+      html += '<div class="calc-step"><h4>Step 2b: Monthly MI</h4><div class="calc-step__formula">Added to payment stream for ' + miDurLabel + miNote + '<br><span class="calc-step__values">= <strong>' + fmt(cls.monthlyMI) + '/mo</strong></span></div></div>';
     }
     html += '<div class="calc-step"><h4>Step 3: Amount Financed</h4><div class="calc-step__formula">Note Amount − Points − APR Prepaids − Financed APR Fees<br><span class="calc-step__values">= ' + fmt(noteAmount) + ' − ' + fmt(pointsAmt) + ' − ' + fmt(cls.aprPrepaidTotal) + ' − ' + fmt(cls.aprFinancedFromFees) + ' = <strong>' + fmt(amtFinanced) + '</strong></span></div></div>';
     html += '<div class="calc-step"><h4>Step 4: Total Finance Charges</h4><div class="calc-step__formula">Σ(Payment Stream) − Amount Financed<br><span class="calc-step__values">= ' + fmt(totalPmts) + ' − ' + fmt(amtFinanced) + ' = <strong>' + fmt(finChg) + '</strong></span></div></div>';
@@ -446,11 +476,13 @@
 
   function updateURL(inp) {
     const url = new URL(window.location);
-    url.search = new URLSearchParams({
+    const params = {
       la: inp.loanAmount, ir: (inp.interestRate * 100).toString(),
       lt: inp.loanTerm, dp: (inp.discountPointsPct * 100).toString(),
       lpt: loanType
-    }).toString();
+    };
+    if (inp.creditScore > 0) params.cs = inp.creditScore;
+    url.search = new URLSearchParams(params).toString();
     window.history.replaceState({}, '', url);
   }
 
@@ -625,6 +657,8 @@
     document.getElementById('lenderCredit').value = 0;
     document.getElementById('sellerCredit').value = 0;
     document.getElementById('propertyValue').value = 0;
+    const csEl = document.getElementById('creditScore');
+    if (csEl) csEl.value = '';
     Object.keys(feeState).forEach(function (k) { delete feeState[k]; });
     Object.keys(manuallyEditedFees).forEach(function (k) { delete manuallyEditedFees[k]; });
     // Reset MISMO flag so catalog defaults come back
@@ -633,6 +667,99 @@
     applyCatalogDefaults();
     renderFeeGroups();
     calculate();
+  }
+
+  /* ---- MI Matrix Modal ---- */
+
+  // Active term-bucket tab inside the matrix editor.
+  let miMatrixBucket = 'gt20';
+
+  function renderMiMatrix() {
+    const tabs = document.getElementById('miMatrixTabs');
+    const grid = document.getElementById('miMatrixGrid');
+    if (!tabs || !grid || !MiMatrix) return;
+
+    tabs.innerHTML = MiMatrix.TERM_BUCKETS.map(function (b) {
+      const active = b.key === miMatrixBucket;
+      return '<button type="button" class="mi-matrix-tab' + (active ? ' is-active' : '') +
+        '" data-mi-bucket="' + esc(b.key) + '" role="tab" aria-selected="' + (active ? 'true' : 'false') + '">' +
+        esc(b.label) + '</button>';
+    }).join('');
+
+    const factors = MiMatrix.getFactors()[miMatrixBucket] || {};
+    const credits = MiMatrix.CREDIT_BANDS;
+
+    let head = '<thead><tr><th class="mi-matrix-grid__corner">LTV \\ Score</th>';
+    credits.forEach(function (c) { head += '<th>' + esc(c.label) + '</th>'; });
+    head += '</tr></thead>';
+
+    let body = '<tbody>';
+    MiMatrix.LTV_BANDS.forEach(function (ltvB) {
+      body += '<tr><th scope="row">' + esc(ltvB.label) + '</th>';
+      const row = factors[ltvB.key] || [];
+      credits.forEach(function (c, ci) {
+        const val = typeof row[ci] === 'number' ? row[ci] : '';
+        body += '<td><input type="number" class="mi-matrix-cell" step="0.01" min="0" inputmode="decimal" ' +
+          'data-mi-bucket="' + esc(miMatrixBucket) + '" data-mi-ltv="' + esc(ltvB.key) + '" data-mi-ci="' + ci + '" ' +
+          'value="' + val + '" aria-label="' + esc(ltvB.label + ' ' + c.label) + '"></td>';
+      });
+      body += '</tr>';
+    });
+    body += '</tbody>';
+
+    grid.innerHTML = head + body;
+
+    const status = document.getElementById('miMatrixStatus');
+    if (status) status.textContent = MiMatrix.isCustomized() ? 'Customized (saved in this browser)' : 'Arch defaults';
+  }
+
+  function openMiMatrix() {
+    if (!MiMatrix) return;
+    // Open on the bucket matching the current loan term.
+    const term = P(document.getElementById('loanTerm').value) || 30;
+    miMatrixBucket = MiMatrix.termBucket(term);
+    renderMiMatrix();
+    const overlay = document.getElementById('miMatrixOverlay');
+    if (overlay) overlay.classList.remove('u-hidden');
+  }
+
+  function closeMiMatrix() {
+    const overlay = document.getElementById('miMatrixOverlay');
+    if (overlay) overlay.classList.add('u-hidden');
+  }
+
+  function resetMiMatrix() {
+    if (!MiMatrix) return;
+    MiMatrix.reset();
+    renderMiMatrix();
+    calculate();
+    const status = document.getElementById('miMatrixStatus');
+    if (status) status.textContent = 'Reset to Arch defaults';
+  }
+
+  function bindMiMatrixEvents() {
+    const overlay = document.getElementById('miMatrixOverlay');
+    if (!overlay) return;
+
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) { closeMiMatrix(); return; } // click backdrop
+      const tab = e.target.closest && e.target.closest('.mi-matrix-tab');
+      if (tab) { miMatrixBucket = tab.dataset.miBucket; renderMiMatrix(); }
+    });
+
+    overlay.addEventListener('input', function (e) {
+      const t = e.target;
+      if (t.classList && t.classList.contains('mi-matrix-cell')) {
+        MiMatrix.setCell(t.dataset.miBucket, t.dataset.miLtv, +t.dataset.miCi, P(t.value));
+        const status = document.getElementById('miMatrixStatus');
+        if (status) status.textContent = 'Saved';
+        calculate();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !overlay.classList.contains('u-hidden')) closeMiMatrix();
+    });
   }
 
   /* ---- Init ---- */
@@ -647,6 +774,7 @@
     if (params.has('ir')) document.getElementById('interestRate').value = P(params.get('ir')) || 0;
     if (params.has('lt')) document.getElementById('loanTerm').value = P(params.get('lt')) || 30;
     if (params.has('dp')) document.getElementById('discountPoints').value = P(params.get('dp')) || 0;
+    if (params.has('cs')) { const csEl = document.getElementById('creditScore'); if (csEl) csEl.value = P(params.get('cs')) || ''; }
     if (params.has('lpt')) {
       const lpt = params.get('lpt');
       if (['CONV','FHA','VA'].indexOf(lpt) !== -1) loanType = lpt;
@@ -690,7 +818,7 @@
     }
 
     // Main input listeners
-    ['loanAmount','interestRate','loanTerm','discountPoints','lenderCredit','sellerCredit','propertyValue'].forEach(function (id) {
+    ['loanAmount','interestRate','loanTerm','discountPoints','lenderCredit','sellerCredit','propertyValue','creditScore'].forEach(function (id) {
       const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', calculate);
@@ -716,12 +844,16 @@
       'export-csv': exportCSV,
       'print': function () { window.print(); },
       'share-link': shareLink,
-      'clear-all': clearAll
+      'clear-all': clearAll,
+      'open-mi-matrix': openMiMatrix,
+      'close-mi-matrix': closeMiMatrix,
+      'reset-mi-matrix': resetMiMatrix
     };
     document.querySelectorAll('[data-action]').forEach(function (el) {
       const fn = actions[el.dataset.action];
       if (fn) el.addEventListener('click', fn);
     });
+    bindMiMatrixEvents();
 
     // sessionStorage MISMO
     const stored = sessionStorage.getItem('msfg-mismo-data');
@@ -759,7 +891,8 @@
                 { label: 'Loan Type', value: loanType },
                 { label: 'Base Loan Amount', value: g('loanAmount') ? fmt(P(g('loanAmount'))) : '$0' },
                 { label: 'Note Rate', value: g('noteRateDisplay') },
-                { label: 'Loan Term', value: g('loanTerm') + ' years' }
+                { label: 'Loan Term', value: g('loanTerm') + ' years' },
+                { label: 'Credit Score', value: g('creditScore') || '—' }
               ]
             },
             {

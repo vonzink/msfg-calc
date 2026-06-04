@@ -68,6 +68,10 @@
           <label for="propertyValue">Property Value ($) <span class="text-muted">(optional)</span></label>
           <input type="number" id="propertyValue" value="0" min="0" step="1000" placeholder="For LTV / MI">
         </div>
+        <div class="form-group">
+          <label for="creditScore">Credit Score <span class="text-muted">(optional)</span></label>
+          <input type="number" id="creditScore" min="300" max="850" step="1" placeholder="Conventional MI">
+        </div>
         <div class="form-group" id="vaUsageGroup" style="display:none">
           <label for="vaUsage">VA Usage</label>
           <select id="vaUsage">
@@ -86,6 +90,7 @@
         Show only fees with values
       </label>
       <span class="apr-fee-toolbar__hint" id="aprFeeHint"></span>
+      <button type="button" class="btn btn-secondary btn-sm apr-mi-matrix-btn" data-action="open-mi-matrix">MI Matrix</button>
     </div>
 
     <!-- Dynamic Fee Groups -->
@@ -143,5 +148,28 @@
   <div class="calc-page__footer">
     <div class="calc-page__footer-title">APR Calculation Method</div>
     <p>APR solved via bisection per Reg Z. Fee classification follows the MSFG fee catalog for Conventional, FHA, and VA. Monthly MI is included in the payment stream for the months it applies. Click any APR pill to manually override classification.</p>
+  </div>
+
+  <!-- Conventional MI Matrix modal (hidden until opened) -->
+  <div id="miMatrixOverlay" class="mi-matrix-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="miMatrixTitle">
+    <div class="mi-matrix-modal">
+      <div class="mi-matrix-modal__header">
+        <h3 id="miMatrixTitle">Conventional MI Matrix — Monthly BPMI</h3>
+        <button type="button" class="mi-matrix-modal__close" data-action="close-mi-matrix" aria-label="Close">&times;</button>
+      </div>
+      <div class="mi-matrix-modal__body">
+        <p class="mi-matrix-modal__intro">Annualized factors (%). Monthly MI = factor &divide; 12 &times; loan balance. Edits save in this browser. Defaults: Arch BPMI Monthly, Fixed, standard coverage.</p>
+        <div class="mi-matrix-tabs" id="miMatrixTabs" role="tablist"></div>
+        <div class="mi-matrix-grid-wrap">
+          <table class="mi-matrix-grid" id="miMatrixGrid"></table>
+        </div>
+        <p class="mi-matrix-modal__note">LTV &le; 80% &rarr; no MI. A blank credit score assumes the 740&ndash;759 column.</p>
+      </div>
+      <div class="mi-matrix-modal__footer">
+        <span class="mi-matrix-modal__status" id="miMatrixStatus"></span>
+        <button type="button" class="btn btn-ghost btn-sm" data-action="reset-mi-matrix">Reset to Arch defaults</button>
+        <button type="button" class="btn btn-primary btn-sm" data-action="close-mi-matrix">Done</button>
+      </div>
+    </div>
   </div>
 </div>
