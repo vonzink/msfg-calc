@@ -113,8 +113,13 @@
     }, 2500);
   }
 
-  function highlightPanel(slug, count) {
-    var panelEl = document.getElementById('ws-panel-' + slug);
+  function highlightPanel(slug, count, instanceId) {
+    // Panels are keyed by instanceId, not slug (multi-instance workspace).
+    var panelEl = instanceId ? document.getElementById('ws-panel-' + instanceId) : null;
+    if (!panelEl) {
+      var hdr = document.querySelector('.ws-panel__header[data-slug="' + slug + '"]');
+      if (hdr) panelEl = hdr.closest('.ws-panel');
+    }
     if (!panelEl) return;
     var header = panelEl.querySelector('.ws-panel__header');
     if (!header) return;

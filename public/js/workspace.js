@@ -226,7 +226,7 @@
     // Apply embed mode + default zoom when iframe loads, then populate MISMO data + restore inputs
     iframe.addEventListener('load', () => {
       MSFG.WS.applyZoomToIframe(iframe, panel.zoom);
-      MSFG.WorkspaceMISMO.schedulePopulate(iframe, slug);
+      MSFG.WorkspaceMISMO.schedulePopulate(iframe, slug, panel.instanceId);
       scheduleRestore(iframe, panel.instanceId);
     });
 

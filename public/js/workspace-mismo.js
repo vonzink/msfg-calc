@@ -130,7 +130,7 @@
     MSFG.WS.showToast('MISMO data cleared', 'success');
   }
 
-  function schedulePopulate(iframe, slug) {
+  function schedulePopulate(iframe, slug, instanceId) {
     if (!mismoData) return;
 
     function tryPopulate(attempt) {
@@ -143,13 +143,13 @@
           try { nestedDoc = nested.contentDocument || nested.contentWindow.document; } catch (_e) { /* cross-origin */ }
           if (!nestedDoc || !nestedDoc.body || !nestedDoc.body.innerHTML) {
             nested.addEventListener('load', () => {
-              setTimeout(() => { populatePanel(slug); }, 200);
+              setTimeout(() => { populatePanel(slug, instanceId); }, 200);
             });
             return;
           }
         }
       } catch (e) { /* skip */ }
-      const count = populatePanel(slug);
+      const count = populatePanel(slug, instanceId);
       if (count === 0 && attempt < 10) {
         setTimeout(() => { tryPopulate(attempt + 1); }, 300);
       }
@@ -161,11 +161,11 @@
   function populateAllPanels(panels) {
     if (!mismoData) return;
     panels.forEach((panel) => {
-      populatePanel(panel.slug);
+      populatePanel(panel.slug, panel.instanceId);
     });
   }
 
-  function populatePanel(slug) {
+  function populatePanel(slug, instanceId) {
     if (!mismoData || !MSFG.MISMOParser) return 0;
 
     const mapFn = MSFG.MISMOParser.getCalcMap(slug);
@@ -174,16 +174,23 @@
     const fieldMap = mapFn(mismoData);
     if (!fieldMap || Object.keys(fieldMap).length === 0) return 0;
 
-    const panelEl = document.getElementById('ws-panel-' + slug);
+    // Panels are keyed by instanceId (ws-panel-<instanceId>), not slug — the workspace
+    // supports multiple instances of one calculator. Prefer the instanceId; fall back to
+    // the first open panel matching this slug.
+    let panelEl = instanceId ? document.getElementById('ws-panel-' + instanceId) : null;
+    if (!panelEl) {
+      const hdr = document.querySelector('.ws-panel__header[data-slug="' + slug + '"]');
+      if (hdr) panelEl = hdr.closest('.ws-panel');
+    }
     if (!panelEl) return 0;
 
     const iframe = panelEl.querySelector('.ws-panel__iframe');
     if (!iframe) return 0;
 
-    return populateIframeFields(iframe, slug, fieldMap);
+    return populateIframeFields(iframe, slug, fieldMap, instanceId);
   }
 
-  function populateIframeFields(iframe, slug, fieldMap) {
+  function populateIframeFields(iframe, slug, fieldMap, instanceId) {
     let outerDoc;
     try {
       outerDoc = iframe.contentDocument || iframe.contentWindow.document;
@@ -198,7 +205,7 @@
           const iframeWin = iframe.contentWindow;
           if (iframeWin && typeof iframeWin.__mismoProcessXmlString === 'function') {
             iframeWin.__mismoProcessXmlString(storedXml);
-            MSFG.WS.highlightPanel(slug, 1);
+            MSFG.WS.highlightPanel(slug, 1, instanceId);
             return 1;
           }
         } catch (e) { /* cross-origin or not ready */ }
@@ -330,7 +337,7 @@
           setTimeout(() => {
             if (typeof budgetWin.MSFG_BG_populateMISMO === 'function') {
               budgetWin.MSFG_BG_populateMISMO(fieldMap.__budget_data);
-              MSFG.WS.highlightPanel(slug, 1);
+              MSFG.WS.highlightPanel(slug, 1, instanceId);
             } else {
               retryBudget(attempts + 1);
             }
@@ -340,7 +347,7 @@
     }
 
     if (populated > 0) {
-      MSFG.WS.highlightPanel(slug, populated);
+      MSFG.WS.highlightPanel(slug, populated, instanceId);
     }
     return populated;
   }
