@@ -60,17 +60,15 @@
     },
     tax_service_fee: {
       displayName: 'Tax Service Fee',
-      aprFlagDefault: 'APR_YES',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
       defaultAmount: 85,
-      conditionCodes: ['LIFE_OF_LOAN_MONITORING'],
       mismoAliases: ['TaxRelatedServiceFee','Tax Related Service Fee','TaxServiceFee','Tax Service Fee']
     },
     flood_monitoring_fee: {
       displayName: 'Life-of-Loan Flood Monitoring',
-      aprFlagDefault: 'APR_YES',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
-      conditionCodes: ['LIFE_OF_LOAN_MONITORING'],
       mismoAliases: ['FloodMonitoringFee','Flood Monitoring Fee']
     },
     electronic_doc_fee: {
@@ -82,7 +80,7 @@
     },
     mers_registration_fee: {
       displayName: 'MERS Registration Fee',
-      aprFlagDefault: 'APR_CONDITIONAL',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
       defaultAmount: 24.95,
       mismoAliases: ['MERSRegistrationFee','MERS Registration Fee']
@@ -142,10 +140,9 @@
     // ----- Title & Settlement -----
     lenders_title_insurance: {
       displayName: "Lender's Title Insurance",
-      aprFlagDefault: 'APR_NO',
+      aprFlagDefault: 'APR_YES',
       appliesTo: ['CONV','FHA','VA'],
       defaultAmount: 650,
-      conditionCodes: ['BONA_FIDE_REASONABLE'],
       mismoAliases: ['TitleLendersCoveragePremium','Title - Lenders Coverage Premium']
     },
     owners_title_insurance: {
@@ -188,13 +185,14 @@
     },
     attorney_closing_fee: {
       displayName: 'Attorney / Doc Prep',
-      aprFlagDefault: 'APR_CONDITIONAL',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
+      conditionCodes: ['BONA_FIDE_REASONABLE'],
       mismoAliases: ['AttorneyFee','Attorney Fee']
     },
     closing_protection_letter: {
       displayName: 'CPL / Closing Protection Letter',
-      aprFlagDefault: 'APR_CONDITIONAL',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
       defaultAmount: 0,
       mismoAliases: ['TitleClosingProtectionLetterFee','Title - Closing Protection Letter Fee']
@@ -214,7 +212,7 @@
     },
     title_wire_fee: {
       displayName: 'Wire Transfer Fee',
-      aprFlagDefault: 'APR_CONDITIONAL',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
       defaultAmount: 60,
       mismoAliases: ['WireTransferFee','Wire Transfer Fee']
@@ -254,14 +252,14 @@
     },
     voe_fee: {
       displayName: 'Verification of Employment',
-      aprFlagDefault: 'APR_YES',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
       defaultAmount: 105,
       mismoAliases: ['VerificationOfEmploymentFee','Verification Of Employment Fee']
     },
     aus_fee: {
       displayName: 'AUS Fee (DU / LPA)',
-      aprFlagDefault: 'APR_YES',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
       mismoAliases: ['AUSFee','AutomatedUnderwritingFee']
     },
@@ -305,7 +303,7 @@
     },
     e_recording_fee: {
       displayName: 'E-Recording Fee',
-      aprFlagDefault: 'APR_CONDITIONAL',
+      aprFlagDefault: 'APR_NO',
       appliesTo: ['CONV','FHA','VA'],
       defaultAmount: 20,
       mismoAliases: ['E-Recording Fee','ERecordingFee']

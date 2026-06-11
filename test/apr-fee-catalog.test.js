@@ -69,9 +69,9 @@ describe('AprFeeCatalog: resolver decision tree', () => {
     assert.strictEqual(res.includeInApr, false);
   });
 
-  it('tax service fee = APR_YES (life of loan)', () => {
+  it('tax service fee → APR_NO (per MSFG compliance list)', () => {
     const res = r('tax_service_fee', { amount: 89, loanType: 'CONV' });
-    assert.strictEqual(res.includeInApr, true);
+    assert.strictEqual(res.includeInApr, false);
   });
 
   it('initial flood cert bona-fide → APR_NO', () => {
@@ -79,9 +79,9 @@ describe('AprFeeCatalog: resolver decision tree', () => {
     assert.strictEqual(res.includeInApr, false);
   });
 
-  it('life-of-loan flood monitoring → APR_YES', () => {
+  it('life-of-loan flood monitoring → APR_NO (per MSFG compliance list)', () => {
     const res = r('flood_monitoring_fee', { amount: 20, loanType: 'CONV' });
-    assert.strictEqual(res.includeInApr, true);
+    assert.strictEqual(res.includeInApr, false);
   });
 
   it('FHA UFMIP cash → APR_YES', () => {
@@ -162,6 +162,56 @@ describe('AprFeeCatalog: resolver decision tree', () => {
   it('unknown fee → safe excluded', () => {
     const res = r('nonexistent_fee', { amount: 100, loanType: 'CONV' });
     assert.strictEqual(res.includeInApr, false);
+  });
+});
+
+describe('AprFeeCatalog: default APR classification matches MSFG compliance list', () => {
+  const r = Catalog.resolveAprTreatment;
+
+  // Default treatment with no bona-fide / charged-to-all overrides, amount > 0.
+  // Mirrors the MSFG Reg Z APR-vs-non-APR fee sheet. Keep in sync with that list.
+  const EXPECTED = {
+    // Lender charges
+    origination_fee: true, discount_points: true, underwriting_fee: true,
+    processing_fee: true, admin_fee: true, application_fee_conditional: true,
+    rate_lock_fee: true, electronic_doc_fee: true, courier_fee: true,
+    other_lender_fees: true,
+    tax_service_fee: false, flood_monitoring_fee: false, mers_registration_fee: false,
+    // Mortgage insurance / guaranty
+    monthly_borrower_paid_pmi: true, single_premium_pmi: true, lender_paid_mi: false,
+    fha_ufmip: true, fha_annual_mip: true, va_funding_fee: true,
+    // Title & settlement
+    lenders_title_insurance: true,
+    owners_title_insurance: false, settlement_closing_fee: false, title_search_fee: false,
+    title_examination_fee: false, title_location_report: false, attorney_closing_fee: false,
+    closing_protection_letter: false, title_endorsements: false, notary_fee: false,
+    title_wire_fee: false, other_title_fees: false,
+    // Third-party services
+    appraisal_fee: false, credit_report_fee: false, initial_flood_cert: false,
+    voe_fee: false, aus_fee: false, pest_inspection_fee: false, other_third_party_fees: false,
+    // Government recording & taxes
+    recording_fee_mortgage: false, transfer_tax_deed: false, mortgage_recording_tax: false,
+    e_recording_fee: false,
+    // Prepaids & escrow reserves
+    prepaid_interest: true, hazard_insurance_premium: false, initial_escrow_taxes: false,
+    initial_escrow_hazard_insurance: false, hoa_dues_prepaid: false
+  };
+
+  Object.keys(EXPECTED).forEach((feeId) => {
+    it(`${feeId} default → ${EXPECTED[feeId] ? 'APR_YES' : 'APR_NO'}`, () => {
+      const def = Catalog.FEES[feeId];
+      assert.ok(def, 'missing fee def: ' + feeId);
+      const loanType = def.appliesTo.indexOf('CONV') !== -1 ? 'CONV' : def.appliesTo[0];
+      const res = r(feeId, { amount: 100, loanType });
+      assert.strictEqual(res.includeInApr, EXPECTED[feeId],
+        feeId + ' default APR classification drifted from the MSFG compliance list');
+    });
+  });
+
+  it('pins every fee in the catalog (no unlisted fees)', () => {
+    const missing = Object.keys(Catalog.FEES).filter((id) => !(id in EXPECTED));
+    assert.deepStrictEqual(missing, [],
+      'fees not pinned to the compliance list: ' + missing.join(', '));
   });
 });
 
