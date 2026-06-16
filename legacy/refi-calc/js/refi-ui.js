@@ -1539,4 +1539,10 @@ function updateMIDisplay(prefix, miData) {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     RefiUI.init();
+
+    // Collapsible result sections — bound here instead of inline onclick so they work
+    // under the strict CSP (script-src-attr 'none') applied to /legacy pages.
+    document.querySelectorAll('[data-toggle-section]').forEach((el) => {
+        el.addEventListener('click', () => window.toggleSection(el.dataset.toggleSection));
+    });
 });

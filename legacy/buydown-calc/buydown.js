@@ -691,6 +691,25 @@ function wireEvents() {
     document.getElementById(id).addEventListener('input', calculate);
     document.getElementById(id).addEventListener('change', calculate);
   });
+
+  // PITI toggle switches/labels — bound here instead of inline onclick so the page
+  // works under the strict CSP (script-src-attr 'none') applied to /legacy pages.
+  document.querySelectorAll('[data-toggle-option]').forEach(function (el) {
+    el.addEventListener('click', function () { toggleOption(el.dataset.toggleOption); });
+  });
+
+  // Action buttons + show-math header
+  var actions = {
+    paymentChart: showPaymentChart,
+    remainingChart: showRemainingChart,
+    exportCSV: exportCSV,
+    shareLink: shareLink,
+    toggleMath: toggleMath
+  };
+  document.querySelectorAll('[data-action]').forEach(function (el) {
+    var fn = actions[el.dataset.action];
+    if (fn) el.addEventListener('click', fn);
+  });
 }
 
 // =====================================================

@@ -296,12 +296,12 @@
         <div class="section">
           <h2>Additional Options (PITI)</h2>
           <div class="toggle-row">
-            <div class="toggle-switch" id="includeTaxes" onclick="toggleOption('includeTaxes')"></div>
-            <span class="toggle-label" onclick="toggleOption('includeTaxes')">Include Property Taxes</span>
+            <div class="toggle-switch" id="includeTaxes" data-toggle-option="includeTaxes"></div>
+            <span class="toggle-label" data-toggle-option="includeTaxes">Include Property Taxes</span>
           </div>
           <div class="toggle-row">
-            <div class="toggle-switch" id="includeInsurance" onclick="toggleOption('includeInsurance')"></div>
-            <span class="toggle-label" onclick="toggleOption('includeInsurance')">Include Homeowners Insurance</span>
+            <div class="toggle-switch" id="includeInsurance" data-toggle-option="includeInsurance"></div>
+            <span class="toggle-label" data-toggle-option="includeInsurance">Include Homeowners Insurance</span>
           </div>
           
           <div id="taxInsuranceInputs" style="display: none; margin-top: 1rem;">
@@ -361,16 +361,16 @@
 
           <!-- Action Buttons -->
           <div class="action-buttons">
-            <button type="button" class="btn btn-primary" onclick="showPaymentChart()">
+            <button type="button" class="btn btn-primary" data-action="paymentChart">
               📊 Payment Chart
             </button>
-            <button type="button" class="btn btn-secondary" onclick="showRemainingChart()">
+            <button type="button" class="btn btn-secondary" data-action="remainingChart">
               📉 Remaining Chart
             </button>
-            <button type="button" class="btn btn-secondary" onclick="exportCSV()">
+            <button type="button" class="btn btn-secondary" data-action="exportCSV">
               📄 Export CSV
             </button>
-            <button type="button" class="btn btn-secondary" onclick="shareLink()">
+            <button type="button" class="btn btn-secondary" data-action="shareLink">
               🔗 Share Link
             </button>
           </div>
@@ -383,7 +383,7 @@
 
         <!-- Show Calculations Section -->
         <div class="chart-section">
-          <div class="chart-header" onclick="toggleMath()">
+          <div class="chart-header" data-action="toggleMath">
             <h2>📐 Show Calculation Steps</h2>
             <button class="chart-toggle" id="mathToggle">Show Math</button>
           </div>
