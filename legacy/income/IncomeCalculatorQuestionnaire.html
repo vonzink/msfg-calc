@@ -340,26 +340,26 @@
             <h3>Employment Status <span class="status-badge">Live</span></h3>
             <div class="question">What is your current employment situation? (Select all that apply)</div>
             <div class="options">
-                <div class="option" data-value="w2" onclick="selectOption(this, 'employment')">
+                <div class="option" data-value="w2" data-question="employment">
                     <h4>W-2 Employee</h4>
                     <p>I receive a W-2 from my employer</p>
                 </div>
-                <div class="option" data-value="self-employed" onclick="selectOption(this, 'employment')">
+                <div class="option" data-value="self-employed" data-question="employment">
                     <h4>Self-Employed</h4>
                     <p>I own a business or work as an independent contractor</p>
                 </div>
-                <div class="option" data-value="retired" onclick="selectOption(this, 'employment')">
+                <div class="option" data-value="retired" data-question="employment">
                     <h4>Retired</h4>
                     <p>I receive pension, Social Security, or retirement income</p>
                 </div>
-                <div class="option" data-value="other" onclick="selectOption(this, 'employment')">
+                <div class="option" data-value="other" data-question="employment">
                     <h4>Other Income</h4>
                     <p>Alimony, child support, unemployment, disability</p>
                 </div>
             </div>
             <div class="navigation">
                 <button class="btn secondary" disabled>Previous</button>
-                <button class="btn" onclick="nextQuestion()" disabled>Next</button>
+                <button class="btn" data-action="next" disabled>Next</button>
             </div>
         </div>
 
@@ -368,26 +368,30 @@
             <h3>Business Structure <span class="status-badge">Live</span></h3>
             <div class="question">What type of business structure do you have? (Select all that apply)</div>
             <div class="options">
-                <div class="option" data-value="sole-prop" onclick="selectOption(this, 'business')">
+                <div class="option" data-value="sole-prop" data-question="business">
                     <h4>Sole Proprietorship</h4>
                     <p>Individual business ownership (Schedule C)</p>
                 </div>
-                <div class="option" data-value="llc" onclick="selectOption(this, 'business')">
+                <div class="option" data-value="llc" data-question="business">
                     <h4>LLC</h4>
                     <p>Limited Liability Company</p>
                 </div>
-                <div class="option" data-value="partnership" onclick="selectOption(this, 'business')">
+                <div class="option" data-value="partnership" data-question="business">
                     <h4>Partnership</h4>
                     <p>Form 1065 or Schedule K-1</p>
                 </div>
-                <div class="option" data-value="corporation" onclick="selectOption(this, 'business')">
-                    <h4>Corporation</h4>
-                    <p>S-Corp (1120S) or C-Corp (1120)</p>
+                <div class="option" data-value="s-corp" data-question="business">
+                    <h4>S-Corporation</h4>
+                    <p>S-Corp return (Form 1120S + K-1)</p>
+                </div>
+                <div class="option" data-value="c-corp" data-question="business">
+                    <h4>C-Corporation</h4>
+                    <p>C-Corp return (Form 1120)</p>
                 </div>
             </div>
             <div class="navigation">
-                <button class="btn secondary" onclick="previousQuestion()">Previous</button>
-                <button class="btn" onclick="nextQuestion()" disabled>Next</button>
+                <button class="btn secondary" data-action="prev">Previous</button>
+                <button class="btn" data-action="next" disabled>Next</button>
             </div>
         </div>
 
@@ -396,18 +400,18 @@
             <h3>Business Ownership <span class="status-badge">Live</span></h3>
             <div class="question">Do you own 25% or more of the business? (Select one)</div>
             <div class="options">
-                <div class="option" data-value="yes" onclick="selectOption(this, 'ownership')">
+                <div class="option" data-value="yes" data-question="ownership">
                     <h4>Yes</h4>
                     <p>I own 25% or more of the business</p>
                 </div>
-                <div class="option" data-value="no" onclick="selectOption(this, 'ownership')">
+                <div class="option" data-value="no" data-question="ownership">
                     <h4>No</h4>
                     <p>I own less than 25% of the business</p>
                 </div>
             </div>
             <div class="navigation">
-                <button class="btn secondary" onclick="previousQuestion()">Previous</button>
-                <button class="btn" onclick="nextQuestion()" disabled>Next</button>
+                <button class="btn secondary" data-action="prev">Previous</button>
+                <button class="btn" data-action="next" disabled>Next</button>
             </div>
         </div>
 
@@ -416,34 +420,34 @@
             <h3>Additional Income Sources <span class="status-badge">Live</span></h3>
             <div class="question">Do you have any of these additional income sources? (Select all that apply)</div>
             <div class="options">
-                <div class="option" data-value="none" onclick="selectOption(this, 'income')">
+                <div class="option" data-value="none" data-question="income">
                     <h4>None</h4>
                     <p>I don't have any additional income sources</p>
                 </div>
-                <div class="option" data-value="rental" onclick="selectOption(this, 'income')">
+                <div class="option" data-value="rental" data-question="income">
                     <h4>Rental Properties</h4>
                     <p>Investment properties or rental income</p>
                 </div>
-                <div class="option" data-value="farm" onclick="selectOption(this, 'income')">
+                <div class="option" data-value="farm" data-question="income">
                     <h4>Farm Income</h4>
                     <p>Agricultural or farming business</p>
                 </div>
-                <div class="option" data-value="investments" onclick="selectOption(this, 'income')">
+                <div class="option" data-value="investments" data-question="income">
                     <h4>Investment Income</h4>
                     <p>Interest, dividends, or capital gains</p>
                 </div>
-                <div class="option" data-value="other" onclick="selectOption(this, 'income')">
+                <div class="option" data-value="other" data-question="income">
                     <h4>Other Income</h4>
                     <p>Alimony, unemployment, Social Security</p>
                 </div>
-                <div class="option" data-value="multiple-companies" onclick="selectOption(this, 'income')">
+                <div class="option" data-value="multiple-companies" data-question="income">
                     <h4>Multiple Companies</h4>
                     <p>Ownership in multiple businesses or companies</p>
                 </div>
             </div>
             <div class="navigation">
-                <button class="btn secondary" onclick="previousQuestion()">Previous</button>
-                <button class="btn" onclick="nextQuestion()">Next</button>
+                <button class="btn secondary" data-action="prev">Previous</button>
+                <button class="btn" data-action="next">Next</button>
             </div>
         </div>
 
@@ -452,26 +456,30 @@
             <h3>Multiple Business Structure <span class="status-badge">Live</span></h3>
             <div class="question">What type of business structure do your multiple companies have? (Select all that apply)</div>
             <div class="options">
-                <div class="option" data-value="sole-prop" onclick="selectOption(this, 'multipleBusinessStructure')">
+                <div class="option" data-value="sole-prop" data-question="multipleBusinessStructure">
                     <h4>Sole Proprietorship</h4>
                     <p>Individual business ownership</p>
                 </div>
-                <div class="option" data-value="llc" onclick="selectOption(this, 'multipleBusinessStructure')">
+                <div class="option" data-value="llc" data-question="multipleBusinessStructure">
                     <h4>LLC</h4>
                     <p>Limited Liability Company</p>
                 </div>
-                <div class="option" data-value="partnership" onclick="selectOption(this, 'multipleBusinessStructure')">
+                <div class="option" data-value="partnership" data-question="multipleBusinessStructure">
                     <h4>Partnership</h4>
                     <p>Multiple owners sharing profits</p>
                 </div>
-                <div class="option" data-value="corporation" onclick="selectOption(this, 'multipleBusinessStructure')">
-                    <h4>Corporation</h4>
-                    <p>S-Corp or C-Corp structure</p>
+                <div class="option" data-value="s-corp" data-question="multipleBusinessStructure">
+                    <h4>S-Corporation</h4>
+                    <p>S-Corp return (Form 1120S + K-1)</p>
+                </div>
+                <div class="option" data-value="c-corp" data-question="multipleBusinessStructure">
+                    <h4>C-Corporation</h4>
+                    <p>C-Corp return (Form 1120)</p>
                 </div>
             </div>
             <div class="navigation">
-                <button class="btn secondary" onclick="previousQuestion()">Previous</button>
-                <button class="btn" onclick="nextQuestion()" disabled>Next</button>
+                <button class="btn secondary" data-action="prev">Previous</button>
+                <button class="btn" data-action="next" disabled>Next</button>
             </div>
         </div>
 
@@ -480,18 +488,18 @@
             <h3>Property Ownership <span class="status-badge">Live</span></h3>
             <div class="question">Do you own any investment properties? (Select one)</div>
             <div class="options">
-                <div class="option" data-value="yes" onclick="selectOption(this, 'properties')">
+                <div class="option" data-value="yes" data-question="properties">
                     <h4>Yes</h4>
                     <p>I own rental or investment properties</p>
                 </div>
-                <div class="option" data-value="no" onclick="selectOption(this, 'properties')">
+                <div class="option" data-value="no" data-question="properties">
                     <h4>No</h4>
                     <p>I don't own any investment properties</p>
                 </div>
             </div>
             <div class="navigation">
-                <button class="btn secondary" onclick="previousQuestion()">Previous</button>
-                <button class="btn" onclick="nextQuestion()" disabled>Next</button>
+                <button class="btn secondary" data-action="prev">Previous</button>
+                <button class="btn" data-action="next" disabled>Next</button>
             </div>
         </div>
 
@@ -500,18 +508,18 @@
             <h3>Subject Property <span class="status-badge">Live</span></h3>
             <div class="question">Is the property you're financing currently rented? (Select one)</div>
             <div class="options">
-                <div class="option" data-value="yes" onclick="selectOption(this, 'subject')">
+                <div class="option" data-value="yes" data-question="subject">
                     <h4>Yes</h4>
                     <p>The property generates rental income</p>
                 </div>
-                <div class="option" data-value="no" onclick="selectOption(this, 'subject')">
+                <div class="option" data-value="no" data-question="subject">
                     <h4>No</h4>
                     <p>It's my primary residence or vacant</p>
                 </div>
             </div>
             <div class="navigation">
-                <button class="btn secondary" onclick="previousQuestion()">Previous</button>
-                <button class="btn" onclick="showResults()" disabled>Get Recommendations</button>
+                <button class="btn secondary" data-action="prev">Previous</button>
+                <button class="btn" data-action="results" disabled>Get Recommendations</button>
             </div>
         </div>
 
@@ -523,9 +531,9 @@
                 <!-- Calculator recommendations will be populated here -->
             </div>
             <div class="navigation">
-                <button class="btn secondary" onclick="restartQuestionnaire()">Start Over</button>
-                <button class="btn" onclick="exportRecommendations()">Export Recommendations</button>
-                <button class="btn" onclick="openInWorkspace()" style="background: var(--accent);">
+                <button class="btn secondary" data-action="restart">Start Over</button>
+                <button class="btn" data-action="export">Export Recommendations</button>
+                <button class="btn" data-action="workspace" style="background: var(--accent);">
                     Open All in Workspace →
                 </button>
             </div>
@@ -640,7 +648,7 @@
 
         function selectOption(element, questionType) {
             const singleSelectQuestions = ['properties', 'subject', 'ownership'];
-            
+
             if (singleSelectQuestions.includes(questionType)) {
                 const options = element.parentElement.querySelectorAll('.option');
                 options.forEach(opt => opt.classList.remove('selected'));
@@ -649,7 +657,7 @@
             } else {
                 const isNoneOption = element.dataset.value === 'none';
                 const options = element.parentElement.querySelectorAll('.option');
-                
+
                 if (isNoneOption) {
                     options.forEach(opt => opt.classList.remove('selected'));
                     element.classList.add('selected');
@@ -659,49 +667,42 @@
                     if (noneOption && noneOption.classList.contains('selected')) {
                         noneOption.classList.remove('selected');
                     }
-                    
+
                     element.classList.toggle('selected');
                     const selectedOptions = element.parentElement.querySelectorAll('.option.selected');
                     answers[questionType] = Array.from(selectedOptions).map(opt => opt.dataset.value);
                 }
             }
-            
+
             const selectedOptions = element.parentElement.querySelectorAll('.option.selected');
             const nextBtn = element.closest('.question-section').querySelector('.btn:not(.secondary)');
             nextBtn.disabled = selectedOptions.length === 0;
         }
 
+        function showSection(id) {
+            document.querySelectorAll('.question-section').forEach(section => section.classList.remove('active'));
+            document.getElementById('results').classList.remove('active');
+            document.getElementById(id).classList.add('active');
+        }
+
         function nextQuestion() {
             if (currentQuestion === 1) {
-                if (!answers.employment.includes('self-employed')) {
-                    currentQuestion = 3; // Skip business questions
-                    skipQuestions([2, 3]);
-                } else {
-                    currentQuestion = 2;
-                }
+                // Only self-employed borrowers answer the business-structure / ownership questions
+                currentQuestion = answers.employment.includes('self-employed') ? 2 : 4;
             } else if (currentQuestion === 2) {
                 currentQuestion = 3;
             } else if (currentQuestion === 3) {
                 currentQuestion = 4;
             } else if (currentQuestion === 4) {
-                if (!answers.income.includes('multiple-companies')) {
-                    currentQuestion = 6; // Skip multiple business structure
-                    skipQuestion(5);
-                } else {
-                    currentQuestion = 5;
-                }
+                // Only ask about multiple-company structures when that source was selected
+                currentQuestion = answers.income.includes('multiple-companies') ? 5 : 6;
             } else if (currentQuestion === 5) {
                 currentQuestion = 6;
             } else if (currentQuestion === 6) {
                 currentQuestion = 7;
             }
 
-            const prevQuestionId = currentQuestion - 1;
-            if (document.getElementById(`question-${prevQuestionId}`)) {
-                document.getElementById(`question-${prevQuestionId}`).classList.remove('active');
-            }
-            document.querySelectorAll('.question-section').forEach(section => section.classList.remove('active'));
-            document.getElementById(`question-${currentQuestion}`).classList.add('active');
+            showSection(`question-${currentQuestion}`);
             updateProgress();
         }
 
@@ -709,96 +710,60 @@
             if (currentQuestion === 7) {
                 currentQuestion = 6;
             } else if (currentQuestion === 6) {
-                if (!answers.income.includes('multiple-companies')) {
-                    currentQuestion = 4;
-                } else {
-                    currentQuestion = 5;
-                }
+                currentQuestion = answers.income.includes('multiple-companies') ? 5 : 4;
             } else if (currentQuestion === 5) {
                 currentQuestion = 4;
             } else if (currentQuestion === 4) {
-                currentQuestion = 3;
+                currentQuestion = answers.employment.includes('self-employed') ? 3 : 1;
             } else if (currentQuestion === 3) {
-                if (!answers.employment.includes('self-employed')) {
-                    currentQuestion = 1;
-                } else {
-                    currentQuestion = 2;
-                }
+                currentQuestion = 2;
             } else if (currentQuestion === 2) {
                 currentQuestion = 1;
             }
 
-            document.querySelectorAll('.question-section').forEach(section => section.classList.remove('active'));
-            document.getElementById(`question-${currentQuestion}`).classList.add('active');
+            showSection(`question-${currentQuestion}`);
             updateProgress();
-        }
-
-        function skipQuestion(questionNum) {
-            const question = document.getElementById(`question-${questionNum}`);
-            if (question) {
-                question.classList.remove('active');
-            }
-        }
-
-        function skipQuestions(questionNums) {
-            questionNums.forEach(num => skipQuestion(num));
         }
 
         function showResults() {
             const recommendations = generateRecommendations();
             displayRecommendations(recommendations);
-            
+
             document.querySelectorAll('.question-section').forEach(section => section.classList.remove('active'));
             document.getElementById('results').classList.add('active');
         }
 
-        function generateRecommendations() {
-            let recommendations = [];
-            
-            recommendations.push('1040');
-            
-            if (answers.employment === 'self-employed') {
-                if (Array.isArray(answers.business) && answers.business.length > 0) {
-                    answers.business.forEach(businessType => {
-                        if (businessType === 'sole-prop') {
-                            recommendations.push('schedule-c');
-                        } else if (businessType === 'llc') {
-                            recommendations.push('schedule-c');
-                        } else if (businessType === 'partnership') {
-                            if (answers.ownership === 'yes') {
-                                recommendations.push('form-1065');
-                                recommendations.push('1065-k1');
-                            }
-                        } else if (businessType === 'corporation') {
-                            if (answers.ownership === 'yes') {
-                                recommendations.push('form-1120s');
-                                recommendations.push('1120s-k1');
-                            }
-                        }
-                    });
+        // Map selected business structures to the income calculators required.
+        // requireOwnership: pass-through entities (partnership / S-corp / C-corp) are only
+        // reviewed when the borrower owns 25%+ (answered in Question 3).
+        function calculatorsForBusiness(businessTypes, requireOwnership) {
+            const out = [];
+            const ownsEnough = !requireOwnership || answers.ownership === 'yes';
+
+            (businessTypes || []).forEach(type => {
+                if (type === 'sole-prop' || type === 'llc') {
+                    out.push('schedule-c');
+                } else if (type === 'partnership' && ownsEnough) {
+                    out.push('form-1065', '1065-k1');
+                } else if (type === 's-corp' && ownsEnough) {
+                    out.push('form-1120s', '1120s-k1');
+                } else if (type === 'c-corp' && ownsEnough) {
+                    out.push('form-1120');
                 }
+            });
+
+            return out;
+        }
+
+        function generateRecommendations() {
+            const recommendations = ['1040'];
+
+            // Business structures (self-employed, or W-2 borrowers who also own a business)
+            if (Array.isArray(answers.business) && answers.business.length > 0) {
+                recommendations.push(...calculatorsForBusiness(answers.business, true));
             }
-            
-            if (answers.employment.includes('w2') && Array.isArray(answers.business) && answers.business.length > 0) {
-                answers.business.forEach(businessType => {
-                    if (businessType === 'sole-prop') {
-                        recommendations.push('schedule-c');
-                    } else if (businessType === 'llc') {
-                        recommendations.push('schedule-c');
-                    } else if (businessType === 'partnership') {
-                        if (answers.ownership === 'yes') {
-                            recommendations.push('form-1065');
-                            recommendations.push('1065-k1');
-                        }
-                    } else if (businessType === 'corporation') {
-                        if (answers.ownership === 'yes') {
-                            recommendations.push('form-1120s');
-                            recommendations.push('1120s-k1');
-                        }
-                    }
-                });
-            }
-            
+
+            // Additional income sources
             if (!answers.income.includes('none')) {
                 if (answers.income.includes('rental')) {
                     recommendations.push('schedule-e');
@@ -810,49 +775,38 @@
                     recommendations.push('schedule-f');
                 }
                 if (answers.income.includes('investments')) {
-                    recommendations.push('schedule-b');
-                    recommendations.push('schedule-d');
+                    recommendations.push('schedule-b', 'schedule-d');
+                }
+                if (answers.income.includes('multiple-companies')) {
+                    recommendations.push(...calculatorsForBusiness(answers.multipleBusinessStructure, false));
                 }
             }
-            
-            if (answers.income.includes('multiple-companies') && !answers.income.includes('none')) {
-                if (Array.isArray(answers.multipleBusinessStructure) && answers.multipleBusinessStructure.length > 0) {
-                    answers.multipleBusinessStructure.forEach(structure => {
-                        if (structure === 'sole-prop' || structure === 'llc') {
-                            recommendations.push('schedule-c');
-                        } else if (structure === 'partnership') {
-                            recommendations.push('form-1065');
-                            recommendations.push('1065-k1');
-                        } else if (structure === 'corporation') {
-                            recommendations.push('form-1120s');
-                            recommendations.push('1120s-k1');
-                        }
-                    });
-                }
-            }
-            
+
+            // Investment properties
             if (answers.properties === 'yes') {
                 recommendations.push('schedule-e');
                 if (answers.employment.includes('self-employed')) {
                     recommendations.push('rental-1038');
                 }
             }
-            
+
+            // Subject property currently rented
             if (answers.subject === 'yes') {
                 recommendations.push('schedule-e-subject');
             }
-            
+
             return [...new Set(recommendations)];
         }
 
         function displayRecommendations(recommendations) {
             const container = document.getElementById('calculator-recommendations');
             container.innerHTML = '';
-            
+
             recommendations.forEach(calcKey => {
                 const info = calculatorInfo[calcKey];
                 const url = calculatorUrls[calcKey];
-                
+                if (!info || !url) return;
+
                 const card = document.createElement('div');
                 card.className = 'calculator-card';
                 card.innerHTML = `
@@ -880,13 +834,13 @@
                 properties: null,
                 subject: null
             };
-            
+
             document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
             document.getElementById('results').classList.remove('active');
             document.querySelectorAll('.question-section').forEach(section => section.classList.remove('active'));
             document.getElementById('question-1').classList.add('active');
             document.querySelectorAll('.btn:not(.secondary)').forEach(btn => btn.disabled = true);
-            
+
             updateProgress();
         }
 
@@ -900,7 +854,7 @@
                     calculatorUrls[key]
                 ])
             ];
-            
+
             let csvContent = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n");
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
@@ -932,6 +886,32 @@
                 window.location.href = '/workspace';
             }
         }
+
+        function handleAction(action) {
+            switch (action) {
+                case 'next': nextQuestion(); break;
+                case 'prev': previousQuestion(); break;
+                case 'results': showResults(); break;
+                case 'restart': restartQuestionnaire(); break;
+                case 'export': exportRecommendations(); break;
+                case 'workspace': openInWorkspace(); break;
+            }
+        }
+
+        // Bind events via delegation — no inline handlers, so the page works under a
+        // strict CSP (script-src-attr 'none'). Replaces the old onclick="" attributes.
+        document.addEventListener('click', (event) => {
+            const option = event.target.closest('.option');
+            if (option && option.dataset.question) {
+                selectOption(option, option.dataset.question);
+                return;
+            }
+
+            const actionEl = event.target.closest('[data-action]');
+            if (actionEl) {
+                handleAction(actionEl.dataset.action);
+            }
+        });
 
         // Initialize
         updateProgress();
