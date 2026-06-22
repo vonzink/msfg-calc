@@ -41,6 +41,19 @@
     });
   }
 
+  // A fee-bearing MISMO (Closing Disclosure / Loan Estimate) carries itemized
+  // fees, prepaids, or escrow. URLA/1003 application exports do not — detect so a
+  // fee-less file doesn't fail silently in the Fee Worksheet / Loan Comparison.
+  function mismoHasFeeData(data) {
+    if (!data) return false;
+    var fees = data.fees || {};
+    var hasFees = Object.keys(fees).some(function (k) { return k.charAt(0) !== '_'; });
+    if (hasFees) return true;
+    if (data.prepaids && Object.keys(data.prepaids).length > 0) return true;
+    if (data.escrow && Object.keys(data.escrow).length > 0) return true;
+    return false;
+  }
+
   function handleMISMOFile(file) {
     if (!file.name.match(/\.(xml|mismo)$/i)) {
       MSFG.WS.showToast('Please drop a MISMO XML file (.xml)', 'error');
@@ -58,7 +71,14 @@
         updateMISMOUI(parsed, file.name);
         if (typeof onDataLoadedCallback === 'function') onDataLoadedCallback();
         broadcastMISMOToIframes(e.target.result);
-        MSFG.WS.showToast('MISMO data loaded — ' + parsed.borrowerName, 'success');
+        if (mismoHasFeeData(parsed)) {
+          MSFG.WS.showToast('MISMO data loaded — ' + (parsed.borrowerName || 'borrower'), 'success');
+        } else {
+          MSFG.WS.showToast(
+            'Loaded ' + (parsed.borrowerName || 'borrower') + ', but this file has no fee or closing-cost data — ' +
+            'it looks like a URLA/1003 application export. Drop the Closing Disclosure MISMO to populate fees.',
+            'warning', 8000);
+        }
       } catch (err) {
         console.error('MISMO parse error:', err);
         MSFG.WS.showToast('Failed to parse MISMO file: ' + err.message, 'error');
@@ -111,6 +131,21 @@
     if (data.property.value) parts.push('Value: $' + MSFG.WS.formatNum(data.property.value));
     if (data.loan.purpose) parts.push(data.loan.purpose);
     metaEl.textContent = parts.join('  •  ');
+
+    // Persistent warning when the file carries no fee/closing data.
+    var warnEl = document.getElementById('mismoFeeWarn');
+    if (!mismoHasFeeData(data)) {
+      if (!warnEl) {
+        warnEl = document.createElement('div');
+        warnEl.id = 'mismoFeeWarn';
+        warnEl.style.cssText = 'margin-top:6px;font-size:.76rem;line-height:1.35;color:#b45309;font-weight:500;';
+        active.appendChild(warnEl);
+      }
+      warnEl.textContent = '⚠ No fee/closing data in this file (URLA/1003 application export). Drop the Closing Disclosure MISMO to populate fees.';
+      warnEl.style.display = '';
+    } else if (warnEl) {
+      warnEl.style.display = 'none';
+    }
   }
 
   function clearMISMOData() {
