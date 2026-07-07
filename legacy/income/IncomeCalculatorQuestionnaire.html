@@ -811,9 +811,11 @@
 
             recommendations.forEach(calcKey => {
                 const info = calculatorInfo[calcKey];
-                const path = calculatorUrls[calcKey];
-                if (!info || !path) return;
-                const url = BASE_PATH + path;
+                // Root-absolute route; the /calc proxy's sub_filter rewrites it
+                // to /calc/calculators/... — do NOT prefix BASE_PATH here or it
+                // double-prefixes under the subpath deployment.
+                const url = calculatorUrls[calcKey];
+                if (!info || !url) return;
 
                 const card = document.createElement('div');
                 card.className = 'calculator-card';

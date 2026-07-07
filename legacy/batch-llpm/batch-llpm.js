@@ -8,10 +8,7 @@
  * @version 1.0.0
  */
 
-// Relative specifier resolves against this module's URL, so it works both
-// standalone and under a subpath mount (e.g. dashboard.msfgco.com/calc/).
-// Resolves to the same /calculators/llpm/pricing-engine.js as before.
-import { calcLLPAs } from '../llpm/pricing-engine.js';
+import { calcLLPAs } from '/calculators/llpm/pricing-engine.js';
 
 // ============= DOM HELPERS =============
 
