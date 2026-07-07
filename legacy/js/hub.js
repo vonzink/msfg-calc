@@ -41,6 +41,16 @@
     incomef:      { name: 'Schedule F Income Calculator',  icon: '\u{1F33E}', cat: 'Income',     href: 'income/IncomeCalculatorScheduleF.html',             desc: 'Calculate qualifying farm income and expenses from Schedule F. Handles agricultural income including crop sales, livestock, cooperative distributions, and CCC loans with appropriate add-backs.',                                                                                               features: ['Gross farm income and expense analysis','Depreciation and conservation expense add-backs','Two-year farm income averaging','Co-op distribution and CCC loan handling'] },
   };
 
+  /* Prefix root-absolute calculator routes with the app's mount directory so
+     they resolve under a subpath deployment (e.g. dashboard.msfgco.com/calc/).
+     Relative hrefs already resolve correctly and are left untouched. */
+  var BASE_PATH = location.pathname.replace(/\/[^/]*$/, '');
+  Object.values(CALCS).forEach(function (c) {
+    if (c.href && c.href.charAt(0) === '/' && c.href.charAt(1) !== '/') {
+      c.href = BASE_PATH + c.href;
+    }
+  });
+
   /* Counts per category */
   var COUNTS = {};
   Object.values(CALCS).forEach(function (c) { COUNTS[c.cat] = (COUNTS[c.cat] || 0) + 1; });

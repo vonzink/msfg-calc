@@ -553,6 +553,13 @@
             subject: null
         };
 
+        // Base path for subpath deployments (e.g. /calc/ on dashboard.msfgco.com).
+        // This page always lives under .../legacy/income/, so everything before
+        // that segment is the app's mount prefix ('' when served standalone).
+        const BASE_PATH = location.pathname.includes('/legacy/')
+            ? location.pathname.split('/legacy/')[0]
+            : '';
+
         const calculatorUrls = {
             '1040': '/calculators/income/1040',
             'schedule-c': '/calculators/income/schedule-c',
@@ -804,8 +811,9 @@
 
             recommendations.forEach(calcKey => {
                 const info = calculatorInfo[calcKey];
-                const url = calculatorUrls[calcKey];
-                if (!info || !url) return;
+                const path = calculatorUrls[calcKey];
+                if (!info || !path) return;
+                const url = BASE_PATH + path;
 
                 const card = document.createElement('div');
                 card.className = 'calculator-card';
@@ -873,7 +881,7 @@
                     alert('No calculators recommended. Please complete the questionnaire first.');
                     return;
                 }
-                const url = '/workspace?add=' + slugs.join(',');
+                const url = BASE_PATH + '/workspace?add=' + slugs.join(',');
                 // Navigate the top-level window (breaks out of any iframe nesting)
                 if (window.top && window.top !== window) {
                     window.top.location.href = url;
@@ -883,7 +891,7 @@
             } catch (err) {
                 // Fallback: navigate current window
                 console.error('openInWorkspace error:', err);
-                window.location.href = '/workspace';
+                window.location.href = BASE_PATH + '/workspace';
             }
         }
 
