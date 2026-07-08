@@ -600,7 +600,7 @@
     if (data.loan.rate) m['cmpRate_' + idx] = data.loan.rate;
     if (data.loan.termMonths) m['cmpTerm_' + idx] = data.loan.termMonths;
     if (data.loan.apr) m['cmpAPR_' + idx] = data.loan.apr;
-    if (data.loan.downPayment) m['cmpDownPayment_' + idx] = data.loan.downPayment;
+    // Down payment is derived (Property Value − Base Loan Amount) in compare.js — do not import.
 
     // Shared fields (only for first loan column)
     if (idx === 1) {
@@ -629,47 +629,66 @@
       if (prodParts.length) m['cmpProduct_' + idx] = prodParts.join(' ');
     }
 
-    // Origination charges
-    var origAmt = feeAmt(fees, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
-    if (origAmt) m['cmpOrigFee_' + idx] = origAmt;
-    var discAmt = feeAmt(fees, 'LoanDiscountPoints', 'Loan Discount Points', 'DiscountPoints');
-    if (discAmt) m['cmpDiscountPts_' + idx] = discAmt;
-    var procAmt = feeAmt(fees, 'Processing Fee', 'ProcessingFee');
-    if (procAmt) m['cmpProcessingFee_' + idx] = procAmt;
-    var uwAmt = feeAmt(fees, 'Underwriting Fee', 'UnderwritingFee');
-    if (uwAmt) m['cmpUnderwritingFee_' + idx] = uwAmt;
+    // ── Fee mapping ──────────────────────────────────────────────
+    // Map known fees to their line and record which raw keys were
+    // consumed, so the sum-by-section catch-all below never double-counts.
+    var consumed = {};
+    function feeC(dest) {
+      var amt = 0;
+      for (var a = 1; a < arguments.length; a++) {
+        var k = arguments[a];
+        if (fees[k] && fees[k].amount) { amt += fees[k].amount; consumed[k] = true; }
+      }
+      if (amt) m[dest] = amt;
+    }
 
-    // Third-party fees
-    var appraisalAmt = feeAmt(fees, 'AppraisalFee', 'Appraisal Fee');
-    if (appraisalAmt) m['cmpAppraisalFee_' + idx] = appraisalAmt;
-    var creditAmt = feeAmt(fees, 'CreditReportFee', 'Credit Report Fee');
-    if (creditAmt) m['cmpCreditReportFee_' + idx] = creditAmt;
+    // A. Origination charges
+    feeC('cmpOrigFee_' + idx, 'LoanOriginationFee', 'OriginationFee', 'Origination Fee');
+    feeC('cmpDiscountPts_' + idx, 'LoanDiscountPoints', 'Loan Discount Points', 'DiscountPoints');
+    feeC('cmpProcessingFee_' + idx, 'Processing Fee', 'ProcessingFee');
+    feeC('cmpUnderwritingFee_' + idx, 'Underwriting Fee', 'UnderwritingFee');
 
-    // Services you cannot shop for — flood cert & tax service
-    var floodAmt = feeAmt(fees, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
-    if (floodAmt) m['cmpFloodCert_' + idx] = floodAmt;
-    var taxSvcAmt = feeAmt(fees, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
-    if (taxSvcAmt) m['cmpTaxService_' + idx] = taxSvcAmt;
+    // B. Services you cannot shop for
+    feeC('cmpAppraisalFee_' + idx, 'AppraisalFee', 'Appraisal Fee');
+    feeC('cmpCreditReportFee_' + idx, 'CreditReportFee', 'Credit Report Fee');
+    feeC('cmpFloodCert_' + idx, 'FloodCertification', 'FloodCertificationFee', 'Flood Certification');
+    feeC('cmpTaxService_' + idx, 'TaxRelatedServiceFee', 'Tax Related Service Fee', 'TaxServiceFee');
+    feeC('cmpTechnologyFee_' + idx, 'Technology Fee', 'TechnologyFee');
+    feeC('cmpVoeFee_' + idx, 'Verification Of Employment Fee', 'Verification of Employment Fee', 'VerificationOfEmploymentFee', 'VOE Fee');
 
-    // Services you can shop for — title & settlement
-    var titleSearchAmt = 0;
-    titleSearchAmt += feeAmt(fees, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee');
-    titleSearchAmt += feeAmt(fees, 'Title - Tax Cert Fee', 'TitleTaxCertFee');
-    if (titleSearchAmt) m['cmpTitleSearch_' + idx] = titleSearchAmt;
+    // C. Services you can shop for — title & settlement
+    feeC('cmpTitleSearch_' + idx, 'TitleClosingProtectionLetterFee', 'Title - Closing Protection Letter Fee', 'Title - Tax Cert Fee', 'TitleTaxCertFee', 'Title Search', 'TitleExaminationFee');
+    feeC('cmpTitleInsurance_' + idx, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium', 'TitleOwnersCoveragePremium', 'Title - Owners Coverage Premium', "Title - Owner's Coverage Premium");
+    feeC('cmpSettlementFee_' + idx, 'SettlementFee', 'Settlement Fee', 'Title - Settlement Fee');
+    feeC('cmpTitleEndorsement_' + idx, 'Title - Endorsement Fee', 'TitleEndorsementFee', 'Endorsement Fee');
+    feeC('cmpSurveyFee_' + idx, 'SurveyFee', 'Survey Fee', 'Survey');
+    feeC('cmpPestInspection_' + idx, 'PestInspectionFee', 'Pest Inspection Fee', 'Pest Inspection');
+    feeC('cmpERecordingFee_' + idx, 'E-Recording Fee', 'ERecordingFee');
 
-    var titleInsAmt = 0;
-    titleInsAmt += feeAmt(fees, 'TitleLendersCoveragePremium', 'Title - Lenders Coverage Premium');
-    titleInsAmt += feeAmt(fees, 'TitleOwnersCoveragePremium', 'Title - Owners Coverage Premium');
-    if (titleInsAmt) m['cmpTitleInsurance_' + idx] = titleInsAmt;
+    // D. Taxes & government fees
+    feeC('cmpRecordingFee_' + idx, 'RecordingFeeForDeed', 'Recording Fee For Deed', 'RecordingFee');
+    feeC('cmpTransferTax_' + idx, 'TransferTax', 'Transfer Tax', 'StateRecordingTax', 'State Recording Tax');
 
-    var settlementAmt = feeAmt(fees, 'SettlementFee', 'Settlement Fee', 'Title - Settlement Fee');
-    if (settlementAmt) m['cmpSettlementFee_' + idx] = settlementAmt;
-
-    // Government fees
-    var recordingAmt = feeAmt(fees, 'RecordingFeeForDeed', 'Recording Fee For Deed');
-    if (recordingAmt) m['cmpRecordingFee_' + idx] = recordingAmt;
-    var transferTaxAmt = feeAmt(fees, 'TransferTax', 'Transfer Tax', 'StateRecordingTax', 'State Recording Tax');
-    if (transferTaxAmt) m['cmpTransferTax_' + idx] = transferTaxAmt;
+    // Sum-by-section: every remaining (unmapped) fee lands in its section's
+    // "Other (imported)" bucket so section totals reconcile with the LOS exactly.
+    var otherBySec = { origination: 0, cannotShop: 0, canShop: 0, government: 0 };
+    Object.keys(fees).forEach(function (key) {
+      if (key.indexOf('_section_') === 0) return;
+      if (consumed[key]) return;
+      var fee = fees[key];
+      if (!fee || !fee.amount) return;
+      var sType = fee.section || '';
+      var sec = null;
+      if (sType === 'OriginationCharges') sec = 'origination';
+      else if (sType === 'ServicesYouCannotShopFor' || sType === 'ServicesBorrowerDidNotShop') sec = 'cannotShop';
+      else if (sType === 'ServicesYouCanShopFor' || sType === 'ServicesBorrowerDidShop') sec = 'canShop';
+      else if (sType === 'TaxesAndOtherGovernmentFees') sec = 'government';
+      if (sec) otherBySec[sec] += fee.amount;
+    });
+    if (otherBySec.origination) m['cmpOrigOther_' + idx] = otherBySec.origination;
+    if (otherBySec.cannotShop) m['cmpCannotShopOther_' + idx] = otherBySec.cannotShop;
+    if (otherBySec.canShop) m['cmpCanShopOther_' + idx] = otherBySec.canShop;
+    if (otherBySec.government) m['cmpGovOther_' + idx] = otherBySec.government;
 
     // Seller / Lender credits
     if (data.closingCostFunds) {

@@ -17,10 +17,21 @@
 
       var loans = [];
       for (var i = 1; i <= count; i++) {
+        var loanAmt = val(doc, 'cmpLoanAmount_' + i);
+        var propVal = val(doc, 'cmpPropertyValue_' + i);
+        // Title / Settlement line = full Section C (Services You Can Shop For)
+        var titleFees = val(doc, 'cmpTitleSearch_' + i) + val(doc, 'cmpTitleInsurance_' + i) +
+                        val(doc, 'cmpSettlementFee_' + i) + val(doc, 'cmpTitleEndorsement_' + i) +
+                        val(doc, 'cmpERecordingFee_' + i) + val(doc, 'cmpSurveyFee_' + i) +
+                        val(doc, 'cmpPestInspection_' + i) + val(doc, 'cmpCanShopOther_' + i);
+        // Other Third-Party = Section B beyond appraisal + credit
+        var otherThirdParty = val(doc, 'cmpFloodCert_' + i) + val(doc, 'cmpTaxService_' + i) +
+                              val(doc, 'cmpTechnologyFee_' + i) + val(doc, 'cmpVoeFee_' + i) +
+                              val(doc, 'cmpCannotShopOther_' + i);
         loans.push({
           label: txt(doc, 'cmpLabel_' + i),
-          loanAmount: val(doc, 'cmpLoanAmount_' + i),
-          propertyValue: val(doc, 'cmpPropertyValue_' + i),
+          loanAmount: loanAmt,
+          propertyValue: propVal,
           rate: val(doc, 'cmpRate_' + i),
           term: val(doc, 'cmpTerm_' + i),
           product: txt(doc, 'cmpProduct_' + i),
@@ -29,19 +40,21 @@
           origFee: val(doc, 'cmpOrigFee_' + i),
           discountPts: val(doc, 'cmpDiscountPts_' + i),
           processingFee: val(doc, 'cmpProcessingFee_' + i),
-          underwritingFee: val(doc, 'cmpUnderwritingFee_' + i),
+          // fold per-section "Other (imported)" catch-alls into their section line
+          underwritingFee: val(doc, 'cmpUnderwritingFee_' + i) + val(doc, 'cmpOrigOther_' + i),
           appraisalFee: val(doc, 'cmpAppraisalFee_' + i),
           creditReportFee: val(doc, 'cmpCreditReportFee_' + i),
-          titleFees: val(doc, 'cmpTitleFees_' + i),
-          otherThirdParty: val(doc, 'cmpOtherThirdParty_' + i),
-          recordingFee: val(doc, 'cmpRecordingFee_' + i),
+          titleFees: titleFees,
+          otherThirdParty: otherThirdParty,
+          recordingFee: val(doc, 'cmpRecordingFee_' + i) + val(doc, 'cmpGovOther_' + i),
           transferTax: val(doc, 'cmpTransferTax_' + i),
           prepaidInsurance: val(doc, 'cmpPrepaidInsurance_' + i),
           prepaidInterest: val(doc, 'cmpPrepaidInterest_' + i),
           escrowTax: val(doc, 'cmpEscrowTax_' + i),
           escrowInsurance: val(doc, 'cmpEscrowInsurance_' + i),
-          downPayment: val(doc, 'cmpDownPayment_' + i),
-          sellerCredits: val(doc, 'cmpSellerCredits_' + i),
+          // Down payment is derived: Property Value − Base Loan Amount
+          downPayment: Math.max(0, propVal - loanAmt),
+          sellerCredits: val(doc, 'cmpSellerConcessions_' + i),
           lenderCredits: val(doc, 'cmpLenderCredits_' + i),
           monthlyTax: val(doc, 'cmpMonthlyTax_' + i),
           monthlyInsurance: val(doc, 'cmpMonthlyInsurance_' + i),

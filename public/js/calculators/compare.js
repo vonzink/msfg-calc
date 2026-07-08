@@ -576,20 +576,26 @@
     // Section subtotals
     const origTotal = v('cmpOrigFee_' + idx) + v('cmpDiscountPts_' + idx) +
                       v('cmpProcessingFee_' + idx) + v('cmpUnderwritingFee_' + idx) +
+                      v('cmpOrigOther_' + idx) +
                       sumCustomForSection('origination', idx);
     setText('cmpOrigTotal_' + idx, fmt(origTotal));
 
     const cannotShopTotal = v('cmpAppraisalFee_' + idx) + v('cmpCreditReportFee_' + idx) +
                             v('cmpFloodCert_' + idx) + v('cmpTaxService_' + idx) +
+                            v('cmpTechnologyFee_' + idx) + v('cmpVoeFee_' + idx) +
+                            v('cmpCannotShopOther_' + idx) +
                             sumCustomForSection('cannotShop', idx);
     setText('cmpCannotShopTotal_' + idx, fmt(cannotShopTotal));
 
     const canShopTotal = v('cmpTitleSearch_' + idx) + v('cmpTitleInsurance_' + idx) +
                          v('cmpSettlementFee_' + idx) + v('cmpSurveyFee_' + idx) +
-                         v('cmpPestInspection_' + idx) + sumCustomForSection('canShop', idx);
+                         v('cmpPestInspection_' + idx) + v('cmpTitleEndorsement_' + idx) +
+                         v('cmpERecordingFee_' + idx) + v('cmpCanShopOther_' + idx) +
+                         sumCustomForSection('canShop', idx);
     setText('cmpCanShopTotal_' + idx, fmt(canShopTotal));
 
     const govTotal = v('cmpRecordingFee_' + idx) + v('cmpTransferTax_' + idx) +
+                     v('cmpGovOther_' + idx) +
                      sumCustomForSection('government', idx);
     setText('cmpGovTotal_' + idx, fmt(govTotal));
 
@@ -621,12 +627,15 @@
     let cashToClose;
 
     if (isPurchase) {
-      const downPayment = v('cmpDownPayment_' + idx);
+      // Down payment is derived, not entered: Property Value − Base Loan Amount
+      const downPayment = Math.max(0, propValue - loanAmount);
+      setText('cmpDownPayment_' + idx, fmt(downPayment));
       const earnestMoney = v('cmpEarnestMoney_' + idx);
       // Non-financed UFMIP adds to cash needed
       const ufmipCash = (isFha && !financeUfmip) ? ufmipAmt : 0;
       cashToClose = downPayment + totalClosing + ufmipCash - lenderCredits - sellerConcessions - earnestMoney;
     } else {
+      setText('cmpDownPayment_' + idx, '$0');
       // Refi: (closing costs + payoffs) - total loan amount - credits
       cashToClose = totalClosing + payoffsTotal - totalLoanAmount - lenderCredits - sellerConcessions;
     }

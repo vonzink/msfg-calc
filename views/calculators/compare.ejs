@@ -150,6 +150,10 @@
             <td>Underwriting Fee</td>
             <td><input type="number" class="cmp-input" id="cmpUnderwritingFee_1" placeholder="0" min="0" step="1"></td>
           </tr>
+          <tr data-row="origOther" data-section="origination">
+            <td>Other (imported)</td>
+            <td><input type="number" class="cmp-input" id="cmpOrigOther_1" placeholder="0" min="0" step="1"></td>
+          </tr>
           <tr class="cmp-sub-row" data-row="origTotal" data-section="origination">
             <td>Origination Total</td>
             <td><span class="cmp-computed" id="cmpOrigTotal_1">$0</span></td>
@@ -172,6 +176,18 @@
           <tr data-row="taxService" data-section="cannotShop">
             <td>Tax Service Fee</td>
             <td><input type="number" class="cmp-input" id="cmpTaxService_1" placeholder="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="technologyFee" data-section="cannotShop">
+            <td>Technology Fee</td>
+            <td><input type="number" class="cmp-input" id="cmpTechnologyFee_1" placeholder="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="voeFee" data-section="cannotShop">
+            <td>Verification of Employment</td>
+            <td><input type="number" class="cmp-input" id="cmpVoeFee_1" placeholder="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="cannotShopOther" data-section="cannotShop">
+            <td>Other (imported)</td>
+            <td><input type="number" class="cmp-input" id="cmpCannotShopOther_1" placeholder="0" min="0" step="1"></td>
           </tr>
           <tr class="cmp-sub-row" data-row="cannotShopTotal" data-section="cannotShop">
             <td>Cannot-Shop Total</td>
@@ -200,6 +216,18 @@
             <td>Pest Inspection</td>
             <td><input type="number" class="cmp-input" id="cmpPestInspection_1" placeholder="0" min="0" step="1"></td>
           </tr>
+          <tr data-row="titleEndorsement" data-section="canShop">
+            <td>Title Endorsement</td>
+            <td><input type="number" class="cmp-input" id="cmpTitleEndorsement_1" placeholder="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="eRecordingFee" data-section="canShop">
+            <td>E-Recording</td>
+            <td><input type="number" class="cmp-input" id="cmpERecordingFee_1" placeholder="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="canShopOther" data-section="canShop">
+            <td>Other (imported)</td>
+            <td><input type="number" class="cmp-input" id="cmpCanShopOther_1" placeholder="0" min="0" step="1"></td>
+          </tr>
           <tr class="cmp-sub-row" data-row="canShopTotal" data-section="canShop">
             <td>Can-Shop Total</td>
             <td><span class="cmp-computed" id="cmpCanShopTotal_1">$0</span></td>
@@ -214,6 +242,10 @@
           <tr data-row="transferTax" data-section="government">
             <td>Transfer Tax</td>
             <td><input type="number" class="cmp-input" id="cmpTransferTax_1" placeholder="0" min="0" step="1"></td>
+          </tr>
+          <tr data-row="govOther" data-section="government">
+            <td>Other (imported)</td>
+            <td><input type="number" class="cmp-input" id="cmpGovOther_1" placeholder="0" min="0" step="1"></td>
           </tr>
           <tr class="cmp-sub-row" data-row="govTotal" data-section="government">
             <td>Government Total</td>
@@ -294,7 +326,7 @@
           <tr class="cmp-section-hdr"><td colspan="99">Cash to Close</td></tr>
           <tr data-row="downPayment" class="cmp-purchase-only">
             <td>Down Payment</td>
-            <td><input type="number" class="cmp-input" id="cmpDownPayment_1" placeholder="0" min="0" step="1000"></td>
+            <td><span class="cmp-computed" id="cmpDownPayment_1">$0</span></td>
           </tr>
           <tr data-row="earnestMoney" class="cmp-purchase-only">
             <td>Earnest Money (credit)</td>
