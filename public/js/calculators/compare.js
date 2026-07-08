@@ -21,15 +21,16 @@
   /* Per-loan input field keys */
   const INPUT_KEYS = [
     'LoanAmount', 'PropertyValue', 'Rate', 'Term', 'Product',
-    'OrigFee', 'DiscountPts', 'ProcessingFee', 'UnderwritingFee',
-    'AppraisalFee', 'CreditReportFee', 'FloodCert', 'TaxService',
-    'TitleSearch', 'TitleInsurance', 'SettlementFee', 'SurveyFee', 'PestInspection',
-    'RecordingFee', 'TransferTax',
+    'OrigFee', 'DiscountPts', 'ProcessingFee', 'UnderwritingFee', 'OrigOther',
+    'AppraisalFee', 'CreditReportFee', 'FloodCert', 'TaxService', 'TechnologyFee', 'VoeFee', 'CannotShopOther',
+    'TitleSearch', 'TitleInsurance', 'SettlementFee', 'SurveyFee', 'PestInspection', 'TitleEndorsement', 'ERecordingFee', 'CanShopOther',
+    'RecordingFee', 'TransferTax', 'GovOther',
     'PrepaidInsurance', 'PrepaidInterest',
     'EscrowTax', 'EscrowInsurance', 'EscrowMI',
     'OtherFees',
     'Payoff1st', 'Payoff2nd', 'PayoffOther',
-    'DownPayment', 'EarnestMoney', 'LenderCredits', 'SellerConcessions',
+    // DownPayment is derived (value − loan), not persisted
+    'EarnestMoney', 'LenderCredits', 'SellerConcessions',
     'MonthlyTax', 'MonthlyInsurance', 'MonthlyMI', 'MonthlyHOA'
   ];
 
