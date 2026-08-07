@@ -261,6 +261,42 @@
   white-space: nowrap;
 }
 
+/* ---- Tax-year selectors (calc-level) ---- */
+
+.calc-tax-year {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin: var(--space-sm) 0 var(--space-md);
+}
+
+.calc-tax-year__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calc-tax-year__label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-gray-700);
+}
+
+.calc-tax-year__select {
+  padding: 0.5rem;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: var(--color-gray-50);
+  min-width: 160px;
+}
+
+.calc-tax-year__select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  background: #fff;
+}
+
 /* ---- Sign Column ---- */
 
 .sign-col {

@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Schedule E Non-Subject Property Calculator</h1>
     <p>Calculate monthly qualifying income from rental real estate reported on IRS Schedule E (Form 1040) for non-subject properties. Includes monthly payment subtraction from credit report.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Borrower Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -42,6 +41,9 @@
 
     <!-- Property Income Line Items -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Borrower Name' }) %>
+      <%- include('../../partials/income-tax-year') %>
+
       <h2>Rental Property Income</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from Schedule E for the non-subject property. Positive values are added; Total Expenses is subtracted.</p>
 

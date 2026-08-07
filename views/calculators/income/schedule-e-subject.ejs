@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Schedule E Subject Property Calculator</h1>
     <p>Analyze rental income from Schedule E for the subject property using Fannie Mae guidelines. No monthly payment is subtracted for subject property analysis.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Subject Property Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -42,6 +41,9 @@
 
     <!-- Subject Property Income Table -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Subject Property Name' }) %>
+      <%- include('../../partials/income-tax-year') %>
+
       <h2>Subject Property Line Items</h2>
       <p class="text-muted text-sm u-mb-sm">Enter Schedule E line items for the subject property. Positive values are added; total expenses are subtracted.</p>
 

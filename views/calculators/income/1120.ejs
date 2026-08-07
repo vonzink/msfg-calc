@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Form 1120 Corporation Income Calculator</h1>
     <p>Calculate monthly income from C-Corporation (Form 1120) returns with ownership percentages and comprehensive add-backs.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Corporation Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -47,6 +46,9 @@
 
     <!-- Form 1120 Income Items -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Corporation Name' }) %>
+      <%- include('../../partials/income-tax-year') %>
+
       <h2>Form 1120 Income Items</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from the corporation's Form 1120 tax return.</p>
 

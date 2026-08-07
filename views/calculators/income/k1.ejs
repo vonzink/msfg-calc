@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Schedule K-1 (1065) Partnership Income Calculator</h1>
     <p>Calculate monthly income from partnership K-1s (Form 1065) including ordinary business income, rental income, and guaranteed payments.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Partnership Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -41,6 +40,9 @@
 
     <!-- Schedule K-1 -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Partnership Name' }) %>
+      <%- include('../../partials/income-tax-year') %>
+
       <h2>Schedule K-1</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from the partner's Schedule K-1 (Form 1065). Positive values are added; negative values reduce income.</p>
 

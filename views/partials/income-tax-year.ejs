@@ -1,0 +1,30 @@
+<%
+/* Calc-level tax-year selectors (income calculators).
+   Field ids: taxYear1 (most recent) and taxYear2 (prior).
+   Captured into the session report; report column headers show the chosen
+   years (e.g. "Year 1 (2024)"). Blank by default — no auto-fill. */
+%>
+<div class="calc-tax-year">
+  <div class="calc-tax-year__item">
+    <label for="taxYear1" class="calc-tax-year__label">Tax Year 1 (most recent)</label>
+    <select id="taxYear1" class="calc-tax-year__select">
+      <option value="" selected>&mdash; Year &mdash;</option>
+      <option value="2025">2025</option>
+      <option value="2024">2024</option>
+      <option value="2023">2023</option>
+      <option value="2022">2022</option>
+      <option value="2021">2021</option>
+    </select>
+  </div>
+  <div class="calc-tax-year__item">
+    <label for="taxYear2" class="calc-tax-year__label">Tax Year 2 (prior)</label>
+    <select id="taxYear2" class="calc-tax-year__select">
+      <option value="" selected>&mdash; Year &mdash;</option>
+      <option value="2025">2025</option>
+      <option value="2024">2024</option>
+      <option value="2023">2023</option>
+      <option value="2022">2022</option>
+      <option value="2021">2021</option>
+    </select>
+  </div>
+</div>

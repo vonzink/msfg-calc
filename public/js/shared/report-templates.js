@@ -37,6 +37,8 @@
   function renderIncomeTable(data, calcName) {
     let html = '';
     let hasData = false;
+    const y1Label = data.taxYear1 ? 'Year 1 (' + data.taxYear1 + ')' : 'Year 1';
+    const y2Label = data.taxYear2 ? 'Year 2 (' + data.taxYear2 + ')' : 'Year 2';
     (data.sections || []).forEach(function (sec) {
       const sectionHasData = sec.rows && sec.rows.some(function (r) { return r.y1 || r.y2; });
       if (!sectionHasData && !sec.monthly) return;
@@ -45,7 +47,7 @@
       html += '<h4 class="rpt-section-title">' + sec.title;
       if (sec.ownership) html += ' <span class="rpt-ownership">(' + sec.ownership + '% ownership)</span>';
       html += '</h4>';
-      html += '<table class="rpt-table"><thead><tr><th>Line Item</th><th class="rpt-num">Year 1</th><th class="rpt-num">Year 2</th></tr></thead><tbody>';
+      html += '<table class="rpt-table"><thead><tr><th>Line Item</th><th class="rpt-num">' + y1Label + '</th><th class="rpt-num">' + y2Label + '</th></tr></thead><tbody>';
       sec.rows.forEach(function (r) {
         if (!r.y1 && !r.y2) return;
         html += '<tr><td>' + r.label + '</td><td class="rpt-num">' + fmt(r.y1) + '</td><td class="rpt-num">' + fmt(r.y2) + '</td></tr>';
@@ -75,12 +77,14 @@
 
   function pdfIncomeTable(data) {
     const content = [];
+    const y1Label = data.taxYear1 ? 'Year 1 (' + data.taxYear1 + ')' : 'Year 1';
+    const y2Label = data.taxYear2 ? 'Year 2 (' + data.taxYear2 + ')' : 'Year 2';
     (data.sections || []).forEach(function (sec) {
       const sectionHasData = sec.rows && sec.rows.some(function (r) { return r.y1 || r.y2; });
       if (!sectionHasData && !sec.monthly) return;
       content.push({ text: sec.title + (sec.ownership ? ' (' + sec.ownership + '% ownership)' : ''), style: 'sectionTitle', margin: [0, 3, 0, 1] });
       const body = [
-        [{ text: 'Line Item', style: 'tableHeader' }, { text: 'Year 1', style: 'tableHeader', alignment: 'right' }, { text: 'Year 2', style: 'tableHeader', alignment: 'right' }]
+        [{ text: 'Line Item', style: 'tableHeader' }, { text: y1Label, style: 'tableHeader', alignment: 'right' }, { text: y2Label, style: 'tableHeader', alignment: 'right' }]
       ];
       sec.rows.forEach(function (r) {
         if (!r.y1 && !r.y2) return;
@@ -158,7 +162,19 @@
   }
 
   function registerIncomeType(slug, extractor) {
-    extractors[slug] = extractor;
+    // Wrap the extractor so every income calc captures the calc-level tax years
+    // (fields taxYear1/taxYear2; Schedule C keeps its in-table b1_year1/b1_year2).
+    // The renderers use these to label the Year 1 / Year 2 columns.
+    extractors[slug] = function (doc) {
+      const data = extractor(doc);
+      if (data && data.taxYear1 === undefined && data.taxYear2 === undefined) {
+        const ty1 = txt(doc, 'taxYear1') || txt(doc, 'b1_year1');
+        const ty2 = txt(doc, 'taxYear2') || txt(doc, 'b1_year2');
+        if (ty1) data.taxYear1 = ty1;
+        if (ty2) data.taxYear2 = ty2;
+      }
+      return data;
+    };
     renderers[slug] = function (data) { return renderIncomeTable(data, slug); };
     pdfGenerators[slug] = pdfIncomeTable;
   }

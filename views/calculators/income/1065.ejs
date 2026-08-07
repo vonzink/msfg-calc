@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Form 1065 Partnership Income Calculator</h1>
     <p>Calculate qualifying income from partnership returns (Form 1065) with adjustments for depreciation, depletion, amortization, and non-recurring items.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Partnership Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -42,6 +41,9 @@
 
     <!-- Form 1065 Partnership -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Partnership Name' }) %>
+      <%- include('../../partials/income-tax-year') %>
+
       <h2>Form 1065 Partnership</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from the partnership's Form 1065. Positive values are added; negative values reduce income.</p>
 

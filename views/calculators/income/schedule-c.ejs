@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Schedule C Sole Proprietorship Income Calculator</h1>
     <p>Calculate monthly income from sole proprietorship (Schedule C) returns with comprehensive add-backs for depreciation, depletion, and business use of home.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Business Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -45,6 +44,8 @@
 
     <!-- Schedule C -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Business Name' }) %>
+
       <h2>Schedule C</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from the borrower's Schedule C. Positive values are added; negative values reduce income.</p>
 

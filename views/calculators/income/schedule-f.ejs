@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Schedule F Farm Income Calculator</h1>
     <p>Calculate monthly qualifying income from farm operations reported on IRS Schedule F (Form 1040). Add back non-cash expenses and apply standard averaging policy.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Farm Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -44,6 +43,9 @@
 
     <!-- Farm Income Line Items -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Farm Name' }) %>
+      <%- include('../../partials/income-tax-year') %>
+
       <h2>Farm Income</h2>
       <p class="text-muted text-sm u-mb-sm">Enter line items from Schedule F. Positive values are added; negative values reduce income.</p>
 

@@ -2,7 +2,6 @@
   <div class="calc-page__header">
     <h1>Schedule D Capital Gains/Losses Calculator</h1>
     <p>Calculate monthly income from Schedule D (Capital Gains and Losses). Enter short-term and long-term gains or losses for each tax year.</p>
-    <%- include('../../partials/income-name-field', { nameLabel: 'Borrower Name' }) %>
   </div>
 
   <div class="calc-page__body">
@@ -40,6 +39,9 @@
 
     <!-- Capital Gains Table -->
     <div class="calc-section">
+      <%- include('../../partials/income-name-field', { nameLabel: 'Borrower Name' }) %>
+      <%- include('../../partials/income-tax-year') %>
+
       <h2>Schedule D &ndash; Capital Gains/Losses</h2>
 
       <table class="income-table">
