@@ -35,9 +35,10 @@
         <p>
           Schedule C income is calculated from net profit/loss plus non-cash add-backs
           (depreciation, depletion, amortization) and business use of home. Mileage depreciation
-          is added back separately. Non-recurring other income and meal exclusions are adjusted.
-          If two years are provided and Year 1 exceeds Year 2, income is averaged over 24 months.
-          Otherwise, only the most recent year is used.
+          is added back as <strong>business miles &times; the IRS depreciation rate for that tax
+          year</strong> (select the year to auto-fill the rate). Non-recurring other income and
+          meal exclusions are adjusted. If two years are provided and Year 1 exceeds Year 2,
+          income is averaged over 24 months. Otherwise, only the most recent year is used.
         </p>
       </div>
     </div>
@@ -58,6 +59,29 @@
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td>Tax Year</td>
+            <td class="line-number">&mdash;</td>
+            <td class="sign-col"></td>
+            <td>
+              <select id="b1_year1" class="income-year-select">
+                <option value="2025" selected>2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+              </select>
+            </td>
+            <td>
+              <select id="b1_year2" class="income-year-select">
+                <option value="2025">2025</option>
+                <option value="2024" selected>2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+              </select>
+            </td>
+          </tr>
           <tr>
             <td>Net Profit or Loss</td>
             <td class="line-number">31</td>
@@ -101,7 +125,21 @@
             <td><input type="number" id="b1_home2" value="0"></td>
           </tr>
           <tr>
-            <td>Mileage Depreciation</td>
+            <td>Business Miles <span class="text-muted text-sm">(Part IV, Line 44a)</span></td>
+            <td class="line-number">44a</td>
+            <td class="sign-col"></td>
+            <td><input type="number" id="b1_miles1" value="0" min="0" step="1"></td>
+            <td><input type="number" id="b1_miles2" value="0" min="0" step="1"></td>
+          </tr>
+          <tr>
+            <td>Mileage Depreciation Rate <span class="text-muted text-sm">($/mile)</span></td>
+            <td class="line-number">&mdash;</td>
+            <td class="sign-col">&times;</td>
+            <td><input type="number" id="b1_rate1" value="0.33" min="0" step="0.001"></td>
+            <td><input type="number" id="b1_rate2" value="0.30" min="0" step="0.001"></td>
+          </tr>
+          <tr>
+            <td>Mileage Depreciation Add-back <span class="text-muted text-sm">(miles &times; rate)</span></td>
             <td class="line-number">&mdash;</td>
             <td class="sign-col add">+</td>
             <td><input type="number" id="b1_mile1" value="0"></td>
@@ -140,7 +178,10 @@
       Schedule C (Form 1040) reports profit or loss from a sole proprietorship. Non-cash
       expenses such as depreciation, depletion, and amortization are added back. Business use
       of home (Line 30) and mileage depreciation are also added back as they represent non-cash
-      deductions. Meal and entertainment exclusions are subtracted per Fannie Mae guidelines.
+      deductions. Mileage depreciation is the standard-mileage depreciation component &mdash; enter the
+      business miles from Part IV, Line 44a and the calculator applies the Fannie Mae per-mile rate for the
+      selected tax year (2025 $0.33, 2024 $0.30, 2023 $0.28, 2022 $0.26, 2021 $0.26).
+      Meal and entertainment exclusions are subtracted per Fannie Mae guidelines.
       Two years of returns are recommended; if Year 1 income exceeds Year 2, the 24-month
       average is used. Otherwise, only the most recent year is divided by 12.
     </p>

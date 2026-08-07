@@ -1,6 +1,23 @@
 /* Income Calculator Schedule C — page-specific styles */
 /* Base styles loaded from income-base.css */
 
+/* ---- Tax-year dropdown (mileage add-back) ---- */
+
+.income-year-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: var(--color-gray-50);
+}
+
+.income-year-select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  background: #fff;
+}
+
 /* ---- Corp Results ---- */
 
 .corp-results {
