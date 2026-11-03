@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require('express');
 const router = express.Router();
 
@@ -25,8 +27,9 @@ const generalCalcs = [
     view: 'calculators/amortization',
     title: 'Amortization Calculator',
     css: 'amortization',
+    preScripts: ['/js/shared/amortization-math.js'],
     cdnScripts: [
-      '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>'
+      '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" integrity="sha384-Sse/HDqcypGpyTDpvZOJNnG0TT3feGQUkF9H+mnRvic+LjR+K1NhTt8f51KIQ3v3" crossorigin="anonymous"></script>'
     ]
   },
   { slug: 'var-income',      view: 'calculators/var-income',      title: 'Variable Income Analyzer', css: 'var-income' },

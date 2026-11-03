@@ -1,290 +1,175 @@
-<div class="calc-page">
-  <div class="calc-page__header">
+<div class="calc-page amort-page">
+  <header class="calc-page__header">
     <h1>Amortization Calculator</h1>
-    <p>Calculate your monthly mortgage payment, view amortization schedule, and see the impact of extra payments.</p>
-  </div>
+    <p>Explore your monthly payment and see how your mortgage changes over time.</p>
+  </header>
 
-  <div class="calc-page__body">
-
-    <!-- ===== 1. Loan Details ===== -->
-    <div class="calc-section">
-      <h2><span class="section-number">1</span> Loan Details</h2>
-
-      <!-- Mode Toggle: Purchase / Refinance -->
-      <div class="form-group u-mb-md">
-        <div class="amort-term-toggle" id="modeToggle">
-          <button type="button" class="amort-term-btn active" data-mode="purchase">Purchase</button>
-          <button type="button" class="amort-term-btn" data-mode="refinance">Refinance</button>
-        </div>
+  <div class="calc-page__body amort-layout">
+    <form id="amortForm" class="amort-inputs" novalidate aria-label="Mortgage information">
+      <h2 class="amort-inputs__title">Mortgage<br> information</h2>
+      <div class="amort-mode" id="modeToggle" role="group" aria-label="Loan purpose">
+        <button type="button" data-action="set-mode" data-mode="purchase" aria-pressed="true" class="active">Purchase</button>
+        <button type="button" data-action="set-mode" data-mode="refinance" aria-pressed="false">Refinance</button>
       </div>
-
-      <!-- ===== Purchase Fields ===== -->
+      <div class="amort-field">
+        <label for="loanProgram">Loan program</label>
+        <select id="loanProgram"><option value="conventional">Conventional loan</option><option value="fha">FHA loan</option><option value="va">VA loan</option></select>
+      </div>
       <div id="purchaseFields">
-        <!-- Home Price with Range Slider -->
-        <div class="form-group u-mb-md">
-          <label for="homePrice">Home Price</label>
-          <div class="amort-slider-row">
-            <input type="number" id="homePrice" value="0" min="0" max="2000000" step="5000" placeholder="Home price">
-            <input type="range" id="homePriceSlider" min="0" max="2000000" step="5000" value="0" class="amort-range">
+        <div class="amort-field">
+          <label for="homePrice">Purchase price</label>
+          <div class="amort-input"><span aria-hidden="true">$</span><input id="homePrice" type="number" value="250000" min="1" max="100000000" step="any" required inputmode="decimal"></div>
+        </div>
+        <div class="amort-field">
+          <label for="downPaymentDollar">Down payment</label>
+          <div class="amort-dual">
+            <div class="amort-input"><span aria-hidden="true">$</span><input id="downPaymentDollar" aria-label="Down payment amount" type="number" value="50000" min="0" step="any" required inputmode="decimal"></div>
+            <div class="amort-input"><input id="downPaymentPercent" aria-label="Down payment percent" type="number" value="20" min="0" max="100" step="any" required inputmode="decimal"><span aria-hidden="true">%</span></div>
           </div>
         </div>
+      </div>
+      <div id="refiFields" hidden>
+        <div class="amort-field">
+          <label for="refiLoanAmount">Loan amount before cash out</label>
+          <div class="amort-input"><span aria-hidden="true">$</span><input id="refiLoanAmount" type="number" value="200000" min="1" max="100000000" step="any" required disabled inputmode="decimal"></div>
+        </div>
+        <div class="amort-field">
+          <label for="appraisedValue">Appraised value</label>
+          <div class="amort-input"><span aria-hidden="true">$</span><input id="appraisedValue" type="number" value="250000" min="1" max="100000000" step="any" required disabled inputmode="decimal"></div>
+        </div>
+        <div class="amort-field">
+          <label for="cashOut">Additional cash out</label>
+          <div class="amort-input"><span aria-hidden="true">$</span><input id="cashOut" type="number" value="0" min="0" max="100000000" step="any" disabled inputmode="decimal"></div>
+        </div>
+      </div>
+      <div class="amort-field">
+        <label for="interestRate">Interest rate</label>
+        <div class="amort-input"><input id="interestRate" type="number" value="7.5" min="0" max="25" step="any" required inputmode="decimal"><span aria-hidden="true">%</span></div>
+      </div>
+      <div class="amort-field">
+        <label for="loanTerm">Loan term</label>
+        <select id="loanTerm"><% [30,25,20,15,10].forEach(years => { %><option value="<%= years %>"><%= years %>-year fixed</option><% }); %></select>
+      </div>
+      <div id="vaFields" hidden>
+        <div class="amort-field">
+          <label for="vaUse">VA loan use</label>
+          <select id="vaUse" disabled><option value="first">First use</option><option value="subsequent">Subsequent use</option></select>
+        </div>
+        <div class="amort-field" id="vaRefiGroup" hidden>
+          <label for="vaRefiType">VA refinance type</label>
+          <select id="vaRefiType" disabled><option value="cash-out">Cash-out / regular refinance</option><option value="irrrl">Interest rate reduction (IRRRL)</option></select>
+        </div>
+        <label class="amort-check"><input type="checkbox" id="vaExempt" disabled> Exempt from the VA funding fee</label>
+        <small class="amort-help">Use your confirmed funding fee exemption status.</small>
+      </div>
 
-        <div class="form-grid u-grid-2col">
-          <!-- Down Payment (dual $ / %) -->
-          <div class="form-group">
-            <label>Down Payment</label>
-            <div class="amort-dual-input">
-              <div class="amort-dual-input__field">
-                <span class="amort-dual-input__prefix">$</span>
-                <input type="number" id="downPaymentDollar" value="0" min="0" step="1000" placeholder="Down payment $">
-              </div>
-              <div class="amort-dual-input__field">
-                <input type="number" id="downPaymentPercent" value="0" min="0" max="100" step="0.5" placeholder="%">
-                <span class="amort-dual-input__suffix">%</span>
-              </div>
+      <h3 class="amort-inputs__subtitle">Monthly costs</h3>
+      <% [
+        ['homeInsurance', 'Homeowners insurance', 1500],
+        ['propertyTax', 'Property tax', 2500]
+      ].forEach(([id, label, amount]) => { %>
+        <div class="amort-field">
+          <div class="amort-label-row"><label for="<%= id %>"><%= label %></label>
+            <div class="amort-period" data-field="<%= id %>" role="group" aria-label="<%= label %> period">
+              <button type="button" data-action="set-period" data-period="annual" aria-pressed="true" class="active">/yr</button>
+              <button type="button" data-action="set-period" data-period="monthly" aria-pressed="false">/mo</button>
             </div>
           </div>
-
-          <!-- Loan Amount (computed) -->
-          <div class="form-group">
-            <label for="loanAmount">Loan Amount</label>
-            <input type="text" id="loanAmount" value="$320,000" readonly class="calculated-field">
-          </div>
+          <div class="amort-input"><span aria-hidden="true">$</span><input id="<%= id %>" type="number" value="<%= amount %>" min="0" max="10000000" step="any" data-period="annual" inputmode="decimal"></div>
         </div>
+      <% }); %>
+      <div class="amort-field">
+        <label for="hoa">HOA fees <span>(monthly)</span></label>
+        <div class="amort-input"><span aria-hidden="true">$</span><input id="hoa" type="number" value="100" min="0" max="1000000" step="any" inputmode="decimal"></div>
       </div>
-
-      <!-- ===== Refinance Fields ===== -->
-      <div id="refiFields" class="u-hidden">
-        <!-- Loan Amount with Range Slider (master) -->
-        <div class="form-group u-mb-md">
-          <label for="refiLoanAmount">Loan Amount</label>
-          <div class="amort-slider-row">
-            <input type="number" id="refiLoanAmount" value="0" min="0" max="2000000" step="5000" placeholder="Loan amount">
-            <input type="range" id="refiLoanSlider" min="0" max="2000000" step="5000" value="0" class="amort-range">
-          </div>
-        </div>
-
-        <div class="form-grid u-grid-2col">
-          <!-- Appraised Value -->
-          <div class="form-group">
-            <label for="appraisedValue">Appraised Value</label>
-            <input type="number" id="appraisedValue" value="0" min="0" step="5000" placeholder="Appraised value">
-          </div>
-
-          <!-- Cash Out -->
-          <div class="form-group">
-            <label for="cashOut">Cash Out</label>
-            <input type="number" id="cashOut" value="0" min="0" step="1000">
-          </div>
-        </div>
-
-        <!-- Equity (computed) -->
-        <div class="form-group u-mt-sm">
-          <label for="refiEquity">Equity</label>
-          <input type="text" id="refiEquity" value="$80,000" readonly class="calculated-field">
-        </div>
+      <div class="amort-field" id="pmiGroup" hidden>
+        <label for="pmi">PMI <span>(monthly)</span></label>
+        <div class="amort-input"><span aria-hidden="true">$</span><input id="pmi" type="number" value="0" min="0" max="1000000" step="any" disabled inputmode="decimal" aria-describedby="pmiNote"></div>
+        <small id="pmiNote" class="amort-help">Estimate uses 0.5% annually. Enter your quoted premium if known.</small>
       </div>
-
-      <!-- ===== LTV Display (shared) ===== -->
-      <div class="amort-ltv-display u-mt-md" id="ltvDisplay">
-        <div class="amort-ltv-header">
-          <span class="amort-ltv-label">Loan-to-Value (LTV)</span>
-          <span class="amort-ltv-value" id="ltvValue">0.0%</span>
-        </div>
-        <div class="amort-ltv-bar">
-          <div class="amort-ltv-fill" id="ltvFill"></div>
-          <div class="amort-ltv-marker"></div>
-        </div>
-        <small class="amort-ltv-note" id="ltvNote"></small>
+      <div class="amort-field">
+        <label for="extraPayment">Extra principal</label>
+        <div class="amort-input"><span aria-hidden="true">$</span><input id="extraPayment" type="number" value="0" min="0" max="100000000" step="any" inputmode="decimal"><span id="extraPeriodLabel">/mo</span></div>
       </div>
+      <details class="amort-options">
+        <summary>Payment timing &amp; extra options</summary>
+        <fieldset class="amort-field">
+          <legend>First payment</legend>
+          <div class="amort-dual"><select id="startMonth" aria-label="First payment month"></select><select id="startYear" aria-label="First payment year"></select></div>
+        </fieldset>
+        <div class="amort-field"><label for="extraFrequency">Extra payment frequency</label><select id="extraFrequency"><option value="monthly">Monthly</option><option value="annually">Annually</option><option value="one-time">One time</option></select></div>
+        <fieldset class="amort-field">
+          <legend>Extra payments start</legend>
+          <div class="amort-dual"><select id="extraStartMonth" aria-label="Extra payment start month"></select><select id="extraStartYear" aria-label="Extra payment start year"></select></div>
+        </fieldset>
+      </details>
+      <p class="amort-help amort-example">Example values are for illustration. Enter your own rate and costs.</p>
+      <button type="button" class="amort-text-button" data-action="reset-amort">Reset example</button>
+    </form>
 
-      <div class="form-grid u-grid-2col u-mt-md">
-        <!-- Interest Rate -->
-        <div class="form-group">
-          <label for="interestRate">Interest Rate (%)</label>
-          <input type="number" id="interestRate" value="0" min="0" max="15" step="0.125" placeholder="e.g. 6.500">
-        </div>
-
-        <!-- Start Date -->
-        <div class="form-group">
-          <label for="startMonth">Start Date</label>
-          <div class="amort-date-row">
-            <select id="startMonth"></select>
-            <select id="startYear"></select>
+    <div class="amort-results">
+      <p id="amortError" class="amort-error" role="alert" hidden></p>
+      <noscript><p class="amort-error">Enable JavaScript to calculate your payment and amortization schedule.</p></noscript>
+      <div id="amortOutput" hidden>
+        <section class="amort-panel amort-summary" aria-labelledby="summaryTitle">
+          <h2 id="summaryTitle">Loan summary</h2>
+          <div class="amort-summary__grid" aria-live="polite" aria-atomic="true">
+            <div><strong id="loanAmount">—</strong><span>Loan amount</span></div>
+            <div><strong id="resultMonthlyPI">—</strong><span>Principal &amp; interest</span></div>
+            <div><strong id="resultTaxIns">—</strong><span>Tax &amp; insurance</span></div>
+            <div class="amort-summary__total"><strong id="resultTotalMonthly">—</strong><span>Total monthly</span></div>
           </div>
-        </div>
-      </div>
+          <p id="resultMonthlyDetail" class="amort-summary__note"></p>
+          <p id="programNote" class="amort-program-note" hidden></p>
+        </section>
 
-      <!-- Loan Term Toggle -->
-      <div class="form-group u-mt-md">
-        <label>Loan Term</label>
-        <div class="amort-term-toggle" id="termToggle">
-          <button type="button" class="amort-term-btn active" data-years="30">30 yr</button>
-          <button type="button" class="amort-term-btn" data-years="20">20 yr</button>
-          <button type="button" class="amort-term-btn" data-years="15">15 yr</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== 2. Taxes & Insurance ===== -->
-    <div class="calc-section">
-      <h2><span class="section-number">2</span> Taxes & Insurance</h2>
-      <div class="form-grid u-grid-3col">
-        <div class="form-group">
-          <label for="propertyTax">
-            Property Tax
-            <span class="amort-period-toggle" id="taxToggle" data-field="propertyTax">
-              <button type="button" class="active" data-period="annual">/yr</button>
-              <button type="button" data-period="monthly">/mo</button>
-            </span>
-          </label>
-          <input type="number" id="propertyTax" value="0" min="0" step="100" data-period="annual" placeholder="Annual tax">
-        </div>
-        <div class="form-group">
-          <label for="homeInsurance">
-            Home Insurance
-            <span class="amort-period-toggle" id="insuranceToggle" data-field="homeInsurance">
-              <button type="button" class="active" data-period="annual">/yr</button>
-              <button type="button" data-period="monthly">/mo</button>
-            </span>
-          </label>
-          <input type="number" id="homeInsurance" value="0" min="0" step="100" data-period="annual" placeholder="Annual premium">
-        </div>
-        <div class="form-group">
-          <label for="pmi">
-            PMI ($/mo)
-            <span class="help-icon" data-help="Private Mortgage Insurance. Auto-removed when LTV reaches 80%.">?</span>
-          </label>
-          <input type="number" id="pmi" value="0" min="0" step="10">
-          <small id="pmiNote"></small>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== 3. Extra Payments ===== -->
-    <div class="calc-section">
-      <h2>
-        <span class="section-number">3</span> Extra Payments
-        <button type="button" class="amort-section-toggle" id="extraPaymentToggle">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-      </h2>
-      <div id="extraPaymentSection" class="u-hidden">
-        <div class="form-grid u-grid-2col">
-          <div class="form-group">
-            <label for="extraPayment">Extra Payment Amount ($)</label>
-            <input type="number" id="extraPayment" value="0" min="0" step="50">
+        <section class="amort-panel" aria-labelledby="breakdownTitle">
+          <div class="amort-panel__heading"><h2 id="breakdownTitle">Monthly payment breakdown</h2><span id="breakdownDate" class="amort-muted"></span></div>
+          <div class="amort-timeline">
+            <label for="breakdownMonth" id="breakdownLabel">Month 1 · Year 1</label>
+            <input type="range" id="breakdownMonth" min="1" max="360" step="1" value="1" aria-describedby="breakdownHint">
+            <div class="amort-timeline__ends"><span>First payment</span><span id="lastPaymentLabel">Final payment</span></div>
           </div>
-          <div class="form-group">
-            <label>Frequency</label>
-            <div class="amort-term-toggle" id="extraFreqToggle">
-              <button type="button" class="amort-term-btn active" data-freq="monthly">Monthly</button>
-              <button type="button" class="amort-term-btn" data-freq="annually">Annually</button>
-              <button type="button" class="amort-term-btn" data-freq="one-time">One-Time</button>
+          <div class="amort-breakdown">
+            <div class="amort-chart-column">
+              <div class="amort-donut-wrap"><canvas id="paymentChart" role="img" aria-label="Monthly payment breakdown; amounts appear in the adjacent table."></canvas><div class="amort-donut-center" aria-hidden="true"><span>Monthly payment</span><strong id="donutTotal">—</strong></div></div>
+              <div id="paymentLegend" class="amort-legend" aria-hidden="true"></div>
+              <p id="breakdownHint" class="amort-help">Move the slider to explore any payment.</p>
+            </div>
+            <div class="amort-breakdown__table">
+              <table aria-label="Selected monthly payment"><thead><tr><th scope="col">Expense</th><th scope="col">Amount</th></tr></thead><tbody id="breakdownBody"></tbody>
+                <tfoot><tr><th scope="row">Total monthly payment</th><td id="breakdownTotal">—</td></tr><tr><th scope="row">Remaining balance</th><td id="breakdownBalance">—</td></tr><tr><th scope="row">Principal vs. interest</th><td id="breakdownRatio">—</td></tr></tfoot>
+              </table>
             </div>
           </div>
-        </div>
-        <div class="form-grid u-grid-2col u-mt-md">
-          <div class="form-group" id="extraStartDateGroup">
-            <label>Extra Payment Start Date</label>
-            <div class="amort-date-row">
-              <select id="extraStartMonth"></select>
-              <select id="extraStartYear"></select>
-            </div>
+        </section>
+
+        <section id="extraSavingsRow" class="amort-savings" aria-label="Extra payment savings" hidden>
+          <div><span>Interest saved</span><strong id="resultInterestSaved">$0.00</strong></div>
+          <div><span>Paid off sooner</span><strong id="resultTimeSaved">0 months</strong></div>
+          <p>Compared with the same loan without extra payments.</p>
+        </section>
+
+        <section class="amort-panel amort-schedule" aria-labelledby="scheduleTitle">
+          <div class="amort-panel__heading"><div><h2 id="scheduleTitle">Amortization schedule</h2><p class="amort-help" id="scheduleCaption"></p></div><button type="button" class="amort-text-button" data-action="expand-schedule" aria-expanded="false">Expand all years</button></div>
+          <div class="amort-schedule-wrap" tabindex="0" role="region" aria-label="Scrollable amortization schedule">
+            <table class="amort-table" id="scheduleTable"><thead><tr><th scope="col">Month</th><th scope="col">Date</th><th scope="col">P&amp;I + extra</th><th scope="col">Principal</th><th scope="col">Interest</th><th scope="col">Extra</th><th scope="col">Balance</th><th scope="col">Tax</th><th scope="col">Insurance</th><th scope="col">HOA</th><th scope="col">PMI / MIP</th><th scope="col">Total payment</th></tr></thead><tbody id="scheduleBody"></tbody></table>
           </div>
-        </div>
+          <div class="amort-lifetime">
+            <div><span>Total interest</span><strong id="resultTotalInterest">—</strong></div><div><span>Total payments</span><strong id="resultTotalCost">—</strong></div><div><span>Payoff date</span><strong id="resultPayoffDate">—</strong></div><div><span>Starting LTV</span><strong id="resultStartingLTV">—</strong></div>
+          </div>
+          <p class="amort-help">Total payments include principal, interest, extra payments, taxes, insurance, HOA, and mortgage insurance through payoff. Down payment and closing costs are excluded.</p>
+          <div class="amort-actions"><button type="button" class="btn btn-primary" data-action="calc-print">Print / Save PDF</button><button type="button" class="btn btn-secondary" data-action="export-amort">Download CSV</button><button type="button" class="btn btn-secondary" data-action="calc-email">Email</button></div>
+        </section>
+
+        <details class="amort-panel amort-balance-panel" open><summary>Loan balance over time</summary><div class="amort-balance-chart"><canvas id="amortChart" role="img" aria-label="Remaining balance by loan year, also available in the amortization schedule."></canvas></div></details>
+        <%- include('../partials/show-calculations', { calcId: 'amortization' }) %>
       </div>
     </div>
-
-    <!-- ===== 4. Results Summary ===== -->
-    <div class="calc-section u-hidden" id="resultsSection">
-      <h2><span class="section-number">4</span> Results</h2>
-
-      <div class="result-highlight">
-        <div class="result-highlight__label">Monthly Payment (P&I)</div>
-        <div class="result-highlight__value" id="resultMonthlyPI">$0.00</div>
-      </div>
-
-      <div class="results-grid u-mt-md">
-        <div class="result-card">
-          <div class="result-card__label">Total Monthly Payment</div>
-          <div class="result-card__value" id="resultTotalMonthly">$0.00</div>
-          <small class="result-card__detail" id="resultMonthlyDetail"></small>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Total Interest</div>
-          <div class="result-card__value" id="resultTotalInterest">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Total Cost of Loan</div>
-          <div class="result-card__value" id="resultTotalCost">$0.00</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Payoff Date</div>
-          <div class="result-card__value" id="resultPayoffDate">--</div>
-        </div>
-        <div class="result-card" id="resultCashEquityCard">
-          <div class="result-card__label" id="resultCashEquityLabel">Cash to Close</div>
-          <div class="result-card__value" id="resultCashEquityValue">$0</div>
-        </div>
-        <div class="result-card">
-          <div class="result-card__label">Starting LTV</div>
-          <div class="result-card__value" id="resultStartingLTV">--</div>
-        </div>
-      </div>
-
-      <!-- Extra payment savings (shown only when extras apply) -->
-      <div id="extraSavingsRow" class="amort-savings-row u-hidden">
-        <div class="amort-savings-item">
-          <span class="amort-savings-label">Interest Saved</span>
-          <span class="amort-savings-value success" id="resultInterestSaved">$0</span>
-        </div>
-        <div class="amort-savings-item">
-          <span class="amort-savings-label">Time Saved</span>
-          <span class="amort-savings-value success" id="resultTimeSaved">--</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== 5. Amortization Chart ===== -->
-    <div class="calc-section u-hidden" id="chartSection">
-      <h2><span class="section-number">5</span> Amortization Chart</h2>
-      <div class="amort-chart-wrap">
-        <canvas id="amortChart"></canvas>
-      </div>
-    </div>
-
-    <!-- ===== 6. Amortization Schedule ===== -->
-    <div class="calc-section u-hidden" id="scheduleSection">
-      <h2><span class="section-number">6</span> Amortization Schedule</h2>
-      <div class="amort-schedule-wrap">
-        <table class="data-table amort-table" id="scheduleTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Date</th>
-              <th>Payment</th>
-              <th>Principal</th>
-              <th>Interest</th>
-              <th>Extra</th>
-              <th>Balance</th>
-            </tr>
-          </thead>
-          <tbody id="scheduleBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ===== 7. Show Calculations ===== -->
-    <%- include('../partials/show-calculations', { calcId: 'amortization' }) %>
-
-    <!-- ===== Print / Email ===== -->
-    <%- include('../partials/calc-actions') %>
-
   </div>
-
-  <div class="calc-page__footer">
-    <div class="calc-page__footer-title">Amortization Calculation Method</div>
-    <p>Monthly payment uses the standard mortgage formula. Extra payments are applied directly to principal. PMI is automatically removed when LTV reaches 80%.</p>
-  </div>
+  <footer class="calc-page__footer">
+    <div class="calc-page__footer-title">About this estimate</div>
+    <p>Fixed-rate estimates assume on-time monthly payments and constant taxes, homeowners insurance, and HOA fees. FHA upfront mortgage insurance and VA funding fees are financed into the loan. This calculator does not determine loan eligibility or include all closing costs. Results are estimates, not a loan offer.</p>
+    <details class="amort-method"><summary>Mortgage insurance &amp; program assumptions</summary><p>Conventional PMI is estimated until the original schedule reaches 78% of the property value or the month after the loan midpoint, assuming payments are current. Earlier cancellation at 80% requires a request and other conditions. FHA MIP uses original base-loan LTV and term, and the average scheduled balance for each loan year. FHA streamline and special-program exceptions are not modeled. VA refinance fees use the selected refinance type; IRRRL does not include cash out.</p><p>Sources: <a href="https://www.consumerfinance.gov/ask-cfpb/when-can-i-remove-private-mortgage-insurance-pmi-from-my-loan-en-202/" target="_blank" rel="noopener noreferrer">CFPB PMI guidance</a>, <a href="https://www.hud.gov/sites/dfiles/OCHCO/documents/2023-05hsgml.pdf" target="_blank" rel="noopener noreferrer">HUD mortgage insurance premiums</a>, and <a href="https://www.va.gov/housing-assistance/home-loans/funding-fee-and-closing-costs/" target="_blank" rel="noopener noreferrer">VA funding fees</a>. Program assumptions checked November 3, 2026.</p></details>
+  </footer>
 </div>

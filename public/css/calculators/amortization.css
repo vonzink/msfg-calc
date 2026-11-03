@@ -1,571 +1,145 @@
-/* =====================================================
-   Amortization Calculator — Custom Styles
-   ===================================================== */
-
-/* ---- Range Slider ---- */
-.amort-slider-row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
+/* Envoy-inspired calculator layout, using the MSFG palette and typography. */
+.amort-page { --amort-gold: #b59655; --amort-border: #e1e6e3; border-radius: 10px; box-shadow: 0 2px 12px #1b433209; }
+.amort-page [hidden] { display: none !important; }
+.amort-page .calc-page__header { padding: 28px 75px 24px 32px; }
+.amort-page .calc-page__header-actions { position: absolute; top: 28px; right: 32px; margin: 0; }
+.amort-page .calc-page__header h1 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.035em; }
+.amort-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); align-items: start; gap: 34px; padding: 30px 32px; }
+.amort-inputs { min-width: 0; }
+.amort-inputs__title { font-size: 1.85rem; letter-spacing: -.04em; line-height: 1.18; padding-bottom: 15px; margin: 0 0 22px; border-bottom: 3px solid var(--amort-gold); color: var(--color-gray-900); }
+.amort-inputs__subtitle { font-family: var(--font-body); font-size: 1.05rem; margin: 30px 0 18px; }
+.amort-mode { display: flex; gap: 8px; margin-bottom: 22px; }
+.amort-mode button { flex: 1; border: 1px solid var(--brand-primary); border-radius: 24px; padding: 11px 10px; background: #fff; color: var(--brand-primary); font: 600 .9rem var(--font-body); cursor: pointer; }
+.amort-mode button.active { background: var(--brand-primary); color: #fff; }
+.amort-field { margin: 0 0 18px; padding: 0; border: 0; min-width: 0; }
+.amort-field label, .amort-field legend { display: block; margin-bottom: 6px; font-size: .82rem; font-weight: 500; color: var(--color-gray-700); }
+.amort-field label > span { font-size: .76rem; color: var(--color-gray-500); font-weight: 400; }
+.amort-input { display: flex; align-items: center; min-width: 0; width: 100%; border: 1px solid #cbd3ce; border-radius: 5px; background: #fff; }
+.amort-input > span { padding: 0 12px; color: var(--color-gray-500); font-size: .85rem; flex-shrink: 0; }
+.amort-input > input { min-width: 0; width: 100%; height: 43px; padding: 9px 12px; border: 0; border-radius: 5px; background: transparent; color: var(--color-gray-900); font: 400 .95rem var(--font-body); font-variant-numeric: tabular-nums; appearance: textfield; -moz-appearance: textfield; }
+.amort-input > span + input { padding-left: 0; }
+.amort-input input::-webkit-inner-spin-button, .amort-input input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.amort-input:focus-within { border-color: var(--brand-primary); box-shadow: 0 0 0 3px #2d6a4f18; }
+.amort-input > input:focus { outline: none; }
+.amort-input:has([aria-invalid="true"]) { border-color: #b62c3a; }
+.amort-field select { width: 100%; min-width: 0; height: 43px; border: 1px solid #cbd3ce; border-radius: 5px; padding: 8px 10px; background: #fff; color: var(--color-gray-900); font: .86rem var(--font-body); }
+.amort-dual { display: grid; grid-template-columns: 1.15fr 1fr; gap: 8px; }
+.amort-label-row { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 6px; }
+.amort-label-row label { margin: 0; }
+.amort-period { display: flex; border: 1px solid var(--amort-border); border-radius: 4px; overflow: hidden; }
+.amort-period button { padding: 3px 6px; border: 0; background: #fff; color: #59675f; font: .7rem var(--font-body); cursor: pointer; }
+.amort-period button.active { background: var(--brand-primary); color: #fff; }
+.amort-check { display: flex; gap: 8px; align-items: start; font-size: .82rem; margin: 12px 0 5px; }
+.amort-check input { margin-top: 3px; accent-color: var(--brand-primary); }
+.amort-help { display: block; color: #637168; font-size: .74rem; line-height: 1.6; margin: 6px 0 0; }
+.amort-example { margin: 20px 0 10px; }
+.amort-options { padding: 15px 0; border-top: 1px solid var(--amort-border); border-bottom: 1px solid var(--amort-border); }
+.amort-options summary { cursor: pointer; font-size: .81rem; color: var(--brand-primary); font-weight: 600; }
+.amort-options[open] summary { margin-bottom: 18px; }
+.amort-options .amort-field:last-child { margin-bottom: 0; }
+.amort-text-button { border: 0; background: transparent; color: var(--brand-primary); padding: 6px 0; font: 600 .77rem var(--font-body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.amort-page :is(button, select, summary, [tabindex]):focus-visible { outline: 3px solid var(--brand-accent); outline-offset: 3px; }
+.amort-results { min-width: 0; }
+.amort-panel { border: 1px solid var(--amort-border); border-radius: 8px; padding: 23px; margin: 0 0 22px; background: #fff; }
+.amort-panel h2 { font: 600 1rem var(--font-body); color: var(--color-gray-900); margin: 0; }
+.amort-panel__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.amort-muted { color: #637168; font-size: .76rem; white-space: nowrap; }
+.amort-summary__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 22px -8px 10px; text-align: center; }
+.amort-summary__grid > div { display: flex; flex-direction: column; gap: 5px; }
+.amort-summary__grid strong { color: var(--brand-primary); font-size: clamp(1rem, 1.8vw, 1.4rem); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.amort-summary__grid span { color: #637168; font-size: .68rem; line-height: 1.4; }
+.amort-summary__grid > div:nth-child(3) strong { color: #987125; }
+.amort-summary__total strong { color: var(--brand-secondary); }
+.amort-summary__note { margin: 15px 0 0; font-size: .7rem; color: #637168; line-height: 1.5; }
+.amort-program-note { padding: 12px 14px; margin: 16px 0 0; background: #f1f6f3; border-left: 3px solid var(--brand-accent); font-size: .76rem; line-height: 1.6; }
+.amort-timeline label { font-size: .78rem; font-weight: 500; display: block; }
+.amort-timeline input { display: block; width: 100%; height: 22px; margin: 7px 0 2px; accent-color: var(--brand-primary); cursor: pointer; }
+.amort-timeline__ends { display: flex; justify-content: space-between; color: #637168; font-size: .65rem; }
+.amort-breakdown { display: grid; grid-template-columns: minmax(0, 1fr) minmax(235px, 1fr); gap: 18px; align-items: center; margin-top: 24px; }
+.amort-chart-column { min-width: 0; text-align: center; }
+.amort-donut-wrap { position: relative; width: 100%; height: 245px; }
+.amort-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+.amort-donut-center span { color: #637168; font-size: .65rem; }
+.amort-donut-center strong { font-size: 1.2rem; letter-spacing: -.04em; color: var(--brand-secondary); }
+.amort-legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 12px; margin: 18px 0 12px; }
+.amort-legend span { display: inline-flex; align-items: center; gap: 5px; color: #637168; font-size: .64rem; }
+.amort-dot { display: inline-block; height: 9px; width: 9px; border-radius: 50%; margin-right: 7px; flex-shrink: 0; }
+.amort-legend .amort-dot { margin: 0; }
+.amort-dot--principal { background: #2d6a4f; }
+.amort-dot--interest { background: #df6358; }
+.amort-dot--tax { background: #d5a044; }
+.amort-dot--insurance { background: #65a889; }
+.amort-dot--hoa { background: #3c99ab; }
+.amort-dot--mi { background: #9274b4; }
+.amort-dot--extra { background: #254c6d; }
+.amort-breakdown__table { background: #f7f9f8; padding: 10px 15px; border-radius: 5px; }
+.amort-breakdown__table table { width: 100%; border-collapse: collapse; font-size: .77rem; font-variant-numeric: tabular-nums; }
+.amort-breakdown__table th, .amort-breakdown__table td { padding: 10px 0; text-align: left; border-bottom: 1px solid #e7ece9; font-weight: 400; }
+.amort-breakdown__table td, .amort-breakdown__table th:last-child { text-align: right; }
+.amort-breakdown__table td { white-space: nowrap; padding-left: 8px; }
+.amort-breakdown__table thead { color: #637168; }
+.amort-breakdown__table tfoot tr:first-child > * { font-weight: 700; border-top: 2px solid #ccd6cf; }
+.amort-breakdown__table tfoot tr:last-child > * { border: 0; font-size: .7rem; }
+.amort-savings { display: flex; gap: 24px; flex-wrap: wrap; padding: 18px 22px; margin-bottom: 22px; border-radius: 6px; background: #edf6ef; border: 1px solid #cce0d2; }
+.amort-savings > div { display: flex; flex-direction: column; gap: 4px; }
+.amort-savings span { font-size: .75rem; color: #486853; }
+.amort-savings strong { color: var(--brand-primary); font-size: 1.2rem; }
+.amort-savings p { flex-basis: 100%; margin: -12px 0 0; font-size: .72rem; color: #486853; }
+.amort-schedule-wrap { overflow: auto; max-height: 520px; border: 1px solid var(--amort-border); border-radius: 5px; }
+.amort-table { width: 100%; border-collapse: collapse; font-size: .72rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.amort-table th, .amort-table td { padding: 11px 13px; text-align: right; border-bottom: 1px solid #e9eeeb; }
+.amort-table th { position: sticky; top: 0; background: #f5f8f6; z-index: 1; font-weight: 600; color: #4a6253; }
+.amort-table th:first-child, .amort-table td:first-child, .amort-table th:nth-child(2), .amort-table td:nth-child(2) { text-align: left; }
+.amort-year-header td { background: #edf3ef; font-weight: 600; }
+.amort-year-btn { border: 0; padding: 0; background: none; cursor: pointer; color: var(--brand-primary); font: 600 .75rem var(--font-body); }
+.amort-year-btn::before { content: '+'; display: inline-block; width: 17px; }
+.amort-year-btn[aria-expanded="true"]::before { content: '−'; }
+.amort-month-row:nth-child(odd) { background: #fbfcfb; }
+.amort-month-row[aria-current="true"] { background: #e1eee5; }
+.amort-lifetime { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 24px 0 14px; }
+.amort-lifetime > div { display: flex; flex-direction: column; gap: 5px; }
+.amort-lifetime span { font-size: .72rem; color: #637168; }
+.amort-lifetime strong { font-size: 1rem; font-weight: 600; color: var(--brand-secondary); }
+.amort-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.amort-actions .btn { font-size: .76rem; padding: 9px 13px; }
+.amort-balance-panel summary { cursor: pointer; font-weight: 600; color: var(--brand-primary); }
+.amort-balance-chart { position: relative; height: 260px; margin-top: 20px; }
+.amort-error { border: 1px solid #e8bfc4; background: #fff7f7; border-radius: 6px; padding: 20px; color: #8d2532; }
+.amort-method { margin-top: 12px; font-size: .78rem; }
+.amort-method summary { cursor: pointer; color: var(--brand-primary); }
+.amort-method p { margin-top: 10px; }
+@media (max-width: 1050px) {
+  .amort-layout { grid-template-columns: 245px minmax(0, 1fr); gap: 22px; padding: 24px; }
+  .amort-panel { padding: 18px; }
+  .amort-breakdown { grid-template-columns: 1fr; }
+  .amort-donut-wrap { height: 235px; }
+  .amort-summary__grid { grid-template-columns: repeat(2, 1fr); gap: 20px 10px; }
+  .amort-summary__grid strong { font-size: 1.35rem; }
 }
-
-.amort-slider-row input[type="number"] {
-  padding: 0.6rem 0.75rem;
-  border: 1.5px solid var(--color-gray-300);
-  border-radius: 6px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  font-family: var(--font-body);
-  color: var(--brand-primary);
-  width: 100%;
-  transition: border-color var(--transition), box-shadow var(--transition);
+@media (max-width: 700px) {
+  .amort-layout { grid-template-columns: 1fr; padding: 20px 16px; gap: 28px; }
+  .amort-page .calc-page__header { padding: 22px 58px 22px 16px; }
+  .amort-page .calc-page__header-actions { top: 22px; right: 16px; }
+  .amort-inputs__title { font-size: 1.5rem; }
+  .amort-inputs__title br { display: none; }
+  .amort-inputs__title br::after { content: ' '; }
+  .amort-panel__heading { flex-wrap: wrap; }
+  .amort-input > input, .amort-field select { font-size: 16px; }
+  .amort-panel { padding: 16px; }
+  .amort-savings { gap: 20px; }
 }
-
-.amort-slider-row input[type="number"]:focus {
-  outline: none;
-  border-color: var(--brand-accent);
-  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
-}
-
-.amort-range {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: linear-gradient(
-    to right,
-    var(--brand-primary) 0%,
-    var(--brand-primary) var(--fill, 50%),
-    var(--color-gray-200) var(--fill, 50%),
-    var(--color-gray-200) 100%
-  );
-  outline: none;
-  cursor: pointer;
-}
-
-.amort-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--color-white);
-  border: 3px solid var(--brand-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: box-shadow var(--transition);
-}
-
-.amort-range::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 0 6px rgba(45, 106, 79, 0.12);
-}
-
-.amort-range::-moz-range-thumb {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--color-white);
-  border: 3px solid var(--brand-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-}
-
-/* ---- Dual Input (Down Payment $ / %) ---- */
-.amort-dual-input {
-  display: flex;
-  gap: var(--space-sm);
-}
-
-.amort-dual-input__field {
-  display: flex;
-  align-items: center;
-  border: 1.5px solid var(--color-gray-300);
-  border-radius: 6px;
-  overflow: hidden;
-  flex: 1;
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-
-.amort-dual-input__field:focus-within {
-  border-color: var(--brand-accent);
-  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
-}
-
-.amort-dual-input__prefix,
-.amort-dual-input__suffix {
-  padding: 0.5rem 0.6rem;
-  background: var(--color-gray-100);
-  color: var(--color-gray-500);
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.amort-dual-input__field input {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  padding: 0.5rem 0.5rem;
-  font-size: 0.9rem;
-  width: 100%;
-  min-width: 0;
-  font-family: var(--font-body);
-}
-
-/* ---- Date Row ---- */
-.amort-date-row {
-  display: flex;
-  gap: var(--space-sm);
-}
-
-.amort-date-row select {
-  flex: 1;
-  padding: 0.5rem 0.6rem;
-  border: 1.5px solid var(--color-gray-300);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-family: var(--font-body);
-  color: var(--color-gray-900);
-  background: var(--color-white);
-  cursor: pointer;
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-
-.amort-date-row select:focus {
-  outline: none;
-  border-color: var(--brand-accent);
-  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
-}
-
-/* ---- Loan Term Toggle (pill buttons) ---- */
-.amort-term-toggle {
-  display: inline-flex;
-  border: 1.5px solid var(--color-gray-300);
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--color-gray-50);
-}
-
-.amort-term-btn {
-  padding: 0.45rem 1.1rem;
-  border: none;
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-gray-500);
-  cursor: pointer;
-  transition: all var(--transition);
-  white-space: nowrap;
-}
-
-.amort-term-btn:not(:last-child) {
-  border-right: 1px solid var(--color-gray-200);
-}
-
-.amort-term-btn:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
-}
-
-.amort-term-btn.active {
-  background: var(--brand-primary);
-  color: var(--color-white);
-}
-
-/* ---- Period Toggle (monthly/annual) ---- */
-.amort-period-toggle {
-  display: inline-flex;
-  margin-left: auto;
-  border: 1px solid var(--color-gray-300);
-  border-radius: 4px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.amort-period-toggle button {
-  padding: 0.15rem 0.5rem;
-  border: none;
-  background: transparent;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-gray-500);
-  cursor: pointer;
-  transition: all var(--transition);
-  font-family: var(--font-body);
-}
-
-.amort-period-toggle button:not(:last-child) {
-  border-right: 1px solid var(--color-gray-200);
-}
-
-.amort-period-toggle button.active {
-  background: var(--brand-primary);
-  color: var(--color-white);
-}
-
-/* ---- Extra Payments Section Toggle ---- */
-.amort-section-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  color: var(--color-gray-500);
-  border-radius: 4px;
-  transition: all var(--transition);
-  margin-left: auto;
-}
-
-.amort-section-toggle:hover {
-  background: var(--color-gray-100);
-  color: var(--brand-primary);
-}
-
-.amort-section-toggle svg {
-  transition: transform var(--transition);
-}
-
-.amort-section-toggle.open svg {
-  transform: rotate(180deg);
-}
-
-/* ---- Savings Row ---- */
-.amort-savings-row {
-  display: flex;
-  gap: var(--space-lg);
-  padding: var(--space-md);
-  margin-top: var(--space-md);
-  background: linear-gradient(135deg, #d4edda 0%, #e8f5e8 100%);
-  border-radius: var(--border-radius);
-  border: 1px solid #b7dfc6;
-}
-
-.amort-savings-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.amort-savings-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-gray-600, #5a6c57);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.amort-savings-value {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--brand-primary);
-}
-
-.amort-savings-value.success {
-  color: var(--color-success);
-}
-
-/* ---- Chart Container ---- */
-.amort-chart-wrap {
-  position: relative;
-  height: 360px;
-  width: 100%;
-}
-
-/* ---- Schedule Table ---- */
-.amort-schedule-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.amort-table {
-  min-width: 640px;
-}
-
-/* Year header row */
-.amort-year-header {
-  background: var(--color-gray-50) !important;
-  cursor: pointer;
-  user-select: none;
-}
-
-.amort-year-header:hover {
-  background: var(--color-gray-100) !important;
-}
-
-.amort-year-header td {
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--brand-primary);
-  padding: 0.5rem 0.75rem;
-  border-bottom: 2px solid var(--color-gray-200);
-}
-
-.amort-year-btn {
-  border: none;
-  background: transparent;
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--brand-primary);
-  cursor: pointer;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.amort-year-chevron {
-  transition: transform var(--transition);
-  flex-shrink: 0;
-}
-
-.amort-year-header.open .amort-year-chevron {
-  transform: rotate(180deg);
-}
-
-.amort-year-range {
-  font-weight: 400;
-  color: var(--color-gray-500);
-  font-size: 0.78rem;
-}
-
-/* Monthly rows */
-.amort-month-row td {
-  font-size: 0.82rem;
-  padding: 0.4rem 0.75rem;
-}
-
-.amort-month-row:nth-child(even) {
-  background: var(--color-gray-50);
-}
-
-/* Result card detail */
-.result-card__detail {
-  display: block;
-  font-size: 0.72rem;
-  color: var(--color-gray-500);
-  margin-top: 0.2rem;
-  line-height: 1.3;
-}
-
-/* ---- LTV Display ---- */
-.amort-ltv-display {
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
-  border-radius: 8px;
-  padding: var(--space-sm) var(--space-md);
-}
-
-.amort-ltv-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-xs);
-}
-
-.amort-ltv-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.amort-ltv-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--brand-primary);
-}
-
-.amort-ltv-value.warning {
-  color: #e67e22;
-}
-
-.amort-ltv-value.danger {
-  color: #dc3545;
-}
-
-.amort-ltv-bar {
-  position: relative;
-  height: 8px;
-  background: var(--color-gray-200);
-  border-radius: 4px;
-  overflow: visible;
-}
-
-.amort-ltv-fill {
-  height: 100%;
-  border-radius: 4px;
-  background: var(--brand-primary);
-  transition: width 0.3s ease, background-color 0.3s ease;
-}
-
-.amort-ltv-fill.warning {
-  background: #e67e22;
-}
-
-.amort-ltv-fill.danger {
-  background: #dc3545;
-}
-
-.amort-ltv-marker {
-  position: absolute;
-  top: -3px;
-  width: 2px;
-  height: 14px;
-  background: var(--color-gray-500);
-  border-radius: 1px;
-  transform: translateX(-1px);
-}
-
-.amort-ltv-marker::after {
-  content: '80%';
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--color-gray-500);
-  white-space: nowrap;
-}
-
-.amort-ltv-note {
-  display: block;
-  margin-top: var(--space-xs);
-  font-size: 0.75rem;
-  color: #e67e22;
-  font-weight: 500;
-}
-
-/* ---- Responsive ---- */
-@media (max-width: 768px) {
-  .amort-dual-input {
-    flex-direction: column;
-  }
-
-  .amort-savings-row {
-    flex-direction: column;
-    gap: var(--space-md);
-  }
-
-  .amort-chart-wrap {
-    height: 280px;
-  }
-
-  .amort-term-toggle {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .amort-date-row {
-    flex-direction: column;
-  }
-}
-
-/* ---- Print Overrides ---- */
 @media print {
-  .amort-range,
-  .amort-section-toggle,
-  .amort-period-toggle,
-  .amort-chart-wrap,
-  .amort-ltv-display,
-  #modeToggle {
-    display: none !important;
-  }
-
-  .amort-term-toggle {
-    display: none !important;
-  }
-
-  .amort-slider-row input[type="number"] {
-    border: none !important;
-    background: none !important;
-    font-size: 9pt;
-    padding: 0 !important;
-  }
-
-  .amort-dual-input__prefix,
-  .amort-dual-input__suffix {
-    background: none;
-    padding: 0 2px;
-    font-size: 8pt;
-  }
-
-  .amort-dual-input__field {
-    border: none !important;
-  }
-
-  .amort-dual-input__field input {
-    font-size: 8pt;
-    padding: 0 !important;
-  }
-
-  .amort-date-row select {
-    border: none !important;
-    background: none !important;
-    font-size: 8pt;
-    padding: 0 !important;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  /* Show all month rows in print */
-  .amort-month-row {
-    display: table-row !important;
-  }
-
-  .amort-year-header {
-    background: var(--color-gray-100) !important;
-  }
-
-  .amort-year-btn svg {
-    display: none;
-  }
-
-  .amort-savings-row {
-    padding: 0.25rem 0.5rem;
-    margin-top: 0.2rem;
-    gap: 0.5rem;
-  }
-
-  .amort-savings-label { font-size: 7pt; }
-  .amort-savings-value { font-size: 9pt; }
-
-  .result-card__detail { font-size: 6.5pt; }
-
-  /* Show extra payment section if it has data */
-  #extraPaymentSection {
-    display: block !important;
-  }
-
-  .amort-table {
-    font-size: 7pt;
-    min-width: auto;
-  }
-
-  .amort-table th { font-size: 6.5pt; padding: 0.2rem 0.3rem; }
-  .amort-table td { padding: 0.15rem 0.3rem; }
-  .amort-year-header td { font-size: 7.5pt; padding: 0.2rem 0.3rem; }
-  .amort-month-row td { font-size: 7pt; }
-
-  /* Page-break control */
-  .amort-year-header {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    break-after: avoid;
-    page-break-after: avoid;
-  }
-
-  .results-grid {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
+  .amort-layout { display: block; padding: 0; }
+  .amort-inputs, .amort-timeline input, .amort-timeline__ends, .amort-chart-column, .amort-actions, .amort-text-button, .amort-balance-panel, .amort-method { display: none !important; }
+  .amort-breakdown { display: block; margin-top: 10px; }
+  .amort-panel { padding: 10px; margin-bottom: 12px; box-shadow: none; break-inside: avoid; }
+  .amort-summary__grid { grid-template-columns: repeat(4, 1fr); }
+  .amort-schedule { break-inside: auto; }
+  .amort-schedule-wrap { max-height: none; overflow: visible; border: 0; }
+  .amort-table { font-size: 6pt; white-space: normal; }
+  .amort-table th, .amort-table td { padding: 3px 2px; }
+  .amort-table th { position: static; }
+  .amort-page .amort-month-row[hidden] { display: table-row !important; }
+  .amort-year-header { break-after: avoid; }
+  .amort-lifetime { grid-template-columns: repeat(4, 1fr); }
 }

@@ -308,6 +308,13 @@
       Object.keys(amortKeys).forEach((key) => {
         if (key === 'term') {
           const termYears = String(Math.round(amortKeys[key]));
+          const termSelect = targetDoc.getElementById('loanTerm');
+          if (termSelect && Array.from(termSelect.options).some(option => option.value === termYears)) {
+            termSelect.value = termYears;
+            MSFG.WS.triggerEvent(termSelect, 'change');
+            populated++;
+            return;
+          }
           const termBtn = targetDoc.querySelector('.amort-term-btn[data-years="' + termYears + '"]');
           if (termBtn) {
             targetDoc.querySelectorAll('.amort-term-btn[data-years]').forEach((b) => { b.classList.remove('active'); });

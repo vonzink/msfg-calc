@@ -460,6 +460,11 @@
 
   /* ---- Amortization ---- */
   RT.register('amortization', function (doc) {
+    const output = doc.getElementById('amortOutput');
+    if (output) {
+      if (!output.dataset.amortReport) throw new Error('Enter valid mortgage inputs before adding to a report.');
+      return JSON.parse(output.dataset.amortReport);
+    }
     var homeValue = val(doc, 'homePrice');
     var downDollar = val(doc, 'downPaymentDollar');
     var downPct = val(doc, 'downPaymentPercent');
@@ -490,7 +495,6 @@
 
     var totalPayment = txt(doc, 'resultMonthlyPI');
     var totalMonthly = txt(doc, 'resultTotalMonthly');
-    var totalInterestText = txt(doc, 'resultTotalInterest');
     var totalCostText = txt(doc, 'resultTotalCost');
     var payoffDate = txt(doc, 'resultPayoffDate');
     var interestSaved = txt(doc, 'resultInterestSaved');
@@ -513,17 +517,17 @@
       if (cells.length < 7) return;
       var pmtNum = parseInt(cells[0].textContent.trim(), 10);
       if (isNaN(pmtNum)) return;
-      var principal = parseFloat((cells[3].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
-      var interest = parseFloat((cells[4].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
-      var extra = parseFloat((cells[5].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
-      var balance = parseFloat((cells[6].textContent || '').replace(/[^0-9.\-]/g, '')) || 0;
+      var principal = parseFloat((cells[3].textContent || '').replace(/[^0-9.-]/g, '')) || 0;
+      var interest = parseFloat((cells[4].textContent || '').replace(/[^0-9.-]/g, '')) || 0;
+      var extra = parseFloat((cells[5].textContent || '').replace(/[^0-9.-]/g, '')) || 0;
+      var balance = parseFloat((cells[6].textContent || '').replace(/[^0-9.-]/g, '')) || 0;
       totalPrincipal += principal;
       totalInterest += interest;
       totalExtra += extra;
       schedule.push({
         num: pmtNum,
         date: cells[1].textContent.trim(),
-        payment: parseFloat((cells[2].textContent || '').replace(/[^0-9.\-]/g, '')) || 0,
+        payment: parseFloat((cells[2].textContent || '').replace(/[^0-9.-]/g, '')) || 0,
         principal: principal,
         interest: interest,
         extra: extra,
@@ -575,14 +579,18 @@
 
     html += '<div class="rpt-section"><h4 class="rpt-section-title">Mortgage Parameters</h4>';
     html += '<div class="rpt-params">';
+    if (inp.program) html += '<div class="rpt-param"><span>Loan Program</span><span>' + MSFG.escHtml(inp.program) + '</span></div>';
     html += '<div class="rpt-param"><span>Home Value</span><span>' + fmt0(inp.homeValue) + '</span></div>';
-    html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + ' (' + fmt0(inp.downPayment) + ')</span></div>';
+    if (inp.mode !== 'refinance') html += '<div class="rpt-param"><span>Down Payment</span><span>' + pct(inp.downPct) + ' (' + fmt0(inp.downPayment) + ')</span></div>';
+    else html += '<div class="rpt-param"><span>Purpose</span><span>Refinance</span></div>';
     html += '<div class="rpt-param"><span>Loan Amount</span><span>' + fmt0(inp.loanAmount) + '</span></div>';
     html += '<div class="rpt-param"><span>Interest Rate</span><span>' + ratePct(inp.rate) + '</span></div>';
     html += '<div class="rpt-param"><span>Loan Term</span><span>' + inp.term + ' years</span></div>';
     if (inp.taxYr) html += '<div class="rpt-param"><span>Annual Property Tax</span><span>' + fmt0(inp.taxYr) + '</span></div>';
     if (inp.insYr) html += '<div class="rpt-param"><span>Annual Insurance</span><span>' + fmt0(inp.insYr) + '</span></div>';
-    if (inp.monthlyPMI) html += '<div class="rpt-param"><span>Monthly PMI</span><span>' + fmt(inp.monthlyPMI) + '</span></div>';
+    if (inp.monthlyHOA) html += '<div class="rpt-param"><span>Monthly HOA</span><span>' + fmt(inp.monthlyHOA) + '</span></div>';
+    if (inp.upfrontFee) html += '<div class="rpt-param"><span>Financed Program Fee</span><span>' + fmt(inp.upfrontFee) + '</span></div>';
+    if (inp.monthlyPMI) html += '<div class="rpt-param"><span>Initial Mortgage Insurance</span><span>' + fmt(inp.monthlyPMI) + '</span></div>';
     html += '</div></div>';
 
     html += '<div class="rpt-section"><h4 class="rpt-section-title">Payment Summary</h4>';
@@ -595,7 +603,7 @@
     if (res.totalExtra) html += '<tr><td>Total Extra Payments</td><td class="rpt-num">' + fmt(res.totalExtra) + '</td></tr>';
     html += '</tbody></table>';
     if (res.totalCost) {
-      html += '<div class="rpt-grand-total"><span>Total Cost of Loan</span><span>' + res.totalCost + '</span></div>';
+      html += '<div class="rpt-grand-total"><span>Total Payments</span><span>' + res.totalCost + '</span></div>';
     }
     if (res.payoffDate) {
       html += '<div class="rpt-grand-total" style="margin-top:4px"><span>Payoff Date</span><span>' + res.payoffDate + '</span></div>';
@@ -650,20 +658,23 @@
   }, function (data) {
     var inp = data.inputs; var res = data.results;
     var params = [
-      ['Home Value', fmt0(inp.homeValue)], ['Down Payment', pct(inp.downPct) + ' (' + fmt0(inp.downPayment) + ')'],
+      ['Home Value', fmt0(inp.homeValue)], [inp.mode === 'refinance' ? 'Purpose' : 'Down Payment', inp.mode === 'refinance' ? 'Refinance' : pct(inp.downPct) + ' (' + fmt0(inp.downPayment) + ')'],
       ['Loan Amount', fmt0(inp.loanAmount)], ['Interest Rate', ratePct(inp.rate)],
       ['Loan Term', inp.term + ' years']
     ];
+    if (inp.program) params.push(['Loan Program', inp.program]);
+    if (inp.monthlyHOA) params.push(['Monthly HOA', fmt(inp.monthlyHOA)]);
+    if (inp.upfrontFee) params.push(['Financed Program Fee', fmt(inp.upfrontFee)]);
     if (inp.taxYr) params.push(['Annual Property Tax', fmt0(inp.taxYr)]);
     if (inp.insYr) params.push(['Annual Insurance', fmt0(inp.insYr)]);
-    if (inp.monthlyPMI) params.push(['Monthly PMI', fmt(inp.monthlyPMI)]);
+    if (inp.monthlyPMI) params.push(['Initial Mortgage Insurance', fmt(inp.monthlyPMI)]);
     if (inp.extraAmount) params.push(['Extra Payment', fmt(inp.extraAmount) + ' (' + inp.extraFreq + ')']);
     var results = [];
     if (res.monthlyPI) results.push(['Monthly P&I', res.monthlyPI]);
     if (res.totalMonthly) results.push(['Total Monthly', res.totalMonthly]);
     if (res.totalPrincipal) results.push(['Total Principal', fmt(res.totalPrincipal)]);
     if (res.totalInterest) results.push(['Total Interest Paid', fmt(res.totalInterest)]);
-    if (res.totalCost) results.push(['Total Cost of Loan', res.totalCost]);
+    if (res.totalCost) results.push(['Total Payments', res.totalCost]);
     if (res.payoffDate) results.push(['Payoff Date', res.payoffDate]);
     if (res.interestSaved) results.push(['Interest Saved', res.interestSaved]);
     if (res.timeSaved && res.timeSaved !== '--') results.push(['Time Saved', res.timeSaved]);
