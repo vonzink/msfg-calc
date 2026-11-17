@@ -3,8 +3,13 @@
  * Exposed as MSFG.WtmgMath so the page script and the unit tests share one implementation.
  *
  * Identity: borrower points = wholesaler margin + broker comp + LLPAs − MBS premium − servicing value.
- * compute(inputs) solves for whichever variable inputs.solve names, applies the optional after-lock
- * market move (margin absorbs it), and returns every figure the page renders.
+ *
+ * compute(inputs) returns:
+ *   lock    — the full front-end state at lock, after solving for inputs.solve
+ *   after   — the same shape after the optional market move (margin absorbs it); equals lock when nothing moved
+ *   monthly — the month-1 payment split for the after state
+ *   moved, warnings, mode
+ * lock and after are built by the same function, so every renderer can pick one by name.
  */
 /* global globalThis */
 (function() {
@@ -17,14 +22,17 @@
   const ANCHOR = {coupon:6.50, price:100.69, perPoint:3.5}; // price moves about 3.5 pts per 1% of coupon
   const RATE_SHARE = 0.59 / 1.39; // illustrative split of the coupon-over-Treasury spread into rate risk vs refi risk
   const SPLIT = [['fixed', 'Fixed cost', 'rent, salaries, systems, licensing, allocated per loan'], ['variable', 'Variable cost', 'processing, credit, disclosures, marketing that scale with volume'], ['onetime', 'One-time expense', 'launch or project costs allocated to this loan'], ['profit', 'Profit', 'what MSFG actually clears on the loan']];
+
   const pts = x => { const s = (Math.round(x * 1000) / 1000).toString(); return s === '-0' ? '0' : s.replace('-', '−'); };
   const pc = (x, d = 2) => (Math.abs(x * 100 - Math.round(x * 100)) > 1e-6 && d === 2 ? x.toFixed(3) : x.toFixed(d)) + '%';
+  // Whole-dollar split that still sums to the total (largest remainder).
   const splitDollars = (total, shares) => { const raw = shares.map(s => total * s); const fl = raw.map(Math.floor); let rem = Math.round(total) - fl.reduce((a, b) => a + b, 0); raw.map((r, i) => [r - fl[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rem > 0) { fl[i]++; rem--; } }); return fl; };
   const autoCoupon = (rate, svc, gfee) => Math.max(0.5, Math.floor((rate - gfee - svc) / 0.5 + 1e-9) * 0.5);
   const estPrice = c => Math.round((ANCHOR.price + (c - ANCHOR.coupon) * ANCHOR.perPoint) * 100) / 100;
+  const isSet = v => v !== null && v !== undefined;
 
-  // ---------- model ----------
-  function compute(s){
+  // ---------- layer 1: solve the lock ----------
+  function solveLock(s) {
     const warnings = [];
     const P = s.loan;
     let coupon = s.coupon, rate = s.rate, tsy = s.tsy, lo = s.lo, margin = s.margin, msrPts = s.msr, price = s.price, comp = s.comp;
@@ -38,7 +46,6 @@
 
     let premPts = price - 100;
     let sheetPts = -s.sheet; // internal convention: positive = credit to the borrower
-    // One identity: premium + servicing − margin − comp = borrower price (sheet). Solve for whichever variable was picked.
     let solvedMsr = false, solvedMargin = false, solvedComp = false, solvedPrice = false, solvedSheet = false;
     if (mode === 'msr') {
       msrPts = sheetPts - premPts + margin + comp + llpa; solvedMsr = true;
@@ -57,55 +64,85 @@
     if (msrPts < 0) { msrPts = 0; warnings.push('The sheet price is richer than the modeled execution even with zero servicing value and zero margin; the gap is shown.'); }
     if (lo > comp) { lo = comp; warnings.push(`LO comp cannot exceed broker comp${solvedComp ? ' (solved at ' + pts(comp) + ' pts)' : ''}. Shown as equal.`); }
 
-    // Layer 2: the market moves after the lock. Borrower price, comp and the servicing mark are held; the margin absorbs the change.
-    const lockCoupon = coupon, lockPrice = price, lockPremPts = premPts, lockMargin = margin;
-    let moved = false;
-    if (s.coupon2 !== null || s.price2 !== null) {
-      let c2 = s.coupon2 !== null ? s.coupon2 : coupon, p2 = s.price2 !== null ? s.price2 : price;
-      if (rate < c2 + floor) { const asked = c2; c2 = autoCoupon(rate, svc, gfee); if (s.price2Est || s.price2 === null) p2 = c2 === ANCHOR.coupon ? ANCHOR.price : estPrice(c2); warnings.push(`After the move, a ${pc(asked)} coupon does not fit under the ${pc(rate)} note; shown as ${pc(c2)}${s.price2Est ? ' with an estimated price' : ''}.`); }
-      moved = Math.abs(c2 - coupon) > 1e-9 || Math.abs(p2 - price) > 1e-9;
-      if (moved) {
-        coupon = c2; price = p2; premPts = price - 100;
-        margin = lockMargin + (premPts - lockPremPts);
-        if (tsy >= coupon) { tsy = coupon - 0.25; warnings.push(`The Treasury yield has to sit below the MBS coupon. Shown as ${pc(tsy)}.`); }
-      }
-    }
-    const lossPts = Math.max(0, -margin);
-
-    const prem = P * premPts / 100;
-    const msr = P * msrPts / 100;
-    const compD = P * comp / 100, loD = P * lo / 100, mkD = compD - loD, keep = P * Math.max(0, margin) / 100, lossD = P * lossPts / 100, llpaD = P * llpa / 100;
-    const splitD = shares.map(x => mkD * x / 100);
-    const splitShow = splitDollars(mkD, shares.map(x => x / 100));
     let borrowerPts = premPts + msrPts - margin - comp - llpa;
     if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
     if (solvedSheet) sheetPts = borrowerPts;
-    const bpD = P * Math.max(0, -borrowerPts) / 100;
-    const crD = P * Math.max(0, borrowerPts) / 100;
-    const proceeds = P + prem;
-    const disc = Math.max(0, -prem);
-    const uwmIn = proceeds + bpD + msr + lossD;
-    const rev = Math.max(0, prem) + bpD + msr;
-    const gap = sheetPts - borrowerPts;
-    const impliedMsr = msrPts + gap;
-    const impliedMargin = lockMargin - gap;
 
-    const r = rate / 100 / 12;
-    const pmt = P * r / (1 - Math.pow(1 + r, -360));
-    const int = P * r, prin = pmt - int;
-    const gfD = P * gfee / 100 / 12, svD = P * svc / 100 / 12, trD = P * tsy / 100 / 12;
-    const spread = coupon - tsy, rateRisk = spread * RATE_SHARE, refi = spread - rateRisk;
-    const rrD = P * rateRisk / 100 / 12, rfD = P * refi / 100 / 12;
-    const excess = Math.max(0, rate - coupon - floor), exD = P * excess / 100 / 12;
-    const strip = svc + excess, mult = strip > 0 ? msrPts / strip : 0;
-
-    return {warnings, P, price, coupon, rate, tsy, lo, comp, margin, msrPts, sheetPts, sheetCost:solvedSheet ? -borrowerPts : s.sheet, svc, gfee, floor, mode, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet,
-            premPts, prem, disc, msr, compD, loD, mkD, keep, lossD, lossPts, llpa, llpaD, shares, splitD, splitShow,
-            lockCoupon, lockPrice, lockPremPts, lockMargin, moved,
-            borrowerPts, bpD, crD, proceeds, uwmIn, rev, gap, impliedMsr, impliedMargin,
-            pmt, int, prin, gfD, svD, trD, spread, rateRisk, refi, rrD, rfD, excess, exD, strip, mult,
-            bondIn: trD + rrD + rfD + prin, servicer: svD + exD};
+    return {warnings, P, rate, tsy, lo, comp, svc, gfee, llpa, floor, mode, shares, coupon, price, premPts, msrPts, margin, sheetPts,
+            sheetCost: solvedSheet ? (borrowerPts === 0 ? 0 : -borrowerPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
   }
 
-  root.MSFG.WtmgMath = { compute, autoCoupon, estPrice, splitDollars, pts, pc, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT };
+  // ---------- layer 2: the market moves after the lock ----------
+  // Borrower price, comp and the servicing mark are held; the margin absorbs the change in execution.
+  function applyMove(lock, s) {
+    const warnings = [];
+    let coupon = lock.coupon, price = lock.price, premPts = lock.premPts, margin = lock.margin, tsy = lock.tsy;
+    let moved = false;
+    if (isSet(s.coupon2) || isSet(s.price2)) {
+      let c2 = isSet(s.coupon2) ? s.coupon2 : coupon, p2 = isSet(s.price2) ? s.price2 : price;
+      if (lock.rate < c2 + lock.floor) {
+        const asked = c2;
+        c2 = autoCoupon(lock.rate, lock.svc, lock.gfee);
+        if (s.price2Est || !isSet(s.price2)) p2 = c2 === ANCHOR.coupon ? ANCHOR.price : estPrice(c2);
+        warnings.push(`After the move, a ${pc(asked)} coupon does not fit under the ${pc(lock.rate)} note; shown as ${pc(c2)}${s.price2Est ? ' with an estimated price' : ''}.`);
+      }
+      moved = Math.abs(c2 - coupon) > 1e-9 || Math.abs(p2 - price) > 1e-9;
+      if (moved) {
+        coupon = c2; price = p2; premPts = price - 100;
+        margin = lock.margin + (premPts - lock.premPts);
+        if (tsy >= coupon) { tsy = coupon - 0.25; warnings.push(`The Treasury yield has to sit below the MBS coupon. Shown as ${pc(tsy)}.`); }
+      }
+    }
+    return {coupon, price, premPts, margin, tsy, moved, warnings};
+  }
+
+  // ---------- one complete front-end state for a given execution ----------
+  function frontEnd(lock, exec) {
+    const P = lock.P;
+    const prem = P * exec.premPts / 100, disc = Math.max(0, -prem), proceeds = P + prem;
+    const excess = Math.max(0, lock.rate - exec.coupon - lock.floor), strip = lock.svc + excess;
+    const msr = P * lock.msrPts / 100, mult = strip > 0 ? lock.msrPts / strip : 0;
+    const compD = P * lock.comp / 100, loD = P * lock.lo / 100, mkD = compD - loD, llpaD = P * lock.llpa / 100;
+    const lossPts = Math.max(0, -exec.margin), keep = P * Math.max(0, exec.margin) / 100, lossD = P * lossPts / 100;
+    const splitD = lock.shares.map(x => mkD * x / 100), splitShow = splitDollars(mkD, lock.shares.map(x => x / 100));
+    let borrowerPts = exec.premPts + lock.msrPts - exec.margin - lock.comp - lock.llpa;
+    if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
+    const bpD = P * Math.max(0, -borrowerPts) / 100;   // points the borrower pays
+    const crD = P * Math.max(0, borrowerPts) / 100;    // lender credit to the borrower
+    const uwmIn = proceeds + bpD + msr + lossD;
+    const uwmOut = compD + llpaD + P + crD + keep;
+    const rev = Math.max(0, prem) + bpD + msr;
+    const gap = lock.sheetPts - borrowerPts;           // positive: the sheet is better for the borrower than this execution
+    const impliedMsr = lock.msrPts + gap;              // servicing value needed to hit the lock margin at the sheet price
+    const impliedMargin = lock.margin - gap;           // margin earned at the sheet price with the entered servicing value
+    const servicer = P * strip / 100 / 12;
+    return Object.assign({}, lock, {
+      coupon: exec.coupon, price: exec.price, premPts: exec.premPts, margin: exec.margin, tsy: exec.tsy,
+      prem, disc, proceeds, excess, strip, msr, mult, compD, loD, mkD, llpaD, lossPts, lossD, keep, splitD, splitShow,
+      borrowerPts, bpD, crD, uwmIn, uwmOut, rev, gap, impliedMsr, impliedMargin, servicer
+    });
+  }
+
+  // ---------- month 1 of principal and interest, for the after state ----------
+  function monthly(fe) {
+    const P = fe.P, r = fe.rate / 100 / 12;
+    const pmt = P * r / (1 - Math.pow(1 + r, -360));
+    const int = P * r, prin = pmt - int;
+    const gfD = P * fe.gfee / 100 / 12, svD = P * fe.svc / 100 / 12, trD = P * fe.tsy / 100 / 12;
+    const spread = fe.coupon - fe.tsy, rateRisk = spread * RATE_SHARE, refi = spread - rateRisk;
+    const rrD = P * rateRisk / 100 / 12, rfD = P * refi / 100 / 12;
+    const exD = P * fe.excess / 100 / 12;
+    return {P, rate: fe.rate, coupon: fe.coupon, tsy: fe.tsy, svc: fe.svc, gfee: fe.gfee, floor: fe.floor, excess: fe.excess, strip: fe.strip,
+            pmt, int, prin, gfD, svD, trD, spread, rateRisk, refi, rrD, rfD, exD, bondIn: trD + rrD + rfD + prin, servicer: svD + exD};
+  }
+
+  function compute(s) {
+    const lockSolve = solveLock(s);
+    const move = applyMove(lockSolve, s);
+    const lock = frontEnd(lockSolve, lockSolve);
+    const after = frontEnd(lockSolve, move);
+    return {lock, after, moved: move.moved, monthly: monthly(after), warnings: lockSolve.warnings.concat(move.warnings), mode: lockSolve.mode};
+  }
+
+  root.MSFG.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT };
 })();
