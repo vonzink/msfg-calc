@@ -23,7 +23,6 @@
   const m0 = x => MSFG.formatCurrency(x, 0);
   const m2 = x => MSFG.formatCurrency(x, 2);
   const ptsU = x => pts(x) + (Math.abs(Math.round(x * 1000) / 1000) === 1 ? ' pt' : ' pts');
-  const kfmt = x => x >= 1e6 ? '$' + (x / 1e6).toFixed(x % 1e6 ? 2 : 0).replace(/\.?0+$/, '') + 'M' : '$' + Math.round(x / 1000) + 'K';
 
   // ---------- chart configs ----------
   function chart1Config(r){
@@ -265,7 +264,6 @@
 
   function renderText(r){
     const lock = r.lock, after = r.after, month = r.monthly;
-    $('lede').textContent = `One ${kfmt(after.P)} loan: money at closing, money every month.`;
     const w = $('warnings'); w.hidden = !r.warnings.length; w.textContent = r.warnings.join(' ');
     $('in-result').textContent = after.borrowerPts === 0 ? 'Par' : after.borrowerPts < 0 ? `Pays ${ptsU(-after.borrowerPts)}` : `Credit ${ptsU(after.borrowerPts)}`;
 
@@ -305,8 +303,6 @@
       card('', `Wholesaler's rate sheet at ${pc(after.rate)}`, sheetWord, after.sheetPts === 0 ? 'Par' : priceWord(after.sheetPts), sheetSrc) +
       tile3;
 
-    $('cap1').textContent = `Ribbon width = dollars, this chart only. Principal ribbons (//) are drawn shortened; every other width is to scale. One-time, at funding. Lender-paid comp: the borrower pays nothing out of pocket for it; it's built into the ${pc(after.rate)} rate. Borrower points or credit come from the sheet price and the margins, not typed in.${after.disc > 0 ? ` The ${pc(after.coupon)} coupon trades below par, so the buy-side principal ribbons are drawn ${m0(after.disc)} thinner than the funding ribbon.` : ''}`;
-
     const worth = lock.premPts + after.msrPts;
     const n1 = `At ${pc(after.rate)} with a ${pc(lock.coupon)} coupon at ${lock.price.toFixed(2)}, this loan is worth ${pts(worth)} pts to the wholesaler (${pts(lock.premPts)} ${lock.premPts < 0 ? 'discount' : 'premium'} in cash ${lock.premPts < 0 ? 'offset by' : '+'} ${pts(after.msrPts)} servicing value). After the wholesaler's ${pts(lock.margin)}-pt margin${after.llpa > 0 ? `, Fannie's ${pts(after.llpa)}-pt LLPAs` : ''} and MSFG's ${pts(after.comp)}-pt comp, ${pts(after.borrowerPts)} pts is left for the borrower: ` +
       (after.borrowerPts < 0 ? `they pay ${m0(after.bpD)} in points at closing.` : after.borrowerPts > 0 ? `they get a ${m0(after.crD)} lender credit toward closing costs.` : `par, no points and no credit.`);
@@ -344,7 +340,6 @@
       : 'With no premium, no points, and no servicing value, the wholesaler has no front-end revenue on this loan.';
 
     $('sub2').textContent = `The bond buyer's ${pc(after.coupon)} = ${pc(after.tsy)} Treasury + ${pc(month.spread)} risk spread; default risk is priced in Fannie's g-fee.`;
-    $('cap2').textContent = `Ribbon width = dollars, this chart only. Escrow and mortgage insurance excluded. The ${pc(month.rateRisk)} / ${pc(month.refi)} split of the ${pc(month.spread)} spread is an illustrative estimate, not market data. Treasury: ${pc(after.tsy)}${after.tsy === DEFAULTS.tsy ? ', Nov 17, 2026' : ', as entered'}.${after.excess > 0 ? ` Excess servicing of ${pc(after.excess)} appears because the note rate exceeds coupon + ${pc(after.floor)}.` : ''}`;
     setNotes('notes2', [`Bond buyer's ${pc(after.coupon)} = ${pc(after.tsy)} Treasury + ${pc(month.spread)} for rate and refi risk. Default risk is Fannie's, paid through the ${pc(after.gfee)} g-fee. The ${pc(after.strip)} servicing strip goes to whoever services the loan. Month 1 only: interest shrinks and principal grows over time.`]);
 
     $('msrcards').innerHTML =

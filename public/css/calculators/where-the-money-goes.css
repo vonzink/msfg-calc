@@ -121,3 +121,5 @@
 .wtmg{padding:24px 16px; border-radius:var(--border-radius, 8px)}
 .wtmg h2{font-family:var(--font-heading, inherit)}
 @media (max-width:900px){ .wtmg{padding:16px 8px} }
+.wtmg .wtmg-foot p + p{margin-top:8px}
+.wtmg .wtmg-head .note{margin-bottom:4px}

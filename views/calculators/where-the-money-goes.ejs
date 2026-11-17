@@ -8,7 +8,7 @@
     <div class="wtmg">
       <div class="wrap">
         <div class="wtmg-head">
-          <p class="lede sub" id="lede">One $500K loan: money at closing, money every month.</p>
+          <p class="note" role="note"><strong>Training tool.</strong> Every figure here is hypothetical and for illustration only. It is not a rate quote, an offer, or terms for any borrower. See the full disclosure at the bottom of the page.</p>
           <div class="key" aria-label="Color key">
             <span><i class="sw blue"></i>Blue = where money starts</span>
             <span><i class="sw green"></i>Green = where it lands</span>
@@ -50,7 +50,6 @@
           </details>
 
           <p class="warn" id="warnings" hidden></p>
-          <p class="hint">One equation ties the front end together: borrower points = wholesaler margin + broker comp + LLPAs − MBS premium − servicing value. LLPAs are Fannie's upfront loan-level fees for the file's risk (credit score, LTV, occupancy, property type), passed straight through to the price. Enter the known values and pick the unknown under Solve for; the page locks that field (blue) and computes it. Points after comp is the borrower's price from the wholesaler's grid (positive = borrower pays, negative = credit). Changing the note rate picks the highest MBS coupon that fits under it and estimates that coupon's price from the 6.5% quote; edit the price if you have the real quote. Every figure and both charts update as you type. Yellow source text means a value differs from the sourced example.</p>
         </form>
 
         <section aria-labelledby="s1">
@@ -60,7 +59,6 @@
           <div class="chart-scroll"><svg id="chart1" role="group" aria-label="Sankey chart of one-time flows at funding"></svg></div>
           <p class="swipe">Swipe sideways to see the full flow.</p>
           <div class="info" id="info1" role="status" aria-live="polite">Hover or tap a ribbon to see how it's calculated.</div>
-          <p class="caption" id="cap1"></p>
           <div class="notes" id="notes1"></div>
           <div class="box">
             <h3>Where the wholesaler's front-end revenue comes from</h3>
@@ -75,7 +73,6 @@
           <div class="chart-scroll"><svg id="chart2" role="group" aria-label="Sankey chart of the month-one principal and interest payment"></svg></div>
           <p class="swipe">Swipe sideways to see the full flow.</p>
           <div class="info" id="info2" role="status" aria-live="polite">Hover or tap a ribbon to see how it's calculated.</div>
-          <p class="caption" id="cap2"></p>
           <div class="notes" id="notes2"></div>
         </section>
 
@@ -95,7 +92,11 @@
           </div>
         </div>
 
-        <div class="wtmg-foot">Internal training illustration, not a rate quote or commitment to lend. "Wholesaler" is the wholesale lender that funds the loan; the example defaults come from UWM: sheet price at 7.25% from its rate sheet (base price −0.234%, borrower pays 2.016% after 2.25% lender-paid comp, no LLPAs), margin from its Q2 2026 reported average (133 bps), servicing book value from its Q4 2025 and Q1 2026 reports. MBS price from a FNMA 30Yr 6.5% screen quote (Nov 17, 2026); other coupons are estimated at 3.5 pts per 1% of coupon from that quote unless you enter one; Treasury 5.11% (Nov 17, 2026). The servicing value is backed out of the sheet price at the entered margin, not a quote. Edited values are yours, not market data. Mountain State Financial Group, LLC · NMLS# 1314257</div>
+        <div class="wtmg-foot" id="disclosure" role="contentinfo">
+          <p><strong>Training and educational use only.</strong> This tool illustrates how the pricing, compensation, and servicing economics of a conventional mortgage fit together. All figures, including the example defaults and anything you enter, are hypothetical and for illustration. They are not a rate quote, a Loan Estimate, an offer, an approval, or a commitment to lend, and they are not specific to any borrower, property, or loan program.</p>
+          <p>Actual rates, prices, fees, compensation, and investor execution depend on the borrower's credit profile, the loan characteristics, market conditions, and the lender, and they change without notice. Nothing on this page is financial, investment, legal, or tax advice. Mountain State Financial Group, LLC makes no representation or warranty as to the accuracy, completeness, or timeliness of any figure shown and accepts no liability for any decision made in reliance on this tool. Example inputs reference publicly reported third-party data as of November 17, 2026; the sources named are not affiliated with, and have not endorsed, this tool. For terms that apply to your situation, speak with a licensed loan originator.</p>
+          <p>Mountain State Financial Group, LLC · NMLS# 1314257 · Equal Housing Lender</p>
+        </div>
       </div>
     </div>
   </div>
