@@ -354,35 +354,101 @@
   }
 
   // ---------- inputs ----------
-  const FIELDS = ['loan','rate','sheet','llpa','coupon','price','tsy','comp','lo','margin','msr','svc','gfee','fixed','variable','onetime','profit','coupon2','price2'];
+  // One table describes every input: how to render it, when it is locked because it is being solved,
+  // what its source line says, and what else changes when the user edits it. The view only lists ids
+  // in <div class="grid" data-fields="...">; the cells are built here.
+  const round3 = x => Math.round(x * 1000) / 1000;
+  const SOLVED = {
+    msr:    { flag:'solvedMsr',    value: L => round3(L.msrPts),       label: L => `Solved · ${L.mult.toFixed(1)}× the strip` },
+    margin: { flag:'solvedMargin', value: L => round3(L.margin),       label: (L, r) => r.moved ? 'Solved at lock · see move tiles' : 'Solved from sheet price' },
+    comp:   { flag:'solvedComp',   value: L => round3(L.comp),         label: () => 'Solved from sheet price' },
+    price:  { flag:'solvedPrice',  value: L => L.price.toFixed(2),     label: L => `Solved · ${pc(L.coupon)} coupon` },
+    sheet:  { flag:'solvedSheet',  value: L => round3(-L.borrowerPts), label: () => 'Solved · + = borrower pays' }
+  };
+  const priceFor = c => c === ANCHOR.coupon ? ANCHOR.price : estPrice(c);
+  // A new rate, strip or g-fee picks the coupon again (with an estimated price) and clears any after-lock move.
+  const relock = () => {
+    const c = autoCoupon(state.rate, state.svc, state.gfee);
+    if (c !== state.coupon) { state.coupon = c; state.couponAuto = true; state.price = priceFor(c); state.priceEst = c !== ANCHOR.coupon; }
+    state.coupon2 = null; state.price2 = null; state.price2Est = false;
+  };
+  const FIELD_DEFS = [
+    {id:'loan',     label:'Loan amount',           min:10000, step:1000,         source:'Example', minValue:1000},
+    {id:'rate',     label:'Note rate %',           min:0.5, max:20, step:0.125, source:'Example', onChange: relock},
+    {id:'sheet',    label:'Points after comp',     min:-6, max:6, step:0.001,   source:'UWM sheet at 7.25% · + = borrower pays', allowNegative:true, editedLabel:'Edited · + = borrower pays', solved:SOLVED.sheet},
+    {id:'llpa',     label:'LLPAs pts',             min:0, max:10, step:0.125,   source:'Example · none on this file'},
+    {id:'coupon',   label:'MBS coupon %',          min:0.5, max:20, step:0.5,   source:'Market quote',
+      status: () => state.couponAuto ? {label:`Auto: highest coupon under rate − ${pc(state.gfee + state.svc)}`, cls:'solved'} : null,
+      onChange: v => { state.couponAuto = false; state.price = priceFor(v); state.priceEst = v !== ANCHOR.coupon; }},
+    {id:'price',    label:'MBS price',             min:90, max:115, step:0.01,  source:'Market quote', solved:SOLVED.price,
+      status: () => state.priceEst ? {label:'Estimated from 6.5 @ 100.69 · edit if you have the quote', cls:'solved'} : null,
+      onChange: () => { state.priceEst = false; }},
+    {id:'tsy',      label:'10-yr Treasury %',      min:0.1, max:15, step:0.01,  source:'Market, Nov 17, 2026'},
+    {id:'coupon2',  label:'Coupon % after lock',   min:0.5, max:20, step:0.5,   source:'Same as lock · type to move', move:'coupon',
+      onChange: v => { state.price2 = priceFor(v); state.price2Est = v !== ANCHOR.coupon; }},
+    {id:'price2',   label:'MBS price after lock',  min:90, max:115, step:0.01,  source:'Same as lock · type to move', move:'price',
+      onChange: () => { state.price2Est = false; if (state.coupon2 === null) state.coupon2 = compute(state).lock.coupon; }},
+    {id:'comp',     label:'Broker comp pts',       min:0, max:5, step:0.125,    source:'Source: UWM rate sheet', solved:SOLVED.comp},
+    {id:'lo',       label:'LO comp pts',           min:0, max:5, step:0.125,    source:'Example'},
+    {id:'margin',   label:'Wholesaler margin pts', min:0, max:5, step:0.01,     source:'Source: UWM Q2 2026 avg.', solved:SOLVED.margin},
+    {id:'msr',      label:'Servicing value pts',   min:0, max:8, step:0.001,    source:'Solved from sheet price', solved:SOLVED.msr},
+    {id:'svc',      label:'Servicing strip %/yr',  min:0, max:2, step:0.125,    source:'Example', onChange: relock},
+    {id:'gfee',     label:'Guarantee fee %/yr',    min:0, max:2, step:0.05,     source:'Example · Fannie base g-fee', onChange: relock},
+    {id:'fixed',    label:'Fixed cost %',          min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
+    {id:'variable', label:'Variable cost %',       min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
+    {id:'onetime',  label:'One-time expense %',    min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
+    {id:'profit',   label:'Profit %',              min:0, max:100, step:1,      source:'Example · of MSFG keeps'}
+  ];
+  const DEF = {};
+  FIELD_DEFS.forEach(f => {
+    if (!(f.id in DEFAULTS)) throw new Error('where-the-money-goes: field "' + f.id + '" has no default in the model');
+    DEF[f.id] = f;
+  });
+
+  const h = (tag, attrs, children) => {
+    const e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(k => { if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); });
+    (children || []).forEach(c => e.appendChild(c));
+    return e;
+  };
+  function renderFields(){
+    document.querySelectorAll('[data-fields]').forEach(grid => {
+      grid.dataset.fields.trim().split(/\s+/).forEach(id => {
+        const f = DEF[id];
+        if (!f) throw new Error('where-the-money-goes: unknown field "' + id + '" in data-fields');
+        const attrs = {id:'in-' + id, type:'number', inputmode:'decimal', step:String(f.step), 'aria-describedby':'src-' + id};
+        if (f.min !== undefined) attrs.min = String(f.min);
+        if (f.max !== undefined) attrs.max = String(f.max);
+        grid.appendChild(h('div', {class:'inp'}, [
+          h('label', {}, [h('span', {class:'k', text:f.label}), h('input', attrs)]),
+          h('span', {class:'s', id:'src-' + id, text:f.source})
+        ]));
+      });
+    });
+  }
+
   function syncInputs(r){
     const lock = r.lock;
-    FIELDS.forEach(f => {
-      const i = $('in-' + f); const s = $('src-' + f);
-      if (!s.dataset.orig) s.dataset.orig = s.textContent;
-      let label = null, cls = '';
-      const edited = state[f] !== DEFAULTS[f];
-      if (f === 'msr' && lock.solvedMsr) { label = `Solved · ${lock.mult.toFixed(1)}× the strip`; cls = 'solved'; i.disabled = true; if (document.activeElement !== i) i.value = Math.round(lock.msrPts * 1000) / 1000; }
-      else if (f === 'margin' && lock.solvedMargin) { label = r.moved ? 'Solved at lock · see move tiles' : 'Solved from sheet price'; cls = 'solved'; i.disabled = true; if (document.activeElement !== i) i.value = Math.round(lock.margin * 1000) / 1000; }
-      else if (f === 'comp' && lock.solvedComp) { label = 'Solved from sheet price'; cls = 'solved'; i.disabled = true; if (document.activeElement !== i) i.value = Math.round(lock.comp * 1000) / 1000; }
-      else if (f === 'price' && lock.solvedPrice) { label = `Solved · ${pc(lock.coupon)} coupon`; cls = 'solved'; i.disabled = true; if (document.activeElement !== i) i.value = lock.price.toFixed(2); }
-      else if (f === 'sheet' && lock.solvedSheet) { label = 'Solved · + = borrower pays'; cls = 'solved'; i.disabled = true; if (document.activeElement !== i) i.value = Math.round(-lock.borrowerPts * 1000) / 1000; }
-      else if (f === 'coupon2' || f === 'price2') {
-        i.disabled = false;
-        const lockVal = f === 'coupon2' ? lock.coupon : lock.price;
-        if (document.activeElement !== i) i.value = state[f] === null ? (f === 'price2' ? lockVal.toFixed(2) : lockVal) : state[f];
-        if (state[f] === null || !r.moved) label = null;
-        else if (f === 'price2' && state.price2Est) { label = 'Estimated for the new coupon · edit if you have the quote'; cls = 'solved'; }
-        else { label = 'Market move'; cls = 'edited'; }
+    FIELD_DEFS.forEach(f => {
+      const i = $('in-' + f.id), s = $('src-' + f.id);
+      let value = state[f.id], label = null, cls = '', disabled = false;
+      if (f.solved && lock[f.solved.flag]) {
+        value = f.solved.value(lock); label = f.solved.label(lock, r); cls = 'solved'; disabled = true;
+      } else if (f.move) {
+        const lockVal = lock[f.move];
+        value = state[f.id] === null ? (f.move === 'price' ? lockVal.toFixed(2) : lockVal) : state[f.id];
+        if (state[f.id] !== null && r.moved) {
+          if (f.id === 'price2' && state.price2Est) { label = 'Estimated for the new coupon · edit if you have the quote'; cls = 'solved'; }
+          else { label = 'Market move'; cls = 'edited'; }
+        }
+      } else {
+        const st = f.status && f.status();
+        if (st) { label = st.label; cls = st.cls; }
+        else if (state[f.id] !== DEFAULTS[f.id]) { label = f.editedLabel || 'Edited'; cls = 'edited'; }
       }
-      else {
-        i.disabled = false;
-        if (document.activeElement !== i) i.value = state[f];
-        if (f === 'coupon' && state.couponAuto) { label = `Auto: highest coupon under rate − ${pc(state.gfee + state.svc)}`; cls = 'solved'; }
-        else if (f === 'price' && state.priceEst) { label = `Estimated from 6.5 @ 100.69 · edit if you have the quote`; cls = 'solved'; }
-        else if (edited) { label = f === 'sheet' ? 'Edited · + = borrower pays' : 'Edited'; cls = 'edited'; }
-      }
-      s.textContent = label || s.dataset.orig; s.className = 's ' + cls;
+      i.disabled = disabled;
+      if (document.activeElement !== i) i.value = value;
+      s.textContent = label || f.source; s.className = 's ' + cls;
     });
     $('in-solve').value = state.solve;
     $('src-solve').textContent = state.solve === 'none' ? 'Compare modeled vs. sheet' : state.solve === 'sheet' ? 'From the other four variables' : 'So modeled price = sheet';
@@ -396,21 +462,14 @@
     renderText(r);
     syncInputs(r);
   }
-  FIELDS.forEach(f => $('in-' + f).addEventListener('input', e => {
+  renderFields();
+  FIELD_DEFS.forEach(f => $('in-' + f.id).addEventListener('input', e => {
     const v = parseFloat(e.target.value);
     if (!isFinite(v)) return;
-    if (v < 0 && f !== 'sheet') return;
-    if (f === 'loan' && v < 1000) return;
-    state[f] = v;
-    if (f === 'rate' || f === 'svc' || f === 'gfee') {
-      const c = autoCoupon(state.rate, state.svc, state.gfee);
-      if (c !== state.coupon) { state.coupon = c; state.couponAuto = true; state.price = c === ANCHOR.coupon ? ANCHOR.price : estPrice(c); state.priceEst = c !== ANCHOR.coupon; }
-      state.coupon2 = null; state.price2 = null; state.price2Est = false; // a new lock clears any after-lock move
-    }
-    if (f === 'coupon') { state.couponAuto = false; state.price = v === ANCHOR.coupon ? ANCHOR.price : estPrice(v); state.priceEst = v !== ANCHOR.coupon; }
-    if (f === 'price') state.priceEst = false;
-    if (f === 'coupon2') { state.price2 = v === ANCHOR.coupon ? ANCHOR.price : estPrice(v); state.price2Est = v !== ANCHOR.coupon; }
-    if (f === 'price2') { state.price2Est = false; if (state.coupon2 === null) state.coupon2 = compute(state).lock.coupon; }
+    if (v < 0 && !f.allowNegative) return;
+    if (f.minValue !== undefined && v < f.minValue) return;
+    state[f.id] = v;
+    if (f.onChange) f.onChange(v);
     renderAll();
   }));
   $('in-solve').addEventListener('change', e => { state.solve = e.target.value; renderAll(); });

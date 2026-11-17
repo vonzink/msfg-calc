@@ -30,45 +30,23 @@
 
           <details class="sec" open>
             <summary>Loan and market</summary>
-            <div class="grid">
-              <div class="inp"><label><span class="k">Loan amount</span><input id="in-loan" type="number" inputmode="decimal" min="10000" step="1000" aria-describedby="src-loan"></label><span class="s" id="src-loan">Example</span></div>
-              <div class="inp"><label><span class="k">Note rate %</span><input id="in-rate" type="number" inputmode="decimal" min="0.5" max="20" step="0.125" aria-describedby="src-rate"></label><span class="s" id="src-rate">Example</span></div>
-              <div class="inp"><label><span class="k">Points after comp</span><input id="in-sheet" type="number" inputmode="decimal" min="-6" max="6" step="0.001" aria-describedby="src-sheet"></label><span class="s" id="src-sheet">UWM sheet at 7.25% · + = borrower pays</span></div>
-              <div class="inp"><label><span class="k">LLPAs pts</span><input id="in-llpa" type="number" inputmode="decimal" min="0" max="10" step="0.125" aria-describedby="src-llpa"></label><span class="s" id="src-llpa">Example · none on this file</span></div>
-              <div class="inp"><label><span class="k">MBS coupon %</span><input id="in-coupon" type="number" inputmode="decimal" min="0.5" max="20" step="0.5" aria-describedby="src-coupon"></label><span class="s" id="src-coupon">Market quote</span></div>
-              <div class="inp"><label><span class="k">MBS price</span><input id="in-price" type="number" inputmode="decimal" min="90" max="115" step="0.01" aria-describedby="src-price"></label><span class="s" id="src-price">Market quote</span></div>
-              <div class="inp"><label><span class="k">10-yr Treasury %</span><input id="in-tsy" type="number" inputmode="decimal" min="0.1" max="15" step="0.01" aria-describedby="src-tsy"></label><span class="s" id="src-tsy">Market, Nov 17, 2026</span></div>
-            </div>
+            <%# Input cells are rendered from FIELD_DEFS in where-the-money-goes.js; list the field ids in order. %>
+            <div class="grid" data-fields="loan rate sheet llpa coupon price tsy"></div>
             <details class="after" id="after">
               <summary>After lock: market move (optional)</summary>
-              <div class="grid">
-                <div class="inp"><label><span class="k">Coupon % after lock</span><input id="in-coupon2" type="number" inputmode="decimal" min="0.5" max="20" step="0.5" aria-describedby="src-coupon2"></label><span class="s" id="src-coupon2">Same as lock · type to move</span></div>
-                <div class="inp"><label><span class="k">MBS price after lock</span><input id="in-price2" type="number" inputmode="decimal" min="90" max="115" step="0.01" aria-describedby="src-price2"></label><span class="s" id="src-price2">Same as lock · type to move</span></div>
-              </div>
+              <div class="grid" data-fields="coupon2 price2"></div>
               <p class="hint">Once the loan is locked, type where the coupon or price moved to. The borrower's price, the comp, and the servicing mark stay fixed, so the wholesaler's margin recalculates. Changing the note rate starts a new lock and clears the move.</p>
             </details>
           </details>
 
           <details class="sec" open>
             <summary>Comp, margin and servicing</summary>
-            <div class="grid">
-              <div class="inp"><label><span class="k">Broker comp pts</span><input id="in-comp" type="number" inputmode="decimal" min="0" max="5" step="0.125" aria-describedby="src-comp"></label><span class="s" id="src-comp">Source: UWM rate sheet</span></div>
-              <div class="inp"><label><span class="k">LO comp pts</span><input id="in-lo" type="number" inputmode="decimal" min="0" max="5" step="0.125" aria-describedby="src-lo"></label><span class="s" id="src-lo">Example</span></div>
-              <div class="inp"><label><span class="k">Wholesaler margin pts</span><input id="in-margin" type="number" inputmode="decimal" min="0" max="5" step="0.01" aria-describedby="src-margin"></label><span class="s" id="src-margin">Source: UWM Q2 2026 avg.</span></div>
-              <div class="inp"><label><span class="k">Servicing value pts</span><input id="in-msr" type="number" inputmode="decimal" min="0" max="8" step="0.001" aria-describedby="src-msr"></label><span class="s" id="src-msr">Solved from sheet price</span></div>
-              <div class="inp"><label><span class="k">Servicing strip %/yr</span><input id="in-svc" type="number" inputmode="decimal" min="0" max="2" step="0.125" aria-describedby="src-svc"></label><span class="s" id="src-svc">Example</span></div>
-              <div class="inp"><label><span class="k">Guarantee fee %/yr</span><input id="in-gfee" type="number" inputmode="decimal" min="0" max="2" step="0.05" aria-describedby="src-gfee"></label><span class="s" id="src-gfee">Example · Fannie base g-fee</span></div>
-            </div>
+            <div class="grid" data-fields="comp lo margin msr svc gfee"></div>
           </details>
 
           <details class="sec" open>
             <summary>MSFG keeps: where the broker's share goes</summary>
-            <div class="grid">
-              <div class="inp"><label><span class="k">Fixed cost %</span><input id="in-fixed" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-fixed"></label><span class="s" id="src-fixed">Example · of MSFG keeps</span></div>
-              <div class="inp"><label><span class="k">Variable cost %</span><input id="in-variable" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-variable"></label><span class="s" id="src-variable">Example · of MSFG keeps</span></div>
-              <div class="inp"><label><span class="k">One-time expense %</span><input id="in-onetime" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-onetime"></label><span class="s" id="src-onetime">Example · of MSFG keeps</span></div>
-              <div class="inp"><label><span class="k">Profit %</span><input id="in-profit" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-profit"></label><span class="s" id="src-profit">Example · of MSFG keeps</span></div>
-            </div>
+            <div class="grid" data-fields="fixed variable onetime profit"></div>
           </details>
 
           <p class="warn" id="warnings" hidden></p>
