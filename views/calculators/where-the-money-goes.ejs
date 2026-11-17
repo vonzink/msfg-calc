@@ -31,12 +31,19 @@
           <details class="sec" open>
             <summary>Loan and market</summary>
             <%# Input cells are rendered from FIELD_DEFS in where-the-money-goes.js; list the field ids in order. %>
-            <div class="grid" data-fields="loan rate sheet llpa coupon price tsy"></div>
+            <div class="grid" data-fields="loan rate sheet coupon price tsy"></div>
             <details class="after" id="after">
               <summary>After lock: market move (optional)</summary>
               <div class="grid" data-fields="coupon2 price2"></div>
               <p class="hint">Once the loan is locked, type where the coupon or price moved to. The borrower's price, the comp, and the servicing mark stay fixed, so the wholesaler's margin recalculates. Changing the note rate starts a new lock and clears the move.</p>
             </details>
+          </details>
+
+          <details class="sec" open>
+            <summary>Borrower and property: loan-level price adjustments</summary>
+            <div class="grid" data-fields="creditScore propertyValue purpose occupancy units llpaMode llpa"></div>
+            <div class="grid checks" data-fields="isCondo isManufacturedHome isHighBalance hasSubordinateFinancing applyMMI isHighLTVRefi waiverHomeReady waiverFirstTimeHB waiverDutyToServe"></div>
+            <div class="llpa" id="llpaPanel" aria-live="polite"></div>
           </details>
 
           <details class="sec" open>

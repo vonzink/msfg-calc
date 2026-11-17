@@ -12,7 +12,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const context = vm.createContext({ window: {}, document: { addEventListener() {} }, Intl, console });
-for (const file of ['shared/utils.js', 'shared/where-the-money-goes-math.js', 'shared/where-the-money-goes-copy.js']) {
+for (const file of ['shared/utils.js', 'shared/llpa-matrix.js', 'shared/llpa-engine.js', 'shared/where-the-money-goes-math.js', 'shared/where-the-money-goes-copy.js']) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../public/js', file), 'utf8'), context);
 }
 const M = vm.runInContext('MSFG.WtmgMath', context);
@@ -71,7 +71,7 @@ describe('pricing tiles', () => {
   });
 
   it('LLPAs appear in the identity line only when present', () => {
-    has(C.pricingTiles(run({ llpa: 0.75 }))[0].f, '− 0.75 LLPAs');
+    has(C.pricingTiles(run({ llpaMode: 'manual', llpa: 0.75 }))[0].f, '− 0.75 LLPAs');
   });
 
   it('gap tile says better or worse by the sign of the gap', () => {
@@ -184,13 +184,27 @@ describe('revenue, chart-2 copy and servicing cards', () => {
     assert.strictEqual(disc.cards[1].k, 'MBS discount · cost at sale');
     assert.strictEqual(disc.cards[1].big, 'cost');
     has(disc.line, 'covers the $5,300 MBS discount');
-    has(C.revenue(run({ llpa: 0.75 })).line, "pays Fannie's $3,750 in LLPAs");
+    has(C.revenue(run({ llpaMode: 'manual', llpa: 0.75 })).line, "pays Fannie's $3,750 in LLPAs");
     has(C.revenue(run({ rate: 7.75, sheet: -1.5, coupon: 7.0, price: M.estPrice(7.0) })).line, 'returns $7,500 to the borrower as a credit');
   });
 
   it('chart-2 header and note carry the spread decomposition', () => {
     assert.strictEqual(C.sub2(run()), "The bond buyer's 6.50% = 5.11% Treasury + 1.39% risk spread; default risk is priced in Fannie's g-fee.");
     has(C.notes2(run())[0], '0.25% servicing strip');
+  });
+
+  it('LLPA panel explains a clean file, lists grid lines, and handles manual mode', () => {
+    const clean = C.llpaPanel(run());
+    has(clean.head, 'LTV 71.43%');
+    assert.strictEqual(clean.rows.length, 0);
+    has(clean.foot, 'No adjustments');
+    has(clean.foot, '2026-01-28');
+    const risky = C.llpaPanel(run({ creditScore: 680, propertyValue: 526316, occupancy: 'Investment' }));
+    assert.ok(risky.rows.length >= 2);
+    assert.ok(risky.rows.some(x => x.name === 'Investment property'));
+    has(risky.foot, 'charged to the wholesaler at delivery');
+    const manual = C.llpaPanel(run({ llpaMode: 'manual', llpa: 0.5 }));
+    has(manual.head, 'typed manually: 0.5 pts');
   });
 
   it('servicing cards reflect excess strip and solved vs typed mark', () => {

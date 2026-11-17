@@ -286,6 +286,20 @@
       $('sub2').textContent = CP.sub2(r);
       setNotes('notes2', CP.notes2(r));
       fill($('msrcards'), CP.msrCards(r));
+      renderLlpaPanel(r);
+    }
+    // LLPA breakdown under the borrower inputs: a heading line, the matrix lines, a footer with the total and matrix date.
+    function renderLlpaPanel(r){
+      const lp = CP.llpaPanel(r), panel = $('llpaPanel');
+      panel.textContent = '';
+      panel.appendChild(h('p', {class:'llpa-head', text:lp.head}));
+      if (lp.rows.length) {
+        panel.appendChild(h('table', {class:'llpa-table'}, [
+          h('thead', {}, [h('tr', {}, [h('th', {text:'Adjustment'}), h('th', {class:'num', text:'Points'}), h('th', {text:'Basis'})])]),
+          h('tbody', {}, lp.rows.map(x => h('tr', {}, [h('td', {text:x.name}), h('td', {class:'num', text:x.pts}), h('td', {class:'why', text:x.reason})])))
+        ]));
+      }
+      panel.appendChild(h('p', {class:'llpa-foot', text:lp.foot}));
     }
 
     // ---------- inputs ----------
@@ -311,7 +325,8 @@
       {id:'loan',     label:'Loan amount',           min:10000, step:1000,         source:'Example', minValue:1000},
       {id:'rate',     label:'Note rate %',           min:0.5, max:20, step:0.125, source:'Example', onChange: relock},
       {id:'sheet',    label:'Points after comp',     min:-6, max:6, step:0.001,   source:`${S.wholesaler} sheet at ${pc(S.sheet.rate)} · + = borrower pays`, allowNegative:true, editedLabel:'Edited · + = borrower pays', solved:SOLVED.sheet},
-      {id:'llpa',     label:'LLPAs pts',             min:0, max:10, step:0.125,   source:'Example · none on this file'},
+      {id:'llpa',     label:'LLPAs pts',             min:0, max:10, step:0.001,   source:'Typed · + = cost to the borrower',
+        computed: r => r.lock.llpaCalc ? {value: round3(r.lock.llpa), label: `From the ${MSFG.LLPA.version()} matrix · ${r.lock.llpaCalc.breakdown.length} line${r.lock.llpaCalc.breakdown.length === 1 ? '' : 's'}`} : null},
       {id:'coupon',   label:'MBS coupon %',          min:0.5, max:20, step:0.5,   source:'Market quote',
         status: () => state.couponAuto ? {label:`Auto: highest coupon under rate − ${pc(state.gfee + state.svc)}`, cls:'solved'} : null,
         onChange: v => { state.couponAuto = false; state.price = priceFor(v); state.priceEst = v !== ANCHOR.coupon; }},
@@ -332,7 +347,23 @@
       {id:'fixed',    label:'Fixed cost %',          min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
       {id:'variable', label:'Variable cost %',       min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
       {id:'onetime',  label:'One-time expense %',    min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
-      {id:'profit',   label:'Profit %',              min:0, max:100, step:1,      source:'Example · of MSFG keeps'}
+      {id:'profit',   label:'Profit %',              min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
+      // Borrower and property: inputs to the Fannie Mae LLPA matrix.
+      {id:'creditScore',   label:'Credit score',   min:300, max:850, step:1,   source:'Example · drives the LLPA grid'},
+      {id:'propertyValue', label:'Property value', min:10000, step:1000,       source:'Example · LTV with the loan amount', minValue:1000},
+      {id:'purpose',       label:'Purpose',        type:'select', source:'Example', options:[['Purchase', 'Purchase'], ['LimitedCashOut', 'Limited cash-out refi'], ['CashOut', 'Cash-out refi']]},
+      {id:'occupancy',     label:'Occupancy',      type:'select', source:'Example', options:[['Primary', 'Primary residence'], ['SecondHome', 'Second home'], ['Investment', 'Investment property']]},
+      {id:'units',         label:'Units',          type:'select', source:'Example', options:[['1', '1'], ['2', '2'], ['3', '3'], ['4', '4']]},
+      {id:'llpaMode',      label:'LLPAs come from', type:'select', source: MSFG.LLPA ? `Fannie Mae LLPA Matrix effective ${MSFG.LLPA.version()}` : 'Matrix not loaded', options:[['matrix', 'Fannie LLPA matrix'], ['manual', 'A typed value']]},
+      {id:'isCondo',                label:'Condo',                                 type:'checkbox'},
+      {id:'isManufacturedHome',     label:'Manufactured home',                     type:'checkbox'},
+      {id:'isHighBalance',          label:'High balance',                          type:'checkbox'},
+      {id:'hasSubordinateFinancing', label:'Subordinate financing',               type:'checkbox'},
+      {id:'applyMMI',               label:'Minimum MI coverage option',            type:'checkbox'},
+      {id:'isHighLTVRefi',          label:'High LTV refinance (limited cash-out)', type:'checkbox'},
+      {id:'waiverHomeReady',        label:'HomeReady waiver',                      type:'checkbox'},
+      {id:'waiverFirstTimeHB',      label:'First-time homebuyer waiver (income ≤ AMI)', type:'checkbox'},
+      {id:'waiverDutyToServe',      label:'Duty to Serve waiver',                  type:'checkbox'}
     ];
     const DEF = {};
     FIELD_DEFS.forEach(f => {
@@ -351,11 +382,21 @@
         grid.dataset.fields.trim().split(/\s+/).forEach(id => {
           const f = DEF[id];
           if (!f) throw new Error('where-the-money-goes: unknown field "' + id + '" in data-fields');
-          const attrs = {id:'in-' + id, type:'number', inputmode:'decimal', step:String(f.step), 'aria-describedby':'src-' + id};
-          if (f.min !== undefined) attrs.min = String(f.min);
-          if (f.max !== undefined) attrs.max = String(f.max);
+          if (f.type === 'checkbox') {
+            grid.appendChild(h('div', {class:'inp check'}, [h('label', {}, [h('input', {id:'in-' + id, type:'checkbox'}), h('span', {class:'k', text:f.label})])]));
+            return;
+          }
+          let control;
+          if (f.type === 'select') {
+            control = h('select', {id:'in-' + id, 'aria-describedby':'src-' + id}, f.options.map(o => h('option', {value:o[0], text:o[1]})));
+          } else {
+            const attrs = {id:'in-' + id, type:'number', inputmode:'decimal', step:String(f.step), 'aria-describedby':'src-' + id};
+            if (f.min !== undefined) attrs.min = String(f.min);
+            if (f.max !== undefined) attrs.max = String(f.max);
+            control = h('input', attrs);
+          }
           grid.appendChild(h('div', {class:'inp'}, [
-            h('label', {}, [h('span', {class:'k', text:f.label}), h('input', attrs)]),
+            h('label', {}, [h('span', {class:'k', text:f.label}), control]),
             h('span', {class:'s', id:'src-' + id, text:f.source})
           ]));
         });
@@ -367,7 +408,10 @@
       FIELD_DEFS.forEach(f => {
         const i = $('in-' + f.id), s = $('src-' + f.id);
         let value = state[f.id], label = null, cls = '', disabled = false;
-        if (f.solved && lock[f.solved.flag]) {
+        const computed = f.computed && f.computed(r);
+        if (computed) {
+          value = computed.value; label = computed.label; cls = 'solved'; disabled = true;
+        } else if (f.solved && lock[f.solved.flag]) {
           value = f.solved.value(lock); label = f.solved.label(lock, r); cls = 'solved'; disabled = true;
         } else if (f.move) {
           const lockVal = lock[f.move];
@@ -382,8 +426,9 @@
           else if (state[f.id] !== DEFAULTS[f.id]) { label = f.editedLabel || 'Edited'; cls = 'edited'; }
         }
         i.disabled = disabled;
-        if (document.activeElement !== i) i.value = value;
-        s.textContent = label || f.source; s.className = 's ' + cls;
+        if (f.type === 'checkbox') i.checked = !!value;
+        else if (document.activeElement !== i) i.value = value;
+        if (s) { s.textContent = label || f.source; s.className = 's ' + cls; }
       });
       $('in-solve').value = state.solve;
       $('src-solve').textContent = state.solve === 'none' ? 'Compare modeled vs. sheet' : state.solve === 'sheet' ? 'From the other four variables' : 'So modeled price = sheet';
@@ -399,11 +444,16 @@
     }
     renderFields();
     document.querySelectorAll('[data-asof]').forEach(el => { el.textContent = S.asOfLong; });
-    FIELD_DEFS.forEach(f => $('in-' + f.id).addEventListener('input', e => {
-      const v = parseFloat(e.target.value);
-      if (!isFinite(v)) return;
-      if (v < 0 && !f.allowNegative) return;
-      if (f.minValue !== undefined && v < f.minValue) return;
+    FIELD_DEFS.forEach(f => $('in-' + f.id).addEventListener(f.type ? 'change' : 'input', e => {
+      let v;
+      if (f.type === 'checkbox') v = e.target.checked;
+      else if (f.type === 'select') v = e.target.value;
+      else {
+        v = parseFloat(e.target.value);
+        if (!isFinite(v)) return;
+        if (v < 0 && !f.allowNegative) return;
+        if (f.minValue !== undefined && v < f.minValue) return;
+      }
       state[f.id] = v;
       if (f.onChange) f.onChange(v);
       renderAll();

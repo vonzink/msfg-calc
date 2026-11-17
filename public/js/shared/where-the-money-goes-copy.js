@@ -129,5 +129,21 @@
     ];
   };
 
-  MSFG.WtmgCopy = { ptsU, priceWord, multWord, sheetWord, sheetSrc, result, pricingTiles, moveTiles, notes1, revenue, sub2, notes2, msrCards };
+  // LLPA breakdown panel under the borrower inputs.
+  const llpaPanel = r => {
+    const L = r.lock, calc = L.llpaCalc;
+    const version = MSFG.LLPA && MSFG.LLPA.version ? MSFG.LLPA.version() : null;
+    if (!calc) {
+      return { head: `LLPAs typed manually: ${ptsU(L.llpa)} (${m0(L.llpaD)}).`, rows: [], foot: version ? `Switch LLPAs to "Fannie LLPA matrix" to price them from the ${version} matrix.` : 'The LLPA matrix is not loaded.' };
+    }
+    const purpose = { purchase: 'purchase', limitedCashOut: 'limited cash-out refinance', cashOut: 'cash-out refinance' }[calc.purposeKey] || calc.purposeKey;
+    const head = `LTV ${calc.grossLTV.toFixed(2)}% · score ${L.creditScore || ''} · ${purpose} · ${L.occupancy === 'Primary' ? 'primary residence' : L.occupancy === 'SecondHome' ? 'second home' : 'investment property'}${L.units && L.units !== '1' ? ` · ${L.units} units` : ''}`;
+    const rows = calc.breakdown.map(b => ({ name: b.name, pts: pts(b.points), reason: b.reason || '' }));
+    const foot = rows.length
+      ? `Total ${ptsU(L.llpa)} = ${m0(L.llpaD)} on this loan, charged to the wholesaler at delivery and passed into the borrower's price. Fannie Mae LLPA Matrix effective ${version}.`
+      : `No adjustments: a score of 780 or more at 75% LTV or less on a primary purchase has no LLPA on the ${version} matrix. Change the score, property value or flags to see the grid.`;
+    return { head, rows, foot };
+  };
+
+  MSFG.WtmgCopy = { ptsU, priceWord, multWord, sheetWord, sheetSrc, result, pricingTiles, moveTiles, notes1, revenue, sub2, notes2, msrCards, llpaPanel };
 })();

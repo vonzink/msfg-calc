@@ -42,7 +42,12 @@
     comp:SOURCES.sheet.comp, lo:1.125, margin:SOURCES.margin.pts,
     // The servicing value the sheet implies at the average margin: sheet − premium + margin + comp (no LLPAs).
     msr:round3(-SOURCES.sheet.afterComp - (SOURCES.mbs.price - 100) + SOURCES.margin.pts + SOURCES.sheet.comp),
-    svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null
+    svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
+    // Borrower and property, for the Fannie LLPA matrix. The example file is clean (780+, 71% LTV purchase,
+    // primary, no flags), which is why the UWM sheet showed no adjustments.
+    llpaMode:'matrix', creditScore:780, propertyValue:700000, purpose:'Purchase', occupancy:'Primary', units:'1',
+    isCondo:false, isManufacturedHome:false, isHighBalance:false, hasSubordinateFinancing:false,
+    applyMMI:false, isHighLTVRefi:false, waiverHomeReady:false, waiverFirstTimeHB:false, waiverDutyToServe:false
   };
   const ANCHOR = {coupon:SOURCES.mbs.coupon, price:SOURCES.mbs.price, perPoint:SOURCES.perPoint};
   const RATE_SHARE = 0.59 / 1.39; // illustrative split of the coupon-over-Treasury spread into rate risk vs refi risk
@@ -62,8 +67,27 @@
     const warnings = [];
     const P = s.loan;
     let coupon = s.coupon, rate = s.rate, tsy = s.tsy, lo = s.lo, margin = s.margin, msrPts = s.msr, price = s.price, comp = s.comp;
-    const svc = s.svc, gfee = s.gfee, mode = s.solve, llpa = Math.max(0, s.llpa);
+    const svc = s.svc, gfee = s.gfee, mode = s.solve;
     const floor = gfee + svc;
+
+    // LLPAs: from the Fannie matrix when the engine is loaded and matrix mode is on, else the typed value.
+    let llpa = Math.max(0, s.llpa), llpaCalc = null;
+    if (s.llpaMode === 'matrix') {
+      if (NS.LLPA && NS.LLPA_MATRIX) {
+        llpaCalc = NS.LLPA.calcLLPAs({
+          loanAmount: P, propertyValue: s.propertyValue, creditScore: s.creditScore, termYears: 30,
+          purpose: s.purpose, productType: 'Fixed', occupancy: s.occupancy, units: s.units,
+          isCondo: s.isCondo, isManufacturedHome: s.isManufacturedHome, isHighBalance: s.isHighBalance,
+          hasSubordinateFinancing: s.hasSubordinateFinancing, applyMMI: s.applyMMI, isHighLTVRefi: s.isHighLTVRefi,
+          waiverHomeReady: s.waiverHomeReady, waiverFirstTimeHB: s.waiverFirstTimeHB, waiverDutyToServe: s.waiverDutyToServe
+        });
+        llpa = Math.max(0, llpaCalc.totalPoints);
+        if (llpaCalc.totalPoints < 0) warnings.push('The LLPA matrix returned a negative total; shown as 0.');
+        llpaCalc.warnings.forEach(w => warnings.push(w));
+      } else {
+        warnings.push('The LLPA matrix is not loaded; using the typed LLPA value.');
+      }
+    }
     if (rate < coupon + floor) { coupon = autoCoupon(rate, svc, gfee); warnings.push(`The note rate must cover the coupon plus ${pc(floor)} (g-fee + servicing strip). Coupon shown as ${pc(coupon)}; enter that coupon's price if you have it.`); }
     if (tsy >= coupon) { tsy = coupon - 0.25; warnings.push(`The Treasury yield has to sit below the MBS coupon. Shown as ${pc(tsy)}.`); }
     const splitSum = s.fixed + s.variable + s.onetime + s.profit;
@@ -94,7 +118,9 @@
     if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
     if (solvedSheet) sheetPts = borrowerPts;
 
-    return {warnings, P, rate, tsy, lo, comp, svc, gfee, llpa, floor, mode, shares, coupon, price, premPts, msrPts, margin, sheetPts,
+    return {warnings, P, rate, tsy, lo, comp, svc, gfee, llpa, llpaCalc, llpaMode: s.llpaMode,
+            creditScore: s.creditScore, propertyValue: s.propertyValue, purpose: s.purpose, occupancy: s.occupancy, units: s.units,
+            floor, mode, shares, coupon, price, premPts, msrPts, margin, sheetPts,
             sheetCost: solvedSheet ? (borrowerPts === 0 ? 0 : -borrowerPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
   }
 

@@ -17,7 +17,7 @@ const vm = require('node:vm');
 
 // Load the shared utilities and the model into one browser-like context, as amortization.test.js does.
 const context = vm.createContext({ window: {}, document: { addEventListener() {} }, Intl, console });
-for (const file of ['shared/utils.js', 'shared/where-the-money-goes-math.js']) {
+for (const file of ['shared/utils.js', 'shared/llpa-matrix.js', 'shared/llpa-engine.js', 'shared/where-the-money-goes-math.js']) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../public/js', file), 'utf8'), context);
 }
 const M = vm.runInContext('MSFG.WtmgMath', context);
@@ -220,6 +220,43 @@ describe('each solve mode inverts the identity', () => {
   });
 });
 
+describe('LLPAs from the Fannie matrix', () => {
+  it('the example file is clean, so the default LLPA is zero and output is unchanged', () => {
+    const r = run();
+    assert.strictEqual(r.lock.llpaMode, 'matrix');
+    assert.ok(r.lock.llpaCalc, 'matrix engine ran');
+    assert.strictEqual(r.lock.llpa, 0);
+    assert.strictEqual(r.lock.llpaCalc.breakdown.length, 0);
+    near(r.lock.llpaCalc.grossLTV, 71.43, 0.01);
+  });
+
+  it('a 680 score at 95% LTV picks up the grid cell and shifts the borrower price by it', () => {
+    const r = run({ creditScore: 680, propertyValue: 526316 });
+    const direct = U.LLPA.calcLLPAs({ loanAmount: 500000, propertyValue: 526316, creditScore: 680, termYears: 30, purpose: 'Purchase', productType: 'Fixed', occupancy: 'Primary', units: '1' });
+    assert.ok(direct.totalPoints > 0);
+    assert.strictEqual(r.lock.llpa, direct.totalPoints);
+    near(r.lock.llpaD, 500000 * direct.totalPoints / 100, 0.01);
+    // In servicing-solve mode the sheet price is held, so the solved servicing value absorbs the LLPA.
+    assert.strictEqual(pts3(r.lock.borrowerPts), -2.016);
+    assert.strictEqual(pts3(r.lock.msrPts), pts3(0.874 + direct.totalPoints));
+    assertBothBalanced(r);
+  });
+
+  it('manual mode uses the typed value and ignores the profile', () => {
+    const r = run({ llpaMode: 'manual', llpa: 0.5, creditScore: 640, propertyValue: 526316 });
+    assert.strictEqual(r.lock.llpaCalc, null);
+    assert.strictEqual(r.lock.llpa, 0.5);
+  });
+
+  it('waivers zero the LLPA and engine warnings surface in the result', () => {
+    const w = run({ creditScore: 680, propertyValue: 526316, waiverFirstTimeHB: true });
+    assert.strictEqual(w.lock.llpa, 0);
+    assert.ok(w.lock.llpaCalc.breakdown.some(b => /Waiver/.test(b.name)));
+    const h = run({ purpose: 'LimitedCashOut', propertyValue: 450000, applyMMI: true, isHighLTVRefi: true });
+    assert.ok(h.warnings.some(x => /High LTV/.test(x)));
+  });
+});
+
 describe('credits, LLPAs and clamps', () => {
   it('a rich sheet at 7.75% produces a lender credit', () => {
     const r = run({ rate: 7.75, sheet: -1.5, coupon: 7.0, price: M.estPrice(7.0) });
@@ -231,7 +268,7 @@ describe('credits, LLPAs and clamps', () => {
   });
 
   it('LLPAs are a cost the solved servicing value has to cover', () => {
-    const r = run({ llpa: 0.75 });
+    const r = run({ llpaMode: 'manual', llpa: 0.75 });
     near(r.lock.llpaD, 3750, 0.5);
     assert.strictEqual(pts3(r.lock.msrPts), 1.624);
     assert.strictEqual(pts3(r.lock.borrowerPts), -2.016);

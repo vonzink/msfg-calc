@@ -123,3 +123,20 @@
 @media (max-width:900px){ .wtmg{padding:16px 8px} }
 .wtmg .wtmg-foot p + p{margin-top:8px}
 .wtmg .wtmg-head .note{margin-bottom:4px}
+
+/* Borrower and property section: selects, checkbox cells, LLPA breakdown */
+.wtmg .inp select{font:inherit; font-size:14px; font-weight:600; line-height:20px; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:3px; width:100%; min-width:0; padding:0 4px; height:26px}
+.wtmg .inp select:focus{outline:2px solid var(--blue); outline-offset:1px}
+.wtmg .grid.checks{margin-top:10px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:6px 16px}
+.wtmg .inp.check label{display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; min-height:24px; cursor:pointer}
+.wtmg .inp.check input{width:16px; height:16px; margin:0; accent-color:var(--blue); flex:none}
+.wtmg .llpa{margin-top:12px; padding-top:10px; border-top:1px dashed var(--line); font-size:13px}
+.wtmg .llpa p{margin:0}
+.wtmg .llpa-head{font-weight:600}
+.wtmg .llpa-table{width:100%; border-collapse:collapse; margin:8px 0; font-size:13px}
+.wtmg .llpa-table th,.wtmg .llpa-table td{text-align:left; padding:4px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+.wtmg .llpa-table th{font-size:12px; color:var(--muted); font-weight:600}
+.wtmg .llpa-table .num{text-align:right; white-space:nowrap}
+.wtmg .llpa-table .why{color:var(--muted)}
+.wtmg .llpa-foot{color:var(--muted); font-size:12px; padding-bottom:12px}
+@media (max-width:900px){ .wtmg .grid.checks{grid-template-columns:1fr} }
