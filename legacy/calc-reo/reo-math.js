@@ -9,7 +9,13 @@
 //   - Taxes: tax = (NOI - mortgage interest - depreciation) x bracket. A negative result is a
 //     tax saving, which assumes the loss can be used against other income.
 //   - Cap rate = a fully rented year's NOI / that year's property value (not the purchase-time value).
-//   - Tax due on a sale (capital gains, depreciation recapture) is not modelled.
+//   - Tax on a sale (optional, saleTax): gain = sale price - selling costs - adjusted basis, where
+//     adjusted basis = price + closing costs + renovation - depreciation taken. 'long' taxes the
+//     depreciation part of the gain at the bracket capped at 25% (unrecaptured section 1250) and the
+//     rest at capGainsRate; 'short' taxes the whole gain at the bracket. A loss on sale gets no tax
+//     benefit. State tax and the 3.8% net investment income tax are not modelled.
+//   - Opportunity cost (optional, altReturn): the gain from investing the cash invested, as a lump
+//     sum on day one, at that yearly rate with annual compounding.
 
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -18,6 +24,8 @@
   'use strict';
 
   var YEARS = 5;
+  // Unrecaptured section 1250 gain (depreciation taken) is taxed at the ordinary rate, capped at 25%.
+  var RECAPTURE_RATE_CAP = 0.25;
 
   function num(x) {
     var v = Number(x);
@@ -62,7 +70,9 @@
    *   operatingMonthly - advertising, travel, landscape, maintenance, management, other: only while rented
    *   propTaxRate (annual, on purchase price),
    *   appreciation, rentIncrease, expIncrease,
-   *   improvePct (building share of price; land is not depreciable), taxBracket, deprYears
+   *   improvePct (building share of price; land is not depreciable), taxBracket, deprYears,
+   *   saleTax ('none' default | 'long' | 'short'), capGainsRate (long-term rate),
+   *   altReturn (yearly return available elsewhere; 0 = no comparison)
    */
   function project(input) {
     var price = num(input.purchasePrice);
@@ -83,6 +93,9 @@
     var improvePct = num(input.improvePct);
     var taxBracket = num(input.taxBracket);
     var deprYears = num(input.deprYears);
+    var saleTaxMode = input.saleTax || 'none';
+    var capGainsRate = num(input.capGainsRate);
+    var altReturn = num(input.altReturn);
 
     var propTaxMonthly = (price * num(input.propTaxRate)) / 12;
     var carryMonthly = num(input.carryMonthly) + propTaxMonthly;
@@ -124,7 +137,8 @@
       propValue: [], grossIncome: [], expenses: [], noi: [], capRate: [],
       debtService: [], interest: [], principalPaid: [], loanBalance: [], dcr: [],
       cashFlow: [], taxableIncome: [], incomeTax: [], afterTaxCashFlow: [], cashOnCash: [],
-      netEquity: [], cumAfterTaxCashFlow: [], cumulativeReturn: [], roi: []
+      netEquity: [], accumulatedDepreciation: [], gainOnSale: [], saleTax: [],
+      cumAfterTaxCashFlow: [], cumulativeReturn: [], roi: [], altGain: [], vsAlt: []
     };
 
     var value = renValue;
@@ -167,8 +181,22 @@
 
       // Position if sold at the end of the year
       value = value * (1 + appreciation);
-      var equity = value * (1 - sellCostPct) - balance;
-      var totalReturn = cumAT + equity - cashInvested;
+      var realized = value * (1 - sellCostPct);
+      var equity = realized - balance;
+
+      // Tax on that sale
+      var accDep = Math.min(depreciableBasis, annualDepreciation * year);
+      var gain = realized - (price + acqCosts + reno - accDep);
+      var saleTax = 0;
+      if (gain > 0 && saleTaxMode === 'short') {
+        saleTax = gain * taxBracket;
+      } else if (gain > 0 && saleTaxMode === 'long') {
+        var recapture = Math.min(accDep, gain);
+        saleTax = recapture * Math.min(taxBracket, RECAPTURE_RATE_CAP) + (gain - recapture) * capGainsRate;
+      }
+
+      var totalReturn = cumAT + equity - saleTax - cashInvested;
+      var altGain = cashInvested * (Math.pow(1 + altReturn, year) - 1);
 
       out.years.push(year);
       out.propValue.push(value);
@@ -187,6 +215,11 @@
       out.afterTaxCashFlow.push(at);
       out.cashOnCash.push(cashInvested > 0 ? cf / cashInvested : 0);
       out.netEquity.push(equity);
+      out.accumulatedDepreciation.push(accDep);
+      out.gainOnSale.push(gain);
+      out.saleTax.push(saleTax);
+      out.altGain.push(altGain);
+      out.vsAlt.push(totalReturn - altGain);
       out.cumAfterTaxCashFlow.push(cumAT);
       out.cumulativeReturn.push(totalReturn);
       out.roi.push(cashInvested > 0 ? totalReturn / cashInvested : 0);

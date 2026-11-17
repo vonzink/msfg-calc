@@ -101,6 +101,49 @@ describe('REO projection: identities across all five years', () => {
   });
 });
 
+describe('REO projection: tax on sale and opportunity cost', () => {
+  // Year 1 of the base scenario: sale nets 247,200 x 0.94 = 232,368; adjusted basis is
+  // 200,000 + 5,000 + 20,000 - 6,690.91 depreciation = 218,309.09; gain 14,058.91.
+  it('is off by default and leaves the return unchanged', () => {
+    const r = run();
+    near(r.saleTax[0], 0, 1e-9);
+    near(r.gainOnSale[0], 14058.91, 0.05);
+    near(r.cumulativeReturn[0], 15851.90, 0.1);
+  });
+
+  it('long-term: depreciation recaptured at the bracket (capped at 25%), the rest at the gains rate', () => {
+    const r = run({ saleTax: 'long', capGainsRate: 0.15 });
+    near(r.saleTax[0], 6690.91 * 0.24 + (14058.91 - 6690.91) * 0.15, 0.05);
+    near(r.cumulativeReturn[0], 15851.90 - 2711.02, 0.1);
+    near(r.roi[0], r.cumulativeReturn[0] / 75000, 1e-9);
+    const high = run({ saleTax: 'long', capGainsRate: 0.2, taxBracket: 0.37 });
+    near(high.saleTax[0], high.accumulatedDepreciation[0] * 0.25 + (high.gainOnSale[0] - high.accumulatedDepreciation[0]) * 0.2, 0.01);
+  });
+
+  it('short-term: the whole gain at the bracket', () => {
+    const r = run({ saleTax: 'short', capGainsRate: 0.15 });
+    near(r.saleTax[0], 14058.91 * 0.24, 0.05);
+    assert.ok(r.saleTax[4] > run({ saleTax: 'long', capGainsRate: 0.15 }).saleTax[4]);
+  });
+
+  it('a loss on sale is not taxed, and recapture never exceeds the gain', () => {
+    const loss = run({ saleTax: 'long', capGainsRate: 0.15, renoValue: 200000, appreciation: 0 });
+    assert.ok(loss.gainOnSale[0] < 0);
+    near(loss.saleTax[0], 0, 1e-9);
+    const thin = run({ saleTax: 'long', capGainsRate: 0.15, renoValue: 235000, appreciation: 0 });
+    assert.ok(thin.gainOnSale[0] > 0 && thin.gainOnSale[0] < thin.accumulatedDepreciation[0]);
+    near(thin.saleTax[0], thin.gainOnSale[0] * 0.24, 0.01);
+  });
+
+  it('opportunity cost compounds the cash invested and is compared with the return', () => {
+    const r = run({ altReturn: 0.07 });
+    near(r.altGain[0], 5250, 0.01);
+    near(r.altGain[4], 75000 * (Math.pow(1.07, 5) - 1), 0.01);
+    near(r.vsAlt[4], r.cumulativeReturn[4] - r.altGain[4], 1e-6);
+    near(run().altGain[4], 0, 1e-9);
+  });
+});
+
 describe('REO projection: other cases', () => {
   it('a tax loss raises after-tax cash flow by the tax saved', () => {
     const r = run({ grossRents: 1200 });
