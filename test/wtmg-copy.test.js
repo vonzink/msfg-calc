@@ -200,6 +200,15 @@ describe('revenue, chart-2 copy and servicing cards', () => {
   it('chart-2 header and note carry the spread decomposition', () => {
     assert.strictEqual(C.sub2(run()), "The bond buyer's 6.50% = 5.11% Treasury + 1.39% risk spread; default risk is priced in Fannie's g-fee.");
     has(C.notes2(run())[0], '0.25% servicing strip');
+    has(C.notes2(run())[0], "Default risk is Fannie's, paid through the 0.50% g-fee.");
+  });
+
+  it('government programs read Ginnie Mae as the wrap, not Fannie', () => {
+    const r = run({ program: 'fha' });
+    has(C.sub2(r), "Ginnie Mae's 0.06% guaranty fee wraps the pool; default risk sits with the FHA insurance or guaranty.");
+    lacks(C.sub2(r), 'Fannie');
+    has(C.notes2(r)[0], 'does not model yet');
+    has(C.notes2(r)[0], '0.69% servicing strip');
   });
 
   it('LLPA panel explains a clean file, lists grid lines, and handles manual mode', () => {

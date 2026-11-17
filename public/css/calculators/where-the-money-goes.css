@@ -145,6 +145,7 @@
 .wtmg .after .grid.checks{margin-top:0}
 
 /* LLPA popout: button row in the section, the dialog, and the score × LTV grid */
+.wtmg .llpa-na{padding:4px 0 14px}
 .wtmg .llpa-row{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:end}
 .wtmg .llpa-row .grid{flex:1 1 320px}
 .wtmg .llpa-row .btn{flex:none; margin-bottom:18px}

@@ -31,7 +31,7 @@
           <details class="sec" open>
             <summary>Loan and market</summary>
             <%# Input cells are rendered from FIELD_DEFS in where-the-money-goes.js; list the field ids in order. %>
-            <div class="grid" data-fields="loan rate sheet coupon price tsy gfee"></div>
+            <div class="grid" data-fields="program loan rate sheet coupon price tsy gfee"></div>
             <details class="after" id="after">
               <summary>After lock: market move (optional)</summary>
               <div class="grid" data-fields="coupon2 price2"></div>
@@ -41,11 +41,12 @@
 
           <details class="sec" open>
             <summary>Borrower and property: loan-level price adjustments</summary>
-            <div class="llpa-row">
+            <div class="llpa-row" id="llpaRow">
               <div class="grid" data-fields="llpaMode llpa"></div>
               <button type="button" class="btn" id="llpaOpen" aria-haspopup="dialog" aria-controls="llpaDialog">Pick from the LLPA table</button>
             </div>
             <div class="llpa" id="llpaPanel" aria-live="polite"></div>
+            <p class="hint llpa-na" id="llpaNa" hidden>FHA, VA and USDA loans carry no Fannie Mae loan-level price adjustments. Their risk pricing is the upfront and annual mortgage insurance premium or funding fee, which this tool does not model yet.</p>
           </details>
 
           <details class="sec" open>

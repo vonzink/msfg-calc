@@ -293,6 +293,55 @@ describe('credits, LLPAs and clamps', () => {
   });
 });
 
+describe('loan programs', () => {
+  it('program table: Fannie/Freddie fixed is 25 bp strip + editable 50 bp g-fee with LLPAs; FHA, VA and USDA are Ginnie II 19 bp + fixed 6 bp with none', () => {
+    const P = M.PROGRAMS;
+    assert.deepStrictEqual(Object.keys(P), ['conv', 'fha', 'va', 'usda']);
+    assert.strictEqual(P.conv.strip, 0.25); assert.strictEqual(P.conv.fee, 0.5); assert.strictEqual(P.conv.feeFixed, false); assert.strictEqual(P.conv.llpa, true); assert.strictEqual(P.conv.agency, 'Fannie Mae');
+    ['fha', 'va', 'usda'].forEach(k => { assert.strictEqual(P[k].strip, 0.19, k); assert.strictEqual(P[k].fee, 0.06, k); assert.strictEqual(P[k].feeFixed, true, k); assert.strictEqual(P[k].llpa, false, k); assert.strictEqual(P[k].agency, 'Ginnie Mae', k); });
+    assert.strictEqual(P.va.label, 'VA');
+  });
+
+  it('the default is conventional: strip 0.25, g-fee 0.50 and unchanged output', () => {
+    const r = run();
+    assert.strictEqual(r.lock.program, 'conv');
+    assert.strictEqual(r.lock.svc, 0.25); assert.strictEqual(r.lock.gfee, 0.5);
+    near(r.after.borrowerPts, -2.016, 1e-9);
+    assert.strictEqual(r.monthly.prog.agency, 'Fannie Mae');
+  });
+
+  it('the program overrides a typed strip or fee: FHA is 0.19 + 0.06 whatever was entered, and the floor drops to 0.25', () => {
+    const r = run({ program: 'fha', svc: 0.5, gfee: 0.9 });
+    assert.strictEqual(r.lock.svc, 0.19); assert.strictEqual(r.lock.gfee, 0.06); near(r.lock.floor, 0.25, 1e-9);
+    // 7.25% into the 6.5 coupon leaves 0.50 of excess servicing above the 19 bp base.
+    near(r.after.excess, 0.5, 1e-9); near(r.after.strip, 0.69, 1e-9);
+    // A conventional g-fee edit still works.
+    assert.strictEqual(run({ gfee: 0.6 }).lock.gfee, 0.6);
+  });
+
+  it('a Ginnie loan at 7.25% can carry a 7.0 coupon (auto) with no excess; at the FNMA-anchored estimate the sheet is then too rich for the margin', () => {
+    assert.strictEqual(M.autoCoupon(7.25, 0.19, 0.06), 7);
+    const r = run({ program: 'va', coupon: 7, price: M.estPrice(7) });
+    assert.strictEqual(r.lock.coupon, 7); near(r.after.excess, 0, 1e-9);
+    // 102.44 premium + 2.016 points is more than a 1.33 margin and 2.25 comp need, so servicing clamps at 0 and the margin is solved.
+    assert.strictEqual(r.lock.msrPts, 0);
+    assert.ok(r.warnings.some(w => w.includes("the wholesaler's margin is solved instead")), r.warnings.join(' | '));
+  });
+
+  it('government programs force LLPAs to zero even for a profile the matrix would price', () => {
+    const risky = { creditScore: 680, propertyValue: 526316 };
+    assert.ok(run(risky).lock.llpa > 1, 'conventional prices the 680 / 95% cell');
+    const g = run(Object.assign({ program: 'usda' }, risky));
+    assert.strictEqual(g.lock.llpa, 0); assert.strictEqual(g.lock.llpaCalc, null); assert.strictEqual(g.after.llpaD, 0);
+    assert.strictEqual(run({ program: 'fha', llpaMode: 'manual', llpa: 0.75 }).lock.llpa, 0);
+  });
+
+  it('an unknown program falls back to conventional', () => {
+    const r = run({ program: 'jumbo' });
+    assert.strictEqual(r.lock.program, 'conv'); assert.strictEqual(r.lock.svc, 0.25);
+  });
+});
+
 describe('optional wholesaler split', () => {
   it('is off by default and adds nothing to the output', () => {
     const r = run();

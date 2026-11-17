@@ -42,7 +42,7 @@
     comp:SOURCES.sheet.comp, lo:1.125, margin:SOURCES.margin.pts,
     // The servicing value the sheet implies at the average margin: sheet − premium + margin + comp (no LLPAs).
     msr:round3(-SOURCES.sheet.afterComp - (SOURCES.mbs.price - 100) + SOURCES.margin.pts + SOURCES.sheet.comp),
-    svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
+    program:'conv', svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
     // Borrower and property, for the Fannie LLPA matrix. The example file is clean (780+, 71% LTV purchase,
     // primary, no flags), which is why the UWM sheet showed no adjustments.
     llpaMode:'matrix', creditScore:780, propertyValue:700000, purpose:'Purchase', occupancy:'Primary', units:'1',
@@ -55,6 +55,14 @@
   const RATE_SHARE = 0.59 / 1.39; // illustrative split of the coupon-over-Treasury spread into rate risk vs refi risk
   const SPLIT = [['fixed', 'Fixed cost', 'rent, salaries, systems, licensing, allocated per loan'], ['variable', 'Variable cost', 'processing, credit, disclosures, marketing that scale with volume'], ['onetime', 'One-time expense', 'launch or project costs allocated to this loan'], ['profit', 'Profit', 'what MSFG actually clears on the loan']];
   // Optional split of what the wholesaler keeps. Illustrative shares: no wholesaler publishes a per-loan cost structure.
+  // Loan programs. The strip is the agency minimum servicing fee for the program (Fannie/Freddie fixed-rate 25 bp;
+  // Ginnie Mae II 19 bp). The fee is Fannie's base g-fee (editable, varies by lender) or Ginnie Mae's fixed 6 bp
+  // guaranty fee. Only conventional loans carry Fannie LLPAs; FHA, VA and USDA price risk through MIP or funding fees.
+  const ginnie = label => ({label, agency:'Ginnie Mae', agencyShort:'Ginnie', strip:0.19, stripNote:'Ginnie Mae II minimum', fee:0.06, feeFixed:true, feeLabel:'Ginnie guaranty fee %/yr', feeWord:'guaranty fee', llpa:false, mbs:'Ginnie Mae MBS'});
+  const PROGRAMS = {
+    conv: {label:'Fannie / Freddie fixed', agency:'Fannie Mae', agencyShort:'Fannie', strip:0.25, stripNote:'Fannie Mae minimum for fixed-rate', fee:0.50, feeFixed:false, feeLabel:'Guarantee fee %/yr', feeWord:'g-fee', llpa:true, mbs:'Fannie Mae MBS'},
+    fha: ginnie('FHA'), va: ginnie('VA'), usda: ginnie('USDA')
+  };
   const WSPLIT = [['wfixed', 'Fixed cost', 'underwriting, closing, technology and overhead allocated per loan'], ['wvariable', 'Variable cost', 'account executives, credit, appraisal review and other per-loan spend'], ['wonetime', 'One-time expense', 'onboarding, system and project costs allocated to this loan'], ['wrate', 'Rate risk / hedge', 'the cost of hedging the locked pipeline with TBA sales; the market-move layer shows it in dollars'], ['wprofit', 'Profit', 'what the wholesaler actually clears on the loan']];
 
   const pts = x => { const s = (Math.round(x * 1000) / 1000).toString(); return s === '-0' ? '0' : s.replace('-', '−'); };
@@ -71,12 +79,15 @@
     const warnings = [];
     const P = s.loan;
     let coupon = s.coupon, rate = s.rate, tsy = s.tsy, lo = s.lo, margin = s.margin, msrPts = s.msr, price = s.price, comp = s.comp;
-    const svc = s.svc, gfee = s.gfee, mode = s.solve;
+    // The program fixes the strip and, for Ginnie programs, the fee; the typed svc/gfee only apply where the program leaves them open.
+    const program = PROGRAMS[s.program] ? s.program : 'conv', prog = PROGRAMS[program];
+    const svc = prog.strip, gfee = prog.feeFixed ? prog.fee : s.gfee, mode = s.solve;
     const floor = gfee + svc;
 
     // LLPAs: from the Fannie matrix when the engine is loaded and matrix mode is on, else the typed value.
     let llpa = Math.max(0, s.llpa), llpaCalc = null;
-    if (s.llpaMode === 'matrix') {
+    if (!prog.llpa) llpa = 0;
+    else if (s.llpaMode === 'matrix') {
       if (NS.LLPA && NS.LLPA_MATRIX) {
         llpaCalc = NS.LLPA.calcLLPAs({
           loanAmount: P, propertyValue: s.propertyValue, creditScore: s.creditScore, termYears: 30,
@@ -92,7 +103,7 @@
         warnings.push('The LLPA matrix is not loaded; using the typed LLPA value.');
       }
     }
-    if (rate < coupon + floor) { coupon = autoCoupon(rate, svc, gfee); warnings.push(`The note rate must cover the coupon plus ${pc(floor)} (g-fee + servicing strip). Coupon shown as ${pc(coupon)}; enter that coupon's price if you have it.`); }
+    if (rate < coupon + floor) { coupon = autoCoupon(rate, svc, gfee); warnings.push(`The note rate must cover the coupon plus ${pc(floor)} (${prog.feeWord} + servicing strip). Coupon shown as ${pc(coupon)}; enter that coupon's price if you have it.`); }
     if (tsy >= coupon) { tsy = coupon - 0.25; warnings.push(`The Treasury yield has to sit below the MBS coupon. Shown as ${pc(tsy)}.`); }
     const splitSum = s.fixed + s.variable + s.onetime + s.profit;
     let shares = [s.fixed, s.variable, s.onetime, s.profit];
@@ -126,7 +137,7 @@
     if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
     if (solvedSheet) sheetPts = borrowerPts;
 
-    return {warnings, P, rate, tsy, lo, comp, svc, gfee, llpa, llpaCalc, llpaMode: s.llpaMode,
+    return {warnings, P, rate, tsy, lo, comp, svc, gfee, program, prog, llpa, llpaCalc, llpaMode: s.llpaMode,
             creditScore: s.creditScore, propertyValue: s.propertyValue, purpose: s.purpose, occupancy: s.occupancy, units: s.units,
             floor, mode, shares, wsplit, wshares, coupon, price, premPts, msrPts, margin, sheetPts,
             sheetCost: solvedSheet ? (borrowerPts === 0 ? 0 : -borrowerPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
@@ -195,7 +206,7 @@
     const spread = fe.coupon - fe.tsy, rateRisk = spread * RATE_SHARE, refi = spread - rateRisk;
     const rrD = P * rateRisk / 100 / 12, rfD = P * refi / 100 / 12;
     const exD = P * fe.excess / 100 / 12;
-    return {P, rate: fe.rate, coupon: fe.coupon, tsy: fe.tsy, svc: fe.svc, gfee: fe.gfee, floor: fe.floor, excess: fe.excess, strip: fe.strip,
+    return {P, rate: fe.rate, coupon: fe.coupon, tsy: fe.tsy, svc: fe.svc, gfee: fe.gfee, prog: fe.prog, floor: fe.floor, excess: fe.excess, strip: fe.strip,
             pmt, int, prin, gfD, svD, trD, spread, rateRisk, refi, rrD, rfD, exD, bondIn: trD + rrD + rfD + prin, servicer: svD + exD};
   }
 
@@ -207,5 +218,5 @@
     return {lock, after, moved: move.moved, monthly: monthly(after), warnings: lockSolve.warnings.concat(move.warnings), mode: lockSolve.mode};
   }
 
-  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT, WSPLIT };
+  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT, WSPLIT, PROGRAMS };
 })();

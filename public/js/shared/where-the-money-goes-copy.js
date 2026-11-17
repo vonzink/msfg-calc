@@ -121,8 +121,10 @@
     return {cards, line};
   }
 
-  const sub2 = r => `The bond buyer's ${pc(r.after.coupon)} = ${pc(r.after.tsy)} Treasury + ${pc(r.monthly.spread)} risk spread; default risk is priced in Fannie's g-fee.`;
-  const notes2 = r => [`Bond buyer's ${pc(r.after.coupon)} = ${pc(r.after.tsy)} Treasury + ${pc(r.monthly.spread)} for rate and refi risk. Default risk is Fannie's, paid through the ${pc(r.after.gfee)} g-fee. The ${pc(r.after.strip)} servicing strip goes to whoever services the loan. Month 1 only: interest shrinks and principal grows over time.`];
+  // Who stands behind the bond: Fannie prices default risk in its g-fee; Ginnie only wraps the pool, the FHA/VA/USDA insurance carries the default risk.
+  const guarantor = a => a.prog.feeFixed ? `${a.prog.agency}'s ${pc(a.gfee)} guaranty fee wraps the pool; default risk sits with the ${a.prog.label} insurance or guaranty` : `default risk is priced in Fannie's g-fee`;
+  const sub2 = r => `The bond buyer's ${pc(r.after.coupon)} = ${pc(r.after.tsy)} Treasury + ${pc(r.monthly.spread)} risk spread; ${guarantor(r.after)}.`;
+  const notes2 = r => [`Bond buyer's ${pc(r.after.coupon)} = ${pc(r.after.tsy)} Treasury + ${pc(r.monthly.spread)} for rate and refi risk. ${r.after.prog.feeFixed ? `${r.after.prog.agency}'s ${pc(r.after.gfee)} guaranty fee wraps the pool; the default risk itself sits with the ${r.after.prog.label} insurance or guaranty, which this tool does not model yet.` : `Default risk is Fannie's, paid through the ${pc(r.after.gfee)} g-fee.`} The ${pc(r.after.strip)} servicing strip goes to whoever services the loan. Month 1 only: interest shrinks and principal grows over time.`];
   const msrCards = r => {
     const after = r.after;
     return [
