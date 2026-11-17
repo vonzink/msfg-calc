@@ -20,8 +20,8 @@
   const state = Object.assign({}, DEFAULTS, {couponAuto:false, priceEst:false, price2Est:false});
 
   // ---------- formatting ----------
-  const m0 = x => (x < 0 ? '−' : '') + '$' + Math.round(Math.abs(x)).toLocaleString('en-US');
-  const m2 = x => (x < 0 ? '−' : '') + '$' + Math.abs(x).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const m0 = x => MSFG.formatCurrency(x, 0);
+  const m2 = x => MSFG.formatCurrency(x, 2);
   const ptsU = x => pts(x) + (Math.abs(Math.round(x * 1000) / 1000) === 1 ? ' pt' : ' pts');
   const kfmt = x => x >= 1e6 ? '$' + (x / 1e6).toFixed(x % 1e6 ? 2 : 0).replace(/\.?0+$/, '') + 'M' : '$' + Math.round(x / 1000) + 'K';
 
@@ -42,7 +42,7 @@
       {id:'msfg',col:3, color:'slate', name:'MSFG', amount:m0(m.compD), sub:[`${pts(m.comp)}% lender-paid comp`]},
       {id:'lo',  col:4, color:'green', name:['Loan officer', `${pts(m.lo)} pts`], amount:m0(m.loD), sub:[]},
       {id:'mk',  col:4, color:'slate', name:['MSFG keeps', `${pts(m.comp - m.lo)} pts`], amount:m0(m.mkD), sub:['before expenses, not profit']},
-      ...SPLIT.map(([id, name], i) => ({id:'sp_' + id, col:5, color:'green', name:`${name} · ${pts(m.shares[i])}%`, amount:'$' + m.splitShow[i].toLocaleString('en-US'), sub:[]})),
+      ...SPLIT.map(([id, name], i) => ({id:'sp_' + id, col:5, color:'green', name:`${name} · ${pts(m.shares[i])}%`, amount:m0(m.splitShow[i]), sub:[]})),
       {id:'llpa', col:5, color:'green', name:['Fannie Mae', `LLPAs · ${pts(m.llpa)} pts`], amount:m0(m.llpaD), sub:['upfront risk fee,', 'passed to the borrower']},
       {id:'br',  col:5, color:'green', name:'Borrower', amount:m0(m.P), sub:borrowerSub},
       {id:'uk',  col:5, color:'green', name:['Wholesaler keeps', `${pts(m.margin)} pts`], amount:m0(m.keep), sub:[r.moved ? `margin after move · was ${pts(lock.margin)}` : m.solvedMargin ? 'margin · solved from sheet' : m.margin === AVG_MARGIN ? 'margin · UWM Q2 2026 avg.' : 'margin input']}
@@ -67,7 +67,7 @@
       {s:'uwm', t:'uk', v:m.keep, label:m0(m.keep), text:`${m0(m.P)} × ${pts(m.margin)} / 100 = ${m0(m.keep)}. ` + (r.moved ? `Margin after the market move: ${pts(lock.margin)} at lock ${m.premPts - lock.premPts >= 0 ? '+' : '−'} ${pts(Math.abs(m.premPts - lock.premPts))} change in execution = ${pts(m.margin)} pts. The borrower's price, the comp and the servicing mark were already set, so the move lands here.` : m.solvedMargin ? `Solved: premium ${pts(m.premPts)} + servicing ${pts(m.msrPts)} − comp ${pts(m.comp)} − sheet ${pts(m.sheetPts)} = ${pts(m.margin)} pts, against UWM's reported Q2 2026 average of 1.33.` : m.margin === AVG_MARGIN ? "The default is UWM's reported Q2 2026 average total gain margin (133 bps), a company average, not a loan-level number." : `Set by the wholesaler margin input (${pts(m.margin)} pts; UWM's reported Q2 2026 average was 1.33).`)},
       {s:'msfg', t:'lo', v:m.loD, label:m0(m.loD), text:`${m0(m.P)} × ${pts(m.lo)} pts / 100 = ${m0(m.loD)}.`},
       {s:'msfg', t:'mk', v:m.mkD, label:m0(m.mkD), text:`${m0(m.compD)} − ${m0(m.loD)} = ${m0(m.mkD)}. Gross to the company, before expenses; the four ribbons out of it show where it goes.`},
-      ...SPLIT.map(([id, name, desc], i) => ({s:'mk', t:'sp_' + id, v:m.splitD[i], label:'$' + m.splitShow[i].toLocaleString('en-US'), text:`${m0(m.mkD)} × ${pts(m.shares[i])}% = $${m.splitShow[i].toLocaleString('en-US')} (${pts(m.splitD[i] / m.P * 100)} pts of the loan). ${name}: ${desc}. The shares are MSFG's own allocation assumptions, editable above.`}))
+      ...SPLIT.map(([id, name, desc], i) => ({s:'mk', t:'sp_' + id, v:m.splitD[i], label:m0(m.splitShow[i]), text:`${m0(m.mkD)} × ${pts(m.shares[i])}% = ${m0(m.splitShow[i])} (${pts(m.splitD[i] / m.P * 100)} pts of the loan). ${name}: ${desc}. The shares are MSFG's own allocation assumptions, editable above.`}))
     ];
     return {scale, gap:12, colX:[150, 320, 490, 660, 830, 1000], nodes, links};
   }
@@ -323,7 +323,7 @@
     const quarter = after.P * 0.25 / 100;
     const n3 = `Levers: every 0.25 pt of wholesaler margin or broker comp moves the borrower's price by 0.25 pt (${m0(quarter)} on this loan), and so does every 0.25 of MBS price. LO and MSFG split the ${pts(after.comp)}-pt comp ${pts(after.lo)} / ${pts(after.comp - after.lo)}; it is paid by the wholesaler out of the rate, never as a line item to the borrower.${after.crD > 0 ? ' Under lender-paid comp a credit can offset closing costs but cannot be returned as cash.' : ''}`;
     const n4 = after.mkD > 0
-      ? `MSFG's ${m0(after.mkD)} is gross, not profit. At the shares entered it covers $${after.splitShow[0].toLocaleString('en-US')} of fixed cost, $${after.splitShow[1].toLocaleString('en-US')} of variable cost and $${after.splitShow[2].toLocaleString('en-US')} of one-time expense, leaving $${after.splitShow[3].toLocaleString('en-US')} of profit (${pts(after.splitD[3] / after.P * 100)} pts of the loan). The LO's ${m0(after.loD)} is the single largest line in the broker's share.`
+      ? `MSFG's ${m0(after.mkD)} is gross, not profit. At the shares entered it covers ${m0(after.splitShow[0])} of fixed cost, ${m0(after.splitShow[1])} of variable cost and ${m0(after.splitShow[2])} of one-time expense, leaving ${m0(after.splitShow[3])} of profit (${pts(after.splitD[3] / after.P * 100)} pts of the loan). The LO's ${m0(after.loD)} is the single largest line in the broker's share.`
       : `With LO comp equal to broker comp, MSFG keeps nothing on this loan and there is nothing to split.`;
     const notes1 = [n1, n2, n3, n4];
     if (r.moved) {

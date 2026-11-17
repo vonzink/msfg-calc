@@ -10,12 +10,14 @@
  *   monthly — the month-1 payment split for the after state
  *   moved, warnings, mode
  * lock and after are built by the same function, so every renderer can pick one by name.
+ *
+ * Requires shared/utils.js (MSFG.formatPercent, MSFG.calcMonthlyPayment) to be loaded first.
  */
-/* global globalThis */
+/* global globalThis, MSFG */
 (function() {
   'use strict';
   const root = typeof window !== 'undefined' ? window : globalThis;
-  root.MSFG = root.MSFG || {};
+  const NS = typeof MSFG !== 'undefined' && MSFG ? MSFG : (root.MSFG = root.MSFG || {});
 
   const AVG_MARGIN = 1.33; // UWM reported Q2 2026 total gain margin, 133 bps
   const DEFAULTS = {loan:500000, rate:7.25, sheet:2.016, solve:'msr', coupon:6.50, price:100.69, tsy:5.11, comp:2.25, lo:1.125, margin:1.33, msr:0.874, svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null};
@@ -24,7 +26,8 @@
   const SPLIT = [['fixed', 'Fixed cost', 'rent, salaries, systems, licensing, allocated per loan'], ['variable', 'Variable cost', 'processing, credit, disclosures, marketing that scale with volume'], ['onetime', 'One-time expense', 'launch or project costs allocated to this loan'], ['profit', 'Profit', 'what MSFG actually clears on the loan']];
 
   const pts = x => { const s = (Math.round(x * 1000) / 1000).toString(); return s === '-0' ? '0' : s.replace('-', '−'); };
-  const pc = (x, d = 2) => (Math.abs(x * 100 - Math.round(x * 100)) > 1e-6 && d === 2 ? x.toFixed(3) : x.toFixed(d)) + '%';
+  // Percent with 2 decimals, or 3 when the value needs them (0.375% not 0.38%). Formatting itself is the house utility.
+  const pc = (x, d = 2) => NS.formatPercent(x, Math.abs(x * 100 - Math.round(x * 100)) > 1e-6 && d === 2 ? 3 : d);
   // Whole-dollar split that still sums to the total (largest remainder).
   const splitDollars = (total, shares) => { const raw = shares.map(s => total * s); const fl = raw.map(Math.floor); let rem = Math.round(total) - fl.reduce((a, b) => a + b, 0); raw.map((r, i) => [r - fl[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rem > 0) { fl[i]++; rem--; } }); return fl; };
   const autoCoupon = (rate, svc, gfee) => Math.max(0.5, Math.floor((rate - gfee - svc) / 0.5 + 1e-9) * 0.5);
@@ -126,7 +129,7 @@
   // ---------- month 1 of principal and interest, for the after state ----------
   function monthly(fe) {
     const P = fe.P, r = fe.rate / 100 / 12;
-    const pmt = P * r / (1 - Math.pow(1 + r, -360));
+    const pmt = NS.calcMonthlyPayment(P, fe.rate / 100, 30);
     const int = P * r, prin = pmt - int;
     const gfD = P * fe.gfee / 100 / 12, svD = P * fe.svc / 100 / 12, trD = P * fe.tsy / 100 / 12;
     const spread = fe.coupon - fe.tsy, rateRisk = spread * RATE_SHARE, refi = spread - rateRisk;
@@ -144,5 +147,5 @@
     return {lock, after, moved: move.moved, monthly: monthly(after), warnings: lockSolve.warnings.concat(move.warnings), mode: lockSolve.mode};
   }
 
-  root.MSFG.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT };
+  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT };
 })();

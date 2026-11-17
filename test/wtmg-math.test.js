@@ -11,12 +11,21 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 
-// The module attaches itself to globalThis.MSFG when there is no window.
-require('../public/js/shared/where-the-money-goes-math.js');
-const M = globalThis.MSFG.WtmgMath;
+// Load the shared utilities and the model into one browser-like context, as amortization.test.js does.
+const context = vm.createContext({ window: {}, document: { addEventListener() {} }, Intl, console });
+for (const file of ['shared/utils.js', 'shared/where-the-money-goes-math.js']) {
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../public/js', file), 'utf8'), context);
+}
+const M = vm.runInContext('MSFG.WtmgMath', context);
+const U = vm.runInContext('MSFG', context);
 
 const near = (actual, expected, tol, msg) => assert.ok(Math.abs(actual - expected) <= tol, `${msg || ''} expected ${expected} ± ${tol}, got ${actual}`);
+// Arrays built inside the vm context have a different Array prototype, so compare copies.
+const sameList = (actual, expected) => assert.deepStrictEqual(Array.from(actual), expected);
 const pts3 = x => Math.round(x * 1000) / 1000;
 const run = over => M.compute(Object.assign({}, M.DEFAULTS, over));
 
@@ -61,7 +70,7 @@ describe('defaults match the UWM sheet at 7.25%', () => {
   });
 
   it('MSFG split is whole dollars that sum to the $5,625 kept', () => {
-    assert.deepStrictEqual(L.splitShow, [1688, 2813, 562, 562]);
+    sameList(L.splitShow, [1688, 2813, 562, 562]);
     assert.strictEqual(L.splitShow.reduce((a, b) => a + b, 0), 5625);
     near(L.mkD, 5625, 0.01);
   });
@@ -78,7 +87,28 @@ describe('defaults match the UWM sheet at 7.25%', () => {
 
   it('reports no gap and no warnings', () => {
     near(L.gap, 0, 1e-9);
-    assert.deepStrictEqual(r.warnings, []);
+    sameList(r.warnings, []);
+  });
+});
+
+describe('formatting and payment math come from the house utilities', () => {
+  it('monthly payment equals MSFG.calcMonthlyPayment', () => {
+    const r = run();
+    assert.strictEqual(r.monthly.pmt, U.calcMonthlyPayment(500000, 0.0725, 30));
+  });
+
+  it('percent formatting uses 2 decimals, or 3 only when needed', () => {
+    assert.strictEqual(M.pc(7.25), '7.25%');
+    assert.strictEqual(M.pc(0.25), '0.25%');
+    assert.strictEqual(M.pc(0.375), '0.375%');
+    assert.strictEqual(M.pc(6.5, 3), '6.500%');
+  });
+
+  it('points formatting trims to 3 decimals and never shows negative zero', () => {
+    assert.strictEqual(M.pts(2.016), '2.016');
+    assert.strictEqual(M.pts(1.3300001), '1.33');
+    assert.strictEqual(M.pts(-0), '0');
+    assert.strictEqual(M.pts(-1.64), '−1.64');
   });
 });
 
@@ -198,8 +228,8 @@ describe('credits, LLPAs and clamps', () => {
     near(r.lock.shares.reduce((a, b) => a + b, 0), 100, 1e-9);
     assert.strictEqual(r.lock.splitShow.reduce((a, b) => a + b, 0), Math.round(r.lock.mkD));
     assert.ok(r.warnings.some(w => /110%/.test(w)));
-    assert.deepStrictEqual(M.splitDollars(5625, [0.3, 0.5, 0.1, 0.1]), [1688, 2813, 562, 562]);
-    assert.deepStrictEqual(M.splitDollars(1001, [0.5, 0.5]), [501, 500]);
+    sameList(M.splitDollars(5625, [0.3, 0.5, 0.1, 0.1]), [1688, 2813, 562, 562]);
+    sameList(M.splitDollars(1001, [0.5, 0.5]), [501, 500]);
   });
 });
 
