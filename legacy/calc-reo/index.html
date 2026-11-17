@@ -83,9 +83,9 @@
           </div>
 
           <div class="input-group">
-            <label for="acqCosts">Acquisition / Closing Costs</label>
+            <label for="acqCosts">Closing Costs</label>
             <input id="acqCosts" type="number" step="0.01" value="0" placeholder="Closing costs" />
-            <div class="info-text">Default matches legacy sheet assumption.</div>
+            <div class="info-text">Counted in cash invested, along with the renovation.</div>
           </div>
         </div>
       </div>
@@ -124,18 +124,18 @@
           </div>
 
           <div class="input-group">
-            <label for="renoMonths">Timeframe to Complete (months)</label>
+            <label for="renoMonths">Months to Complete</label>
             <input id="renoMonths" type="number" step="1" value="0" />
           </div>
 
           <div class="input-group">
-            <label for="renoValue">Renovated Value (optional)</label>
+            <label for="renoValue">Renovated Value</label>
             <input id="renoValue" type="number" step="0.01" value="0" />
             <div class="info-text">If 0, we assume renovated value = purchase price.</div>
           </div>
 
           <div class="input-group">
-            <label for="sellCostPct">Estimated Selling Costs %</label>
+            <label for="sellCostPct">Selling Costs %</label>
             <input id="sellCostPct" type="number" step="0.01" value="0" placeholder="Sell cost %" />
           </div>
         </div>
@@ -191,7 +191,7 @@
           </div>
 
           <div class="input-group">
-            <label for="propTaxRate">Property Tax Rate % (annual)</label>
+            <label for="propTaxRate">Property Tax Rate %</label>
             <input id="propTaxRate" type="number" step="0.001" value="0" placeholder="Tax rate %" />
             <div class="info-text">Legacy sheet assumed ~1.30% annually.</div>
           </div>
@@ -226,13 +226,13 @@
         <h2><span class="section-number">6</span>Depreciation Assumptions</h2>
         <div class="input-grid">
           <div class="input-group">
-            <label for="improvePct">Market Value of Improvements (portion)</label>
+            <label for="improvePct">Building Share of Value %</label>
             <input id="improvePct" type="number" step="0.01" value="0" placeholder="Improve %" />
-            <div class="info-text">Legacy sheet default: 75% of renovation counted as improvements.</div>
+            <div class="info-text">Land is not depreciable. Typical range is 70 to 85.</div>
           </div>
 
           <div class="input-group">
-            <label for="taxBracket">Effective Income Tax Bracket %</label>
+            <label for="taxBracket">Income Tax Bracket %</label>
             <input id="taxBracket" type="number" step="0.01" value="0" placeholder="Tax bracket %" />
           </div>
 
@@ -243,39 +243,78 @@
         </div>
 
         <div class="info-text">
-          Note: This tool mirrors the legacy worksheet approach where “after-tax cash-flow” adds depreciation to cash-flow as an approximation.
+          Income tax each year = (NOI − mortgage interest − depreciation) × tax bracket. Depreciation = (building share of price and closing costs + renovation) ÷ depreciable years. A loss is shown as a tax saving, which assumes it can offset other income.
         </div>
       </div>
 
       <!-- Results Summary -->
       <div class="results-section print-no-break">
-        <h2>Summary</h2>
-        <div class="results-grid">
-          <div class="result-card highlight">
-            <h3>Rent to Price Ratio</h3>
-            <div class="result-value" id="r2p">—</div>
-          </div>
-          <div class="result-card">
-            <h3>Total Renovation Cost</h3>
-            <div class="result-value" id="renoTotal">—</div>
-          </div>
-          <div class="result-card">
-            <h3>Renovated Market Value</h3>
-            <div class="result-value" id="renValueOut">—</div>
-          </div>
+        <h2>Results</h2>
+        <div class="results-grid reo-kpis">
           <div class="result-card">
             <h3>Cash Invested</h3>
             <div class="result-value" id="cashInvested">—</div>
+            <div class="reo-sub">Down payment + closing + renovation</div>
           </div>
           <div class="result-card">
-            <h3>Monthly NOI</h3>
-            <div class="result-value" id="noiMonthly">—</div>
+            <h3>Year 1 Cash Flow</h3>
+            <div class="result-value" id="cfYr1">—</div>
+            <div class="reo-sub">Before taxes</div>
           </div>
+          <div class="result-card">
+            <h3>Year 1 Cash-on-Cash</h3>
+            <div class="result-value" id="cocYr1">—</div>
+            <div class="reo-sub">Cash flow ÷ cash invested</div>
+          </div>
+          <div class="result-card highlight">
+            <h3>5-Year After-Tax Return</h3>
+            <div class="result-value" id="carYr5">—</div>
+            <div class="reo-sub"><span id="roiYr5">—</span> on cash invested</div>
+          </div>
+        </div>
+
+        <dl class="reo-facts">
+          <div><dt>Monthly NOI</dt><dd id="noiMonthly">—</dd></div>
+          <div><dt>Rent to price</dt><dd id="r2p">—</dd></div>
+          <div><dt>Loan amount</dt><dd id="loanAmountOut">—</dd></div>
+          <div><dt>Monthly payment</dt><dd id="paymentOut">—</dd></div>
+          <div><dt>Renovation cost</dt><dd id="renoTotal">—</dd></div>
+          <div><dt>Renovated value</dt><dd id="renValueOut">—</dd></div>
+          <div><dt>Annual depreciation</dt><dd id="deprOut">—</dd></div>
+        </dl>
+
+        <div class="reo-charts" id="reoCharts">
+          <figure class="reo-chart">
+            <figcaption>
+              <strong>Annual cash flow</strong>
+              <span class="chart-legend">
+                <span><i class="chart-swatch" style="background:#2a78d6"></i>Before taxes</span>
+                <span><i class="chart-swatch" style="background:#eb6834"></i>After taxes</span>
+              </span>
+            </figcaption>
+            <div class="chart-wrap">
+              <svg id="chartCashFlow" role="img" aria-label="Annual cash flow before and after taxes, years 1 to 5"></svg>
+              <div class="chart-tip" hidden></div>
+            </div>
+          </figure>
+          <figure class="reo-chart">
+            <figcaption>
+              <strong>If you sold at year end</strong>
+              <span class="chart-legend">
+                <span><i class="chart-swatch" style="background:#2a78d6"></i>Net equity</span>
+                <span><i class="chart-swatch" style="background:#eb6834"></i>Cumulative after-tax return</span>
+              </span>
+            </figcaption>
+            <div class="chart-wrap">
+              <svg id="chartEquity" role="img" aria-label="Net equity and cumulative after-tax return, years 1 to 5"></svg>
+              <div class="chart-tip" hidden></div>
+            </div>
+          </figure>
         </div>
       </div>
 
       <!-- 5 Year Projection Table -->
-      <div class="section">
+      <div class="section reo-projection">
         <h2>5-Year Projection</h2>
         <div class="table-wrap">
           <table class="reo-table" aria-label="Five year projection">
@@ -290,25 +329,33 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td>Property Value</td><td id="pv1"></td><td id="pv2"></td><td id="pv3"></td><td id="pv4"></td><td id="pv5"></td></tr>
-              <tr><td>Gross Income (Annual)</td><td id="gi1"></td><td id="gi2"></td><td id="gi3"></td><td id="gi4"></td><td id="gi5"></td></tr>
-              <tr><td>Expenses (Annual)</td><td id="ex1"></td><td id="ex2"></td><td id="ex3"></td><td id="ex4"></td><td id="ex5"></td></tr>
-              <tr><td>NOI (Annual)</td><td id="noi1"></td><td id="noi2"></td><td id="noi3"></td><td id="noi4"></td><td id="noi5"></td></tr>
+              <tr class="reo-group"><th colspan="6" scope="colgroup">Operations</th></tr>
+              <tr><td>Gross Income</td><td id="gi1"></td><td id="gi2"></td><td id="gi3"></td><td id="gi4"></td><td id="gi5"></td></tr>
+              <tr><td>Operating Expenses</td><td id="ex1"></td><td id="ex2"></td><td id="ex3"></td><td id="ex4"></td><td id="ex5"></td></tr>
+              <tr class="reo-total"><td>Net Operating Income</td><td id="noi1"></td><td id="noi2"></td><td id="noi3"></td><td id="noi4"></td><td id="noi5"></td></tr>
               <tr><td>Cap Rate</td><td id="cap1"></td><td id="cap2"></td><td id="cap3"></td><td id="cap4"></td><td id="cap5"></td></tr>
-              <tr><td>Debt Service (Annual)</td><td id="ds1"></td><td id="ds2"></td><td id="ds3"></td><td id="ds4"></td><td id="ds5"></td></tr>
+              <tr class="reo-group"><th colspan="6" scope="colgroup">Cash flow</th></tr>
+              <tr><td>Debt Service</td><td id="ds1"></td><td id="ds2"></td><td id="ds3"></td><td id="ds4"></td><td id="ds5"></td></tr>
               <tr><td>Debt Coverage Ratio</td><td id="dcr1"></td><td id="dcr2"></td><td id="dcr3"></td><td id="dcr4"></td><td id="dcr5"></td></tr>
-              <tr><td>Cash-Flow (Before Tax)</td><td id="cf1"></td><td id="cf2"></td><td id="cf3"></td><td id="cf4"></td><td id="cf5"></td></tr>
-              <tr><td>After-Tax Cash-Flow (Approx)</td><td id="at1"></td><td id="at2"></td><td id="at3"></td><td id="at4"></td><td id="at5"></td></tr>
+              <tr class="reo-total"><td>Cash Flow Before Taxes</td><td id="cf1"></td><td id="cf2"></td><td id="cf3"></td><td id="cf4"></td><td id="cf5"></td></tr>
               <tr><td>Cash-on-Cash Return</td><td id="coc1"></td><td id="coc2"></td><td id="coc3"></td><td id="coc4"></td><td id="coc5"></td></tr>
-              <tr><td>Net Equity (after sell costs)</td><td id="eq1"></td><td id="eq2"></td><td id="eq3"></td><td id="eq4"></td><td id="eq5"></td></tr>
-              <tr><td>Cumulative After-Tax Return</td><td id="car1"></td><td id="car2"></td><td id="car3"></td><td id="car4"></td><td id="car5"></td></tr>
+              <tr><td>Income Tax (negative = saving)</td><td id="tax1"></td><td id="tax2"></td><td id="tax3"></td><td id="tax4"></td><td id="tax5"></td></tr>
+              <tr class="reo-total"><td>After-Tax Cash Flow</td><td id="at1"></td><td id="at2"></td><td id="at3"></td><td id="at4"></td><td id="at5"></td></tr>
+              <tr class="reo-group"><th colspan="6" scope="colgroup">Position if sold at year end</th></tr>
+              <tr><td>Property Value</td><td id="pv1"></td><td id="pv2"></td><td id="pv3"></td><td id="pv4"></td><td id="pv5"></td></tr>
+              <tr><td>Loan Balance</td><td id="bal1"></td><td id="bal2"></td><td id="bal3"></td><td id="bal4"></td><td id="bal5"></td></tr>
+              <tr class="reo-total"><td>Net Equity (after selling costs)</td><td id="eq1"></td><td id="eq2"></td><td id="eq3"></td><td id="eq4"></td><td id="eq5"></td></tr>
+              <tr class="reo-total"><td>Cumulative After-Tax Return</td><td id="car1"></td><td id="car2"></td><td id="car3"></td><td id="car4"></td><td id="car5"></td></tr>
+              <tr><td>Return on Cash Invested</td><td id="roi1"></td><td id="roi2"></td><td id="roi3"></td><td id="roi4"></td><td id="roi5"></td></tr>
             </tbody>
           </table>
         </div>
 
-        <div class="info-text">
-          Print tip: click <strong>Print / Save PDF</strong>, choose “Save as PDF”, and the worksheet will format cleanly.
-        </div>
+        <ul class="reo-notes">
+          <li><strong>Net equity</strong> = property value − selling costs − loan balance.</li>
+          <li><strong>Cumulative after-tax return</strong> = after-tax cash flow to date + net equity − cash invested. Tax due on the sale itself (capital gains and depreciation recapture) is not included.</li>
+          <li>During renovation months there is no rent, but property tax, insurance and HOA dues are still counted.</li>
+        </ul>
       </div>
 
       <!-- Notes -->
@@ -322,6 +369,7 @@
     </div>
   </div>
 
+  <script src="./reo-math.js"></script>
   <script src="./reo.js"></script>
   <script>
   document.addEventListener('DOMContentLoaded', function() {

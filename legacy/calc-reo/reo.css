@@ -75,3 +75,145 @@
     padding: 6px;
   }
 }
+/* ---------- Layout ---------- */
+.input-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.neg { color: var(--danger) !important; }
+
+/* ---------- Results ---------- */
+.reo-kpis { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+.reo-sub {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+.reo-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem 1.5rem;
+  margin: 0 0 1.5rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.reo-facts dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--gray);
+}
+
+.reo-facts dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+  color: var(--dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Charts ---------- */
+.reo-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.reo-charts.is-empty { display: none; }
+
+.reo-chart {
+  margin: 0;
+  padding: 1rem;
+  background: #fcfcfb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.reo-chart figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--dark);
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  font-size: 0.8rem;
+  color: #52514e;
+}
+
+.chart-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 0.35rem;
+}
+
+.chart-wrap { position: relative; }
+.chart-wrap svg { display: block; width: 100%; height: auto; }
+
+.chart-grid { stroke: #e6e5e0; stroke-width: 1; }
+.chart-zero { stroke: #8a8983; stroke-width: 1; }
+.chart-guide { stroke: #8a8983; stroke-width: 1; stroke-dasharray: 3 3; }
+.chart-tick { font-size: 11px; fill: #52514e; font-variant-numeric: tabular-nums; }
+.chart-hit { fill: transparent; outline: none; }
+.chart-hit:hover, .chart-hit:focus { fill: rgba(11, 11, 11, 0.05); }
+
+.chart-tip {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+  color: #0b0b0b;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.chart-tip__head { font-weight: 700; margin-bottom: 0.25rem; }
+.chart-tip__row { display: flex; align-items: center; gap: 0.25rem; }
+.chart-tip__row strong { margin-left: auto; padding-left: 0.9rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- Projection table ---------- */
+.reo-table td { font-variant-numeric: tabular-nums; }
+
+.reo-table .reo-group th {
+  text-align: left;
+  background: var(--light-gray);
+  color: var(--primary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.5rem 0.6rem;
+}
+
+.reo-table .reo-total td { font-weight: 700; }
+
+.reo-notes {
+  margin: 1rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--gray);
+}
+
+.reo-notes li { margin-bottom: 0.25rem; }
+
+@media print {
+  .reo-charts { grid-template-columns: 1fr 1fr; }
+  .chart-tip { display: none !important; }
+}
