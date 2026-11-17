@@ -44,7 +44,11 @@
     },
     // Estimated TBA price change per 1% of coupon when no quote is entered: about 1.75 pts per adjacent
     // 50 bp coupon near par, so other coupons are priced off the 6.5 quote. A real quote should replace it.
-    perPoint: 3.5
+    perPoint: 3.5,
+    // Illustrative multiple for the excess servicing strip (the note rate above coupon + fee + base strip), used when the
+    // servicing value is set by a multiple. Below the 3.5–5× base range: a loan priced above its coupon refinances sooner,
+    // and excess IO is usually sold or marked more conservatively than the base strip.
+    excessMult: 2.5
   };
   const AVG_MARGIN = SOURCES.margin.pts;
   const round3 = x => Math.round(x * 1000) / 1000;
@@ -55,7 +59,7 @@
     // The servicing value the sheet implies at the average margin: sheet − premium + margin + comp (no LLPAs).
     msr:round3(-SOURCES.sheet.afterComp - (SOURCES.mbs.price - 100) + SOURCES.margin.pts + SOURCES.sheet.comp),
     // Default view: servicing marked at 4× the strip and the wholesaler's margin solved from the sheet; the 1.33 average stays as the comparison.
-    program:'conv', msrMult:4, svc:0.25, gfee:SOURCES.gfee, financeUpfront:true, vaSubsequentUse:false, vaExempt:false, pmi:SOURCES.programs.pmi.annual, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
+    program:'conv', msrMult:4, excessMult:SOURCES.excessMult, svc:0.25, gfee:SOURCES.gfee, financeUpfront:true, vaSubsequentUse:false, vaExempt:false, pmi:SOURCES.programs.pmi.annual, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
     // Borrower and property, for the Fannie LLPA matrix. The example file is clean (780+, 71% LTV purchase,
     // primary, no flags), which is why the UWM sheet showed no adjustments.
     llpaMode:'matrix', creditScore:780, propertyValue:700000, purpose:'Purchase', occupancy:'Primary', units:'1',
@@ -107,6 +111,8 @@
   const autoCoupon = (rate, svc, gfee) => Math.max(0.5, Math.floor((rate - gfee - svc) / 0.5 + 1e-9) * 0.5);
   const estPrice = c => Math.round((ANCHOR.price + (c - ANCHOR.coupon) * ANCHOR.perPoint) * 100) / 100;
   const isSet = v => v !== null && v !== undefined;
+  // Excess servicing: the note rate above coupon + fee + base strip. Floating-point dust (7.20 − 6.5 − 0.70) counts as zero.
+  const excessOf = (rate, coupon, floor) => { const e = rate - coupon - floor; return e > 1e-9 ? e : 0; };
 
   // ---------- layer 1: solve the lock ----------
   function solveLock(s) {
@@ -146,12 +152,16 @@
     }
     if (rate < coupon + floor) { coupon = autoCoupon(rate, svc, gfee); warnings.push(`The note rate must cover the coupon plus ${pc(floor)} (${prog.feeWord} + servicing strip). Coupon shown as ${pc(coupon)}; enter that coupon's price if you have it.`); }
     if (tsy >= coupon) { tsy = coupon - 0.25; warnings.push(`The Treasury yield has to sit below the MBS coupon. Shown as ${pc(tsy)}.`); }
-    // Servicing value as a multiple of the annual strip (base + excess at the lock coupon). It makes the mark a given,
-    // so a request to solve for servicing solves the margin instead.
-    const strip = svc + Math.max(0, rate - coupon - floor);
+    // Servicing value from multiples of the strip: the base strip at the servicing multiple, and the excess strip (note
+    // rate above coupon + fee + base strip at the lock coupon) at its own lower multiple, so an eighth of rate that cannot
+    // reach the next coupon is not capitalized at the full base multiple. It makes the mark a given, so a request to
+    // solve for servicing solves the margin instead.
+    const excess = excessOf(rate, coupon, floor), strip = svc + excess;
     const msrFromMult = typeof s.msrMult === 'number' && isFinite(s.msrMult) && s.msrMult > 0;
     const msrMult = msrFromMult ? s.msrMult : null;
-    if (msrFromMult) msrPts = msrMult * strip;
+    const excessMult = typeof s.excessMult === 'number' && isFinite(s.excessMult) && s.excessMult >= 0 ? s.excessMult : SOURCES.excessMult;
+    const msrBasePts = msrFromMult ? msrMult * svc : 0, msrExcessPts = msrFromMult ? excessMult * excess : 0;
+    if (msrFromMult) msrPts = msrBasePts + msrExcessPts;
     const mode = s.solve === 'msr' && msrFromMult ? 'margin' : s.solve;
     const splitSum = s.fixed + s.variable + s.onetime + s.profit;
     let shares = [s.fixed, s.variable, s.onetime, s.profit];
@@ -187,7 +197,7 @@
     if (solvedSheet) sheetPts = borrowerPts;
 
     return {warnings, P, base, ltv, upfrontPct: fees.upfrontPct, upfrontWhy: fees.upfrontWhy, upfrontD, financed, upCashD, annualPct: fees.annualPct,
-            rate, tsy, lo, comp, svc, gfee, program, prog, strip, msrFromMult, msrMult, llpa, llpaCalc, llpaMode: s.llpaMode,
+            rate, tsy, lo, comp, svc, gfee, program, prog, strip, msrFromMult, msrMult, excessMult, msrBasePts, msrExcessPts, llpa, llpaCalc, llpaMode: s.llpaMode,
             creditScore: s.creditScore, propertyValue: s.propertyValue, purpose: s.purpose, occupancy: s.occupancy, units: s.units,
             floor, mode, shares, wsplit, wshares, coupon, price, premPts, msrPts, margin, sheetPts,
             sheetCost: solvedSheet ? (borrowerPts === 0 ? 0 : -borrowerPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
@@ -221,7 +231,7 @@
   function frontEnd(lock, exec) {
     const P = lock.P;
     const prem = P * exec.premPts / 100, disc = Math.max(0, -prem), proceeds = P + prem;
-    const excess = Math.max(0, lock.rate - exec.coupon - lock.floor), strip = lock.svc + excess;
+    const excess = excessOf(lock.rate, exec.coupon, lock.floor), strip = lock.svc + excess;
     const msr = P * lock.msrPts / 100, mult = strip > 0 ? lock.msrPts / strip : 0;
     const compD = P * lock.comp / 100, loD = P * lock.lo / 100, mkD = compD - loD, llpaD = P * lock.llpa / 100;
     const lossPts = Math.max(0, -exec.margin), keep = P * Math.max(0, exec.margin) / 100, lossD = P * lossPts / 100;

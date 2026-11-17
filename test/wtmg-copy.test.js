@@ -65,9 +65,12 @@ describe('the page as it opens', () => {
   it('solved-margin note reads the 4× mark against the 1.33 average', () => {
     const n = C.notes1(runDefault());
     assert.strictEqual(n.length, 4);
-    has(n[1], 'a 2.25-pt comp and a 4× servicing mark (1.2 pts on the 0.30% strip), the wholesaler earns 1.656 pts on this loan, 0.326 pts richer than UWM\'s reported Q2 2026 average of 1.33.');
+    has(n[1], 'a 2.25-pt comp and a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.581 pts on this loan, 0.251 pts richer than UWM\'s reported Q2 2026 average of 1.33.');
     has(n[1], 'Change the multiple');
-    has(C.notes1(runDefault({ msrMult: 3 }))[1], 'a 3× servicing mark (0.9 pts on the 0.30% strip), the wholesaler earns 1.356 pts on this loan, 0.026 pts richer than');
+    has(C.notes1(runDefault({ msrMult: 3 }))[1], 'a 3× servicing mark (0.875 pts: 3× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.331 pts on this loan, right at UWM');
+    has(C.notes1(runDefault({ rate: 7.75, coupon: 7, price: M.estPrice(7) }))[1], 'a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess)'); // 7.0 coupon, same 0.05 excess
+    const noExcess = C.notes1(runDefault({ rate: 7.2 }))[1]; // 7.20 − 6.5 − 0.70 = 0 excess
+    has(noExcess, 'a 4× servicing mark (1 pts: 4× the 0.25% base strip)'); lacks(noExcess, 'excess');
     has(C.notes1(runDefault({ msrMult: null, msr: 0.5 }))[1], 'servicing worth 0.5 pts, the wholesaler earns 0.956 pts on this loan, 0.374 pts thinner than');
     lacks(C.notes1(runDefault({ msrMult: null, msr: 0.5 }))[1], 'Change the multiple');
   });
@@ -75,7 +78,8 @@ describe('the page as it opens', () => {
   it('tiles and cards follow the default mode', () => {
     const t = C.pricingTiles(runDefault());
     assert.strictEqual(t[2].k, 'Implied wholesaler margin'); has(t[2].f, 'richer than average');
-    has(C.msrCards(runDefault())[2].v, 'set at 4× the strip');
+    has(C.msrCards(runDefault())[2].v, 'set at 4× the base strip + 2.5× the excess');
+    has(C.msrCards(runDefault({ rate: 7.2 }))[2].v, 'set at 4× the base strip'); lacks(C.msrCards(runDefault({ rate: 7.2 }))[2].v, 'excess');
     assert.strictEqual(C.result(runDefault()), 'Pays 2.016 pts');
   });
 });
@@ -294,7 +298,7 @@ describe('revenue, chart-2 copy and servicing cards', () => {
     const r7 = C.msrCards(run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: M.estPrice(6.0) }));
     assert.strictEqual(r7[0].v, '0.25%/yr + 0.30% excess');
     has(C.msrCards(run({ solve: 'none' }))[2].v, 'your mark');
-    has(C.msrCards(run({ msrMult: 4 }))[2].v, 'set at 4× the strip');
-    has(C.notes1(run({ msrMult: 4 }))[1], 'a 4× servicing mark (1.2 pts on the 0.30% strip), the wholesaler earns 1.656 pts on this loan, 0.326 pts richer than');
+    has(C.msrCards(run({ msrMult: 4 }))[2].v, 'set at 4× the base strip + 2.5× the excess');
+    has(C.notes1(run({ msrMult: 4 }))[1], 'a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.581 pts on this loan, 0.251 pts richer than');
   });
 });

@@ -415,15 +415,17 @@ describe('government program fees', () => {
 });
 
 describe('the page as it opens: margin solved at a 4× servicing mark', () => {
-  it('defaults are margin mode with a 4× multiple', () => {
+  it('defaults are margin mode with a 4× base multiple and a 2.5× excess multiple', () => {
     assert.strictEqual(M.DEFAULTS.solve, 'margin'); assert.strictEqual(M.DEFAULTS.msrMult, 4);
+    assert.strictEqual(M.DEFAULTS.excessMult, M.SOURCES.excessMult); assert.strictEqual(M.DEFAULTS.excessMult, 2.5);
   });
 
-  it('servicing is 4 × 0.30 = 1.2 pts and the margin solves to 1.656 pts with no warnings', () => {
+  it('servicing is 4 × 0.25 + 2.5 × 0.05 = 1.125 pts and the margin solves to 1.581 pts with no warnings', () => {
     const r = runDefault();
     assert.strictEqual(r.lock.mode, 'margin'); assert.ok(r.lock.msrFromMult); assert.ok(r.lock.solvedMargin);
-    near(r.lock.msrPts, 1.2, 1e-9); near(r.lock.margin, 1.656, 1e-9);
-    near(r.after.borrowerPts, -2.016, 1e-9); near(r.after.keep, 8280, 0.5);
+    near(r.lock.msrBasePts, 1.0, 1e-9); near(r.lock.msrExcessPts, 0.125, 1e-9); near(r.lock.msrPts, 1.125, 1e-9);
+    near(r.lock.margin, 1.581, 1e-9);
+    near(r.after.borrowerPts, -2.016, 1e-9); near(r.after.keep, 7905, 0.5);
     assert.strictEqual(r.warnings.length, 0);
     assertBothBalanced(r);
   });
@@ -442,23 +444,35 @@ describe('servicing value from a multiple of the strip', () => {
     near(r.lock.strip, 0.30, 1e-9);
   });
 
-  it('4× on the default loan sets 1.2 pts of servicing (4 × 0.30) and solves the margin instead', () => {
+  it('4× on the default loan sets 1.125 pts of servicing (4 × 0.25 base + 2.5 × 0.05 excess) and solves the margin instead', () => {
     const r = run({ msrMult: 4 });
-    near(r.lock.msrPts, 1.2, 1e-9);
+    near(r.lock.msrPts, 1.125, 1e-9);
     assert.strictEqual(r.lock.mode, 'margin'); assert.ok(r.lock.solvedMargin); assert.ok(!r.lock.solvedMsr);
-    near(r.lock.margin, 0.69 + 1.2 - 2.25 + 2.016, 1e-9); // 1.656 pts
+    near(r.lock.margin, 0.69 + 1.125 - 2.25 + 2.016, 1e-9); // 1.581 pts
     near(r.after.borrowerPts, -2.016, 1e-9);
   });
 
-  it('the multiple applies to base plus excess: 3.5× on 7.00% into a 6.0 coupon is 1.925 pts', () => {
+  it('the excess strip carries its own multiple: 3.5× base + 2.5× excess on 7.00% into a 6.0 coupon is 1.625 pts', () => {
     const r = run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: M.estPrice(6.0), msrMult: 3.5 });
-    near(r.lock.strip, 0.55, 1e-9); near(r.lock.msrPts, 1.925, 1e-9); assert.strictEqual(r.lock.mode, 'margin');
+    near(r.lock.strip, 0.55, 1e-9); near(r.lock.excess, 0.30, 1e-9);
+    near(r.lock.msrBasePts, 0.875, 1e-9); near(r.lock.msrExcessPts, 0.75, 1e-9); near(r.lock.msrPts, 1.625, 1e-9);
+    assert.strictEqual(r.lock.mode, 'margin');
   });
 
-  it('in another solve mode the multiple replaces the typed mark', () => {
+  it('an eighth of rate that cannot reach the next coupon no longer doubles the servicing value: 7.25% → 7.50% adds 0.625 pt, not 1.0', () => {
+    const a = runDefault(), b = runDefault({ rate: 7.5 });
+    assert.strictEqual(b.lock.coupon, 6.5); near(b.lock.excess, 0.30, 1e-9);
+    near(b.lock.msrPts - a.lock.msrPts, 2.5 * 0.25, 1e-9);           // 0.625 pt at 2.5×; it was 4 × 0.25 = 1.0 pt
+    near(b.lock.msrPts, 1.75, 1e-9);
+    near(runDefault({ rate: 7.5, excessMult: 0 }).lock.msrPts, 1.0, 1e-9, 'excess valued at 0× leaves the base 4 × 0.25');
+    near(runDefault({ rate: 7.5, excessMult: 4 }).lock.msrPts, 2.2, 1e-9, 'excess at the base multiple reproduces the old blended 4 × 0.55');
+    assert.strictEqual(runDefault({ excessMult: 'x' }).lock.excessMult, 2.5, 'a bad value falls back to the sourced multiple');
+  });
+
+  it('in another solve mode the multiples replace the typed mark', () => {
     const r = run({ solve: 'comp', msrMult: 5, msr: 0.1 });
-    near(r.lock.msrPts, 1.5, 1e-9); assert.ok(r.lock.solvedComp);
-    near(r.lock.comp, 0.69 + 1.5 - 1.33 + 2.016, 1e-9); // 2.876 pts
+    near(r.lock.msrPts, 1.375, 1e-9); assert.ok(r.lock.solvedComp); // 5 × 0.25 + 2.5 × 0.05
+    near(r.lock.comp, 0.69 + 1.375 - 1.33 + 2.016, 1e-9); // 2.751 pts
   });
 });
 

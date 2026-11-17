@@ -90,7 +90,7 @@
     else if (after.solvedMargin) {
       const d = lock.margin - S.margin.pts;
       const vs = Math.abs(d) < 0.005 ? 'right at' : d > 0 ? `${pts(d)} pts richer than` : `${pts(-d)} pts thinner than`;
-      n2 = `Reading the sheet backwards: at ${sw}, a ${pts(after.comp)}-pt comp and ${after.msrFromMult ? `a ${after.msrMult}× servicing mark (${pts(after.msrPts)} pts on the ${pc(lock.strip)} strip)` : `servicing worth ${pts(after.msrPts)} pts`}, the wholesaler earns ${pts(lock.margin)} pts on this loan, ${vs} ${S.wholesaler}'s reported ${S.margin.period} average of ${pts(S.margin.pts)}.${after.msrFromMult ? ' Change the multiple to see how much of that margin is really a servicing assumption.' : ''}`;
+      n2 = `Reading the sheet backwards: at ${sw}, a ${pts(after.comp)}-pt comp and ${after.msrFromMult ? `a ${after.msrMult}× servicing mark (${pts(after.msrPts)} pts: ${after.msrMult}× the ${pc(lock.svc)} base strip${lock.excess > 0 ? ` + ${after.excessMult}× the ${pc(lock.excess)} excess` : ''})` : `servicing worth ${pts(after.msrPts)} pts`}, the wholesaler earns ${pts(lock.margin)} pts on this loan, ${vs} ${S.wholesaler}'s reported ${S.margin.period} average of ${pts(S.margin.pts)}.${after.msrFromMult ? ' Change the multiple to see how much of that margin is really a servicing assumption.' : ''}`;
     }
     else n2 = `The wholesaler's actual sheet at this rate (${sw}) matches the modeled execution, so it earns its ${pts(lock.margin)}-pt margin with servicing valued at ${pts(after.msrPts)} pts.`;
     const quarter = after.P * 0.25 / 100;
@@ -139,7 +139,7 @@
     return [
       card('', 'Servicing strip', `${pc(after.svc)}/yr${after.excess > 0 ? ` + ${pc(after.excess)} excess` : ''}`),
       card('', 'Gross servicing income', `${m2(after.servicer)}/mo, before costs`),
-      card('', 'MSR value', `${m0(after.msr)} (${ptsU(after.msrPts)}) · ${after.solvedMsr ? 'solved from the sheet' : after.msrFromMult ? `set at ${after.msrMult}× the strip` : 'your mark'}${after.msrFromMult ? '' : ` · ${after.mult.toFixed(1)}× the strip`}`)
+      card('', 'MSR value', `${m0(after.msr)} (${ptsU(after.msrPts)}) · ${after.solvedMsr ? 'solved from the sheet' : after.msrFromMult ? `set at ${after.msrMult}× the base strip${after.excess > 0 ? ` + ${after.excessMult}× the excess` : ''}` : 'your mark'}${after.msrFromMult ? '' : ` · ${after.mult.toFixed(1)}× the strip`}`)
     ];
   };
 
