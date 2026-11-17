@@ -8,6 +8,7 @@
 //   - Year-end figures: property value, loan balance and equity are as of the end of each year.
 //   - Taxes: tax = (NOI - mortgage interest - depreciation) x bracket. A negative result is a
 //     tax saving, which assumes the loss can be used against other income.
+//   - Cap rate = a fully rented year's NOI / that year's property value (not the purchase-time value).
 //   - Tax due on a sale (capital gains, depreciation recapture) is not modelled.
 
 (function (root, factory) {
@@ -139,6 +140,9 @@
       var gi = incomeMonthly * monthsRented * rentGrowth;
       var ex = (carryMonthly * 12 + operatingMonthly * monthsRented) * expGrowth;
       var noi = gi - ex;
+      // A full, fully rented year at this year's rents and costs: the basis for the cap rate,
+      // so renovation months in year 1 do not understate it.
+      var stabilizedNoi = incomeMonthly * 12 * rentGrowth - expensesMonthly * 12 * expGrowth;
 
       // Debt
       var ds = 0, interest = 0, principalPaid = 0, balance = loanAmount;
@@ -171,7 +175,7 @@
       out.grossIncome.push(gi);
       out.expenses.push(ex);
       out.noi.push(noi);
-      out.capRate.push(renValue > 0 ? noi / renValue : 0);
+      out.capRate.push(value > 0 ? stabilizedNoi / value : 0);
       out.debtService.push(ds);
       out.interest.push(interest);
       out.principalPaid.push(principalPaid);

@@ -84,6 +84,17 @@ describe('REO projection: identities across all five years', () => {
     near(r.loanAmount - r.loanBalance[4], r.principalPaid.reduce((a, b) => a + b, 0), 0.01);
   });
 
+  it('cap rate is a fully rented year of NOI over that year\'s property value', () => {
+    const r = run();
+    near(r.capRate[0], 18000 / 247200, 1e-9);
+    near(r.capRate[1], (22800 * 1.02 - 4800 * 1.02) / (240000 * 1.03 * 1.03), 1e-9);
+    // Renovation months cut year-1 NOI but not the cap rate.
+    near(run({ renoMonths: 3 }).capRate[0], r.capRate[0], 1e-9);
+    // Rising value with flat rents lowers the cap rate over time.
+    const flat = run({ rentIncrease: 0, expIncrease: 0 });
+    assert.ok(flat.capRate[4] < flat.capRate[0]);
+  });
+
   it('grows rent and expenses from year 2', () => {
     near(r.grossIncome[1], 22800 * 1.02, 0.01);
     near(r.expenses[2], 4800 * 1.02 * 1.02, 0.01);
