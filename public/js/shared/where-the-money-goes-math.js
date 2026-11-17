@@ -19,9 +19,32 @@
   const root = typeof window !== 'undefined' ? window : globalThis;
   const NS = typeof MSFG !== 'undefined' && MSFG ? MSFG : (root.MSFG = root.MSFG || {});
 
-  const AVG_MARGIN = 1.33; // UWM reported Q2 2026 total gain margin, 133 bps
-  const DEFAULTS = {loan:500000, rate:7.25, sheet:2.016, solve:'msr', coupon:6.50, price:100.69, tsy:5.11, comp:2.25, lo:1.125, margin:1.33, msr:0.874, svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null};
-  const ANCHOR = {coupon:6.50, price:100.69, perPoint:3.5}; // price moves about 3.5 pts per 1% of coupon
+  // Every sourced figure the page shows, in one place, with its date. Refreshing the example means editing this block only.
+  const SOURCES = {
+    asOf: 'Nov 17, 2026',
+    asOfLong: 'November 17, 2026',
+    wholesaler: 'UWM',
+    sheet: { rate: 7.25, basePrice: -0.234, afterComp: 2.016, comp: 2.25 }, // UWM rate sheet, 7.25% row, lender-paid comp, no LLPAs
+    margin: { pts: 1.33, bps: 133, period: 'Q2 2026' },                     // UWM reported total gain margin
+    hedgeLoss: '$603 million',                                               // UWM Q2 2026 results
+    servicingBook: { low: 1.7, high: 2.1, wac: 5.90 },                       // UWM MSR fair value, % of UPB, Q4 2025 / Q1 2026; portfolio WAC
+    mbs: { coupon: 6.5, price: 100.69 },                                     // FNMA 30Yr 6.5% screen quote
+    treasury: 5.11,                                                          // 10-yr Treasury yield
+    // Estimated TBA price change per 1% of coupon when no quote is entered: about 1.75 pts per adjacent
+    // 50 bp coupon near par, so other coupons are priced off the 6.5 quote. A real quote should replace it.
+    perPoint: 3.5
+  };
+  const AVG_MARGIN = SOURCES.margin.pts;
+  const round3 = x => Math.round(x * 1000) / 1000;
+  const DEFAULTS = {
+    loan:500000, rate:SOURCES.sheet.rate, sheet:SOURCES.sheet.afterComp, solve:'msr',
+    coupon:SOURCES.mbs.coupon, price:SOURCES.mbs.price, tsy:SOURCES.treasury,
+    comp:SOURCES.sheet.comp, lo:1.125, margin:SOURCES.margin.pts,
+    // The servicing value the sheet implies at the average margin: sheet − premium + margin + comp (no LLPAs).
+    msr:round3(-SOURCES.sheet.afterComp - (SOURCES.mbs.price - 100) + SOURCES.margin.pts + SOURCES.sheet.comp),
+    svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null
+  };
+  const ANCHOR = {coupon:SOURCES.mbs.coupon, price:SOURCES.mbs.price, perPoint:SOURCES.perPoint};
   const RATE_SHARE = 0.59 / 1.39; // illustrative split of the coupon-over-Treasury spread into rate risk vs refi risk
   const SPLIT = [['fixed', 'Fixed cost', 'rent, salaries, systems, licensing, allocated per loan'], ['variable', 'Variable cost', 'processing, credit, disclosures, marketing that scale with volume'], ['onetime', 'One-time expense', 'launch or project costs allocated to this loan'], ['profit', 'Profit', 'what MSFG actually clears on the loan']];
 
@@ -147,5 +170,5 @@
     return {lock, after, moved: move.moved, monthly: monthly(after), warnings: lockSolve.warnings.concat(move.warnings), mode: lockSolve.mode};
   }
 
-  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT };
+  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT };
 })();

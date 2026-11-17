@@ -44,6 +44,12 @@ describe('small words', () => {
     has(C.multWord(5.1), 'above the usual');
   });
 
+  it('source lines are assembled from the SOURCES block', () => {
+    assert.strictEqual(C.sheetSrc(run().after), 'Source: UWM sheet at 7.25%, base −0.234 + 2.25% lender-paid comp');
+    assert.strictEqual(C.sheetSrc(run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: 98.94 }).after), 'As entered from the sheet');
+    has(C.notes1(run({ price2: 99.94 }))[2], "UWM's Q2 2026 results carried a $603 million hedge loss");
+  });
+
   it('result chip', () => {
     assert.strictEqual(C.result(run()), 'Pays 2.016 pts');
     assert.strictEqual(C.result(run({ solve: 'sheet', msr: 2.89 })), 'Par');

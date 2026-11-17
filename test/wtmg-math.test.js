@@ -91,6 +91,29 @@ describe('defaults match the UWM sheet at 7.25%', () => {
   });
 });
 
+describe('the SOURCES block drives the example defaults', () => {
+  it('defaults are read from the dated sources, not retyped', () => {
+    const S = M.SOURCES;
+    assert.strictEqual(M.DEFAULTS.rate, S.sheet.rate);
+    assert.strictEqual(M.DEFAULTS.sheet, S.sheet.afterComp);
+    assert.strictEqual(M.DEFAULTS.comp, S.sheet.comp);
+    assert.strictEqual(M.DEFAULTS.margin, S.margin.pts);
+    assert.strictEqual(M.DEFAULTS.coupon, S.mbs.coupon);
+    assert.strictEqual(M.DEFAULTS.price, S.mbs.price);
+    assert.strictEqual(M.DEFAULTS.tsy, S.treasury);
+    assert.strictEqual(M.ANCHOR.perPoint, S.perPoint);
+    assert.strictEqual(M.AVG_MARGIN, S.margin.pts);
+    assert.ok(/2026/.test(S.asOf) && /2026/.test(S.asOfLong));
+  });
+
+  it('the default servicing value is the one the sheet implies at the average margin', () => {
+    const S = M.SOURCES;
+    const implied = -S.sheet.afterComp - (S.mbs.price - 100) + S.margin.pts + S.sheet.comp;
+    assert.strictEqual(M.DEFAULTS.msr, Math.round(implied * 1000) / 1000);
+    assert.strictEqual(M.DEFAULTS.msr, 0.874);
+  });
+});
+
 describe('formatting and payment math come from the house utilities', () => {
   it('monthly payment equals MSFG.calcMonthlyPayment', () => {
     const r = run();

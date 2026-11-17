@@ -10,7 +10,7 @@
   function init() {
   const WM = MSFG.WtmgMath;
   const compute = WM.compute, autoCoupon = WM.autoCoupon, estPrice = WM.estPrice, pts = WM.pts, pc = WM.pc;
-  const DEFAULTS = WM.DEFAULTS, ANCHOR = WM.ANCHOR, AVG_MARGIN = WM.AVG_MARGIN, SPLIT = WM.SPLIT;
+  const DEFAULTS = WM.DEFAULTS, ANCHOR = WM.ANCHOR, AVG_MARGIN = WM.AVG_MARGIN, SPLIT = WM.SPLIT, S = WM.SOURCES;
   const C = {blue:'#3E7CC9', slate:'#5E6B78', green:'#2E9E6E', gray:'#9AA3AB'};
   const DEFAULT_INFO = "Hover or tap a ribbon to see how it's calculated.";
   const BAR = 10, PAD = 16, W = 1200;
@@ -45,7 +45,7 @@
       ...SPLIT.map(([id, name], i) => ({id:'sp_' + id, col:5, color:'green', name:`${name} · ${pts(m.shares[i])}%`, amount:m0(m.splitShow[i]), sub:[]})),
       {id:'llpa', col:5, color:'green', name:['Fannie Mae', `LLPAs · ${pts(m.llpa)} pts`], amount:m0(m.llpaD), sub:['upfront risk fee,', 'passed to the borrower']},
       {id:'br',  col:5, color:'green', name:'Borrower', amount:m0(m.P), sub:borrowerSub},
-      {id:'uk',  col:5, color:'green', name:['Wholesaler keeps', `${pts(m.margin)} pts`], amount:m0(m.keep), sub:[r.moved ? `margin after move · was ${pts(lock.margin)}` : m.solvedMargin ? 'margin · solved from sheet' : m.margin === AVG_MARGIN ? 'margin · UWM Q2 2026 avg.' : 'margin input']}
+      {id:'uk',  col:5, color:'green', name:['Wholesaler keeps', `${pts(m.margin)} pts`], amount:m0(m.keep), sub:[r.moved ? `margin after move · was ${pts(lock.margin)}` : m.solvedMargin ? 'margin · solved from sheet' : m.margin === AVG_MARGIN ? `margin · ${S.wholesaler} ${S.margin.period} avg.` : 'margin input']}
     ];
     nodes.forEach(n => { n.sub = n.sub.filter(Boolean); });
     const eq = `${pts(lock.premPts)} premium + ${pts(m.msrPts)} servicing − ${pts(lock.margin)} margin − ${pts(m.comp)} comp${m.llpa > 0 ? ` − ${pts(m.llpa)} LLPAs` : ''} = ${pts(m.borrowerPts)} pts${r.moved ? ' at lock' : ''}`;
@@ -59,12 +59,12 @@
       {s:'fn', t:'uwm', v:buyV, label:m.disc > 0 ? `proceeds ${m0(m.proceeds)}` : `principal ${m0(m.P)}`, broken:true, text:(m.disc > 0 ? `${m0(m.proceeds)} for a ${m0(m.P)} loan: the wholesaler gets back ${m0(m.disc)} less than it lent. ` : 'Repays the wholesaler for the money it lent. ') + 'In practice cash settles buyer → wholesaler; Fannie wraps the loan in its guarantee.'},
       {s:'bp', t:'uwm', v:m.bpD, label:m0(m.bpD), text:`Borrower price: ${eq}. Negative, so the borrower pays ${m0(m.P)} × ${pts(-m.borrowerPts)} / 100 = ${m0(m.bpD)} in discount points at closing, on top of the ${pts(m.comp)}% comp already built into the rate. This is the piece of the wholesaler's revenue that comes straight from the borrower's pocket.`},
       {s:'wl', t:'uwm', v:m.lossD, label:m0(m.lossD), text:`After the market move the loan is worth ${pts(m.premPts + m.msrPts)} pts (${pts(m.premPts)} ${m.premPts < 0 ? 'discount' : 'premium'} + ${pts(m.msrPts)} servicing) but the wholesaler still owes ${pts(m.comp)} comp and locked the borrower at ${pts(-m.sheetPts)} pts, so it is ${m0(m.lossD)} short (${ptsU(m.lossPts)}). A hedged pipeline makes this back on its TBA position; an unhedged one books the loss.`},
-      {s:'sr', t:'uwm', v:m.msr, label:m0(m.msr), dashed:true, text:`${m0(m.P)} × ${pts(m.msrPts)} / 100 = ${m0(m.msr)}. ${m.solvedMsr ? `Solved at lock: sheet ${pts(m.sheetPts)} − premium ${pts(lock.premPts)} + margin ${pts(lock.margin)} + comp ${pts(m.comp)} = ${pts(m.msrPts)} pts. ` : ''}The value the wholesaler books for keeping the ${pc(m.strip)} servicing strip${m.excess > 0 ? ` (${pc(m.svc)} base + ${pc(m.excess)} excess)` : ''}, about ${m2(m.servicer)} a month before costs; ${m.mult.toFixed(1)}× the annual strip. An estimate, not cash at funding. Typical marks run 3.5–5×; a large wholesaler like UWM carries its book at about 1.7–2.1% of UPB on 5.90%-rate loans.`},
+      {s:'sr', t:'uwm', v:m.msr, label:m0(m.msr), dashed:true, text:`${m0(m.P)} × ${pts(m.msrPts)} / 100 = ${m0(m.msr)}. ${m.solvedMsr ? `Solved at lock: sheet ${pts(m.sheetPts)} − premium ${pts(lock.premPts)} + margin ${pts(lock.margin)} + comp ${pts(m.comp)} = ${pts(m.msrPts)} pts. ` : ''}The value the wholesaler books for keeping the ${pc(m.strip)} servicing strip${m.excess > 0 ? ` (${pc(m.svc)} base + ${pc(m.excess)} excess)` : ''}, about ${m2(m.servicer)} a month before costs; ${m.mult.toFixed(1)}× the annual strip. An estimate, not cash at funding. Typical marks run 3.5–5×; a large wholesaler like ${S.wholesaler} carries its book at about ${S.servicingBook.low}–${S.servicingBook.high}% of UPB on ${S.servicingBook.wac.toFixed(2)}%-rate loans.`},
       {s:'uwm', t:'msfg', v:m.compD, label:m0(m.compD), text:`${m0(m.P)} × ${pts(m.comp)} / 100 = ${m0(m.compD)}. The wholesaler pays MSFG's ${pts(m.comp)}% lender-paid comp out of the loan's value; the borrower pays nothing for it directly, it's built into the ${pc(m.rate)} rate.`},
       {s:'uwm', t:'llpa', v:m.llpaD, label:m0(m.llpaD), text:`${m0(m.P)} × ${pts(m.llpa)} / 100 = ${m0(m.llpaD)}. Loan-level price adjustments: Fannie Mae's upfront fee for this file's risk (credit score, LTV, occupancy, property type, cash-out), charged when the loan is delivered. The wholesaler passes it straight through to the borrower's price, point for point.`},
       {s:'uwm', t:'br', v:pv, label:`principal ${m0(m.P)}`, broken:true, text:`The wholesaler wires ${m0(m.P)} at closing (to the seller or to pay off the old loan). Drawn shortened.`},
       {s:'uwm', t:'br', v:m.crD, label:`credit ${m0(m.crD)}`, text:`Borrower price: ${eq}. Positive, so the wholesaler gives the borrower ${m0(m.P)} × ${pts(m.borrowerPts)} / 100 = ${m0(m.crD)} as a lender credit toward closing costs. Under lender-paid comp a credit can offset costs but cannot be paid out as cash.`},
-      {s:'uwm', t:'uk', v:m.keep, label:m0(m.keep), text:`${m0(m.P)} × ${pts(m.margin)} / 100 = ${m0(m.keep)}. ` + (r.moved ? `Margin after the market move: ${pts(lock.margin)} at lock ${m.premPts - lock.premPts >= 0 ? '+' : '−'} ${pts(Math.abs(m.premPts - lock.premPts))} change in execution = ${pts(m.margin)} pts. The borrower's price, the comp and the servicing mark were already set, so the move lands here.` : m.solvedMargin ? `Solved: premium ${pts(m.premPts)} + servicing ${pts(m.msrPts)} − comp ${pts(m.comp)} − sheet ${pts(m.sheetPts)} = ${pts(m.margin)} pts, against UWM's reported Q2 2026 average of 1.33.` : m.margin === AVG_MARGIN ? "The default is UWM's reported Q2 2026 average total gain margin (133 bps), a company average, not a loan-level number." : `Set by the wholesaler margin input (${pts(m.margin)} pts; UWM's reported Q2 2026 average was 1.33).`)},
+      {s:'uwm', t:'uk', v:m.keep, label:m0(m.keep), text:`${m0(m.P)} × ${pts(m.margin)} / 100 = ${m0(m.keep)}. ` + (r.moved ? `Margin after the market move: ${pts(lock.margin)} at lock ${m.premPts - lock.premPts >= 0 ? '+' : '−'} ${pts(Math.abs(m.premPts - lock.premPts))} change in execution = ${pts(m.margin)} pts. The borrower's price, the comp and the servicing mark were already set, so the move lands here.` : m.solvedMargin ? `Solved: premium ${pts(m.premPts)} + servicing ${pts(m.msrPts)} − comp ${pts(m.comp)} − sheet ${pts(m.sheetPts)} = ${pts(m.margin)} pts, against ${S.wholesaler}'s reported ${S.margin.period} average of ${pts(S.margin.pts)}.` : m.margin === AVG_MARGIN ? `The default is ${S.wholesaler}'s reported ${S.margin.period} average total gain margin (${S.margin.bps} bps), a company average, not a loan-level number.` : `Set by the wholesaler margin input (${pts(m.margin)} pts; ${S.wholesaler}'s reported ${S.margin.period} average was ${pts(S.margin.pts)}).`)},
       {s:'msfg', t:'lo', v:m.loD, label:m0(m.loD), text:`${m0(m.P)} × ${pts(m.lo)} pts / 100 = ${m0(m.loD)}.`},
       {s:'msfg', t:'mk', v:m.mkD, label:m0(m.mkD), text:`${m0(m.compD)} − ${m0(m.loD)} = ${m0(m.mkD)}. Gross to the company, before expenses; the four ribbons out of it show where it goes.`},
       ...SPLIT.map(([id, name, desc], i) => ({s:'mk', t:'sp_' + id, v:m.splitD[i], label:m0(m.splitShow[i]), text:`${m0(m.mkD)} × ${pts(m.shares[i])}% = ${m0(m.splitShow[i])} (${pts(m.splitD[i] / m.P * 100)} pts of the loan). ${name}: ${desc}. The shares are MSFG's own allocation assumptions, editable above.`}))
@@ -94,7 +94,7 @@
       gf: `${m0(m.P)} × ${pc(m.gfee)} ÷ 12. Fannie's price for taking the default risk; the base g-fee varies by lender and includes the 0.10% TCCA surcharge.`,
       sv: `${m0(m.P)} × ${pc(m.svc)} ÷ 12. The base servicing strip.`,
       ex: `${m0(m.P)} × ${pc(m.excess)} ÷ 12. The note rate runs ${pc(m.excess)} above coupon + g-fee + servicing strip; that extra strip stays with whoever services the loan.`,
-      tr: `${m0(m.P)} × ${pc(m.tsy)} ÷ 12. 10-yr Treasury yield${m.tsy === DEFAULTS.tsy ? ' on Nov 17, 2026' : ' as entered'}.`,
+      tr: `${m0(m.P)} × ${pc(m.tsy)} ÷ 12. 10-yr Treasury yield${m.tsy === DEFAULTS.tsy ? ` on ${S.asOf}` : ' as entered'}.`,
       rr: `Illustrative share of the ${pc(m.spread)} spread: if rates rise, the loan lasts longer and the bond loses value.`,
       rf: `Illustrative share of the ${pc(m.spread)} spread: if rates fall, the borrower refis and the buyer gets paid back early.`,
       pt: 'Month-1 principal passes straight through to the bond holder.'
@@ -300,22 +300,22 @@
   const FIELD_DEFS = [
     {id:'loan',     label:'Loan amount',           min:10000, step:1000,         source:'Example', minValue:1000},
     {id:'rate',     label:'Note rate %',           min:0.5, max:20, step:0.125, source:'Example', onChange: relock},
-    {id:'sheet',    label:'Points after comp',     min:-6, max:6, step:0.001,   source:'UWM sheet at 7.25% · + = borrower pays', allowNegative:true, editedLabel:'Edited · + = borrower pays', solved:SOLVED.sheet},
+    {id:'sheet',    label:'Points after comp',     min:-6, max:6, step:0.001,   source:`${S.wholesaler} sheet at ${pc(S.sheet.rate)} · + = borrower pays`, allowNegative:true, editedLabel:'Edited · + = borrower pays', solved:SOLVED.sheet},
     {id:'llpa',     label:'LLPAs pts',             min:0, max:10, step:0.125,   source:'Example · none on this file'},
     {id:'coupon',   label:'MBS coupon %',          min:0.5, max:20, step:0.5,   source:'Market quote',
       status: () => state.couponAuto ? {label:`Auto: highest coupon under rate − ${pc(state.gfee + state.svc)}`, cls:'solved'} : null,
       onChange: v => { state.couponAuto = false; state.price = priceFor(v); state.priceEst = v !== ANCHOR.coupon; }},
     {id:'price',    label:'MBS price',             min:90, max:115, step:0.01,  source:'Market quote', solved:SOLVED.price,
-      status: () => state.priceEst ? {label:'Estimated from 6.5 @ 100.69 · edit if you have the quote', cls:'solved'} : null,
+      status: () => state.priceEst ? {label:`Estimated from ${pts(S.mbs.coupon)} @ ${S.mbs.price.toFixed(2)} · edit if you have the quote`, cls:'solved'} : null,
       onChange: () => { state.priceEst = false; }},
-    {id:'tsy',      label:'10-yr Treasury %',      min:0.1, max:15, step:0.01,  source:'Market, Nov 17, 2026'},
+    {id:'tsy',      label:'10-yr Treasury %',      min:0.1, max:15, step:0.01,  source:`Market, ${S.asOf}`},
     {id:'coupon2',  label:'Coupon % after lock',   min:0.5, max:20, step:0.5,   source:'Same as lock · type to move', move:'coupon',
       onChange: v => { state.price2 = priceFor(v); state.price2Est = v !== ANCHOR.coupon; }},
     {id:'price2',   label:'MBS price after lock',  min:90, max:115, step:0.01,  source:'Same as lock · type to move', move:'price',
       onChange: () => { state.price2Est = false; if (state.coupon2 === null) state.coupon2 = compute(state).lock.coupon; }},
-    {id:'comp',     label:'Broker comp pts',       min:0, max:5, step:0.125,    source:'Source: UWM rate sheet', solved:SOLVED.comp},
+    {id:'comp',     label:'Broker comp pts',       min:0, max:5, step:0.125,    source:`Source: ${S.wholesaler} rate sheet`, solved:SOLVED.comp},
     {id:'lo',       label:'LO comp pts',           min:0, max:5, step:0.125,    source:'Example'},
-    {id:'margin',   label:'Wholesaler margin pts', min:0, max:5, step:0.01,     source:'Source: UWM Q2 2026 avg.', solved:SOLVED.margin},
+    {id:'margin',   label:'Wholesaler margin pts', min:0, max:5, step:0.01,     source:`Source: ${S.wholesaler} ${S.margin.period} avg.`, solved:SOLVED.margin},
     {id:'msr',      label:'Servicing value pts',   min:0, max:8, step:0.001,    source:'Solved from sheet price', solved:SOLVED.msr},
     {id:'svc',      label:'Servicing strip %/yr',  min:0, max:2, step:0.125,    source:'Example', onChange: relock},
     {id:'gfee',     label:'Guarantee fee %/yr',    min:0, max:2, step:0.05,     source:'Example · Fannie base g-fee', onChange: relock},
@@ -388,6 +388,7 @@
     syncInputs(r);
   }
   renderFields();
+  document.querySelectorAll('[data-asof]').forEach(el => { el.textContent = S.asOfLong; });
   FIELD_DEFS.forEach(f => $('in-' + f.id).addEventListener('input', e => {
     const v = parseFloat(e.target.value);
     if (!isFinite(v)) return;
