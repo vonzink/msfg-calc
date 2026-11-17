@@ -22,7 +22,7 @@
             <div class="site-header__dropdown-group">
               <div class="site-header__dropdown-label"><%= cat.label %></div>
               <% calculators.filter(c => c.category === cat.id && !c.hideFromNav).forEach(calc => { %>
-                <a href="/calculators/<%= calc.slug %>" class="site-header__dropdown-item">
+                <a href="<%= calc.url || '/calculators/' + calc.slug %>" class="site-header__dropdown-item"<% if (calc.url) { %> target="_blank" rel="noopener"<% } %>>
                   <span class="site-header__dropdown-icon"><%= calc.icon %></span>
                   <%= calc.name %>
                 </a>

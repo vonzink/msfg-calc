@@ -29,7 +29,8 @@
     </h2>
     <div class="hub-grid">
       <% calculators.filter(c => c.category === cat.id).forEach(calc => { %>
-        <a href="/calculators/<%= calc.slug %>" class="hub-card" data-name="<%= calc.name.toLowerCase() %>">
+        <%# An entry with a url is an external link (another MSFG site); it opens in a new tab instead of a calculator route. %>
+        <a href="<%= calc.url || '/calculators/' + calc.slug %>" class="hub-card" data-name="<%= calc.name.toLowerCase() %>"<% if (calc.url) { %> target="_blank" rel="noopener"<% } %>>
           <div class="hub-card__icon"><%= calc.icon %></div>
           <div class="hub-card__body">
             <h3 class="hub-card__title"><%= calc.name %></h3>

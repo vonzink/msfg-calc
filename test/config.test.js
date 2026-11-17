@@ -52,6 +52,18 @@ describe('calculators.json structure', () => {
       assert.ok(cat.label, `category ${cat.id} missing label`);
     }
   });
+
+  it('external links carry an https url, and the dashboard workspace is listed under Specialty Tools', () => {
+    const external = calcConfig.calculators.filter(c => c.url);
+    for (const calc of external) {
+      assert.ok(/^https:\/\//.test(calc.url), `external entry ${calc.slug} must link over https: ${calc.url}`);
+      assert.strictEqual(calc.hasCalculations, false, `external entry ${calc.slug} cannot report calculations`);
+    }
+    const dash = calcConfig.calculators.find(c => c.slug === 'dashboard-workspace');
+    assert.ok(dash, 'dashboard-workspace entry missing');
+    assert.strictEqual(dash.url, 'https://dashboard.msfgco.com/calc/workspace');
+    assert.strictEqual(dash.category, 'tools');
+  });
 });
 
 describe('site.json structure', () => {
@@ -96,10 +108,10 @@ describe('Route/config alignment', () => {
 describe('View files exist for configured calculators', () => {
   const viewsDir = path.join(__dirname, '..', 'views', 'calculators');
 
-  // Only check calculators that have EJS views (not legacy iframe stubs)
+  // Only check calculators that have EJS views (not legacy iframe stubs or external links)
   const ejsCalcs = calcConfig.calculators.filter(c =>
     !['llpm', 'batch-llpm', 'income-questionnaire'].includes(c.slug) &&
-    !c.slug.startsWith('income/')
+    !c.slug.startsWith('income/') && !c.url
   );
 
   for (const calc of ejsCalcs) {

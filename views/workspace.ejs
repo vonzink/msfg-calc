@@ -53,7 +53,8 @@
             <div class="workspace__selector-label" data-border-color="<%= cat.color %>">
               <%= cat.label %>
             </div>
-            <% calculators.filter(c => c.category === cat.id).forEach(calc => { %>
+            <%# External links (entries with a url) are not calculators and cannot be loaded as workspace panels. %>
+            <% calculators.filter(c => c.category === cat.id && !c.url).forEach(calc => { %>
               <button class="workspace__selector-btn" data-slug="<%= calc.slug %>" data-name="<%= calc.name.toLowerCase() %>">
                 <span class="workspace__selector-icon"><%= calc.icon %></span>
                 <span class="workspace__selector-name"><%= calc.name %></span>
