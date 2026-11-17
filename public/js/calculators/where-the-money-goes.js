@@ -341,7 +341,7 @@
       sheet:  { flag:'solvedSheet',  value: L => round3(-L.borrowerPts), label: () => 'Solved · + = borrower pays' }
     };
     const priceFor = c => c === ANCHOR.coupon ? ANCHOR.price : estPrice(c);
-    // A new rate, strip or g-fee picks the coupon again (with an estimated price) and clears any after-lock move.
+    // A new rate or g-fee picks the coupon again (with an estimated price) and clears any after-lock move.
     const relock = () => {
       const c = autoCoupon(state.rate, state.svc, state.gfee);
       if (c !== state.coupon) { state.coupon = c; state.couponAuto = true; state.price = priceFor(c); state.priceEst = c !== ANCHOR.coupon; }
@@ -368,7 +368,9 @@
       {id:'lo',       label:'LO comp pts',           min:0, max:5, step:0.125,    source:'Example'},
       {id:'margin',   label:'Wholesaler margin pts', min:0, max:5, step:0.01,     source:`Source: ${S.wholesaler} ${S.margin.period} avg.`, solved:SOLVED.margin},
       {id:'msr',      label:'Servicing value pts',   min:0, max:8, step:0.001,    source:'Solved from sheet price', solved:SOLVED.msr},
-      {id:'svc',      label:'Servicing strip %/yr',  min:0, max:2, step:0.125,    source:'Example', onChange: relock},
+      // The 0.25% strip is the Fannie Mae minimum servicing fee on fixed-rate loans, so it is shown but not editable;
+      // excess servicing above it is still derived from rate − coupon − g-fee − 0.25.
+      {id:'svc',      label:'Servicing strip %/yr',  min:0, max:2, step:0.125,    source:'Fannie Mae minimum servicing, fixed-rate', fixed:true},
       {id:'gfee',     label:'Guarantee fee %/yr',    min:0, max:2, step:0.05,     source:'Example · Fannie base g-fee', onChange: relock},
       {id:'fixed',    label:'Fixed cost %',          min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
       {id:'variable', label:'Variable cost %',       min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
@@ -442,7 +444,9 @@
         const i = $('in-' + f.id), s = $('src-' + f.id);
         let value = state[f.id], label = null, cls = '', disabled = false;
         const computed = f.computed && f.computed(r);
-        if (computed) {
+        if (f.fixed) {
+          value = DEFAULTS[f.id]; disabled = true;
+        } else if (computed) {
           value = computed.value; label = computed.label; cls = 'solved'; disabled = true;
         } else if (f.solved && lock[f.solved.flag]) {
           value = f.solved.value(lock); label = f.solved.label(lock, r); cls = 'solved'; disabled = true;
@@ -479,6 +483,7 @@
     renderFields();
     document.querySelectorAll('[data-asof]').forEach(el => { el.textContent = S.asOfLong; });
     FIELD_DEFS.forEach(f => $('in-' + f.id).addEventListener(f.type ? 'change' : 'input', e => {
+      if (f.fixed) return;
       let v;
       if (f.type === 'checkbox') v = e.target.checked;
       else if (f.type === 'select') v = e.target.value;
