@@ -47,11 +47,15 @@
     // primary, no flags), which is why the UWM sheet showed no adjustments.
     llpaMode:'matrix', creditScore:780, propertyValue:700000, purpose:'Purchase', occupancy:'Primary', units:'1',
     isCondo:false, isManufacturedHome:false, isHighBalance:false, hasSubordinateFinancing:false,
-    applyMMI:false, isHighLTVRefi:false, waiverHomeReady:false, waiverFirstTimeHB:false, waiverDutyToServe:false
+    applyMMI:false, isHighLTVRefi:false, waiverHomeReady:false, waiverFirstTimeHB:false, waiverDutyToServe:false,
+    // Optional wholesaler-keeps split, off by default; shares are illustrative.
+    wsplit:false, wfixed:30, wvariable:30, wonetime:5, wrate:15, wprofit:20
   };
   const ANCHOR = {coupon:SOURCES.mbs.coupon, price:SOURCES.mbs.price, perPoint:SOURCES.perPoint};
   const RATE_SHARE = 0.59 / 1.39; // illustrative split of the coupon-over-Treasury spread into rate risk vs refi risk
   const SPLIT = [['fixed', 'Fixed cost', 'rent, salaries, systems, licensing, allocated per loan'], ['variable', 'Variable cost', 'processing, credit, disclosures, marketing that scale with volume'], ['onetime', 'One-time expense', 'launch or project costs allocated to this loan'], ['profit', 'Profit', 'what MSFG actually clears on the loan']];
+  // Optional split of what the wholesaler keeps. Illustrative shares: no wholesaler publishes a per-loan cost structure.
+  const WSPLIT = [['wfixed', 'Fixed cost', 'underwriting, closing, technology and overhead allocated per loan'], ['wvariable', 'Variable cost', 'account executives, credit, appraisal review and other per-loan spend'], ['wonetime', 'One-time expense', 'onboarding, system and project costs allocated to this loan'], ['wrate', 'Rate risk / hedge', 'the cost of hedging the locked pipeline with TBA sales; the market-move layer shows it in dollars'], ['wprofit', 'Profit', 'what the wholesaler actually clears on the loan']];
 
   const pts = x => { const s = (Math.round(x * 1000) / 1000).toString(); return s === '-0' ? '0' : s.replace('-', '−'); };
   // Percent with 2 decimals, or 3 when the value needs them (0.375% not 0.38%). Formatting itself is the house utility.
@@ -93,6 +97,10 @@
     const splitSum = s.fixed + s.variable + s.onetime + s.profit;
     let shares = [s.fixed, s.variable, s.onetime, s.profit];
     if (Math.abs(splitSum - 100) > 0.01) { shares = splitSum > 0 ? shares.map(x => x / splitSum * 100) : [25, 25, 25, 25]; warnings.push(`MSFG's four shares add up to ${pts(splitSum)}%, not 100%; they are scaled to 100% in the chart.`); }
+    const wsplit = !!s.wsplit;
+    let wshares = [s.wfixed, s.wvariable, s.wonetime, s.wrate, s.wprofit];
+    const wsum = wshares.reduce((a, b) => a + b, 0);
+    if (wsplit && Math.abs(wsum - 100) > 0.01) { wshares = wsum > 0 ? wshares.map(x => x / wsum * 100) : [20, 20, 20, 20, 20]; warnings.push(`The wholesaler's five shares add up to ${pts(wsum)}%, not 100%; they are scaled to 100% in the chart.`); }
 
     let premPts = price - 100;
     let sheetPts = -s.sheet; // internal convention: positive = credit to the borrower
@@ -120,7 +128,7 @@
 
     return {warnings, P, rate, tsy, lo, comp, svc, gfee, llpa, llpaCalc, llpaMode: s.llpaMode,
             creditScore: s.creditScore, propertyValue: s.propertyValue, purpose: s.purpose, occupancy: s.occupancy, units: s.units,
-            floor, mode, shares, coupon, price, premPts, msrPts, margin, sheetPts,
+            floor, mode, shares, wsplit, wshares, coupon, price, premPts, msrPts, margin, sheetPts,
             sheetCost: solvedSheet ? (borrowerPts === 0 ? 0 : -borrowerPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
   }
 
@@ -157,6 +165,9 @@
     const compD = P * lock.comp / 100, loD = P * lock.lo / 100, mkD = compD - loD, llpaD = P * lock.llpa / 100;
     const lossPts = Math.max(0, -exec.margin), keep = P * Math.max(0, exec.margin) / 100, lossD = P * lossPts / 100;
     const splitD = lock.shares.map(x => mkD * x / 100), splitShow = splitDollars(mkD, lock.shares.map(x => x / 100));
+    // The wholesaler's keep split the same way, when the optional split is on (empty otherwise).
+    const wsplitD = lock.wsplit ? lock.wshares.map(x => keep * x / 100) : [];
+    const wsplitShow = lock.wsplit ? splitDollars(keep, lock.wshares.map(x => x / 100)) : [];
     let borrowerPts = exec.premPts + lock.msrPts - exec.margin - lock.comp - lock.llpa;
     if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
     const bpD = P * Math.max(0, -borrowerPts) / 100;   // points the borrower pays
@@ -170,7 +181,7 @@
     const servicer = P * strip / 100 / 12;
     return Object.assign({}, lock, {
       coupon: exec.coupon, price: exec.price, premPts: exec.premPts, margin: exec.margin, tsy: exec.tsy,
-      prem, disc, proceeds, excess, strip, msr, mult, compD, loD, mkD, llpaD, lossPts, lossD, keep, splitD, splitShow,
+      prem, disc, proceeds, excess, strip, msr, mult, compD, loD, mkD, llpaD, lossPts, lossD, keep, splitD, splitShow, wsplitD, wsplitShow,
       borrowerPts, bpD, crD, uwmIn, uwmOut, rev, gap, impliedMsr, impliedMargin, servicer
     });
   }
@@ -196,5 +207,5 @@
     return {lock, after, moved: move.moved, monthly: monthly(after), warnings: lockSolve.warnings.concat(move.warnings), mode: lockSolve.mode};
   }
 
-  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT };
+  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT, WSPLIT };
 })();

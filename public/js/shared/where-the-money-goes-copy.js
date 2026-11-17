@@ -95,6 +95,9 @@
       ? `MSFG's ${m0(after.mkD)} is gross, not profit. At the shares entered it covers ${m0(after.splitShow[0])} of fixed cost, ${m0(after.splitShow[1])} of variable cost and ${m0(after.splitShow[2])} of one-time expense, leaving ${m0(after.splitShow[3])} of profit (${pts(after.splitD[3] / after.P * 100)} pts of the loan). The LO's ${m0(after.loD)} is the single largest line in the broker's share.`
       : `With LO comp equal to broker comp, MSFG keeps nothing on this loan and there is nothing to split.`;
     const notes = [n1, n2, n3, n4];
+    if (after.wsplit) notes.push(after.keep > 0
+      ? `The wholesaler's ${m0(after.keep)} is also gross, not profit. At the illustrative shares it covers ${m0(after.wsplitShow[0])} of fixed cost, ${m0(after.wsplitShow[1])} of variable cost, ${m0(after.wsplitShow[2])} of one-time expense and ${m0(after.wsplitShow[3])} of rate risk and hedge cost, leaving ${m0(after.wsplitShow[4])} of profit (${pts(after.wsplitD[4] / after.P * 100)} pts of the loan). No wholesaler publishes a per-loan cost structure; the shares are placeholders to edit.`
+      : `The wholesaler keeps nothing on this loan${after.margin < 0 ? ' and funds a loss' : ''}, so there is nothing to split.`);
     if (r.moved) {
       const delta = after.margin - lock.margin;
       notes.splice(2, 0, `Market move after lock: the execution went from ${pc(lock.coupon)} @ ${lock.price.toFixed(2)} to ${pc(after.coupon)} @ ${after.price.toFixed(2)}, ${delta >= 0 ? 'a gain' : 'a drop'} of ${ptsU(Math.abs(delta))} (${m0(Math.abs(after.P * delta / 100))}). The borrower's price (${sw}) and MSFG's ${pts(after.comp)}-pt comp were locked and the servicing mark is held at ${pts(after.msrPts)} pts, so the wholesaler's margin goes from ${pts(lock.margin)} to ${pts(after.margin)} pts${after.margin < 0 ? `, a ${m0(after.lossD)} loss the chart shows as the wholesaler's own capital flowing in` : ''}. This is why wholesalers hedge locked pipelines with TBA sales: the hedge gains what the loan loses. It cuts both ways; ${S.wholesaler}'s ${S.margin.period} results carried a ${S.hedgeLoss} hedge loss.`);
@@ -133,8 +136,11 @@
   const llpaPanel = r => {
     const L = r.lock, calc = L.llpaCalc;
     const version = MSFG.LLPA && MSFG.LLPA.version ? MSFG.LLPA.version() : null;
+    const total = `total ${ptsU(L.llpa)} = ${m0(L.llpaD)}`;
+    const purposeWord = { Purchase: 'purchase', LimitedCashOut: 'limited cash-out refinance', CashOut: 'cash-out refinance' }[L.purpose] || 'cash-out refinance';
+    const caption = `Base LLPA in points by credit score and LTV for a ${purposeWord}, Fannie Mae LLPA Matrix effective ${version || '?'}. The marked cell is where this loan sits; pick another to price it there. Occupancy, units and the flags add to the base.`;
     if (!calc) {
-      return { head: `LLPAs typed manually: ${ptsU(L.llpa)} (${m0(L.llpaD)}).`, rows: [], foot: version ? `Switch LLPAs to "Fannie LLPA matrix" to price them from the ${version} matrix.` : 'The LLPA matrix is not loaded.' };
+      return { head: `LLPAs typed manually: ${ptsU(L.llpa)} (${m0(L.llpaD)}).`, rows: [], foot: version ? `Switch LLPAs to "Fannie LLPA matrix" to price them from the ${version} matrix.` : 'The LLPA matrix is not loaded.', total, caption };
     }
     const purpose = { purchase: 'purchase', limitedCashOut: 'limited cash-out refinance', cashOut: 'cash-out refinance' }[calc.purposeKey] || calc.purposeKey;
     const head = `LTV ${calc.grossLTV.toFixed(2)}% · score ${L.creditScore || ''} · ${purpose} · ${L.occupancy === 'Primary' ? 'primary residence' : L.occupancy === 'SecondHome' ? 'second home' : 'investment property'}${L.units && L.units !== '1' ? ` · ${L.units} units` : ''}`;
@@ -142,7 +148,7 @@
     const foot = rows.length
       ? `Total ${ptsU(L.llpa)} = ${m0(L.llpaD)} on this loan, charged to the wholesaler at delivery and passed into the borrower's price. Fannie Mae LLPA Matrix effective ${version}.`
       : `No adjustments: a score of 780 or more at 75% LTV or less on a primary purchase has no LLPA on the ${version} matrix. Change the score, property value or flags to see the grid.`;
-    return { head, rows, foot };
+    return { head, rows, foot, total, caption };
   };
 
   MSFG.WtmgCopy = { ptsU, priceWord, multWord, sheetWord, sheetSrc, result, pricingTiles, moveTiles, notes1, revenue, sub2, notes2, msrCards, llpaPanel };

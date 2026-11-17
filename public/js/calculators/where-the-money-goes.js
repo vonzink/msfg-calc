@@ -10,7 +10,7 @@
   function init() {
     const WM = MSFG.WtmgMath;
     const compute = WM.compute, autoCoupon = WM.autoCoupon, estPrice = WM.estPrice, pts = WM.pts, pc = WM.pc;
-    const DEFAULTS = WM.DEFAULTS, ANCHOR = WM.ANCHOR, AVG_MARGIN = WM.AVG_MARGIN, SPLIT = WM.SPLIT, S = WM.SOURCES;
+    const DEFAULTS = WM.DEFAULTS, ANCHOR = WM.ANCHOR, AVG_MARGIN = WM.AVG_MARGIN, SPLIT = WM.SPLIT, WSPLIT = WM.WSPLIT, S = WM.SOURCES;
     const C = {blue:'#3E7CC9', slate:'#5E6B78', green:'#2E9E6E', gray:'#9AA3AB'};
     const DEFAULT_INFO = "Hover or tap a ribbon to see how it's calculated.";
     const BAR = 10, PAD = 16, W = 1200;
@@ -45,7 +45,9 @@
         ...SPLIT.map(([id, name], i) => ({id:'sp_' + id, col:5, color:'green', name:`${name} · ${pts(m.shares[i])}%`, amount:m0(m.splitShow[i]), sub:[]})),
         {id:'llpa', col:5, color:'green', name:['Fannie Mae', `LLPAs · ${pts(m.llpa)} pts`], amount:m0(m.llpaD), sub:['upfront risk fee,', 'passed to the borrower']},
         {id:'br',  col:5, color:'green', name:'Borrower', amount:m0(m.P), sub:borrowerSub},
-        {id:'uk',  col:5, color:'green', name:['Wholesaler keeps', `${pts(m.margin)} pts`], amount:m0(m.keep), sub:[r.moved ? `margin after move · was ${pts(lock.margin)}` : m.solvedMargin ? 'margin · solved from sheet' : m.margin === AVG_MARGIN ? `margin · ${S.wholesaler} ${S.margin.period} avg.` : 'margin input']}
+        {id:'uk',  col:5, color:m.wsplit ? 'slate' : 'green', name:['Wholesaler keeps', `${pts(m.margin)} pts`], amount:m0(m.keep), sub:[r.moved ? `margin after move · was ${pts(lock.margin)}` : m.solvedMargin ? 'margin · solved from sheet' : m.margin === AVG_MARGIN ? `margin · ${S.wholesaler} ${S.margin.period} avg.` : 'margin input', m.wsplit ? 'before costs, not profit' : '']},
+        // Optional seventh column: what the wholesaler's keep has to cover (illustrative shares).
+        ...(m.wsplit ? WSPLIT.map(([id, name], i) => ({id:'wk_' + id, col:6, color:'green', name:`${name} · ${pts(m.wshares[i])}%`, amount:m0(m.wsplitShow[i]), sub:[]})) : [])
       ];
       nodes.forEach(n => { n.sub = n.sub.filter(Boolean); });
       const eq = `${pts(lock.premPts)} premium + ${pts(m.msrPts)} servicing − ${pts(lock.margin)} margin − ${pts(m.comp)} comp${m.llpa > 0 ? ` − ${pts(m.llpa)} LLPAs` : ''} = ${pts(m.borrowerPts)} pts${r.moved ? ' at lock' : ''}`;
@@ -67,9 +69,11 @@
         {s:'uwm', t:'uk', v:m.keep, label:m0(m.keep), text:`${m0(m.P)} × ${pts(m.margin)} / 100 = ${m0(m.keep)}. ` + (r.moved ? `Margin after the market move: ${pts(lock.margin)} at lock ${m.premPts - lock.premPts >= 0 ? '+' : '−'} ${pts(Math.abs(m.premPts - lock.premPts))} change in execution = ${pts(m.margin)} pts. The borrower's price, the comp and the servicing mark were already set, so the move lands here.` : m.solvedMargin ? `Solved: premium ${pts(m.premPts)} + servicing ${pts(m.msrPts)} − comp ${pts(m.comp)} − sheet ${pts(m.sheetPts)} = ${pts(m.margin)} pts, against ${S.wholesaler}'s reported ${S.margin.period} average of ${pts(S.margin.pts)}.` : m.margin === AVG_MARGIN ? `The default is ${S.wholesaler}'s reported ${S.margin.period} average total gain margin (${S.margin.bps} bps), a company average, not a loan-level number.` : `Set by the wholesaler margin input (${pts(m.margin)} pts; ${S.wholesaler}'s reported ${S.margin.period} average was ${pts(S.margin.pts)}).`)},
         {s:'msfg', t:'lo', v:m.loD, label:m0(m.loD), text:`${m0(m.P)} × ${pts(m.lo)} pts / 100 = ${m0(m.loD)}.`},
         {s:'msfg', t:'mk', v:m.mkD, label:m0(m.mkD), text:`${m0(m.compD)} − ${m0(m.loD)} = ${m0(m.mkD)}. Gross to the company, before expenses; the four ribbons out of it show where it goes.`},
-        ...SPLIT.map(([id, name, desc], i) => ({s:'mk', t:'sp_' + id, v:m.splitD[i], label:m0(m.splitShow[i]), text:`${m0(m.mkD)} × ${pts(m.shares[i])}% = ${m0(m.splitShow[i])} (${pts(m.splitD[i] / m.P * 100)} pts of the loan). ${name}: ${desc}. The shares are MSFG's own allocation assumptions, editable above.`}))
+        ...SPLIT.map(([id, name, desc], i) => ({s:'mk', t:'sp_' + id, v:m.splitD[i], label:m0(m.splitShow[i]), text:`${m0(m.mkD)} × ${pts(m.shares[i])}% = ${m0(m.splitShow[i])} (${pts(m.splitD[i] / m.P * 100)} pts of the loan). ${name}: ${desc}. The shares are MSFG's own allocation assumptions, editable above.`})),
+        ...(m.wsplit ? WSPLIT.map(([id, name, desc], i) => ({s:'uk', t:'wk_' + id, v:m.wsplitD[i], label:m0(m.wsplitShow[i]), text:`${m0(m.keep)} × ${pts(m.wshares[i])}% = ${m0(m.wsplitShow[i])} (${pts(m.wsplitD[i] / m.P * 100)} pts of the loan). ${name}: ${desc}. Illustrative shares: no wholesaler publishes a per-loan cost structure. Edit them in the Wholesaler section.`})) : [])
       ];
-      return {scale, gap:12, colX:[150, 320, 490, 660, 830, 1000], nodes, links};
+      // With the split on, the drawing area widens by one column so the six existing columns do not move.
+      return {scale, gap:12, colX: m.wsplit ? [150, 320, 490, 660, 830, 1000, 1170] : [150, 320, 490, 660, 830, 1000], width: m.wsplit ? W + 170 : W, nodes, links};
     }
 
     function chart2Config(r){
@@ -192,7 +196,7 @@
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       svg.classList.remove('has-active');
       info.textContent = DEFAULT_INFO;
-      svg.setAttribute('viewBox', `0 0 ${W} ${cfg.height}`);
+      svg.setAttribute('viewBox', `0 0 ${cfg.width || W} ${cfg.height}`);
       const gLinks = el('g', {class:'links'}, svg);
       const gBars = el('g', {class:'bars'}, svg);
       const gBrk = el('g', {class:'breaks'}, svg);
@@ -300,6 +304,28 @@
         ]));
       }
       panel.appendChild(h('p', {class:'llpa-foot', text:lp.foot}));
+      $('llpaDialogHead').textContent = lp.head + ' · ' + lp.total;
+      $('llpaCaption').textContent = lp.caption;
+      renderLlpaTable();
+    }
+    // LLPA popout: the Fannie base grid (credit score × LTV) for the current purpose. The cell the loan
+    // sits in is marked; clicking another cell moves the score and property value into that cell.
+    const PURPOSE_KEY = {Purchase:'purchase', LimitedCashOut:'limitedCashOut', CashOut:'cashOut'};
+    const bucketScore = label => { const n = label.match(/\d+/); return n ? +n[0] : 780; }; // '≥ 780' → 780, '760-779' → 760, '<= 639' → 639
+    const bucketLtv = label => { const n = label.match(/\d+(\.\d+)?/g); return label.charAt(0) === '>' ? 97 : +n[n.length - 1]; }; // '75.01-80' → 80, '<30' → 30, '>95' → 97
+    function renderLlpaTable(){
+      const box = $('llpaTable'), M = MSFG.LLPA_MATRIX;
+      box.textContent = '';
+      if (!M || !MSFG.LLPA) return;
+      const table = M.base[PURPOSE_KEY[state.purpose] || 'cashOut'], rows = Object.keys(table), cols = Object.keys(table[rows[0]]);
+      const ltv = state.propertyValue > 0 ? state.loan / state.propertyValue * 100 : 0;
+      const curRow = MSFG.LLPA.creditScoreBucket(state.creditScore), curCol = MSFG.LLPA.ltvBucket(ltv, cols);
+      const head = h('tr', {}, [h('th', {text:'Score / LTV'})].concat(cols.map(c => h('th', {class:'num', text:c}))));
+      const body = rows.map(rk => h('tr', {}, [h('th', {text:rk})].concat(cols.map(ck => {
+        const cur = rk === curRow && ck === curCol;
+        return h('td', {class:'num'}, [h('button', {type:'button', class:'cell' + (cur ? ' cur' : ''), 'data-score':String(bucketScore(rk)), 'data-ltv':String(bucketLtv(ck)), 'aria-pressed':String(cur), 'aria-label':`Score ${rk}, LTV ${ck}: ${ptsU(table[rk][ck])}`, text:pts(table[rk][ck])})]);
+      }))));
+      box.appendChild(h('table', {class:'llpa-grid'}, [h('thead', {}, [head]), h('tbody', {}, body)]));
     }
 
     // ---------- inputs ----------
@@ -348,6 +374,13 @@
       {id:'variable', label:'Variable cost %',       min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
       {id:'onetime',  label:'One-time expense %',    min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
       {id:'profit',   label:'Profit %',              min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
+      // Optional split of what the wholesaler keeps; the shares are illustrative.
+      {id:'wsplit',    label:'Show what the wholesaler keeps has to cover', type:'checkbox'},
+      {id:'wfixed',    label:'Fixed cost %',         min:0, max:100, step:1,      source:'Illustrative · of wholesaler keeps'},
+      {id:'wvariable', label:'Variable cost %',      min:0, max:100, step:1,      source:'Illustrative · of wholesaler keeps'},
+      {id:'wonetime',  label:'One-time expense %',   min:0, max:100, step:1,      source:'Illustrative · of wholesaler keeps'},
+      {id:'wrate',     label:'Rate risk / hedge %',  min:0, max:100, step:1,      source:'Illustrative · of wholesaler keeps'},
+      {id:'wprofit',   label:'Profit %',             min:0, max:100, step:1,      source:'Illustrative · of wholesaler keeps'},
       // Borrower and property: inputs to the Fannie Mae LLPA matrix.
       {id:'creditScore',   label:'Credit score',   min:300, max:850, step:1,   source:'Example · drives the LLPA grid'},
       {id:'propertyValue', label:'Property value', min:10000, step:1000,       source:'Example · LTV with the loan amount', minValue:1000},
@@ -433,6 +466,7 @@
       $('in-solve').value = state.solve;
       $('src-solve').textContent = state.solve === 'none' ? 'Compare modeled vs. sheet' : state.solve === 'sheet' ? 'From the other four variables' : 'So modeled price = sheet';
       if (r.moved) $('after').open = true;
+      if (state.wsplit) $('wsplitSec').open = true;
     }
     function renderAll(){
       const r = compute(state);
@@ -461,6 +495,19 @@
     $('in-solve').addEventListener('change', e => { state.solve = e.target.value; renderAll(); });
     $('reset').addEventListener('click', () => { Object.assign(state, DEFAULTS, {couponAuto:false, priceEst:false, price2Est:false}); $('after').open = false; renderAll(); });
     $('inputs').addEventListener('submit', e => e.preventDefault());
+    // LLPA popout: open, close, and pick a grid cell (score bucket's low end, LTV bucket's top, property value rounded up so the LTV stays inside the bucket).
+    const dlg = $('llpaDialog');
+    $('llpaOpen').addEventListener('click', () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); });
+    $('llpaClose').addEventListener('click', () => { if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); });
+    dlg.addEventListener('click', e => { if (e.target === dlg && typeof dlg.close === 'function') dlg.close(); });
+    $('llpaTable').addEventListener('click', e => {
+      const b = e.target.closest('button.cell');
+      if (!b) return;
+      state.creditScore = +b.dataset.score;
+      state.propertyValue = Math.ceil(state.loan / (+b.dataset.ltv / 100));
+      state.llpaMode = 'matrix';
+      renderAll();
+    });
     renderAll();
   }
 

@@ -169,6 +169,15 @@ describe('notes', () => {
     has(C.notes1(run({ lo: 2.25 }))[3], 'nothing to split');
   });
 
+  it('wholesaler split note appears only when the split is on', () => {
+    assert.strictEqual(C.notes1(run()).length, 4);
+    const on = C.notes1(run({ wsplit: true }));
+    assert.strictEqual(on.length, 5);
+    has(on[4], "The wholesaler's $6,650 is also gross, not profit");
+    has(on[4], 'leaving $1,330 of profit (0.266 pts of the loan)');
+    has(C.notes1(run({ wsplit: true, price2: 98.9 }))[5], 'funds a loss, so there is nothing to split');
+  });
+
   it('discount wording when the coupon trades below par', () => {
     const n1 = C.notes1(run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: M.estPrice(6.0) }))[0];
     has(n1, 'discount in cash offset by');
@@ -205,6 +214,9 @@ describe('revenue, chart-2 copy and servicing cards', () => {
     has(risky.foot, 'charged to the wholesaler at delivery');
     const manual = C.llpaPanel(run({ llpaMode: 'manual', llpa: 0.5 }));
     has(manual.head, 'typed manually: 0.5 pts');
+    assert.strictEqual(manual.total, 'total 0.5 pts = $2,500');
+    has(clean.caption, 'for a purchase, Fannie Mae LLPA Matrix effective 2026-01-28');
+    has(C.llpaPanel(run({ purpose: 'CashOut' })).caption, 'for a cash-out refinance');
   });
 
   it('servicing cards reflect excess strip and solved vs typed mark', () => {

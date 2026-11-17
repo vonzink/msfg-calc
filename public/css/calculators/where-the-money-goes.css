@@ -140,3 +140,26 @@
 .wtmg .llpa-table .why{color:var(--muted)}
 .wtmg .llpa-foot{color:var(--muted); font-size:12px; padding-bottom:12px}
 @media (max-width:900px){ .wtmg .grid.checks{grid-template-columns:1fr} }
+.wtmg .sec > .grid + .grid{margin-top:10px}
+.wtmg .after .grid.wide{max-width:none}
+.wtmg .after .grid.checks{margin-top:0}
+
+/* LLPA popout: button row in the section, the dialog, and the score × LTV grid */
+.wtmg .llpa-row{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:end}
+.wtmg .llpa-row .grid{flex:1 1 320px}
+.wtmg .llpa-row .btn{flex:none; margin-bottom:18px}
+.wtmg .llpa-dialog{font-family:var(--font); font-size:14px; line-height:1.5; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:16px 20px; width:min(980px, calc(100vw - 32px)); max-height:calc(100vh - 32px); overflow:auto}
+.wtmg .llpa-dialog[open]{display:grid; gap:12px}
+.wtmg .llpa-dialog::backdrop{background:rgba(31,35,40,.45)}
+.wtmg .llpa-dialog-head{display:flex; justify-content:space-between; align-items:center; gap:12px}
+.wtmg .llpa-dialog .checks{margin-top:0}
+.wtmg .llpa-scroll{overflow-x:auto}
+.wtmg .llpa-grid{border-collapse:collapse; font-size:12px; min-width:600px; width:100%}
+.wtmg .llpa-grid th{font-weight:600; color:var(--muted); padding:4px 6px; text-align:left; white-space:nowrap; border-bottom:1px solid var(--line)}
+.wtmg .llpa-grid th.num{text-align:center}
+.wtmg .llpa-grid td{padding:2px; border-bottom:1px solid var(--line)}
+.wtmg .llpa-grid .cell{font:inherit; font-weight:600; line-height:1.2; width:100%; min-width:50px; padding:5px 2px; border:1px solid transparent; border-radius:3px; background:var(--panel); color:var(--fg); cursor:pointer}
+.wtmg .llpa-grid .cell:hover{border-color:var(--muted)}
+.wtmg .llpa-grid .cell:focus-visible{outline:2px solid var(--blue); outline-offset:1px}
+.wtmg .llpa-grid .cell.cur{background:var(--blue); color:#fff}
+@media (max-width:900px){ .wtmg .llpa-dialog{line-height:1.5; padding:12px} .wtmg .llpa-row .btn{margin-bottom:0} }

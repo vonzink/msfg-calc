@@ -31,7 +31,7 @@
           <details class="sec" open>
             <summary>Loan and market</summary>
             <%# Input cells are rendered from FIELD_DEFS in where-the-money-goes.js; list the field ids in order. %>
-            <div class="grid" data-fields="loan rate sheet coupon price tsy"></div>
+            <div class="grid" data-fields="loan rate sheet coupon price tsy gfee"></div>
             <details class="after" id="after">
               <summary>After lock: market move (optional)</summary>
               <div class="grid" data-fields="coupon2 price2"></div>
@@ -41,22 +41,45 @@
 
           <details class="sec" open>
             <summary>Borrower and property: loan-level price adjustments</summary>
-            <div class="grid" data-fields="creditScore propertyValue purpose occupancy units llpaMode llpa"></div>
-            <div class="grid checks" data-fields="isCondo isManufacturedHome isHighBalance hasSubordinateFinancing applyMMI isHighLTVRefi waiverHomeReady waiverFirstTimeHB waiverDutyToServe"></div>
+            <div class="llpa-row">
+              <div class="grid" data-fields="llpaMode llpa"></div>
+              <button type="button" class="btn" id="llpaOpen" aria-haspopup="dialog" aria-controls="llpaDialog">Pick from the LLPA table</button>
+            </div>
             <div class="llpa" id="llpaPanel" aria-live="polite"></div>
           </details>
 
           <details class="sec" open>
-            <summary>Comp, margin and servicing</summary>
-            <div class="grid" data-fields="comp lo margin msr svc gfee"></div>
+            <summary>Wholesaler: margin and servicing</summary>
+            <div class="grid" data-fields="margin msr svc"></div>
+            <details class="after" id="wsplitSec">
+              <summary>Optional: what the wholesaler keeps has to cover</summary>
+              <div class="grid checks" data-fields="wsplit"></div>
+              <div class="grid wide" data-fields="wfixed wvariable wonetime wrate wprofit"></div>
+              <p class="hint">Illustrative shares. No wholesaler publishes a per-loan cost structure; turn this on to show that the margin is gross, not profit, and edit the shares for the discussion.</p>
+            </details>
           </details>
 
           <details class="sec" open>
-            <summary>MSFG keeps: where the broker's share goes</summary>
+            <summary>MSFG: comp and where it goes</summary>
+            <div class="grid" data-fields="comp lo"></div>
             <div class="grid" data-fields="fixed variable onetime profit"></div>
           </details>
 
           <p class="warn" id="warnings" hidden></p>
+
+          <%# LLPA popout: the Fannie base grid plus the borrower and property inputs that feed it. Outside the sections so a collapsed section cannot hide it. %>
+          <dialog class="llpa-dialog" id="llpaDialog" aria-labelledby="llpaDialogTitle">
+            <div class="llpa-dialog-head">
+              <h3 id="llpaDialogTitle">Fannie Mae LLPA matrix</h3>
+              <button type="button" class="btn" id="llpaClose">Done</button>
+            </div>
+            <p class="llpa-head" id="llpaDialogHead" aria-live="polite"></p>
+            <div class="grid" data-fields="purpose occupancy units"></div>
+            <p class="hint" id="llpaCaption"></p>
+            <div class="llpa-scroll" id="llpaTable"></div>
+            <div class="grid" data-fields="creditScore propertyValue"></div>
+            <div class="grid checks" data-fields="isCondo isManufacturedHome isHighBalance hasSubordinateFinancing applyMMI isHighLTVRefi waiverHomeReady waiverFirstTimeHB waiverDutyToServe"></div>
+          </dialog>
         </form>
 
         <section aria-labelledby="s1">

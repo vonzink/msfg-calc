@@ -293,6 +293,42 @@ describe('credits, LLPAs and clamps', () => {
   });
 });
 
+describe('optional wholesaler split', () => {
+  it('is off by default and adds nothing to the output', () => {
+    const r = run();
+    assert.strictEqual(r.lock.wsplit, false);
+    sameList(r.after.wsplitD, []);
+    sameList(r.after.wsplitShow, []);
+  });
+
+  it('splits the $6,650 keep by the five shares into whole dollars that sum to the keep', () => {
+    const r = run({ wsplit: true });
+    near(r.after.keep, 6650, 0.01);
+    sameList(r.lock.wshares, [30, 30, 5, 15, 20]);
+    r.after.wsplitD.forEach((d, i) => near(d, 6650 * r.lock.wshares[i] / 100, 0.01, 'share ' + i));
+    assert.strictEqual(Array.from(r.after.wsplitShow).reduce((a, b) => a + b, 0), 6650);
+    r.after.wsplitShow.forEach(x => assert.strictEqual(x, Math.round(x)));
+    assert.strictEqual(r.warnings.length, 0);
+  });
+
+  it('rescales shares that do not sum to 100, with a warning, only when the split is on', () => {
+    const off = run({ wfixed: 10 });
+    assert.strictEqual(off.warnings.length, 0);
+    const on = run({ wsplit: true, wfixed: 10 }); // 10 + 30 + 5 + 15 + 20 = 80
+    assert.ok(on.warnings.some(w => w.includes("wholesaler's five shares add up to 80%")), on.warnings.join(' | '));
+    near(on.lock.wshares.reduce((a, b) => a + b, 0), 100, 1e-9);
+    near(on.lock.wshares[0], 12.5, 1e-9);
+  });
+
+  it('a loss after lock leaves nothing to split', () => {
+    const r = run({ wsplit: true, price2: 98.9 });
+    assert.ok(r.after.margin < 0);
+    assert.strictEqual(r.after.keep, 0);
+    sameList(r.after.wsplitShow, [0, 0, 0, 0, 0]);
+    assert.ok(r.lock.keep > 0, 'the lock state still has the keep');
+  });
+});
+
 describe('after-lock market move: the margin absorbs it', () => {
   it('a 0.75-pt drop takes the margin from 1.33 to 0.58 and leaves the lock untouched', () => {
     const r = run({ price2: 99.94 });
