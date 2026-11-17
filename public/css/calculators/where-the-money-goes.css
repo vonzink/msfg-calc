@@ -145,8 +145,22 @@
 .wtmg .after .grid.checks{margin-top:0}
 
 /* LLPA popout: button row in the section, the dialog, and the score × LTV grid */
-.wtmg .llpa-na{padding:4px 0 14px}
-.wtmg .llpa-row{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:end}
+.wtmg .llpa-na{padding:4px 0 10px}
+.wtmg .fees{display:grid; gap:10px; padding-bottom:14px}
+.wtmg .fees .fees{padding-bottom:0}
+.wtmg .fees .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+.wtmg .fees .checks{margin-top:0}
+/* Blocks toggled with the hidden attribute carry their own grid/flex display rules, so the attribute has to win. */
+.wtmg [hidden]{display:none !important}
+/* Program select in the topbar, beside Solve for */
+.wtmg .topbar .program .inp{display:flex; align-items:center; gap:10px}
+.wtmg .topbar .program .inp .k{font-weight:600; font-size:14px}
+.wtmg .topbar .program .inp select{width:auto; height:30px; font-size:14px; border-color:var(--muted)}
+.wtmg .topbar .program .inp .s{display:none}
+@media (max-width:900px){ .wtmg .fees .cards{grid-template-columns:1fr} }
+.wtmg .llpa-row{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:end; margin-top:10px}
+.wtmg .sec > .hint + .grid{margin-top:6px}
+.wtmg .sec > .grid + .hint, .wtmg .sec > .fees + .hint{margin-top:14px}
 .wtmg .llpa-row .grid{flex:1 1 320px}
 .wtmg .llpa-row .btn{flex:none; margin-bottom:18px}
 .wtmg .llpa-dialog{font-family:var(--font); font-size:14px; line-height:1.5; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:16px 20px; width:min(980px, calc(100vw - 32px)); max-height:calc(100vh - 32px); overflow:auto}

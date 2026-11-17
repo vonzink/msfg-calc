@@ -27,11 +27,16 @@ const near = (actual, expected, tol, msg) => assert.ok(Math.abs(actual - expecte
 // Arrays built inside the vm context have a different Array prototype, so compare copies.
 const sameList = (actual, expected) => assert.deepStrictEqual(Array.from(actual), expected);
 const pts3 = x => Math.round(x * 1000) / 1000;
-const run = over => M.compute(Object.assign({}, M.DEFAULTS, over));
+// The page now opens with the margin solved at a 4× servicing mark. The pinned scenarios below were worked in the
+// original "solve servicing from the sheet" mode, so `run` keeps that mode explicit; `runDefault` is the page as it opens.
+const LEGACY = { solve: 'msr', msrMult: null };
+const run = over => M.compute(Object.assign({}, M.DEFAULTS, LEGACY, over));
+const runDefault = over => M.compute(Object.assign({}, M.DEFAULTS, over));
 
 function assertBalanced(fe, label) {
-  const inflow = fe.proceeds + fe.bpD + fe.msr + fe.lossD;
-  const outflow = fe.compD + fe.llpaD + fe.P + fe.crD + fe.keep;
+  // An upfront program fee paid in cash passes through the wholesaler; a financed one is inside P.
+  const inflow = fe.proceeds + fe.bpD + fe.msr + fe.lossD + fe.upCashD;
+  const outflow = fe.compD + fe.llpaD + fe.P + fe.crD + fe.keep + fe.upCashD;
   near(inflow, outflow, 0.01, `${label || ''} wholesaler inflow vs outflow`);
   near(fe.uwmIn, inflow, 1e-6, 'uwmIn field');
   near(fe.uwmOut, outflow, 1e-6, 'uwmOut field');
@@ -54,11 +59,12 @@ describe('defaults match the UWM sheet at 7.25%', () => {
     assert.strictEqual(L.crD, 0);
   });
 
-  it('solves servicing value to 0.874 pts, 3.5× the strip', () => {
+  it('solves servicing value to 0.874 pts, 2.9× the 0.30% strip (0.25 base + 0.05 excess at the 0.45 g-fee)', () => {
     assert.ok(L.solvedMsr);
     assert.strictEqual(pts3(L.msrPts), 0.874);
     near(L.msr, 4370, 0.5);
-    near(L.mult, 3.5, 0.01);
+    near(L.strip, 0.30, 1e-9);
+    near(L.mult, 2.913, 0.005);
   });
 
   it('wholesaler takes in $517,900 and keeps its 1.33-pt margin', () => {
@@ -81,7 +87,7 @@ describe('defaults match the UWM sheet at 7.25%', () => {
     near(m.int, 3020.83, 0.005);
     near(m.gfD + m.svD + m.trD + m.rrD + m.rfD + m.exD, m.int, 0.005, 'interest layers sum to interest');
     near(m.bondIn, 3098.38, 0.01);
-    assert.strictEqual(m.excess, 0);
+    near(m.excess, 0.05, 1e-9); // 7.25 − 6.5 − 0.45 − 0.25
     near(m.servicer, L.servicer, 1e-9, 'servicer income agrees between monthly and front end');
   });
 
@@ -154,11 +160,11 @@ describe('7.00% at 2.326 pts (the UWM 7% row) into a 6.0 coupon', () => {
   const r = run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: M.estPrice(6.0) });
   const L = r.lock;
 
-  it('solves servicing to 2.314 pts on a 0.50% strip (0.25 excess)', () => {
+  it('solves servicing to 2.314 pts on a 0.55% strip (0.30 excess)', () => {
     assert.strictEqual(pts3(L.msrPts), 2.314);
-    assert.strictEqual(pts3(L.excess), 0.25);
-    assert.strictEqual(pts3(r.monthly.excess), 0.25);
-    near(L.mult, 4.6, 0.05);
+    assert.strictEqual(pts3(L.excess), 0.3);
+    assert.strictEqual(pts3(r.monthly.excess), 0.3);
+    near(L.mult, 4.21, 0.05);
   });
 
   it('draws the below-par coupon as a discount and still balances', () => {
@@ -294,18 +300,18 @@ describe('credits, LLPAs and clamps', () => {
 });
 
 describe('loan programs', () => {
-  it('program table: Fannie/Freddie fixed is 25 bp strip + editable 50 bp g-fee with LLPAs; FHA, VA and USDA are Ginnie II 19 bp + fixed 6 bp with none', () => {
+  it('program table: Fannie/Freddie fixed is 25 bp strip + fixed 45 bp g-fee with LLPAs; FHA, VA and USDA are Ginnie II 19 bp + fixed 6 bp with none', () => {
     const P = M.PROGRAMS;
     assert.deepStrictEqual(Object.keys(P), ['conv', 'fha', 'va', 'usda']);
-    assert.strictEqual(P.conv.strip, 0.25); assert.strictEqual(P.conv.fee, 0.5); assert.strictEqual(P.conv.feeFixed, false); assert.strictEqual(P.conv.llpa, true); assert.strictEqual(P.conv.agency, 'Fannie Mae');
-    ['fha', 'va', 'usda'].forEach(k => { assert.strictEqual(P[k].strip, 0.19, k); assert.strictEqual(P[k].fee, 0.06, k); assert.strictEqual(P[k].feeFixed, true, k); assert.strictEqual(P[k].llpa, false, k); assert.strictEqual(P[k].agency, 'Ginnie Mae', k); });
+    assert.strictEqual(P.conv.strip, 0.25); assert.strictEqual(P.conv.fee, 0.45); assert.strictEqual(P.conv.gov, false); assert.strictEqual(P.conv.llpa, true); assert.strictEqual(P.conv.agency, 'Fannie Mae');
+    ['fha', 'va', 'usda'].forEach(k => { assert.strictEqual(P[k].strip, 0.19, k); assert.strictEqual(P[k].fee, 0.06, k); assert.strictEqual(P[k].gov, true, k); assert.strictEqual(P[k].llpa, false, k); assert.strictEqual(P[k].agency, 'Ginnie Mae', k); });
     assert.strictEqual(P.va.label, 'VA');
   });
 
-  it('the default is conventional: strip 0.25, g-fee 0.50 and unchanged output', () => {
+  it('the default is conventional: strip 0.25, g-fee 0.45 and the same borrower price', () => {
     const r = run();
     assert.strictEqual(r.lock.program, 'conv');
-    assert.strictEqual(r.lock.svc, 0.25); assert.strictEqual(r.lock.gfee, 0.5);
+    assert.strictEqual(r.lock.svc, 0.25); assert.strictEqual(r.lock.gfee, 0.45);
     near(r.after.borrowerPts, -2.016, 1e-9);
     assert.strictEqual(r.monthly.prog.agency, 'Fannie Mae');
   });
@@ -315,8 +321,8 @@ describe('loan programs', () => {
     assert.strictEqual(r.lock.svc, 0.19); assert.strictEqual(r.lock.gfee, 0.06); near(r.lock.floor, 0.25, 1e-9);
     // 7.25% into the 6.5 coupon leaves 0.50 of excess servicing above the 19 bp base.
     near(r.after.excess, 0.5, 1e-9); near(r.after.strip, 0.69, 1e-9);
-    // A conventional g-fee edit still works.
-    assert.strictEqual(run({ gfee: 0.6 }).lock.gfee, 0.6);
+    // The g-fee is fixed per program: a typed value is ignored.
+    assert.strictEqual(run({ gfee: 0.6 }).lock.gfee, 0.45);
   });
 
   it('a Ginnie loan at 7.25% can carry a 7.0 coupon (auto) with no excess; at the FNMA-anchored estimate the sheet is then too rich for the margin', () => {
@@ -339,6 +345,120 @@ describe('loan programs', () => {
   it('an unknown program falls back to conventional', () => {
     const r = run({ program: 'jumbo' });
     assert.strictEqual(r.lock.program, 'conv'); assert.strictEqual(r.lock.svc, 0.25);
+  });
+});
+
+describe('government program fees', () => {
+  it('VA funding fee tiers by use and down payment, and the exemption', () => {
+    const fee = over => run(Object.assign({ program: 'va' }, over)).lock.upfrontPct;
+    assert.strictEqual(fee({}), 1.25);                                            // 71.4% LTV: 10% or more down
+    assert.strictEqual(fee({ propertyValue: 540000 }), 1.5);                      // 92.6%: 5–10% down
+    assert.strictEqual(fee({ propertyValue: 520000 }), 2.15);                     // 96.2%: under 5% down
+    assert.strictEqual(fee({ propertyValue: 520000, vaSubsequentUse: true }), 3.3);
+    assert.strictEqual(fee({ propertyValue: 540000, vaSubsequentUse: true }), 1.5);
+    assert.strictEqual(fee({ vaSubsequentUse: true }), 1.25);
+    assert.strictEqual(fee({ propertyValue: 520000, vaExempt: true }), 0);
+    assert.strictEqual(run({ program: 'va', propertyValue: 520000, vaExempt: true }).lock.upfrontWhy, 'exempt');
+    assert.strictEqual(run({ program: 'va' }).lock.annualPct, 0);
+    assert.strictEqual(run({ program: 'va' }).monthly.annualD, 0);
+  });
+
+  it('FHA: 1.75% upfront MIP financed takes the 500k loan to 508,750; annual MIP 0.50% at 71.4% LTV is $211.98 a month', () => {
+    const r = run({ program: 'fha' });
+    const L = r.lock;
+    assert.strictEqual(L.base, 500000); near(L.upfrontD, 8750, 1e-6); assert.strictEqual(L.financed, true); near(L.P, 508750, 1e-6); assert.strictEqual(L.upCashD, 0);
+    assert.strictEqual(L.annualPct, 0.5); near(r.monthly.annualD, 211.98, 0.005); near(r.monthly.total, r.monthly.pmt + 211.98, 0.005);
+    near(r.after.compD, 508750 * 2.25 / 100, 1e-6, 'comp works on the funded loan');
+    assert.strictEqual(run({ program: 'fha', propertyValue: 520000 }).lock.annualPct, 0.55);
+    assert.strictEqual(run({ program: 'fha', loan: 800000, propertyValue: 1100000 }).lock.annualPct, 0.7);
+    assert.strictEqual(run({ program: 'fha', loan: 800000, propertyValue: 820000 }).lock.annualPct, 0.75);
+    assertBothBalanced(r);
+  });
+
+  it('an upfront fee paid in cash leaves the loan at the base amount and passes through the wholesaler', () => {
+    const r = run({ program: 'usda', financeUpfront: false });
+    const L = r.lock;
+    assert.strictEqual(L.upfrontPct, 1); assert.strictEqual(L.annualPct, 0.35);
+    assert.strictEqual(L.financed, false); assert.strictEqual(L.P, 500000); near(L.upCashD, 5000, 1e-6);
+    near(r.after.uwmIn - run({ program: 'usda', financeUpfront: false, vaExempt: true }).after.uwmIn, 0, 1e-6);
+    assertBothBalanced(r);
+    near(run({ program: 'usda' }).monthly.annualD, 505000 * 0.35 / 100 / 12, 1e-6);
+  });
+
+  it('conventional loans have no program fee and P equals the base loan', () => {
+    const r = run({ financeUpfront: true, vaSubsequentUse: true });
+    assert.strictEqual(r.lock.upfrontPct, 0); assert.strictEqual(r.lock.upfrontD, 0); assert.strictEqual(r.lock.financed, false); assert.strictEqual(r.lock.P, 500000);
+    assert.strictEqual(r.monthly.annualD, 0); assert.strictEqual(r.monthly.total, r.monthly.pmt);
+  });
+
+  it('conventional MI: none at 71.4% LTV, 0.30% borrower-paid above 80% LTV, editable, and the payment chart still balances', () => {
+    assert.strictEqual(M.DEFAULTS.pmi, M.SOURCES.programs.pmi.annual); assert.strictEqual(M.DEFAULTS.pmi, 0.3);
+    const none = run();
+    assert.strictEqual(none.lock.annualPct, 0); assert.strictEqual(none.monthly.annualD, 0); assert.strictEqual(none.monthly.total, none.monthly.pmt);
+    assert.strictEqual(runDefault().lock.annualPct, 0, 'the page as it opens has no MI');
+    assert.strictEqual(run({ propertyValue: 625000 }).lock.annualPct, 0, 'exactly 80% LTV has no MI');
+    const mi = run({ propertyValue: 526316 }); // 95% LTV
+    near(mi.lock.ltv, 95, 0.01);
+    assert.strictEqual(mi.lock.annualPct, 0.3); assert.strictEqual(mi.lock.upfrontPct, 0); assert.strictEqual(mi.lock.P, 500000);
+    near(mi.monthly.annualD, 125, 1e-6);                      // 500,000 × 0.30% ÷ 12
+    near(mi.monthly.total, mi.monthly.pmt + 125, 1e-6);
+    // Everything the borrower pays lands somewhere: interest layers + principal + MI = total; insurer + servicer + agency + bond buyer = total.
+    const m = mi.monthly;
+    near(m.int + m.prin + m.annualD, m.total, 1e-6);
+    near(m.bondIn + m.servicer + m.gfD + m.annualD, m.total, 0.005);
+    assert.ok(mi.lock.llpa > 0, 'the 95% cell still prices LLPAs alongside MI');
+    assertBothBalanced(mi);
+    assert.strictEqual(run({ propertyValue: 526316, pmi: 0.55 }).lock.annualPct, 0.55);
+    assert.strictEqual(run({ propertyValue: 526316, pmi: 0 }).lock.annualPct, 0);
+    assert.strictEqual(run({ program: 'fha', propertyValue: 526316, pmi: 0.9 }).lock.annualPct, 0.5, 'government programs ignore the MI rate');
+  });
+});
+
+describe('the page as it opens: margin solved at a 4× servicing mark', () => {
+  it('defaults are margin mode with a 4× multiple', () => {
+    assert.strictEqual(M.DEFAULTS.solve, 'margin'); assert.strictEqual(M.DEFAULTS.msrMult, 4);
+  });
+
+  it('servicing is 4 × 0.30 = 1.2 pts and the margin solves to 1.656 pts with no warnings', () => {
+    const r = runDefault();
+    assert.strictEqual(r.lock.mode, 'margin'); assert.ok(r.lock.msrFromMult); assert.ok(r.lock.solvedMargin);
+    near(r.lock.msrPts, 1.2, 1e-9); near(r.lock.margin, 1.656, 1e-9);
+    near(r.after.borrowerPts, -2.016, 1e-9); near(r.after.keep, 8280, 0.5);
+    assert.strictEqual(r.warnings.length, 0);
+    assertBothBalanced(r);
+  });
+
+  it('the 1.33 average stays as the comparison figure, not the default margin', () => {
+    assert.strictEqual(M.AVG_MARGIN, 1.33);
+    assert.strictEqual(M.DEFAULTS.margin, 1.33); // used only when the margin is typed in another solve mode
+    near(runDefault({ solve: 'msr', msrMult: null }).lock.margin, 1.33, 1e-9);
+  });
+});
+
+describe('servicing value from a multiple of the strip', () => {
+  it('an empty multiple in servicing mode leaves the sheet solve untouched', () => {
+    const r = run();
+    assert.strictEqual(r.lock.msrFromMult, false); assert.strictEqual(r.lock.msrMult, null); assert.strictEqual(r.lock.mode, 'msr');
+    near(r.lock.strip, 0.30, 1e-9);
+  });
+
+  it('4× on the default loan sets 1.2 pts of servicing (4 × 0.30) and solves the margin instead', () => {
+    const r = run({ msrMult: 4 });
+    near(r.lock.msrPts, 1.2, 1e-9);
+    assert.strictEqual(r.lock.mode, 'margin'); assert.ok(r.lock.solvedMargin); assert.ok(!r.lock.solvedMsr);
+    near(r.lock.margin, 0.69 + 1.2 - 2.25 + 2.016, 1e-9); // 1.656 pts
+    near(r.after.borrowerPts, -2.016, 1e-9);
+  });
+
+  it('the multiple applies to base plus excess: 3.5× on 7.00% into a 6.0 coupon is 1.925 pts', () => {
+    const r = run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: M.estPrice(6.0), msrMult: 3.5 });
+    near(r.lock.strip, 0.55, 1e-9); near(r.lock.msrPts, 1.925, 1e-9); assert.strictEqual(r.lock.mode, 'margin');
+  });
+
+  it('in another solve mode the multiple replaces the typed mark', () => {
+    const r = run({ solve: 'comp', msrMult: 5, msr: 0.1 });
+    near(r.lock.msrPts, 1.5, 1e-9); assert.ok(r.lock.solvedComp);
+    near(r.lock.comp, 0.69 + 1.5 - 1.33 + 2.016, 1e-9); // 2.876 pts
   });
 });
 
@@ -414,9 +534,9 @@ describe('after-lock market move: the margin absorbs it', () => {
     const r = run({ rate: 7.75, sheet: 0, coupon: 7.0, price: M.estPrice(7.0), coupon2: 6.5, price2: M.estPrice(6.5), price2Est: true });
     assert.ok(r.moved);
     assert.strictEqual(r.after.coupon, 6.5);
-    assert.strictEqual(pts3(r.after.excess), 0.5);
-    assert.strictEqual(pts3(r.monthly.excess), 0.5);
-    assert.strictEqual(r.lock.excess, 0);
+    assert.strictEqual(pts3(r.after.excess), 0.55);
+    assert.strictEqual(pts3(r.monthly.excess), 0.55);
+    near(r.lock.excess, 0.05, 1e-9);
     assertBothBalanced(r);
   });
 

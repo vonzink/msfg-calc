@@ -17,7 +17,7 @@
     const NM_LH = 16, AMT_LH = 22, SB_LH = 14;
     const arr = v => Array.isArray(v) ? v : (v === null ? [] : [v]);
 
-    const state = Object.assign({}, DEFAULTS, {couponAuto:false, priceEst:false, price2Est:false});
+    const state = Object.assign({}, DEFAULTS, {couponAuto:false, priceEst:false, price2Est:false, govSolve:false});
 
     // ---------- formatting ----------
     const m0 = x => MSFG.formatCurrency(x, 0);
@@ -28,15 +28,16 @@
     // ---------- chart configs ----------
     function chart1Config(r){
       const m = r.after, lock = r.lock;
-      const pv = 0.05 * m.P; // principal drawn as 5% of face
+      const pv = 0.05 * m.base; // base principal drawn as 5% of face; a financed upfront fee is drawn at full scale
       const buyV = pv - m.disc; // below par, the buy-side principal ribbon shrinks by the discount
-      const scale = 429 / (buyV + Math.max(0, m.prem) + m.bpD + m.msr + m.lossD);
+      const scale = 429 / (buyV + Math.max(0, m.prem) + m.bpD + m.msr + m.lossD + m.upfrontD);
       const borrowerSub = m.bpD > 0 ? ['loan funded · paid', `${m0(m.bpD)} in points`] : m.crD > 0 ? ['loan funded ·', `${m0(m.crD)} credit to costs`] : ['loan funded ·', 'pays $0 of the comp'];
       const nodes = [
         {id:'bb',  col:0, side:'left', color:'blue',  name:'Bond buyer', amount:m0(m.proceeds), sub:[`pays ${m.price.toFixed(2)} for the MBS`, r.moved ? `after the market move` : '', m.disc > 0 ? `${m0(m.disc)} below face` : '']},
         {id:'fn',  col:1, color:'slate', name:m.prog.mbs, amount:m0(m.proceeds), sub:['swaps the loan for a', 'guaranteed bond']},
         {id:'bp',  col:1, color:'blue',  name:['Borrower-paid', 'points'], amount:m0(m.bpD), sub:[`${ptsU(-m.borrowerPts)} · cash at closing`, (m.mode === 'none' || m.solvedSheet) ? 'computed from the margins' : 'from the sheet price']},
-        {id:'sr',  col:1, color:'gray',  name:["Wholesaler's", 'servicing rights'], amount:m0(m.msr), sub:[`${ptsU(m.msrPts)} · not cash`, `${m.mult.toFixed(1)}× the ${pc(m.strip)} strip`, m.solvedMsr ? 'solved from the sheet' : 'estimate']},
+        {id:'bu',  col:1, color:'blue',  name:['Borrower-paid', m.prog.upfrontLabel || 'fee'], amount:m0(m.upCashD), sub:[`${pts(m.upfrontPct)}% of the base loan`, 'cash at closing']},
+        {id:'sr',  col:1, color:'gray',  name:["Wholesaler's", 'servicing rights'], amount:m0(m.msr), sub:[`${ptsU(m.msrPts)} · not cash`, `${m.mult.toFixed(1)}× the ${pc(m.strip)} strip`, m.solvedMsr ? 'solved from the sheet' : m.msrFromMult ? `${m.msrMult}× the strip` : 'estimate']},
         {id:'wl',  col:1, color:'slate', name:['Wholesaler', 'absorbs a loss'], amount:m0(m.lossD), sub:[`${ptsU(m.lossPts)} · its own capital`, 'unless its hedge covers it']},
         {id:'uwm', col:2, color:'slate', name:['Wholesaler', '(wholesale lender)'], amount:m0(m.uwmIn), sub:[`prices ${pc(m.rate)} at`, `${m.borrowerPts === 0 ? 'par' : (m.borrowerPts < 0 ? '−' : '+') + ptsU(Math.abs(m.borrowerPts))} after comp`]},
         {id:'msfg',col:3, color:'slate', name:'MSFG', amount:m0(m.compD), sub:[`${pts(m.comp)}% lender-paid comp`]},
@@ -44,7 +45,8 @@
         {id:'mk',  col:4, color:'slate', name:['MSFG keeps', `${pts(m.comp - m.lo)} pts`], amount:m0(m.mkD), sub:['before expenses, not profit']},
         ...SPLIT.map(([id, name], i) => ({id:'sp_' + id, col:5, color:'green', name:`${name} · ${pts(m.shares[i])}%`, amount:m0(m.splitShow[i]), sub:[]})),
         {id:'llpa', col:5, color:'green', name:['Fannie Mae', `LLPAs · ${pts(m.llpa)} pts`], amount:m0(m.llpaD), sub:['upfront risk fee,', 'passed to the borrower']},
-        {id:'br',  col:5, color:'green', name:'Borrower', amount:m0(m.P), sub:borrowerSub},
+        {id:'br',  col:5, color:'green', name:'Borrower', amount:m0(m.base), sub:borrowerSub},
+        {id:'ins', col:5, color:'green', name:[m.prog.insurer || '', m.prog.upfrontLabel || ''], amount:m0(m.upfrontD), sub:[`${pts(m.upfrontPct)}% of the base loan`, m.financed ? 'financed into the loan' : 'paid in cash at closing', m.upfrontWhy]},
         {id:'uk',  col:5, color:m.wsplit ? 'slate' : 'green', name:['Wholesaler keeps', `${pts(m.margin)} pts`], amount:m0(m.keep), sub:[r.moved ? `margin after move · was ${pts(lock.margin)}` : m.solvedMargin ? 'margin · solved from sheet' : m.margin === AVG_MARGIN ? `margin · ${S.wholesaler} ${S.margin.period} avg.` : 'margin input', m.wsplit ? 'before costs, not profit' : '']},
         // Optional seventh column: what the wholesaler's keep has to cover (illustrative shares).
         ...(m.wsplit ? WSPLIT.map(([id, name], i) => ({id:'wk_' + id, col:6, color:'green', name:`${name} · ${pts(m.wshares[i])}%`, amount:m0(m.wsplitShow[i]), sub:[]})) : [])
@@ -59,12 +61,16 @@
         {s:'bb', t:'fn', v:buyV, label:m.disc > 0 ? `proceeds ${m0(m.proceeds)}` : `principal ${m0(m.P)}`, broken:true, text:principalBuyText},
         {s:'fn', t:'uwm', v:Math.max(0, m.prem), label:`premium ${m0(m.prem)}`, text:'The premium goes to the wholesaler as the seller of the loan into the MBS.'},
         {s:'fn', t:'uwm', v:buyV, label:m.disc > 0 ? `proceeds ${m0(m.proceeds)}` : `principal ${m0(m.P)}`, broken:true, text:(m.disc > 0 ? `${m0(m.proceeds)} for a ${m0(m.P)} loan: the wholesaler gets back ${m0(m.disc)} less than it lent. ` : 'Repays the wholesaler for the money it lent. ') + 'In practice cash settles buyer → wholesaler; ' + m.prog.agencyShort + ' wraps the loan in its guarantee.'},
+        {s:'bb', t:'fn', v:m.financed ? m.upfrontD : 0, label:`financed ${m.prog.upfrontLabel} ${m0(m.upfrontD)}`, text:`The ${pts(m.upfrontPct)}% ${m.prog.upfrontLabel} is financed, so the bond buyer funds ${m0(m.P)} of principal: the ${m0(m.base)} base loan plus ${m0(m.upfrontD)}.`},
+        {s:'fn', t:'uwm', v:m.financed ? m.upfrontD : 0, label:`financed ${m.prog.upfrontLabel} ${m0(m.upfrontD)}`, text:`The financed ${m.prog.upfrontLabel} comes back to the wholesaler with the principal and goes straight out to ${m.prog.insurer}.`},
+        {s:'bu', t:'uwm', v:m.upCashD, label:m0(m.upCashD), text:`${m0(m.base)} × ${pts(m.upfrontPct)}% = ${m0(m.upCashD)}. The ${m.prog.upfrontLabel} paid in cash at closing, on top of any points; it passes through the wholesaler to ${m.prog.insurer}.`},
         {s:'bp', t:'uwm', v:m.bpD, label:m0(m.bpD), text:`Borrower price: ${eq}. Negative, so the borrower pays ${m0(m.P)} × ${pts(-m.borrowerPts)} / 100 = ${m0(m.bpD)} in discount points at closing, on top of the ${pts(m.comp)}% comp already built into the rate. This is the piece of the wholesaler's revenue that comes straight from the borrower's pocket.`},
         {s:'wl', t:'uwm', v:m.lossD, label:m0(m.lossD), text:`After the market move the loan is worth ${pts(m.premPts + m.msrPts)} pts (${pts(m.premPts)} ${m.premPts < 0 ? 'discount' : 'premium'} + ${pts(m.msrPts)} servicing) but the wholesaler still owes ${pts(m.comp)} comp and locked the borrower at ${pts(-m.sheetPts)} pts, so it is ${m0(m.lossD)} short (${ptsU(m.lossPts)}). A hedged pipeline makes this back on its TBA position; an unhedged one books the loss.`},
-        {s:'sr', t:'uwm', v:m.msr, label:m0(m.msr), dashed:true, text:`${m0(m.P)} × ${pts(m.msrPts)} / 100 = ${m0(m.msr)}. ${m.solvedMsr ? `Solved at lock: sheet ${pts(m.sheetPts)} − premium ${pts(lock.premPts)} + margin ${pts(lock.margin)} + comp ${pts(m.comp)} = ${pts(m.msrPts)} pts. ` : ''}The value the wholesaler books for keeping the ${pc(m.strip)} servicing strip${m.excess > 0 ? ` (${pc(m.svc)} base + ${pc(m.excess)} excess)` : ''}, about ${m2(m.servicer)} a month before costs; ${m.mult.toFixed(1)}× the annual strip. An estimate, not cash at funding. Typical marks run 3.5–5×; a large wholesaler like ${S.wholesaler} carries its book at about ${S.servicingBook.low}–${S.servicingBook.high}% of UPB on ${S.servicingBook.wac.toFixed(2)}%-rate loans.`},
+        {s:'sr', t:'uwm', v:m.msr, label:m0(m.msr), dashed:true, text:`${m0(m.P)} × ${pts(m.msrPts)} / 100 = ${m0(m.msr)}. ${m.solvedMsr ? `Solved at lock: sheet ${pts(m.sheetPts)} − premium ${pts(lock.premPts)} + margin ${pts(lock.margin)} + comp ${pts(m.comp)} = ${pts(m.msrPts)} pts. ` : m.msrFromMult ? `Set at ${m.msrMult}× the ${pc(lock.strip)} annual strip (${pc(m.svc)} base${lock.strip > m.svc + 1e-9 ? ` + ${pc(lock.strip - m.svc)} excess` : ''}) = ${pts(m.msrPts)} pts. ` : ''}The value the wholesaler books for keeping the ${pc(m.strip)} servicing strip${m.excess > 0 ? ` (${pc(m.svc)} base + ${pc(m.excess)} excess)` : ''}, about ${m2(m.servicer)} a month before costs; ${m.mult.toFixed(1)}× the annual strip. An estimate, not cash at funding. Typical marks run 3.5–5×; a large wholesaler like ${S.wholesaler} carries its book at about ${S.servicingBook.low}–${S.servicingBook.high}% of UPB on ${S.servicingBook.wac.toFixed(2)}%-rate loans.`},
         {s:'uwm', t:'msfg', v:m.compD, label:m0(m.compD), text:`${m0(m.P)} × ${pts(m.comp)} / 100 = ${m0(m.compD)}. The wholesaler pays MSFG's ${pts(m.comp)}% lender-paid comp out of the loan's value; the borrower pays nothing for it directly, it's built into the ${pc(m.rate)} rate.`},
         {s:'uwm', t:'llpa', v:m.llpaD, label:m0(m.llpaD), text:`${m0(m.P)} × ${pts(m.llpa)} / 100 = ${m0(m.llpaD)}. Loan-level price adjustments: Fannie Mae's upfront fee for this file's risk (credit score, LTV, occupancy, property type, cash-out), charged when the loan is delivered. The wholesaler passes it straight through to the borrower's price, point for point.`},
-        {s:'uwm', t:'br', v:pv, label:`principal ${m0(m.P)}`, broken:true, text:`The wholesaler wires ${m0(m.P)} at closing (to the seller or to pay off the old loan). Drawn shortened.`},
+        {s:'uwm', t:'br', v:pv, label:`principal ${m0(m.base)}`, broken:true, text:`The wholesaler wires ${m0(m.base)} at closing (to the seller or to pay off the old loan). Drawn shortened.`},
+        {s:'uwm', t:'ins', v:m.upfrontD, label:m0(m.upfrontD), text:`${m0(m.base)} × ${pts(m.upfrontPct)}% = ${m0(m.upfrontD)}. ${m.prog.insurer}'s ${m.prog.upfrontLabel}${m.upfrontWhy ? ` (${m.upfrontWhy})` : ''}, ${m.financed ? `financed into the loan: the borrower owes ${m0(m.P)} and the wholesaler forwards the fee at closing` : 'paid by the borrower in cash at closing and forwarded by the wholesaler'}. This is the program's risk pricing in place of Fannie LLPAs.`},
         {s:'uwm', t:'br', v:m.crD, label:`credit ${m0(m.crD)}`, text:`Borrower price: ${eq}. Positive, so the wholesaler gives the borrower ${m0(m.P)} × ${pts(m.borrowerPts)} / 100 = ${m0(m.crD)} as a lender credit toward closing costs. Under lender-paid comp a credit can offset costs but cannot be paid out as cash.`},
         {s:'uwm', t:'uk', v:m.keep, label:m0(m.keep), text:`${m0(m.P)} × ${pts(m.margin)} / 100 = ${m0(m.keep)}. ` + (r.moved ? `Margin after the market move: ${pts(lock.margin)} at lock ${m.premPts - lock.premPts >= 0 ? '+' : '−'} ${pts(Math.abs(m.premPts - lock.premPts))} change in execution = ${pts(m.margin)} pts. The borrower's price, the comp and the servicing mark were already set, so the move lands here.` : m.solvedMargin ? `Solved: premium ${pts(m.premPts)} + servicing ${pts(m.msrPts)} − comp ${pts(m.comp)} − sheet ${pts(m.sheetPts)} = ${pts(m.margin)} pts, against ${S.wholesaler}'s reported ${S.margin.period} average of ${pts(S.margin.pts)}.` : m.margin === AVG_MARGIN ? `The default is ${S.wholesaler}'s reported ${S.margin.period} average total gain margin (${S.margin.bps} bps), a company average, not a loan-level number.` : `Set by the wholesaler margin input (${pts(m.margin)} pts; ${S.wholesaler}'s reported ${S.margin.period} average was ${pts(S.margin.pts)}).`)},
         {s:'msfg', t:'lo', v:m.loD, label:m0(m.loD), text:`${m0(m.P)} × ${pts(m.lo)} pts / 100 = ${m0(m.loD)}.`},
@@ -78,24 +84,26 @@
 
     function chart2Config(r){
       const m = r.monthly;
-      const scale = 426 / m.pmt;
+      const scale = 426 / m.total;
       const nodes = [
-        {id:'pay', col:0, side:'left', color:'blue', name:'Borrower payment', amount:m2(m.pmt) + '/mo', sub:[`principal + interest, ${pc(m.rate)}`]},
+        {id:'pay', col:0, side:'left', color:'blue', name:'Borrower payment', amount:m2(m.total) + '/mo', sub:[`principal + interest, ${pc(m.rate)}`, m.annualD > 0 ? `+ ${m.prog.annualLabel}` : '']},
         {id:'int', col:1, color:'slate', name:'Interest', amount:m2(m.int), sub:[]},
         {id:'prn', col:1, color:'slate', name:'Principal', amount:m2(m.prin), sub:['pays the balance down']},
-        {id:'gf',  col:2, color:'slate', name:m.prog.feeFixed ? `Pool wrap · ${pc(m.gfee)} ${m.prog.feeWord}` : `Default risk · ${pc(m.gfee)} ${m.prog.feeWord}`, amount:m2(m.gfD), sub:[]},
+        {id:'gf',  col:2, color:'slate', name:m.prog.gov ? `Ginnie wrap · ${pc(m.gfee)} fee` : `Default risk · ${pc(m.gfee)} ${m.prog.feeWord}`, amount:m2(m.gfD), sub:[]},
         {id:'sv',  col:2, color:'slate', name:`Servicing · ${pc(m.svc)}`, amount:m2(m.svD), sub:[]},
         {id:'ex',  col:2, color:'slate', name:`Excess servicing · ${pc(m.excess)}`, amount:m2(m.exD), sub:[`note rate above coupon + ${pc(m.floor)}`, 'stays with the servicer']},
         {id:'tr',  col:2, color:'slate', name:`10-yr Treasury base · ${pc(m.tsy)}`, amount:m2(m.trD), sub:['what a risk-free bond pays']},
         {id:'rr',  col:2, color:'gray',  name:`Rate & extension risk · ${pc(m.rateRisk)}`, amount:m2(m.rrD), sub:['illustrative split']},
         {id:'rf',  col:2, color:'gray',  name:`Refi / prepay risk · ${pc(m.refi)}`, amount:m2(m.rfD), sub:['illustrative split']},
         {id:'pt',  col:2, color:'slate', hideLabel:true, name:'Principal pass-through', amount:m2(m.prin), sub:[]},
-        {id:'fm',  col:3, color:'green', name:m.prog.agency, amount:m2(m.gfD), sub:[m.prog.feeFixed ? 'wraps the pool' : 'covers defaults']},
+        {id:'fm',  col:3, color:'green', name:m.prog.agency, amount:m2(m.gfD), sub:[m.prog.gov ? 'guarantees timely payment' : 'covers defaults']},
         {id:'svc', col:3, color:'green', name:'Servicer', amount:m2(m.servicer), sub:['the wholesaler, if it keeps', 'servicing · gross']},
-        {id:'bby', col:3, color:'green', name:'Bond buyer', amount:m2(m.bondIn), sub:[`${pc(m.coupon)} coupon + principal`]}
+        {id:'bby', col:3, color:'green', name:'Bond buyer', amount:m2(m.bondIn), sub:[`${pc(m.coupon)} coupon + principal`]},
+        {id:'mip', col:3, color:'green', name:[m.prog.insurer || '', m.prog.annualLabel || ''], amount:m2(m.annualD), sub:[`${pc(m.annualPct)}/yr on ${m0(m.P)}`, 'on top of P&I']}
       ];
+      nodes.forEach(n => { n.sub = n.sub.filter(Boolean); });
       const t = {
-        gf: `${m0(m.P)} × ${pc(m.gfee)} ÷ 12. ` + (m.prog.feeFixed ? `${m.prog.agency}'s fixed guaranty fee for wrapping the pool with its timely-payment guarantee. The default risk itself sits with the ${m.prog.label} insurance or guaranty, paid through MIP or a funding fee that this tool does not model yet.` : `Fannie's price for taking the default risk; the base g-fee varies by lender and includes the 0.10% TCCA surcharge.`),
+        gf: `${m0(m.P)} × ${pc(m.gfee)} ÷ 12. ` + (m.prog.gov ? `${m.prog.agency}'s fixed guaranty fee for guaranteeing timely payment to the bond holder. The default risk itself is insured by ${m.prog.insurer}, paid through ${m.prog.premiumWords} shown in the program fee cards.` : `Fannie's price for taking the default risk; the base g-fee varies by lender and includes the 0.10% TCCA surcharge.`),
         sv: `${m0(m.P)} × ${pc(m.svc)} ÷ 12. The base servicing strip.`,
         ex: `${m0(m.P)} × ${pc(m.excess)} ÷ 12. The note rate runs ${pc(m.excess)} above coupon + ${m.prog.feeWord} + servicing strip; that extra strip stays with whoever services the loan.`,
         tr: `${m0(m.P)} × ${pc(m.tsy)} ÷ 12. 10-yr Treasury yield${m.tsy === DEFAULTS.tsy ? ` on ${S.asOf}` : ' as entered'}.`,
@@ -106,6 +114,7 @@
       const links = [
         {s:'pay', t:'int', v:m.int, label:m2(m.int), text:`${m0(m.P)} × ${pc(m.rate)} ÷ 12 (month 1; shrinks as the balance drops).`},
         {s:'pay', t:'prn', v:m.prin, label:m2(m.prin), text:`${m2(m.pmt)} − ${m2(m.int)} (month 1; grows over time).`},
+        {s:'pay', t:'mip', v:m.annualD, label:m2(m.annualD), text:`${m0(m.P)} × ${pc(m.annualPct)} ÷ 12 = ${m2(m.annualD)}. ${m.prog.insurer}'s ${m.prog.annualLabel}, collected with the payment and passed through by the servicer; it is not part of the note rate, so none of it reaches the bond buyer, the servicer or ${m.prog.agency}.`},
         {s:'int', t:'gf', v:m.gfD, label:m2(m.gfD), text:t.gf},
         {s:'int', t:'sv', v:m.svD, label:m2(m.svD), text:t.sv},
         {s:'int', t:'ex', v:m.exD, label:m2(m.exD), text:t.ex},
@@ -290,6 +299,8 @@
       $('sub2').textContent = CP.sub2(r);
       setNotes('notes2', CP.notes2(r));
       fill($('msrcards'), CP.msrCards(r));
+      const fees = CP.feeCards(r);
+      fill($('feeCards'), fees); $('feeCards').hidden = !fees.length;
       renderLlpaPanel(r);
     }
     // LLPA breakdown under the borrower inputs: a heading line, the matrix lines, a footer with the total and matrix date.
@@ -335,22 +346,25 @@
     const round3 = x => Math.round(x * 1000) / 1000;
     const SOLVED = {
       msr:    { flag:'solvedMsr',    value: L => round3(L.msrPts),       label: L => `Solved · ${L.mult.toFixed(1)}× the strip` },
-      margin: { flag:'solvedMargin', value: L => round3(L.margin),       label: (L, r) => r.moved ? 'Solved at lock · see move tiles' : 'Solved from sheet price' },
+      margin: { flag:'solvedMargin', value: L => round3(L.margin),       label: (L, r) => r.moved ? 'Solved at lock · see move tiles' : L.msrFromMult ? 'Solved · servicing set by the multiple' : 'Solved from sheet price' },
       comp:   { flag:'solvedComp',   value: L => round3(L.comp),         label: () => 'Solved from sheet price' },
       price:  { flag:'solvedPrice',  value: L => L.price.toFixed(2),     label: L => `Solved · ${pc(L.coupon)} coupon` },
       sheet:  { flag:'solvedSheet',  value: L => round3(-L.borrowerPts), label: () => 'Solved · + = borrower pays' }
     };
     const priceFor = c => c === ANCHOR.coupon ? ANCHOR.price : estPrice(c);
-    // A new rate or g-fee picks the coupon again (with an estimated price) and clears any after-lock move.
+    // A new rate or program picks the coupon again (with an estimated price) and clears any after-lock move.
     const effStrip = () => PROGRAMS[state.program].strip;
-    const effFee = () => PROGRAMS[state.program].feeFixed ? PROGRAMS[state.program].fee : state.gfee;
+    const effFee = () => PROGRAMS[state.program].fee;
     const relock = () => {
       const c = autoCoupon(state.rate, effStrip(), effFee());
       if (c !== state.coupon) { state.coupon = c; state.couponAuto = true; state.price = priceFor(c); state.priceEst = c !== ANCHOR.coupon; }
       state.coupon2 = null; state.price2 = null; state.price2Est = false;
     };
     const FIELD_DEFS = [
-      {id:'program',  label:'Loan program',          type:'select', source:'Sets the servicing strip, the agency fee and whether LLPAs apply', options:Object.keys(PROGRAMS).map(k => [k, PROGRAMS[k].label]), onChange: relock},
+      {id:'program',  label:'Loan program',          type:'select', source:'Sets the servicing strip, the agency fee and whether LLPAs apply', options:Object.keys(PROGRAMS).map(k => [k, PROGRAMS[k].label]),
+        // The only sheet on file is a conventional one, so a government program solves the borrower's price from the other
+        // variables instead of reading servicing out of that sheet; switching back restores the servicing solve.
+        onChange: v => { const gov = PROGRAMS[v].gov; if (gov && state.solve === 'msr') state.solve = 'sheet'; else if (!gov && state.solve === 'sheet' && state.govSolve) state.solve = 'msr'; state.govSolve = gov && state.solve === 'sheet'; if (gov) $('assumptions').open = true; relock(); }},
       {id:'loan',     label:'Loan amount',           min:10000, step:1000,         source:'Example', minValue:1000},
       {id:'rate',     label:'Note rate %',           min:0.5, max:20, step:0.125, source:'Example', onChange: relock},
       {id:'sheet',    label:'Points after comp',     min:-6, max:6, step:0.001,   source:`${S.wholesaler} sheet at ${pc(S.sheet.rate)} · + = borrower pays`, allowNegative:true, editedLabel:'Edited · + = borrower pays', solved:SOLVED.sheet},
@@ -361,7 +375,7 @@
         onChange: v => { state.couponAuto = false; state.price = priceFor(v); state.priceEst = v !== ANCHOR.coupon; }},
       {id:'price',    label:'MBS price',             min:90, max:115, step:0.01,  source:'Market quote', solved:SOLVED.price,
         // The only quote on file is FNMA; Ginnie Mae II pools trade at different prices, so a government loan is flagged until a GNMA quote is typed.
-        status: () => state.priceEst ? {label:`Estimated from ${pts(S.mbs.coupon)} @ ${S.mbs.price.toFixed(2)}${PROGRAMS[state.program].feeFixed ? ' FNMA quote · GNMA II prices differ' : ''} · edit if you have the quote`, cls:'solved'} : PROGRAMS[state.program].feeFixed ? {label:'FNMA quote · GNMA II prices differ, edit if you have one', cls:'edited'} : null,
+        status: () => state.priceEst ? {label:`Estimated from ${pts(S.mbs.coupon)} @ ${S.mbs.price.toFixed(2)}${PROGRAMS[state.program].gov ? ' FNMA · GNMA II quote needed' : ''} · edit if you have the quote`, cls:'solved'} : PROGRAMS[state.program].gov ? {label:'GNMA II quote needed · FNMA price shown', cls:'edited'} : null,
         onChange: () => { state.priceEst = false; }},
       {id:'tsy',      label:'10-yr Treasury %',      min:0.1, max:15, step:0.01,  source:`Market, ${S.asOf}`},
       {id:'coupon2',  label:'Coupon % after lock',   min:0.5, max:20, step:0.5,   source:'Same as lock · type to move', move:'coupon',
@@ -371,13 +385,25 @@
       {id:'comp',     label:'Broker comp pts',       min:0, max:5, step:0.125,    source:`Source: ${S.wholesaler} rate sheet`, solved:SOLVED.comp},
       {id:'lo',       label:'LO comp pts',           min:0, max:5, step:0.125,    source:'Example'},
       {id:'margin',   label:'Wholesaler margin pts', min:0, max:5, step:0.01,     source:`Source: ${S.wholesaler} ${S.margin.period} avg.`, solved:SOLVED.margin},
-      {id:'msr',      label:'Servicing value pts',   min:0, max:8, step:0.001,    source:'Solved from sheet price', solved:SOLVED.msr},
+      {id:'msr',      label:'Servicing value pts',   min:0, max:8, step:0.001,    source:'Solved from sheet price', solved:SOLVED.msr,
+        computed: r => r.lock.msrFromMult ? {value: round3(r.lock.msrPts), label: `${r.lock.msrMult}× the ${pc(r.lock.strip)} strip${r.lock.strip > r.lock.svc + 1e-9 ? ' incl. excess' : ''}`} : null},
+      // A multiple of the annual strip (base + excess) drives the mark instead of a typed value; empty = solved or typed.
+      {id:'msrMult',  label:'Servicing multiple',    type:'select', source:'× the annual strip, base + excess', parse: v => v === '' ? null : parseFloat(v),
+        options:[['', 'Solved / typed'], ['3', '3.0×'], ['3.5', '3.5×'], ['4', '4.0×'], ['4.5', '4.5×'], ['5', '5.0×']],
+        status: r => state.msrMult === null && r.lock.solvedMsr ? {label:`Sheet implies ${r.lock.mult.toFixed(1)}× the strip`, cls:'solved'} : null},
       // The strip is the program's agency minimum, shown but not editable; excess servicing above it is still derived
       // from rate − coupon − fee − strip. The fee is editable on conventional loans and fixed on the Ginnie programs.
       {id:'svc',      label:'Servicing strip %/yr',  min:0, max:2, step:0.01,     source:'Agency minimum for the program',
         computed: r => ({value: r.lock.svc, label: `${r.lock.prog.stripNote} · fixed`})},
-      {id:'gfee',     label:'Guarantee fee %/yr',    min:0, max:2, step:0.01,     source:'Example · Fannie base g-fee', onChange: relock, labelFor: r => r.lock.prog.feeLabel,
-        computed: r => r.lock.prog.feeFixed ? {value: r.lock.gfee, label: `${r.lock.prog.agency} guaranty fee · fixed`} : null},
+      {id:'gfee',     label:'Guarantee fee %/yr',    min:0, max:2, step:0.01,     source:'Fixed per program', labelFor: r => r.lock.prog.feeLabel,
+        computed: r => ({value: r.lock.gfee, label: r.lock.prog.feeNote})},
+      // Government program fees: the upfront fee is normally financed; VA's funding fee depends on use and exemption.
+      {id:'financeUpfront',  label:'Finance the upfront fee into the loan', type:'checkbox'},
+      {id:'vaSubsequentUse', label:'Subsequent use of VA entitlement',       type:'checkbox'},
+      {id:'vaExempt',        label:'Exempt from the VA funding fee',         type:'checkbox'},
+      // Conventional borrower-paid monthly MI, only above 80% LTV; the rate is illustrative and editable.
+      {id:'pmi',      label:'Monthly MI %/yr',       min:0, max:3, step:0.01,     source:'Illustrative · borrower-paid, above 80% LTV',
+        computed: r => r.lock.prog.gov ? {value: 0, label: 'Government programs use their own premium'} : r.lock.ltv > 80 ? null : {value: 0, label: `None: LTV ${r.lock.ltv.toFixed(2)}% is at or below 80%`}},
       {id:'fixed',    label:'Fixed cost %',          min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
       {id:'variable', label:'Variable cost %',       min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
       {id:'onetime',  label:'One-time expense %',    min:0, max:100, step:1,      source:'Example · of MSFG keeps'},
@@ -463,22 +489,25 @@
             else { label = 'Market move'; cls = 'edited'; }
           }
         } else {
-          const st = f.status && f.status();
+          const st = f.status && f.status(r);
           if (st) { label = st.label; cls = st.cls; }
           else if (state[f.id] !== DEFAULTS[f.id]) { label = f.editedLabel || 'Edited'; cls = 'edited'; }
         }
         i.disabled = disabled;
         if (f.type === 'checkbox') i.checked = !!value;
-        else if (document.activeElement !== i) i.value = value;
+        else if (document.activeElement !== i) i.value = value === null && f.type === 'select' ? '' : value;
         if (s) { s.textContent = label || f.source; s.className = 's ' + cls; }
       });
       $('in-solve').value = state.solve;
-      $('src-solve').textContent = state.solve === 'none' ? 'Compare modeled vs. sheet' : state.solve === 'sheet' ? 'From the other four variables' : 'So modeled price = sheet';
+      $('src-solve').textContent = lock.msrFromMult && state.solve === 'msr' ? 'Servicing set by the multiple, so the margin is solved' : state.solve === 'none' ? 'Compare modeled vs. sheet' : state.solve === 'sheet' ? 'From the other four variables' : 'So modeled price = sheet';
       if (r.moved) $('after').open = true;
       if (state.wsplit) $('wsplitSec').open = true;
       // Government programs have no Fannie LLPAs: the borrower section shows a note instead of the grid controls.
-      const gov = !lock.prog.llpa;
+      // The fee block shows the program's upfront and annual fees for FHA, VA and USDA, or the monthly MI rate for a conventional loan.
+      const gov = lock.prog.gov;
       $('llpaRow').hidden = gov; $('llpaPanel').hidden = gov; $('llpaNa').hidden = !gov;
+      $('govFees').hidden = !gov; $('miGrid').hidden = gov;
+      $('vaChecks').hidden = state.program !== 'va';
     }
     function renderAll(){
       const r = compute(state);
@@ -494,7 +523,7 @@
       if (e.target.disabled) return; // computed and solved fields are display-only
       let v;
       if (f.type === 'checkbox') v = e.target.checked;
-      else if (f.type === 'select') v = e.target.value;
+      else if (f.type === 'select') v = f.parse ? f.parse(e.target.value) : e.target.value;
       else {
         v = parseFloat(e.target.value);
         if (!isFinite(v)) return;
@@ -505,8 +534,9 @@
       if (f.onChange) f.onChange(v);
       renderAll();
     }));
-    $('in-solve').addEventListener('change', e => { state.solve = e.target.value; renderAll(); });
-    $('reset').addEventListener('click', () => { Object.assign(state, DEFAULTS, {couponAuto:false, priceEst:false, price2Est:false}); $('after').open = false; renderAll(); });
+    // Asking to solve for servicing clears the multiple, otherwise the mark would stay fixed and the margin would solve instead.
+    $('in-solve').addEventListener('change', e => { state.solve = e.target.value; if (state.solve === 'msr') state.msrMult = null; renderAll(); });
+    $('reset').addEventListener('click', () => { Object.assign(state, DEFAULTS, {couponAuto:false, priceEst:false, price2Est:false, govSolve:false}); $('after').open = false; $('assumptions').open = false; renderAll(); });
     $('inputs').addEventListener('submit', e => e.preventDefault());
     // LLPA popout: open, close, and pick a grid cell (score bucket's low end, LTV bucket's top, property value rounded up so the LTV stays inside the bucket).
     const dlg = $('llpaDialog');

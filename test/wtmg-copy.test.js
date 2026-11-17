@@ -18,7 +18,11 @@ for (const file of ['shared/utils.js', 'shared/llpa-matrix.js', 'shared/llpa-eng
 const M = vm.runInContext('MSFG.WtmgMath', context);
 const C = vm.runInContext('MSFG.WtmgCopy', context);
 
-const run = (over, priceEst) => { const r = M.compute(Object.assign({}, M.DEFAULTS, over)); r.priceEst = !!priceEst; return r; };
+// `run` pins the original servicing-from-the-sheet mode the sentences were worked in; `runDefault` is the page as it opens
+// (margin solved at a 4× servicing mark).
+const LEGACY = { solve: 'msr', msrMult: null };
+const run = (over, priceEst) => { const r = M.compute(Object.assign({}, M.DEFAULTS, LEGACY, over)); r.priceEst = !!priceEst; return r; };
+const runDefault = over => M.compute(Object.assign({}, M.DEFAULTS, over));
 const has = (text, needle) => assert.ok(text.includes(needle), `expected "${needle}" in: ${text.slice(0, 160)}…`);
 const lacks = (text, needle) => assert.ok(!text.includes(needle), `did not expect "${needle}" in: ${text.slice(0, 160)}…`);
 
@@ -57,6 +61,25 @@ describe('small words', () => {
   });
 });
 
+describe('the page as it opens', () => {
+  it('solved-margin note reads the 4× mark against the 1.33 average', () => {
+    const n = C.notes1(runDefault());
+    assert.strictEqual(n.length, 4);
+    has(n[1], 'a 2.25-pt comp and a 4× servicing mark (1.2 pts on the 0.30% strip), the wholesaler earns 1.656 pts on this loan, 0.326 pts richer than UWM\'s reported Q2 2026 average of 1.33.');
+    has(n[1], 'Change the multiple');
+    has(C.notes1(runDefault({ msrMult: 3 }))[1], 'a 3× servicing mark (0.9 pts on the 0.30% strip), the wholesaler earns 1.356 pts on this loan, 0.026 pts richer than');
+    has(C.notes1(runDefault({ msrMult: null, msr: 0.5 }))[1], 'servicing worth 0.5 pts, the wholesaler earns 0.956 pts on this loan, 0.374 pts thinner than');
+    lacks(C.notes1(runDefault({ msrMult: null, msr: 0.5 }))[1], 'Change the multiple');
+  });
+
+  it('tiles and cards follow the default mode', () => {
+    const t = C.pricingTiles(runDefault());
+    assert.strictEqual(t[2].k, 'Implied wholesaler margin'); has(t[2].f, 'richer than average');
+    has(C.msrCards(runDefault())[2].v, 'set at 4× the strip');
+    assert.strictEqual(C.result(runDefault()), 'Pays 2.016 pts');
+  });
+});
+
 describe('pricing tiles', () => {
   it('default: borrower pays, servicing implied inside the usual range', () => {
     const [t1, t2, t3] = C.pricingTiles(run());
@@ -67,7 +90,7 @@ describe('pricing tiles', () => {
     assert.strictEqual(t2.big, 'pays 2.016 pts');
     has(t2.f, 'Source: UWM sheet');
     assert.strictEqual(t3.k, 'Implied servicing value');
-    has(t3.f, 'inside the usual');
+    has(t3.f, 'below the usual'); // 0.874 / 0.30 strip = 2.9×
   });
 
   it('LLPAs appear in the identity line only when present', () => {
@@ -199,15 +222,16 @@ describe('revenue, chart-2 copy and servicing cards', () => {
 
   it('chart-2 header and note carry the spread decomposition', () => {
     assert.strictEqual(C.sub2(run()), "The bond buyer's 6.50% = 5.11% Treasury + 1.39% risk spread; default risk is priced in Fannie's g-fee.");
-    has(C.notes2(run())[0], '0.25% servicing strip');
-    has(C.notes2(run())[0], "Default risk is Fannie's, paid through the 0.50% g-fee.");
+    has(C.notes2(run())[0], '0.30% servicing strip');
+    has(C.notes2(run())[0], "Default risk is Fannie's, paid through the 0.45% g-fee.");
   });
 
   it('government programs read Ginnie Mae as the wrap, not Fannie', () => {
     const r = run({ program: 'fha' });
-    has(C.sub2(r), "Ginnie Mae's 0.06% guaranty fee wraps the pool; default risk sits with the FHA insurance or guaranty.");
+    has(C.sub2(r), "default risk is insured by FHA and paid through the upfront and annual MIP; Ginnie Mae's 0.06% guaranty fee covers timely payment to the bond holder.");
     lacks(C.sub2(r), 'Fannie');
-    has(C.notes2(r)[0], 'does not model yet');
+    has(C.notes2(r)[0], '$211.98 a month of annual MIP');
+    has(C.notes2(r)[0], 'covers timely payment to the bond holder');
     has(C.notes2(r)[0], '0.69% servicing strip');
   });
 
@@ -228,12 +252,49 @@ describe('revenue, chart-2 copy and servicing cards', () => {
     has(C.llpaPanel(run({ purpose: 'CashOut' })).caption, 'for a cash-out refinance');
   });
 
+  it('program fee cards and the funding note for FHA, VA and USDA; none for conventional', () => {
+    assert.deepStrictEqual(Array.from(C.feeCards(run())), []);
+    assert.strictEqual(C.feeNote(run()), null);
+    const fha = C.feeCards(run({ program: 'fha' }));
+    assert.strictEqual(fha[0].k, 'FHA upfront MIP'); assert.strictEqual(fha[0].big, '1.75%'); has(fha[0].v, 'financed, so the loan funds at $508,750');
+    assert.strictEqual(fha[1].k, 'FHA annual MIP'); assert.strictEqual(fha[1].big, '0.50%/yr'); has(fha[1].v, '$211.98 a month on $508,750');
+    has(C.feeNote(run({ program: 'fha' })), 'financed into the loan, so the wholesaler funds $508,750 rather than $500,000');
+    assert.strictEqual(C.notes1(run({ program: 'fha' })).length, 5);
+    const usda = C.feeCards(run({ program: 'usda', financeUpfront: false }));
+    assert.strictEqual(usda[0].cls, 'y'); has(usda[0].v, '$5,000 on the $500,000 base loan · paid in cash at closing');
+    has(C.feeNote(run({ program: 'usda', financeUpfront: false })), 'Financing it would raise the loan to $505,000');
+    const va = C.feeCards(run({ program: 'va', propertyValue: 520000, vaSubsequentUse: true }));
+    assert.strictEqual(va[0].k, 'VA funding fee · subsequent use, under 5% down'); assert.strictEqual(va[0].big, '3.30%');
+    assert.strictEqual(va[1].big, 'none');
+    has(C.feeCards(run({ program: 'va', vaExempt: true }))[0].v, 'Exempt');
+  });
+
+  it('conventional MI above 80% LTV gets its own card, note and chart-2 wording; none at 71% LTV', () => {
+    assert.deepStrictEqual(Array.from(C.feeCards(runDefault())), []);
+    assert.strictEqual(C.feeNote(runDefault()), null);
+    lacks(C.sub2(run()), 'MI');
+    lacks(C.notes2(run())[0], 'monthly MI');
+    const r = run({ propertyValue: 526316 }); // 95% LTV, conventional
+    const cards = C.feeCards(r);
+    assert.strictEqual(cards.length, 1);
+    assert.strictEqual(cards[0].k, 'Borrower-paid monthly MI · LTV 95.00%'); assert.strictEqual(cards[0].big, '0.30%/yr');
+    has(cards[0].v, '$125.00 a month on $500,000'); has(cards[0].v, 'cancels at 80% LTV');
+    const note = C.feeNote(r);
+    has(note, 'Above 80% LTV Fannie requires mortgage insurance'); has(note, '$125.00 a month'); has(note, 'LLPAs, which price the same risk upfront');
+    assert.strictEqual(C.notes1(r).length, 5);
+    assert.strictEqual(C.sub2(r), "The bond buyer's 6.50% = 5.11% Treasury + 1.39% risk spread; default risk is priced in Fannie's g-fee, with 0.30% borrower-paid MI ahead of it above 80% LTV.");
+    has(C.notes2(r)[0], 'At 95.00% LTV the borrower also pays 0.30% a year of monthly MI ($125.00 a month on top of principal and interest) to a private mortgage insurer');
+    has(C.feeNote(run({ propertyValue: 526316, waiverFirstTimeHB: true })), 'conventional counterpart of FHA');
+  });
+
   it('servicing cards reflect excess strip and solved vs typed mark', () => {
     const def = C.msrCards(run());
-    assert.strictEqual(def[0].v, '0.25%/yr');
+    assert.strictEqual(def[0].v, '0.25%/yr + 0.05% excess');
     has(def[2].v, 'solved from the sheet');
     const r7 = C.msrCards(run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: M.estPrice(6.0) }));
-    assert.strictEqual(r7[0].v, '0.25%/yr + 0.25% excess');
+    assert.strictEqual(r7[0].v, '0.25%/yr + 0.30% excess');
     has(C.msrCards(run({ solve: 'none' }))[2].v, 'your mark');
+    has(C.msrCards(run({ msrMult: 4 }))[2].v, 'set at 4× the strip');
+    has(C.notes1(run({ msrMult: 4 }))[1], 'a 4× servicing mark (1.2 pts on the 0.30% strip), the wholesaler earns 1.656 pts on this loan, 0.326 pts richer than');
   });
 });

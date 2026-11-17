@@ -19,19 +19,26 @@
 
         <form class="inputs-wrap" id="inputs" aria-label="Loan inputs" autocomplete="off">
           <div class="topbar">
+            <div class="program" data-fields="program"></div>
             <div class="solve">
               <label for="in-solve">Solve for</label>
-              <select id="in-solve" aria-describedby="src-solve"><option value="msr">Servicing value</option><option value="margin">Wholesaler margin</option><option value="comp">Broker comp</option><option value="price">MBS price</option><option value="sheet">Borrower points</option><option value="none">Nothing, show gap</option></select>
+              <select id="in-solve" aria-describedby="src-solve"><option value="margin">Wholesaler margin</option><option value="msr">Servicing value</option><option value="comp">Broker comp</option><option value="price">MBS price</option><option value="sheet">Borrower points</option><option value="none">Nothing, show gap</option></select>
               <span class="s" id="src-solve">So modeled price = sheet</span>
             </div>
             <div class="resultchip"><span class="k">Borrower price</span><span class="v" id="in-result"></span></div>
             <button type="button" class="btn" id="reset">Reset to example</button>
           </div>
 
+          <%# Input cells are rendered from FIELD_DEFS in where-the-money-goes.js; each grid lists its field ids in order. %>
           <details class="sec" open>
-            <summary>Loan and market</summary>
-            <%# Input cells are rendered from FIELD_DEFS in where-the-money-goes.js; list the field ids in order. %>
-            <div class="grid" data-fields="program loan rate sheet coupon price tsy gfee"></div>
+            <summary>Loan, borrower and market</summary>
+            <div class="grid" data-fields="loan propertyValue creditScore rate sheet coupon price tsy"></div>
+            <div class="llpa-row" id="llpaRow">
+              <div class="grid" data-fields="llpaMode llpa"></div>
+              <button type="button" class="btn" id="llpaOpen" aria-haspopup="dialog" aria-controls="llpaDialog">Pick from the LLPA table</button>
+            </div>
+            <div class="llpa" id="llpaPanel" aria-live="polite"></div>
+            <p class="hint llpa-na" id="llpaNa" hidden>FHA, VA and USDA loans carry no Fannie Mae loan-level price adjustments. Their risk pricing is the program's upfront and annual fee, shown under Assumptions and in both charts.</p>
             <details class="after" id="after">
               <summary>After lock: market move (optional)</summary>
               <div class="grid" data-fields="coupon2 price2"></div>
@@ -40,30 +47,36 @@
           </details>
 
           <details class="sec" open>
-            <summary>Borrower and property: loan-level price adjustments</summary>
-            <div class="llpa-row" id="llpaRow">
-              <div class="grid" data-fields="llpaMode llpa"></div>
-              <button type="button" class="btn" id="llpaOpen" aria-haspopup="dialog" aria-controls="llpaDialog">Pick from the LLPA table</button>
-            </div>
-            <div class="llpa" id="llpaPanel" aria-live="polite"></div>
-            <p class="hint llpa-na" id="llpaNa" hidden>FHA, VA and USDA loans carry no Fannie Mae loan-level price adjustments. Their risk pricing is the upfront and annual mortgage insurance premium or funding fee, which this tool does not model yet.</p>
+            <summary>Wholesaler: margin and servicing</summary>
+            <div class="grid" data-fields="margin msr msrMult"></div>
           </details>
 
           <details class="sec" open>
-            <summary>Wholesaler: margin and servicing</summary>
-            <div class="grid" data-fields="margin msr svc"></div>
+            <summary>MSFG: comp</summary>
+            <div class="grid" data-fields="comp lo"></div>
+          </details>
+
+          <details class="sec" id="assumptions">
+            <summary>Assumptions: fixed by program, sourced, or illustrative</summary>
+            <p class="hint">Servicing strip and agency fee are set by the program.</p>
+            <div class="grid" data-fields="svc gfee"></div>
+            <div class="fees" id="feesBlock">
+              <div class="cards" id="feeCards"></div>
+              <div class="grid" id="miGrid" data-fields="pmi"></div>
+              <div class="fees" id="govFees" hidden>
+                <div class="grid checks" data-fields="financeUpfront"></div>
+                <div class="grid checks" id="vaChecks" data-fields="vaSubsequentUse vaExempt" hidden></div>
+                <p class="hint">FHA annual MIP uses the 30-year bands by LTV and base loan size (0.50% / 0.55% up to $726,200; 0.70% / 0.75% above); 15-year terms differ. The VA funding fee covers purchase loans by use and down payment; IRRRL and cash-out tiers are not modeled. Rates as understood on the date in the disclosure.</p>
+              </div>
+            </div>
+            <p class="hint">Where MSFG's share of the comp goes after the LO (illustrative shares).</p>
+            <div class="grid" data-fields="fixed variable onetime profit"></div>
             <details class="after" id="wsplitSec">
               <summary>Optional: what the wholesaler keeps has to cover</summary>
               <div class="grid checks" data-fields="wsplit"></div>
               <div class="grid wide" data-fields="wfixed wvariable wonetime wrate wprofit"></div>
               <p class="hint">Illustrative shares. No wholesaler publishes a per-loan cost structure; turn this on to show that the margin is gross, not profit, and edit the shares for the discussion.</p>
             </details>
-          </details>
-
-          <details class="sec" open>
-            <summary>MSFG: comp and where it goes</summary>
-            <div class="grid" data-fields="comp lo"></div>
-            <div class="grid" data-fields="fixed variable onetime profit"></div>
           </details>
 
           <p class="warn" id="warnings" hidden></p>
@@ -78,7 +91,6 @@
             <div class="grid" data-fields="purpose occupancy units"></div>
             <p class="hint" id="llpaCaption"></p>
             <div class="llpa-scroll" id="llpaTable"></div>
-            <div class="grid" data-fields="creditScore propertyValue"></div>
             <div class="grid checks" data-fields="isCondo isManufacturedHome isHighBalance hasSubordinateFinancing applyMMI isHighLTVRefi waiverHomeReady waiverFirstTimeHB waiverDutyToServe"></div>
           </dialog>
         </form>

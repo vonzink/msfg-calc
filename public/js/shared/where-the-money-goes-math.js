@@ -30,6 +30,18 @@
     servicingBook: { low: 1.7, high: 2.1, wac: 5.90 },                       // UWM MSR fair value, % of UPB, Q4 2025 / Q1 2026; portfolio WAC
     mbs: { coupon: 6.5, price: 100.69 },                                     // FNMA 30Yr 6.5% screen quote
     treasury: 5.11,                                                          // 10-yr Treasury yield
+    gfee: 0.45,                                                              // Fannie ongoing guarantee fee incl. the 0.10% TCCA surcharge; FHFA reports about 45–50 bps
+    // Government program fees as understood on Nov 17, 2026 (not re-verified against the primary documents that day; the
+    // page is a training tool). FHA: HUD Mortgagee Letter 2023-05, effective March 20, 2023. USDA: Rural Development SFH
+    // Guaranteed fee schedule, fiscal 2026. VA: 38 U.S.C. 3729 funding fee table in effect since April 7, 2023.
+    programs: {
+      fha:  { upfront: 1.75, annual: { stdLow: 0.50, stdHigh: 0.55, hbLow: 0.70, hbHigh: 0.75, limit: 726200 }, basis: 'HUD ML 2023-05: UFMIP 1.75% of the base loan; annual MIP on 30-year terms 0.50% / 0.55% at or below / above 95% LTV for base loans up to $726,200, 0.70% / 0.75% above that' },
+      usda: { upfront: 1.00, annual: 0.35, basis: 'USDA RD SFH Guaranteed, FY2026: 1.00% upfront guarantee fee, 0.35% annual fee' },
+      va:   { first: {lt5: 2.15, lt10: 1.50, ge10: 1.25}, subsequent: {lt5: 3.30, lt10: 1.50, ge10: 1.25}, basis: '38 U.S.C. 3729 purchase table since April 7, 2023; IRRRL (0.50%) and cash-out tiers not modeled; waived for veterans on VA disability compensation, eligible surviving spouses and Purple Heart recipients' },
+      // Conventional: Fannie requires mortgage insurance above 80% LTV. No single published rate; this is an illustrative
+      // borrower-paid monthly rate for a 780 score at 80.01–85% LTV with standard coverage, editable on the page.
+      pmi:  { annual: 0.30, basis: 'Illustrative borrower-paid monthly MI, 780 score, 80.01–85% LTV, standard coverage; actual rates vary by insurer, score, LTV, DTI and coverage, and MI cancels at 80% LTV (automatically at 78%)' }
+    },
     // Estimated TBA price change per 1% of coupon when no quote is entered: about 1.75 pts per adjacent
     // 50 bp coupon near par, so other coupons are priced off the 6.5 quote. A real quote should replace it.
     perPoint: 3.5
@@ -37,12 +49,13 @@
   const AVG_MARGIN = SOURCES.margin.pts;
   const round3 = x => Math.round(x * 1000) / 1000;
   const DEFAULTS = {
-    loan:500000, rate:SOURCES.sheet.rate, sheet:SOURCES.sheet.afterComp, solve:'msr',
+    loan:500000, rate:SOURCES.sheet.rate, sheet:SOURCES.sheet.afterComp, solve:'margin',
     coupon:SOURCES.mbs.coupon, price:SOURCES.mbs.price, tsy:SOURCES.treasury,
     comp:SOURCES.sheet.comp, lo:1.125, margin:SOURCES.margin.pts,
     // The servicing value the sheet implies at the average margin: sheet − premium + margin + comp (no LLPAs).
     msr:round3(-SOURCES.sheet.afterComp - (SOURCES.mbs.price - 100) + SOURCES.margin.pts + SOURCES.sheet.comp),
-    program:'conv', svc:0.25, gfee:0.50, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
+    // Default view: servicing marked at 4× the strip and the wholesaler's margin solved from the sheet; the 1.33 average stays as the comparison.
+    program:'conv', msrMult:4, svc:0.25, gfee:SOURCES.gfee, financeUpfront:true, vaSubsequentUse:false, vaExempt:false, pmi:SOURCES.programs.pmi.annual, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
     // Borrower and property, for the Fannie LLPA matrix. The example file is clean (780+, 71% LTV purchase,
     // primary, no flags), which is why the UWM sheet showed no adjustments.
     llpaMode:'matrix', creditScore:780, propertyValue:700000, purpose:'Purchase', occupancy:'Primary', units:'1',
@@ -55,14 +68,35 @@
   const RATE_SHARE = 0.59 / 1.39; // illustrative split of the coupon-over-Treasury spread into rate risk vs refi risk
   const SPLIT = [['fixed', 'Fixed cost', 'rent, salaries, systems, licensing, allocated per loan'], ['variable', 'Variable cost', 'processing, credit, disclosures, marketing that scale with volume'], ['onetime', 'One-time expense', 'launch or project costs allocated to this loan'], ['profit', 'Profit', 'what MSFG actually clears on the loan']];
   // Optional split of what the wholesaler keeps. Illustrative shares: no wholesaler publishes a per-loan cost structure.
-  // Loan programs. The strip is the agency minimum servicing fee for the program (Fannie/Freddie fixed-rate 25 bp;
-  // Ginnie Mae II 19 bp). The fee is Fannie's base g-fee (editable, varies by lender) or Ginnie Mae's fixed 6 bp
-  // guaranty fee. Only conventional loans carry Fannie LLPAs; FHA, VA and USDA price risk through MIP or funding fees.
-  const ginnie = label => ({label, agency:'Ginnie Mae', agencyShort:'Ginnie', strip:0.19, stripNote:'Ginnie Mae II minimum', fee:0.06, feeFixed:true, feeLabel:'Ginnie guaranty fee %/yr', feeWord:'guaranty fee', llpa:false, mbs:'Ginnie Mae MBS'});
+  // Loan programs. The strip is the agency minimum servicing fee (Fannie/Freddie fixed-rate 25 bp; Ginnie Mae II 19 bp).
+  // The fee is fixed per program: Fannie's ongoing g-fee (SOURCES.gfee, incl. TCCA) or Ginnie Mae's 6 bp guaranty fee.
+  // Only conventional loans carry Fannie LLPAs; FHA, VA and USDA price risk through upfront and annual fees (programFees).
+  // A conventional loan above 80% LTV also carries borrower-paid monthly MI to a private insurer (programFees, `pmi`).
+  const ginnie = (label, upfrontLabel, annualLabel, premiumWords) => ({label, gov:true, agency:'Ginnie Mae', agencyShort:'Ginnie', insurer:label, strip:0.19, stripNote:'Ginnie Mae II minimum', fee:0.06, feeNote:'Ginnie Mae guaranty fee · fixed', feeLabel:'Ginnie guaranty fee %/yr', feeWord:'guaranty fee', llpa:false, mbs:'Ginnie Mae MBS', upfrontLabel, annualLabel, premiumWords});
   const PROGRAMS = {
-    conv: {label:'Fannie / Freddie fixed', agency:'Fannie Mae', agencyShort:'Fannie', strip:0.25, stripNote:'Fannie Mae minimum for fixed-rate', fee:0.50, feeFixed:false, feeLabel:'Guarantee fee %/yr', feeWord:'g-fee', llpa:true, mbs:'Fannie Mae MBS'},
-    fha: ginnie('FHA'), va: ginnie('VA'), usda: ginnie('USDA')
+    conv: {label:'Fannie / Freddie fixed', gov:false, agency:'Fannie Mae', agencyShort:'Fannie', insurer:'Private mortgage insurer', strip:0.25, stripNote:'Fannie Mae minimum for fixed-rate', fee:SOURCES.gfee, feeNote:'Fannie Mae guarantee fee, incl. 0.10% TCCA · fixed', feeLabel:'Guarantee fee %/yr', feeWord:'g-fee', llpa:true, mbs:'Fannie Mae MBS', upfrontLabel:null, annualLabel:'monthly MI', premiumWords:null},
+    fha: ginnie('FHA', 'upfront MIP', 'annual MIP', 'the upfront and annual MIP'),
+    va: ginnie('VA', 'funding fee', null, 'the funding fee'),
+    usda: ginnie('USDA', 'upfront guarantee fee', 'annual fee', 'the upfront and annual guarantee fees')
   };
+  // VA funding fee, purchase loans, % of the base loan, by use and down payment (from the base LTV). IRRRL and cash-out tiers are not modeled.
+  const VA_FUNDING_FEE = { first: SOURCES.programs.va.first, subsequent: SOURCES.programs.va.subsequent };
+  const downTier = ltv => ltv > 95 ? 'lt5' : ltv > 90 ? 'lt10' : 'ge10';
+  const DOWN_WORDS = {lt5: 'under 5% down', lt10: '5–10% down', ge10: '10% or more down'};
+  // Upfront and annual fee rates for a program at a base LTV. FHA annual MIP uses the 30-year bands by LTV and by base loan
+  // size; 15-year terms differ. The upfront percent applies to the base loan. Conventional: no upfront fee, and the typed
+  // borrower-paid monthly MI rate (s.pmi) only above 80% LTV.
+  function programFees(key, ltv, s) {
+    const F = SOURCES.programs;
+    if (key === 'fha') { const a = F.fha.annual, hb = s.loan > a.limit; return {upfrontPct: F.fha.upfront, annualPct: hb ? (ltv > 95 ? a.hbHigh : a.hbLow) : (ltv > 95 ? a.stdHigh : a.stdLow), upfrontWhy: ''}; }
+    if (key === 'usda') return {upfrontPct: F.usda.upfront, annualPct: F.usda.annual, upfrontWhy: ''};
+    if (key === 'va') {
+      const tier = downTier(ltv), use = s.vaSubsequentUse ? 'subsequent' : 'first';
+      return {upfrontPct: s.vaExempt ? 0 : VA_FUNDING_FEE[use][tier], annualPct: 0, upfrontWhy: s.vaExempt ? 'exempt' : `${use} use, ${DOWN_WORDS[tier]}`};
+    }
+    const pmi = ltv > 80 && s.pmi > 0 ? s.pmi : 0;
+    return {upfrontPct: 0, annualPct: pmi, upfrontWhy: ''};
+  }
   const WSPLIT = [['wfixed', 'Fixed cost', 'underwriting, closing, technology and overhead allocated per loan'], ['wvariable', 'Variable cost', 'account executives, credit, appraisal review and other per-loan spend'], ['wonetime', 'One-time expense', 'onboarding, system and project costs allocated to this loan'], ['wrate', 'Rate risk / hedge', 'the cost of hedging the locked pipeline with TBA sales; the market-move layer shows it in dollars'], ['wprofit', 'Profit', 'what the wholesaler actually clears on the loan']];
 
   const pts = x => { const s = (Math.round(x * 1000) / 1000).toString(); return s === '-0' ? '0' : s.replace('-', '−'); };
@@ -77,11 +111,18 @@
   // ---------- layer 1: solve the lock ----------
   function solveLock(s) {
     const warnings = [];
-    const P = s.loan;
+    const base = s.loan;
     let coupon = s.coupon, rate = s.rate, tsy = s.tsy, lo = s.lo, margin = s.margin, msrPts = s.msr, price = s.price, comp = s.comp;
     // The program fixes the strip and, for Ginnie programs, the fee; the typed svc/gfee only apply where the program leaves them open.
     const program = PROGRAMS[s.program] ? s.program : 'conv', prog = PROGRAMS[program];
-    const svc = prog.strip, gfee = prog.feeFixed ? prog.fee : s.gfee, mode = s.solve;
+    const svc = prog.strip, gfee = prog.fee;
+    // Program fees on the base loan. A financed upfront fee raises the funded loan, and every per-point figure then works on that larger P.
+    const ltv = s.propertyValue > 0 ? base / s.propertyValue * 100 : 0;
+    const fees = programFees(program, ltv, s);
+    const upfrontD = base * fees.upfrontPct / 100;
+    const financed = prog.gov && !!s.financeUpfront && upfrontD > 0;
+    const P = financed ? base + upfrontD : base;
+    const upCashD = financed ? 0 : upfrontD;
     const floor = gfee + svc;
 
     // LLPAs: from the Fannie matrix when the engine is loaded and matrix mode is on, else the typed value.
@@ -105,6 +146,13 @@
     }
     if (rate < coupon + floor) { coupon = autoCoupon(rate, svc, gfee); warnings.push(`The note rate must cover the coupon plus ${pc(floor)} (${prog.feeWord} + servicing strip). Coupon shown as ${pc(coupon)}; enter that coupon's price if you have it.`); }
     if (tsy >= coupon) { tsy = coupon - 0.25; warnings.push(`The Treasury yield has to sit below the MBS coupon. Shown as ${pc(tsy)}.`); }
+    // Servicing value as a multiple of the annual strip (base + excess at the lock coupon). It makes the mark a given,
+    // so a request to solve for servicing solves the margin instead.
+    const strip = svc + Math.max(0, rate - coupon - floor);
+    const msrFromMult = typeof s.msrMult === 'number' && isFinite(s.msrMult) && s.msrMult > 0;
+    const msrMult = msrFromMult ? s.msrMult : null;
+    if (msrFromMult) msrPts = msrMult * strip;
+    const mode = s.solve === 'msr' && msrFromMult ? 'margin' : s.solve;
     const splitSum = s.fixed + s.variable + s.onetime + s.profit;
     let shares = [s.fixed, s.variable, s.onetime, s.profit];
     if (Math.abs(splitSum - 100) > 0.01) { shares = splitSum > 0 ? shares.map(x => x / splitSum * 100) : [25, 25, 25, 25]; warnings.push(`MSFG's four shares add up to ${pts(splitSum)}%, not 100%; they are scaled to 100% in the chart.`); }
@@ -116,12 +164,13 @@
     let premPts = price - 100;
     let sheetPts = -s.sheet; // internal convention: positive = credit to the borrower
     let solvedMsr = false, solvedMargin = false, solvedComp = false, solvedPrice = false, solvedSheet = false;
+    const msrIn = msrPts;
     if (mode === 'msr') {
       msrPts = sheetPts - premPts + margin + comp + llpa; solvedMsr = true;
       if (msrPts < 0) { msrPts = 0; margin = premPts - comp - llpa - sheetPts; solvedMargin = true; warnings.push(`Even with zero servicing value, the sheet price is richer than this execution supports at a ${pts(s.margin)}-pt margin; the wholesaler's margin is solved instead.`); }
     } else if (mode === 'margin') {
       margin = premPts + msrPts - comp - llpa - sheetPts; solvedMargin = true;
-      if (margin < 0) { margin = 0; msrPts = sheetPts - premPts + comp + llpa; solvedMsr = true; warnings.push(`At a ${pts(s.msr)}-pt servicing value the sheet price leaves the wholesaler a loss; margin is shown as 0 and the servicing value is solved instead.`); }
+      if (margin < 0) { margin = 0; msrPts = sheetPts - premPts + comp + llpa; solvedMsr = true; warnings.push(`At a ${pts(msrIn)}-pt servicing value the sheet price leaves the wholesaler a loss; margin is shown as 0 and the servicing value is solved instead.`); }
     } else if (mode === 'comp') {
       comp = premPts + msrPts - margin - llpa - sheetPts; solvedComp = true;
       if (comp < 0) { comp = 0; warnings.push('At these inputs there is nothing left for broker comp: the borrower price, margin, LLPAs and execution use up more than the loan is worth. Comp is shown as 0 and the gap is shown.'); }
@@ -137,7 +186,8 @@
     if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
     if (solvedSheet) sheetPts = borrowerPts;
 
-    return {warnings, P, rate, tsy, lo, comp, svc, gfee, program, prog, llpa, llpaCalc, llpaMode: s.llpaMode,
+    return {warnings, P, base, ltv, upfrontPct: fees.upfrontPct, upfrontWhy: fees.upfrontWhy, upfrontD, financed, upCashD, annualPct: fees.annualPct,
+            rate, tsy, lo, comp, svc, gfee, program, prog, strip, msrFromMult, msrMult, llpa, llpaCalc, llpaMode: s.llpaMode,
             creditScore: s.creditScore, propertyValue: s.propertyValue, purpose: s.purpose, occupancy: s.occupancy, units: s.units,
             floor, mode, shares, wsplit, wshares, coupon, price, premPts, msrPts, margin, sheetPts,
             sheetCost: solvedSheet ? (borrowerPts === 0 ? 0 : -borrowerPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
@@ -183,8 +233,9 @@
     if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
     const bpD = P * Math.max(0, -borrowerPts) / 100;   // points the borrower pays
     const crD = P * Math.max(0, borrowerPts) / 100;    // lender credit to the borrower
-    const uwmIn = proceeds + bpD + msr + lossD;
-    const uwmOut = compD + llpaD + P + crD + keep;
+    // An upfront fee paid in cash passes through the wholesaler to the insurer; a financed one is already inside P.
+    const uwmIn = proceeds + bpD + msr + lossD + lock.upCashD;
+    const uwmOut = compD + llpaD + P + crD + keep + lock.upCashD;
     const rev = Math.max(0, prem) + bpD + msr;
     const gap = lock.sheetPts - borrowerPts;           // positive: the sheet is better for the borrower than this execution
     const impliedMsr = lock.msrPts + gap;              // servicing value needed to hit the lock margin at the sheet price
@@ -202,11 +253,12 @@
     const P = fe.P, r = fe.rate / 100 / 12;
     const pmt = NS.calcMonthlyPayment(P, fe.rate / 100, 30);
     const int = P * r, prin = pmt - int;
+    const annualD = P * fe.annualPct / 100 / 12, total = pmt + annualD; // annual MIP / fee, month 1, on top of P&I
     const gfD = P * fe.gfee / 100 / 12, svD = P * fe.svc / 100 / 12, trD = P * fe.tsy / 100 / 12;
     const spread = fe.coupon - fe.tsy, rateRisk = spread * RATE_SHARE, refi = spread - rateRisk;
     const rrD = P * rateRisk / 100 / 12, rfD = P * refi / 100 / 12;
     const exD = P * fe.excess / 100 / 12;
-    return {P, rate: fe.rate, coupon: fe.coupon, tsy: fe.tsy, svc: fe.svc, gfee: fe.gfee, prog: fe.prog, floor: fe.floor, excess: fe.excess, strip: fe.strip,
+    return {P, rate: fe.rate, coupon: fe.coupon, tsy: fe.tsy, svc: fe.svc, gfee: fe.gfee, prog: fe.prog, annualPct: fe.annualPct, annualD, total, floor: fe.floor, excess: fe.excess, strip: fe.strip,
             pmt, int, prin, gfD, svD, trD, spread, rateRisk, refi, rrD, rfD, exD, bondIn: trD + rrD + rfD + prin, servicer: svD + exD};
   }
 
@@ -218,5 +270,5 @@
     return {lock, after, moved: move.moved, monthly: monthly(after), warnings: lockSolve.warnings.concat(move.warnings), mode: lockSolve.mode};
   }
 
-  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT, WSPLIT, PROGRAMS };
+  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT, WSPLIT, PROGRAMS, VA_FUNDING_FEE, programFees };
 })();

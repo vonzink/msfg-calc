@@ -87,7 +87,11 @@
       ? `The wholesaler's actual sheet prices this rate at ${sw}, ${ptsU(after.gap)} (${m0(gapD)}) better for the borrower than this execution. To still hit its ${pts(lock.margin)}-pt margin it would have to value servicing at ${pts(after.impliedMsr)} pts. At the ${pts(after.msrPts)}-pt mark it earns ${pts(after.impliedMargin)} pts on this loan${after.impliedMargin < 0 ? ', a loss' : ''}. What fills a gap like this: specified-pool pay-ups, g-fee buy-downs, hedge results, the wholesaler's own servicing marks, or pricing to win volume.`
       : `The wholesaler's actual sheet prices this rate at ${sw}, ${ptsU(gapAbs)} (${m0(gapD)}) worse for the borrower than this execution, so it earns about ${pts(after.impliedMargin)} pts on this loan, above its ${pts(lock.margin)}-pt target.`;
     else if (after.solvedMsr) n2 = `Reading the sheet backwards: at ${sw} and a ${pts(lock.margin)}-pt margin, the wholesaler must be valuing the servicing on this loan at ${pts(after.msrPts)} pts, ${after.mult.toFixed(1)}× the ${pc(after.strip)} strip${after.excess > 0 ? ` (${pc(after.svc)} base plus ${pc(after.excess)} excess because the ${pc(after.rate)} note sits above the ${pc(lock.coupon)} coupon + ${pc(after.floor)})` : ''}. That is ${multWord(after.mult)}.${r.priceEst ? ` The ${pc(lock.coupon)} coupon price is estimated from the ${pts(S.mbs.coupon)}% quote; a real quote changes this split between premium and servicing, not the borrower's price.` : ''}`;
-    else if (after.solvedMargin) n2 = `Reading the sheet backwards: at ${sw} with servicing worth ${pts(after.msrPts)} pts, the wholesaler earns ${pts(lock.margin)} pts on this loan against ${S.wholesaler}'s reported ${pts(S.margin.pts)}-pt average.`;
+    else if (after.solvedMargin) {
+      const d = lock.margin - S.margin.pts;
+      const vs = Math.abs(d) < 0.005 ? 'right at' : d > 0 ? `${pts(d)} pts richer than` : `${pts(-d)} pts thinner than`;
+      n2 = `Reading the sheet backwards: at ${sw}, a ${pts(after.comp)}-pt comp and ${after.msrFromMult ? `a ${after.msrMult}× servicing mark (${pts(after.msrPts)} pts on the ${pc(lock.strip)} strip)` : `servicing worth ${pts(after.msrPts)} pts`}, the wholesaler earns ${pts(lock.margin)} pts on this loan, ${vs} ${S.wholesaler}'s reported ${S.margin.period} average of ${pts(S.margin.pts)}.${after.msrFromMult ? ' Change the multiple to see how much of that margin is really a servicing assumption.' : ''}`;
+    }
     else n2 = `The wholesaler's actual sheet at this rate (${sw}) matches the modeled execution, so it earns its ${pts(lock.margin)}-pt margin with servicing valued at ${pts(after.msrPts)} pts.`;
     const quarter = after.P * 0.25 / 100;
     const n3 = `Levers: every 0.25 pt of wholesaler margin or broker comp moves the borrower's price by 0.25 pt (${m0(quarter)} on this loan), and so does every 0.25 of MBS price. LO and MSFG split the ${pts(after.comp)}-pt comp ${pts(after.lo)} / ${pts(after.comp - after.lo)}; it is paid by the wholesaler out of the rate, never as a line item to the borrower.${after.crD > 0 ? ' Under lender-paid comp a credit can offset closing costs but cannot be returned as cash.' : ''}`;
@@ -95,6 +99,8 @@
       ? `MSFG's ${m0(after.mkD)} is gross, not profit. At the shares entered it covers ${m0(after.splitShow[0])} of fixed cost, ${m0(after.splitShow[1])} of variable cost and ${m0(after.splitShow[2])} of one-time expense, leaving ${m0(after.splitShow[3])} of profit (${pts(after.splitD[3] / after.P * 100)} pts of the loan). The LO's ${m0(after.loD)} is the single largest line in the broker's share.`
       : `With LO comp equal to broker comp, MSFG keeps nothing on this loan and there is nothing to split.`;
     const notes = [n1, n2, n3, n4];
+    const nf = feeNote(r);
+    if (nf) notes.push(nf);
     if (after.wsplit) notes.push(after.keep > 0
       ? `The wholesaler's ${m0(after.keep)} is also gross, not profit. At the illustrative shares it covers ${m0(after.wsplitShow[0])} of fixed cost, ${m0(after.wsplitShow[1])} of variable cost, ${m0(after.wsplitShow[2])} of one-time expense and ${m0(after.wsplitShow[3])} of rate risk and hedge cost, leaving ${m0(after.wsplitShow[4])} of profit (${pts(after.wsplitD[4] / after.P * 100)} pts of the loan). No wholesaler publishes a per-loan cost structure; the shares are placeholders to edit.`
       : `The wholesaler keeps nothing on this loan${after.margin < 0 ? ' and funds a loss' : ''}, so there is nothing to split.`);
@@ -122,16 +128,49 @@
   }
 
   // Who stands behind the bond: Fannie prices default risk in its g-fee; Ginnie only wraps the pool, the FHA/VA/USDA insurance carries the default risk.
-  const guarantor = a => a.prog.feeFixed ? `${a.prog.agency}'s ${pc(a.gfee)} guaranty fee wraps the pool; default risk sits with the ${a.prog.label} insurance or guaranty` : `default risk is priced in Fannie's g-fee`;
+  // A conventional loan above 80% LTV adds borrower-paid MI: a private insurer takes the first loss ahead of Fannie, outside the note rate.
+  const hasMI = a => !a.prog.gov && a.annualPct > 0;
+  const guarantor = a => a.prog.gov ? `default risk is insured by ${a.prog.insurer} and paid through ${a.prog.premiumWords}; ${a.prog.agency}'s ${pc(a.gfee)} guaranty fee covers timely payment to the bond holder` : `default risk is priced in Fannie's g-fee${hasMI(a) ? `, with ${pc(a.annualPct)} borrower-paid MI ahead of it above 80% LTV` : ''}`;
   const sub2 = r => `The bond buyer's ${pc(r.after.coupon)} = ${pc(r.after.tsy)} Treasury + ${pc(r.monthly.spread)} risk spread; ${guarantor(r.after)}.`;
-  const notes2 = r => [`Bond buyer's ${pc(r.after.coupon)} = ${pc(r.after.tsy)} Treasury + ${pc(r.monthly.spread)} for rate and refi risk. ${r.after.prog.feeFixed ? `${r.after.prog.agency}'s ${pc(r.after.gfee)} guaranty fee wraps the pool; the default risk itself sits with the ${r.after.prog.label} insurance or guaranty, which this tool does not model yet.` : `Default risk is Fannie's, paid through the ${pc(r.after.gfee)} g-fee.`} The ${pc(r.after.strip)} servicing strip goes to whoever services the loan. Month 1 only: interest shrinks and principal grows over time.`];
+  const miWords = r => hasMI(r.after) ? ` At ${r.after.ltv.toFixed(2)}% LTV the borrower also pays ${pc(r.after.annualPct)} a year of monthly MI (${m2(r.monthly.annualD)} a month on top of principal and interest) to a private mortgage insurer, which takes the first loss ahead of Fannie; it is outside the note rate and cancels at 80% LTV.` : '';
+  const notes2 = r => [`Bond buyer's ${pc(r.after.coupon)} = ${pc(r.after.tsy)} Treasury + ${pc(r.monthly.spread)} for rate and refi risk. ${r.after.prog.gov ? `Default risk is insured by ${r.after.prog.insurer}, paid through ${r.after.prog.premiumWords}${r.monthly.annualD > 0 ? ` (${m2(r.monthly.annualD)} a month of ${r.after.prog.annualLabel} on top of principal and interest)` : ''}; ${r.after.prog.agency}'s ${pc(r.after.gfee)} guaranty fee covers timely payment to the bond holder.` : `Default risk is Fannie's, paid through the ${pc(r.after.gfee)} g-fee.${miWords(r)}`} The ${pc(r.after.strip)} servicing strip goes to whoever services the loan. Month 1 only: interest shrinks and principal grows over time.`];
   const msrCards = r => {
     const after = r.after;
     return [
       card('', 'Servicing strip', `${pc(after.svc)}/yr${after.excess > 0 ? ` + ${pc(after.excess)} excess` : ''}`),
       card('', 'Gross servicing income', `${m2(after.servicer)}/mo, before costs`),
-      card('', 'MSR value', `${m0(after.msr)} (${ptsU(after.msrPts)}) · ${after.solvedMsr ? 'solved from the sheet' : 'your mark'} · ${after.mult.toFixed(1)}× the strip`)
+      card('', 'MSR value', `${m0(after.msr)} (${ptsU(after.msrPts)}) · ${after.solvedMsr ? 'solved from the sheet' : after.msrFromMult ? `set at ${after.msrMult}× the strip` : 'your mark'}${after.msrFromMult ? '' : ` · ${after.mult.toFixed(1)}× the strip`}`)
     ];
+  };
+
+  // Program fee cards for FHA, VA and USDA: the upfront fee (financed or cash) and the annual premium.
+  // Conventional: one card for borrower-paid monthly MI when the LTV is above 80%, none otherwise.
+  const feeCards = r => {
+    const L = r.lock, p = L.prog, mo = r.monthly;
+    if (!p.gov) {
+      return hasMI(L)
+        ? [card('g', `Borrower-paid monthly MI · LTV ${L.ltv.toFixed(2)}%`, `${m2(mo.annualD)} a month on ${m0(L.P)}, on top of the ${m2(mo.pmt)} principal and interest · to a private mortgage insurer · cancels at 80% LTV`, `${pc(L.annualPct)}/yr`)]
+        : [];
+    }
+    const up = L.upfrontPct > 0
+      ? card(L.financed ? 'b' : 'y', `${p.insurer} ${p.upfrontLabel}${L.upfrontWhy ? ` · ${L.upfrontWhy}` : ''}`, `${m0(L.upfrontD)} on the ${m0(L.base)} base loan · ${L.financed ? `financed, so the loan funds at ${m0(L.P)}` : 'paid in cash at closing'}`, pc(L.upfrontPct))
+      : card('', `${p.insurer} ${p.upfrontLabel}`, L.upfrontWhy === 'exempt' ? 'Exempt: no funding fee on this loan' : 'None', '0%');
+    const an = p.annualLabel
+      ? card('g', `${p.insurer} ${p.annualLabel}`, `${m2(mo.annualD)} a month on ${m0(L.P)}, on top of the ${m2(mo.pmt)} principal and interest`, `${pc(L.annualPct)}/yr`)
+      : card('', 'Annual premium', `${p.insurer} loans have no annual fee`, 'none');
+    return [up, an];
+  };
+  // Funding note for government programs: where the upfront fee comes from and what it does to the loan amount.
+  const feeNote = r => {
+    const L = r.lock, p = L.prog;
+    if (!p.gov) {
+      if (!hasMI(L)) return null;
+      return `Above 80% LTV Fannie requires mortgage insurance: at ${L.ltv.toFixed(2)}% LTV the borrower pays ${pc(L.annualPct)} a year (${m2(r.monthly.annualD)} a month) to a private mortgage insurer, on top of principal and interest and outside the note rate, so none of it reaches the wholesaler, the bond buyer or Fannie. ${L.llpa > 0 ? `It sits alongside the ${pts(L.llpa)}-pt LLPAs, which price the same risk upfront.` : 'It is the conventional counterpart of FHA’s annual MIP.'} Unlike FHA MIP it cancels once the balance reaches 80% of the original value. The rate is illustrative; MI pricing varies by insurer, score, LTV and coverage.`;
+    }
+    if (L.upfrontPct <= 0) return null;
+    return L.financed
+      ? `${p.insurer}'s ${pts(L.upfrontPct)}% ${p.upfrontLabel} (${m0(L.upfrontD)}) is financed into the loan, so the wholesaler funds ${m0(L.P)} rather than ${m0(L.base)} and the bond buyer buys that larger balance. Points, comp, margin and servicing value all work on the ${m0(L.P)}; the fee itself passes straight through to ${p.insurer}.`
+      : `${p.insurer}'s ${pts(L.upfrontPct)}% ${p.upfrontLabel} (${m0(L.upfrontD)}) is paid in cash at closing on top of any points, and passes straight through the wholesaler to ${p.insurer}. Financing it would raise the loan to ${m0(L.base + L.upfrontD)}.`;
   };
 
   // LLPA breakdown panel under the borrower inputs.
@@ -153,5 +192,5 @@
     return { head, rows, foot, total, caption };
   };
 
-  MSFG.WtmgCopy = { ptsU, priceWord, multWord, sheetWord, sheetSrc, result, pricingTiles, moveTiles, notes1, revenue, sub2, notes2, msrCards, llpaPanel };
+  MSFG.WtmgCopy = { ptsU, priceWord, multWord, sheetWord, sheetSrc, result, pricingTiles, moveTiles, notes1, revenue, sub2, notes2, msrCards, llpaPanel, feeCards, feeNote };
 })();
