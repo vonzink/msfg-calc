@@ -50,7 +50,7 @@ after(() => {
 describe('Additional general calculators', () => {
   const slugs = [
     'amortization', 'var-income', 'fee-worksheet',
-    'compare', 'loan-analysis', 'loan-timeline'
+    'compare', 'loan-analysis', 'loan-timeline', 'where-the-money-goes'
   ];
 
   for (const slug of slugs) {

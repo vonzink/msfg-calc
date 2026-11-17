@@ -1,0 +1,123 @@
+/* Where the Money Goes — training page. All rules are scoped under .wtmg so they cannot collide with the site design system. */
+.wtmg{
+  --bg:#FBFAF7; --fg:#1F2328; --muted:#5E6B78; --line:#E2DFD7; --panel:#F3F1EB;
+  --blue:#3E7CC9; --slate:#5E6B78; --green:#2E9E6E; --gray:#9AA3AB; --gray-edge:#6E7983;
+  --note-bg:#FFF6D6; --note-edge:#B8860B;
+  --font:var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif);
+  color-scheme:light;
+}
+.wtmg *{box-sizing:border-box}
+.wtmg{
+  background:var(--bg); color:var(--fg); font-family:var(--font); font-size:14px; line-height:1.5;
+  font-variant-numeric:tabular-nums;
+}
+.wtmg .wrap{max-width:1200px; margin:0 auto; display:grid; gap:40px}
+.wtmg h1, .wtmg h2, .wtmg h3{margin:0; text-wrap:balance}
+.wtmg h1{font-size:32px; line-height:40px; font-weight:600}
+.wtmg h2{font-size:22px; line-height:28px; font-weight:600}
+.wtmg h3{font-size:16px; line-height:22px; font-weight:600}
+.wtmg p{margin:0}
+.wtmg .sub{color:var(--muted)}
+.wtmg .wtmg-head{display:grid; gap:8px}
+.wtmg .lede{font-size:17px}
+.wtmg .key{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:13px; color:var(--muted); margin-top:6px}
+.wtmg .key span{display:inline-flex; align-items:center; gap:7px; white-space:nowrap}
+.wtmg .sw{width:12px; height:12px; border-radius:2px; display:inline-block; flex:none}
+.wtmg .sw.blue{background:var(--blue)} .wtmg .sw.green{background:var(--green)}
+.wtmg .sw.gray{background:var(--gray); outline:1.5px dashed var(--gray-edge); outline-offset:-1.5px}
+.wtmg .sw.yellow{background:var(--note-bg); border-left:3px solid var(--note-edge)}
+
+
+.wtmg .inputs-wrap{display:grid; gap:12px}
+.wtmg .topbar{display:flex; flex-wrap:wrap; gap:10px 20px; align-items:center; padding:12px 16px; border:1px solid var(--line); border-radius:4px; background:var(--panel)}
+.wtmg .solve{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.wtmg .solve label{font-weight:600; font-size:14px}
+.wtmg .solve select{font:inherit; font-size:14px; font-weight:600; height:30px; padding:0 8px; border:1px solid var(--muted); border-radius:3px; background:var(--bg); color:var(--fg)}
+.wtmg .solve select:focus{outline:2px solid var(--blue); outline-offset:1px}
+.wtmg .solve .s{font-size:12px; color:var(--muted)}
+.wtmg .resultchip{display:flex; align-items:baseline; gap:8px; margin-left:auto; min-width:0}
+.wtmg .resultchip .k{font-size:12px; color:var(--muted)}
+.wtmg .resultchip .v{font-size:18px; font-weight:700; white-space:nowrap}
+.wtmg .topbar .btn{width:auto; flex:none}
+.wtmg .sec{border:1px solid var(--line); border-radius:4px; padding:0 16px; margin:0; background:var(--panel); min-width:0}
+.wtmg .sec > summary{font-weight:600; font-size:14px; padding:10px 0; cursor:pointer; list-style-position:inside; user-select:none}
+.wtmg .sec > summary::marker{color:var(--muted)}
+.wtmg .sec > summary:focus-visible{outline:2px solid var(--blue); outline-offset:2px; border-radius:2px}
+.wtmg .sec[open] > summary{border-bottom:1px solid var(--line); margin-bottom:12px}
+.wtmg .sec > .grid:last-child{padding-bottom:14px}
+.wtmg .sec > .after{margin-bottom:14px}
+.wtmg .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px 16px}
+.wtmg .after{margin-top:12px; border-top:1px dashed var(--line); padding-top:8px}
+.wtmg .after summary{cursor:pointer; font-size:13px; font-weight:600; color:var(--muted); list-style-position:inside}
+.wtmg .after[open] summary{color:var(--fg)}
+.wtmg .after .grid{margin-top:8px; max-width:360px}
+.wtmg .after .hint{margin-top:6px}
+.wtmg .inp{display:grid; gap:2px; font-size:13px; min-width:0; align-content:start}
+.wtmg .inp .k{font-weight:600}
+.wtmg .inp .v{font-size:15px; font-weight:700; color:var(--fg); line-height:22px}
+.wtmg .inp .s{font-size:12px; color:var(--muted)}
+.wtmg .inp .s.edited{color:var(--note-edge); font-weight:600}
+.wtmg .inp .s.solved{color:var(--blue); font-weight:600}
+.wtmg .inp label{display:contents}
+.wtmg .inp input{font:inherit; font-size:15px; font-weight:700; line-height:20px; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:3px; width:100%; min-width:0; padding:0 6px; height:26px}
+.wtmg .inp input:focus{outline:2px solid var(--blue); outline-offset:1px}
+.wtmg .inp input:disabled{background:var(--panel); color:var(--blue); border-style:dashed}
+.wtmg .btn{font:inherit; font-size:13px; font-weight:600; line-height:1.2; padding:4px 10px; min-height:30px; border:1px solid var(--muted); border-radius:3px; background:var(--bg); color:var(--fg); cursor:pointer; min-width:0}
+.wtmg .btn:focus-visible{outline:2px solid var(--blue); outline-offset:1px}
+.wtmg .warn{font-size:13px; color:var(--fg); background:var(--note-bg); border-left:3px solid var(--note-edge); padding:8px 12px}
+.wtmg .hint{font-size:12px; color:var(--muted); max-width:110ch}
+
+.wtmg section{display:grid; gap:16px}
+.wtmg .subhead{font-size:14px; color:var(--muted)}
+.wtmg .chart-scroll{overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch}
+.wtmg .chart-scroll svg{display:block; width:100%; min-width:960px; height:auto}
+.wtmg .swipe{display:none; font-size:12px; color:var(--muted)}
+.wtmg .info{min-height:48px; padding:10px 14px; border:1px solid var(--line); border-radius:4px; background:var(--panel); font-size:14px; line-height:1.45}
+.wtmg .info strong{display:block; font-size:13px; margin-bottom:2px}
+.wtmg .caption{font-size:12px; color:var(--muted); max-width:90ch}
+.wtmg .notes{display:grid; gap:10px}
+.wtmg .note{background:var(--note-bg); border-left:3px solid var(--note-edge); padding:10px 14px; font-size:14px; line-height:1.45; border-radius:0 3px 3px 0}
+
+
+.wtmg .ribbon{fill-opacity:.45; transition:fill-opacity .15s ease, stroke-opacity .15s ease; cursor:pointer; outline:none}
+.wtmg .ribbon.dashed{stroke:var(--gray-edge); stroke-width:1.2; stroke-dasharray:5 4}
+.wtmg .has-active .ribbon{fill-opacity:.14; stroke-opacity:.3}
+.wtmg .has-active .ribbon.active{fill-opacity:.85; stroke-opacity:1}
+.wtmg .ribbon:focus-visible{stroke:var(--fg); stroke-width:1.5; stroke-dasharray:none}
+.wtmg .bar{stroke:none}
+.wtmg .bar.gray{stroke:var(--gray-edge); stroke-width:1.5; stroke-dasharray:4 3}
+.wtmg .brk{stroke:var(--bg); stroke-width:4; stroke-linecap:butt; pointer-events:none}
+.wtmg .lbl text{font-family:var(--font); fill:var(--fg); paint-order:stroke; stroke:var(--bg); stroke-width:3px; stroke-linejoin:round; pointer-events:none}
+.wtmg .lbl .nm{font-size:13px; font-weight:700}
+.wtmg .lbl .amt{font-size:18px; font-weight:700}
+.wtmg .lbl .sb{font-size:11px; fill:var(--muted)}
+@media (prefers-reduced-motion:reduce){.wtmg .ribbon{transition:none}}
+
+
+.wtmg .boxes{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+.wtmg .box{border:1px solid var(--line); border-radius:4px; padding:20px; display:grid; gap:14px; align-content:start; min-width:0}
+.wtmg .cards{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+.wtmg .card{background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:10px 12px; display:grid; gap:2px; min-width:0}
+.wtmg .card .k{font-size:12px; color:var(--muted)}
+.wtmg .card .v{font-size:14px; font-weight:600}
+.wtmg .card .pct{font-size:20px; font-weight:700; line-height:26px}
+.wtmg .card.b{border-left:3px solid var(--blue)}
+.wtmg .card.gr{border-left:3px solid var(--green)}
+.wtmg .card.g{border-left:3px solid var(--gray-edge); border-left-style:dashed}
+.wtmg .card.y{background:var(--note-bg); border-color:transparent; border-left:3px solid var(--note-edge); border-radius:0 3px 3px 0}
+.wtmg .card .f{font-size:12px; color:var(--muted)}
+.wtmg .wtmg-foot{font-size:12px; color:var(--muted); border-top:1px solid var(--line); padding-top:16px; max-width:100ch}
+
+@media (max-width:900px){
+  .wtmg{line-height:32px}
+  .wtmg .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wtmg .resultchip{margin-left:0}
+  .wtmg .swipe{display:block}
+  .wtmg .boxes{grid-template-columns:1fr}
+  .wtmg .cards{grid-template-columns:1fr}
+}
+
+/* Container inside .calc-page__body */
+.wtmg{padding:24px 16px; border-radius:var(--border-radius, 8px)}
+.wtmg h2{font-family:var(--font-heading, inherit)}
+@media (max-width:900px){ .wtmg{padding:16px 8px} }

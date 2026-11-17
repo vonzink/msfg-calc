@@ -39,6 +39,7 @@ const generalCalcs = [
   { slug: 'loan-analysis',  view: 'calculators/loan-analysis',  title: 'Cover Letter',               css: 'loan-analysis' },
   { slug: 'mismo',          view: 'calculators/mismo',          title: 'Conditions & Documents',     css: 'mismo', preScripts: ['/js/shared/mismo-doc-parser.js', '/js/shared/mismo-income-logic.js', '/js/calculators/mismo-docs.js', '/js/calculators/mismo-ui.js'] },
   { slug: 'loan-timeline',  view: 'calculators/loan-timeline',  title: 'Loan Timeline',              css: 'loan-timeline', preScripts: ['/js/shared/mismo-parser.js', '/js/shared/mismo-calc-maps.js'] },
+  { slug: 'where-the-money-goes', view: 'calculators/where-the-money-goes', title: 'Where the Money Goes', css: 'where-the-money-goes' },
   { slug: 'llpm',           view: 'calculators/llpm',           title: 'LLPM Tool' }
 ];
 

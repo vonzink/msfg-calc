@@ -1,0 +1,124 @@
+<div class="calc-page">
+  <div class="calc-page__header">
+    <h1>Where the Money Goes</h1>
+    <p>One conventional loan, followed from the bond buyer to the borrower: what moves at funding, what moves every month, and how points, comp, servicing value and the wholesaler's margin fit together. Change any input and both charts recompute.</p>
+  </div>
+
+  <div class="calc-page__body">
+    <div class="wtmg">
+      <div class="wrap">
+        <div class="wtmg-head">
+          <p class="lede sub" id="lede">One $500K loan: money at closing, money every month.</p>
+          <div class="key" aria-label="Color key">
+            <span><i class="sw blue"></i>Blue = where money starts</span>
+            <span><i class="sw green"></i>Green = where it lands</span>
+            <span><i class="sw gray"></i>Gray (dashed) = estimated, not cash</span>
+            <span><i class="sw yellow"></i>Yellow = keep in mind</span>
+          </div>
+        </div>
+
+        <form class="inputs-wrap" id="inputs" aria-label="Loan inputs" autocomplete="off">
+          <div class="topbar">
+            <div class="solve">
+              <label for="in-solve">Solve for</label>
+              <select id="in-solve" aria-describedby="src-solve"><option value="msr">Servicing value</option><option value="margin">Wholesaler margin</option><option value="comp">Broker comp</option><option value="price">MBS price</option><option value="sheet">Borrower points</option><option value="none">Nothing, show gap</option></select>
+              <span class="s" id="src-solve">So modeled price = sheet</span>
+            </div>
+            <div class="resultchip"><span class="k">Borrower price</span><span class="v" id="in-result"></span></div>
+            <button type="button" class="btn" id="reset">Reset to example</button>
+          </div>
+
+          <details class="sec" open>
+            <summary>Loan and market</summary>
+            <div class="grid">
+              <div class="inp"><label><span class="k">Loan amount</span><input id="in-loan" type="number" inputmode="decimal" min="10000" step="1000" aria-describedby="src-loan"></label><span class="s" id="src-loan">Example</span></div>
+              <div class="inp"><label><span class="k">Note rate %</span><input id="in-rate" type="number" inputmode="decimal" min="0.5" max="20" step="0.125" aria-describedby="src-rate"></label><span class="s" id="src-rate">Example</span></div>
+              <div class="inp"><label><span class="k">Points after comp</span><input id="in-sheet" type="number" inputmode="decimal" min="-6" max="6" step="0.001" aria-describedby="src-sheet"></label><span class="s" id="src-sheet">UWM sheet at 7.25% · + = borrower pays</span></div>
+              <div class="inp"><label><span class="k">LLPAs pts</span><input id="in-llpa" type="number" inputmode="decimal" min="0" max="10" step="0.125" aria-describedby="src-llpa"></label><span class="s" id="src-llpa">Example · none on this file</span></div>
+              <div class="inp"><label><span class="k">MBS coupon %</span><input id="in-coupon" type="number" inputmode="decimal" min="0.5" max="20" step="0.5" aria-describedby="src-coupon"></label><span class="s" id="src-coupon">Market quote</span></div>
+              <div class="inp"><label><span class="k">MBS price</span><input id="in-price" type="number" inputmode="decimal" min="90" max="115" step="0.01" aria-describedby="src-price"></label><span class="s" id="src-price">Market quote</span></div>
+              <div class="inp"><label><span class="k">10-yr Treasury %</span><input id="in-tsy" type="number" inputmode="decimal" min="0.1" max="15" step="0.01" aria-describedby="src-tsy"></label><span class="s" id="src-tsy">Market, Nov 17, 2026</span></div>
+            </div>
+            <details class="after" id="after">
+              <summary>After lock: market move (optional)</summary>
+              <div class="grid">
+                <div class="inp"><label><span class="k">Coupon % after lock</span><input id="in-coupon2" type="number" inputmode="decimal" min="0.5" max="20" step="0.5" aria-describedby="src-coupon2"></label><span class="s" id="src-coupon2">Same as lock · type to move</span></div>
+                <div class="inp"><label><span class="k">MBS price after lock</span><input id="in-price2" type="number" inputmode="decimal" min="90" max="115" step="0.01" aria-describedby="src-price2"></label><span class="s" id="src-price2">Same as lock · type to move</span></div>
+              </div>
+              <p class="hint">Once the loan is locked, type where the coupon or price moved to. The borrower's price, the comp, and the servicing mark stay fixed, so the wholesaler's margin recalculates. Changing the note rate starts a new lock and clears the move.</p>
+            </details>
+          </details>
+
+          <details class="sec" open>
+            <summary>Comp, margin and servicing</summary>
+            <div class="grid">
+              <div class="inp"><label><span class="k">Broker comp pts</span><input id="in-comp" type="number" inputmode="decimal" min="0" max="5" step="0.125" aria-describedby="src-comp"></label><span class="s" id="src-comp">Source: UWM rate sheet</span></div>
+              <div class="inp"><label><span class="k">LO comp pts</span><input id="in-lo" type="number" inputmode="decimal" min="0" max="5" step="0.125" aria-describedby="src-lo"></label><span class="s" id="src-lo">Example</span></div>
+              <div class="inp"><label><span class="k">Wholesaler margin pts</span><input id="in-margin" type="number" inputmode="decimal" min="0" max="5" step="0.01" aria-describedby="src-margin"></label><span class="s" id="src-margin">Source: UWM Q2 2026 avg.</span></div>
+              <div class="inp"><label><span class="k">Servicing value pts</span><input id="in-msr" type="number" inputmode="decimal" min="0" max="8" step="0.001" aria-describedby="src-msr"></label><span class="s" id="src-msr">Solved from sheet price</span></div>
+              <div class="inp"><label><span class="k">Servicing strip %/yr</span><input id="in-svc" type="number" inputmode="decimal" min="0" max="2" step="0.125" aria-describedby="src-svc"></label><span class="s" id="src-svc">Example</span></div>
+              <div class="inp"><label><span class="k">Guarantee fee %/yr</span><input id="in-gfee" type="number" inputmode="decimal" min="0" max="2" step="0.05" aria-describedby="src-gfee"></label><span class="s" id="src-gfee">Example · Fannie base g-fee</span></div>
+            </div>
+          </details>
+
+          <details class="sec" open>
+            <summary>MSFG keeps: where the broker's share goes</summary>
+            <div class="grid">
+              <div class="inp"><label><span class="k">Fixed cost %</span><input id="in-fixed" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-fixed"></label><span class="s" id="src-fixed">Example · of MSFG keeps</span></div>
+              <div class="inp"><label><span class="k">Variable cost %</span><input id="in-variable" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-variable"></label><span class="s" id="src-variable">Example · of MSFG keeps</span></div>
+              <div class="inp"><label><span class="k">One-time expense %</span><input id="in-onetime" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-onetime"></label><span class="s" id="src-onetime">Example · of MSFG keeps</span></div>
+              <div class="inp"><label><span class="k">Profit %</span><input id="in-profit" type="number" inputmode="decimal" min="0" max="100" step="1" aria-describedby="src-profit"></label><span class="s" id="src-profit">Example · of MSFG keeps</span></div>
+            </div>
+          </details>
+
+          <p class="warn" id="warnings" hidden></p>
+          <p class="hint">One equation ties the front end together: borrower points = wholesaler margin + broker comp + LLPAs − MBS premium − servicing value. LLPAs are Fannie's upfront loan-level fees for the file's risk (credit score, LTV, occupancy, property type), passed straight through to the price. Enter the known values and pick the unknown under Solve for; the page locks that field (blue) and computes it. Points after comp is the borrower's price from the wholesaler's grid (positive = borrower pays, negative = credit). Changing the note rate picks the highest MBS coupon that fits under it and estimates that coupon's price from the 6.5% quote; edit the price if you have the real quote. Every figure and both charts update as you type. Yellow source text means a value differs from the sourced example.</p>
+        </form>
+
+        <section aria-labelledby="s1">
+          <h2 id="s1">At funding: the whole front end.</h2>
+          <div class="cards" id="pricing"></div>
+          <div class="cards" id="move" hidden></div>
+          <div class="chart-scroll"><svg id="chart1" role="group" aria-label="Sankey chart of one-time flows at funding"></svg></div>
+          <p class="swipe">Swipe sideways to see the full flow.</p>
+          <div class="info" id="info1" role="status" aria-live="polite">Hover or tap a ribbon to see how it's calculated.</div>
+          <p class="caption" id="cap1"></p>
+          <div class="notes" id="notes1"></div>
+          <div class="box">
+            <h3>Where the wholesaler's front-end revenue comes from</h3>
+            <div class="cards" id="rev"></div>
+            <p id="revline"></p>
+          </div>
+        </section>
+
+        <section aria-labelledby="s2">
+          <h2 id="s2">Every month: the borrower's payment.</h2>
+          <p class="subhead" id="sub2"></p>
+          <div class="chart-scroll"><svg id="chart2" role="group" aria-label="Sankey chart of the month-one principal and interest payment"></svg></div>
+          <p class="swipe">Swipe sideways to see the full flow.</p>
+          <div class="info" id="info2" role="status" aria-live="polite">Hover or tap a ribbon to see how it's calculated.</div>
+          <p class="caption" id="cap2"></p>
+          <div class="notes" id="notes2"></div>
+        </section>
+
+        <div class="boxes">
+          <div class="box">
+            <h3>Retained servicing: an asset, not extra cash</h3>
+            <div class="cards" id="msrcards"></div>
+            <p>Don't add the MSR value and future servicing income together; that counts the same money twice.</p>
+          </div>
+          <div class="box">
+            <h3>Risks to watch</h3>
+            <div class="cards">
+              <div class="card y"><span class="v">Rates rise: MBS prices fall, loans last longer</span></div>
+              <div class="card y"><span class="v">Early payoff / refi: premium and servicing income cut short</span></div>
+              <div class="card y"><span class="v">Pipeline risk: locks, hedges, funding costs, fallout</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wtmg-foot">Internal training illustration, not a rate quote or commitment to lend. "Wholesaler" is the wholesale lender that funds the loan; the example defaults come from UWM: sheet price at 7.25% from its rate sheet (base price −0.234%, borrower pays 2.016% after 2.25% lender-paid comp, no LLPAs), margin from its Q2 2026 reported average (133 bps), servicing book value from its Q4 2025 and Q1 2026 reports. MBS price from a FNMA 30Yr 6.5% screen quote (Nov 17, 2026); other coupons are estimated at 3.5 pts per 1% of coupon from that quote unless you enter one; Treasury 5.11% (Nov 17, 2026). The servicing value is backed out of the sheet price at the entered margin, not a quote. Edited values are yours, not market data. Mountain State Financial Group, LLC · NMLS# 1314257</div>
+      </div>
+    </div>
+  </div>
+</div>
