@@ -10,7 +10,7 @@
 (function() {
   'use strict';
   const W = MSFG.WtmgMath;
-  const pts = W.pts, pc = W.pc, estPrice = W.estPrice, ANCHOR = W.ANCHOR, AVG_MARGIN = W.AVG_MARGIN, DEFAULTS = W.DEFAULTS, S = W.SOURCES;
+  const pts = W.pts, pc = W.pc, multX = W.multX, estPrice = W.estPrice, ANCHOR = W.ANCHOR, AVG_MARGIN = W.AVG_MARGIN, DEFAULTS = W.DEFAULTS, S = W.SOURCES;
   const m0 = x => MSFG.formatCurrency(x, 0);
   const m2 = x => MSFG.formatCurrency(x, 2);
 
@@ -46,7 +46,7 @@
       return card(lock.margin < AVG_MARGIN - 0.005 ? 'y' : 'gr', 'Implied wholesaler margin', `vs. ${S.wholesaler}'s ${pts(S.margin.pts)}-pt ${S.margin.period} average · servicing held at ${pts(after.msrPts)} pts`, ptsU(lock.margin), lock.margin < AVG_MARGIN - 0.005 ? `The sheet is ${pts(AVG_MARGIN - lock.margin)} pts thinner than average at this rate.` : lock.margin > AVG_MARGIN + 0.005 ? `The sheet is ${pts(lock.margin - AVG_MARGIN)} pts richer than average at this rate.` : 'Right at the average.');
     }
     if (after.solvedMsr) {
-      return card(after.mult < 3 || after.mult > 5 ? 'y' : 'g', 'Implied servicing value', `${after.mult.toFixed(1)}× the ${pc(after.strip)} annual strip · ${m0(after.msr)}`, ptsU(after.msrPts), `Backed out of the sheet at a ${pts(lock.margin)}-pt margin; ${multWord(after.mult)}.`);
+      return card(after.mult < 3 || after.mult > 5 ? 'y' : 'g', 'Implied servicing value', `${multX(after.mult)} the ${pc(after.strip)} annual strip · ${m0(after.msr)}`, ptsU(after.msrPts), `Backed out of the sheet at a ${pts(lock.margin)}-pt margin; ${multWord(after.mult)}.`);
     }
     return card('', 'Gap: sheet vs. modeled execution', 'Sheet matches this execution', '0 pts', `The wholesaler earns its ${pts(lock.margin)}-pt margin at the entered servicing value.`);
   }
@@ -56,7 +56,7 @@
     return [
       card(after.borrowerPts < 0 ? 'b' : after.borrowerPts > 0 ? 'gr' : '', `Modeled borrower price at ${pc(after.rate)}`, after.borrowerPts === 0 ? 'No points, no credit' : after.borrowerPts < 0 ? `${m0(after.bpD)} in points at closing` : `${m0(after.crD)} lender credit toward closing costs`, priceWord(after.borrowerPts),
            `${pts(lock.premPts)} premium + ${pts(after.msrPts)} servicing − ${pts(lock.margin)} margin − ${pts(after.comp)} comp${after.llpa > 0 ? ` − ${pts(after.llpa)} LLPAs` : ''}`),
-      card('', `Wholesaler's rate sheet at ${pc(after.rate)}`, sheetWord(after), after.sheetPts === 0 ? 'Par' : priceWord(after.sheetPts), sheetSrc(after)),
+      card('', `Wholesaler's rate sheet at ${pc(after.rate)}`, after.llpa > 0 ? `${sheetWord(after)} before LLPAs · ${priceWord(after.sheetPts - after.llpa)} with ${ptsU(after.llpa)} of LLPAs` : sheetWord(after), after.sheetPts === 0 ? 'Par' : priceWord(after.sheetPts), sheetSrc(after)),
       tile3(r)
     ];
   }
@@ -86,7 +86,7 @@
     else if (gapAbs >= 0.005) n2 = after.gap > 0
       ? `The wholesaler's actual sheet prices this rate at ${sw}, ${ptsU(after.gap)} (${m0(gapD)}) better for the borrower than this execution. To still hit its ${pts(lock.margin)}-pt margin it would have to value servicing at ${pts(after.impliedMsr)} pts. At the ${pts(after.msrPts)}-pt mark it earns ${pts(after.impliedMargin)} pts on this loan${after.impliedMargin < 0 ? ', a loss' : ''}. What fills a gap like this: specified-pool pay-ups, g-fee buy-downs, hedge results, the wholesaler's own servicing marks, or pricing to win volume.`
       : `The wholesaler's actual sheet prices this rate at ${sw}, ${ptsU(gapAbs)} (${m0(gapD)}) worse for the borrower than this execution, so it earns about ${pts(after.impliedMargin)} pts on this loan, above its ${pts(lock.margin)}-pt target.`;
-    else if (after.solvedMsr) n2 = `Reading the sheet backwards: at ${sw} and a ${pts(lock.margin)}-pt margin, the wholesaler must be valuing the servicing on this loan at ${pts(after.msrPts)} pts, ${after.mult.toFixed(1)}× the ${pc(after.strip)} strip${after.excess > 0 ? ` (${pc(after.svc)} base plus ${pc(after.excess)} excess because the ${pc(after.rate)} note sits above the ${pc(lock.coupon)} coupon + ${pc(after.floor)})` : ''}. That is ${multWord(after.mult)}.${r.priceEst ? ` The ${pc(lock.coupon)} coupon price is estimated from the ${pts(S.mbs.coupon)}% quote; a real quote changes this split between premium and servicing, not the borrower's price.` : ''}`;
+    else if (after.solvedMsr) n2 = `Reading the sheet backwards: at ${sw} and a ${pts(lock.margin)}-pt margin, the wholesaler must be valuing the servicing on this loan at ${pts(after.msrPts)} pts, ${multX(after.mult)} the ${pc(after.strip)} strip${after.excess > 0 ? ` (${pc(after.svc)} base plus ${pc(after.excess)} excess because the ${pc(after.rate)} note sits above the ${pc(lock.coupon)} coupon + ${pc(after.floor)})` : ''}. That is ${multWord(after.mult)}.${r.priceEst ? ` The ${pc(lock.coupon)} coupon price is estimated from the ${pts(S.mbs.coupon)}% quote; a real quote changes this split between premium and servicing, not the borrower's price.` : ''}`;
     else if (after.solvedMargin) {
       const d = lock.margin - S.margin.pts;
       const vs = Math.abs(d) < 0.005 ? 'right at' : d > 0 ? `${pts(d)} pts richer than` : `${pts(-d)} pts thinner than`;
@@ -106,7 +106,7 @@
       : `The wholesaler keeps nothing on this loan${after.margin < 0 ? ' and funds a loss' : ''}, so there is nothing to split.`);
     if (r.moved) {
       const delta = after.margin - lock.margin;
-      notes.splice(2, 0, `Market move after lock: the execution went from ${pc(lock.coupon)} @ ${lock.price.toFixed(2)} to ${pc(after.coupon)} @ ${after.price.toFixed(2)}, ${delta >= 0 ? 'a gain' : 'a drop'} of ${ptsU(Math.abs(delta))} (${m0(Math.abs(after.P * delta / 100))}). The borrower's price (${sw}) and MSFG's ${pts(after.comp)}-pt comp were locked and the servicing mark is held at ${pts(after.msrPts)} pts, so the wholesaler's margin goes from ${pts(lock.margin)} to ${pts(after.margin)} pts${after.margin < 0 ? `, a ${m0(after.lossD)} loss the chart shows as the wholesaler's own capital flowing in` : ''}. This is why wholesalers hedge locked pipelines with TBA sales: the hedge gains what the loan loses. It cuts both ways; ${S.wholesaler}'s ${S.margin.period} results carried a ${S.hedgeLoss} hedge loss.`);
+      notes.splice(2, 0, `Market move after lock: the execution went from ${pc(lock.coupon)} @ ${lock.price.toFixed(2)} to ${pc(after.coupon)} @ ${after.price.toFixed(2)}, ${delta >= 0 ? 'a gain' : 'a drop'} of ${ptsU(Math.abs(delta))} (${m0(Math.abs(after.P * delta / 100))}). The borrower's price (${sw}) and MSFG's ${pts(after.comp)}-pt comp were locked and the servicing mark is held at ${pts(after.msrPts)} pts, so the wholesaler's margin goes from ${pts(lock.margin)} to ${pts(after.margin)} pts${after.margin < 0 ? `, a ${m0(after.lossD)} loss the chart shows as the wholesaler's own capital flowing in` : ''}. This is why wholesalers hedge locked pipelines with TBA sales: the hedge gains what the loan loses. It cuts both ways; ${S.wholesaler}'s ${S.hedgeLossPeriod} results carried a ${S.hedgeLoss} hedge loss.`);
     }
     return notes;
   }
@@ -139,7 +139,7 @@
     return [
       card('', 'Servicing strip', `${pc(after.svc)}/yr${after.excess > 0 ? ` + ${pc(after.excess)} excess` : ''}`),
       card('', 'Gross servicing income', `${m2(after.servicer)}/mo, before costs`),
-      card('', 'MSR value', `${m0(after.msr)} (${ptsU(after.msrPts)}) · ${after.solvedMsr ? 'solved from the sheet' : after.msrFromMult ? `set at ${after.msrMult}× the base strip${after.excess > 0 ? ` + ${after.excessMult}× the excess` : ''}` : 'your mark'}${after.msrFromMult ? '' : ` · ${after.mult.toFixed(1)}× the strip`}`)
+      card('', 'MSR value', `${m0(after.msr)} (${ptsU(after.msrPts)}) · ${after.solvedMsr ? 'solved from the sheet' : after.msrFromMult ? `set at ${after.msrMult}× the base strip${after.excess > 0 ? ` + ${after.excessMult}× the excess` : ''}` : 'your mark'}${after.msrFromMult ? '' : ` · ${multX(after.mult)} the strip`}`)
     ];
   };
 
@@ -188,9 +188,66 @@
     const rows = calc.breakdown.map(b => ({ name: b.name, pts: pts(b.points), reason: b.reason || '' }));
     const foot = rows.length
       ? `Total ${ptsU(L.llpa)} = ${m0(L.llpaD)} on this loan, charged to the wholesaler at delivery and passed into the borrower's price. Fannie Mae LLPA Matrix effective ${version}.`
-      : `No adjustments: a score of 780 or more at 75% LTV or less on a primary purchase has no LLPA on the ${version} matrix. Change the score, property value or flags to see the grid.`;
+      : `No adjustments for this loan on the ${version} matrix. Change the score, property value or flags to see LLPAs appear.`;
     return { head, rows, foot, total, caption };
   };
 
-  MSFG.WtmgCopy = { ptsU, priceWord, multWord, sheetWord, sheetSrc, result, pricingTiles, moveTiles, notes1, revenue, sub2, notes2, msrCards, llpaPanel, feeCards, feeNote };
+  // Sticky summary strip: the handful of figures an LO watches while changing inputs. Same descriptor shape as cards.
+  const summary = r => {
+    const a = r.after, M = r.monthly, b = a.borrowerPts;
+    const borrower = b < 0 ? card('b', 'Borrower pays', `${m0(a.bpD)} at closing`, ptsU(-b))
+      : b > 0 ? card('gr', 'Borrower gets', `${m0(a.crD)} credit to costs`, ptsU(b))
+      : card('', 'Borrower price', 'no points, no credit', 'Par');
+    return [
+      borrower,
+      card('', 'Monthly P&I', M.annualD > 0 ? `+ ${m2(M.annualD)} ${a.prog.annualLabel || 'fee'}` : `at ${pc(a.rate)}`, m2(M.pmt)),
+      card('gr', 'LO earns', `${ptsU(a.lo)} of the ${ptsU(a.comp)} comp`, m0(a.loD)),
+      card('gr', 'MSFG keeps', 'before expenses, not profit', m0(a.mkD)),
+      a.lossD > 0
+        ? card('y', 'Wholesaler loses', `${ptsU(a.lossPts)} after the market move`, m0(a.lossD))
+        : card('gr', 'Wholesaler keeps', `${ptsU(a.margin)} margin`, m0(a.keep))
+    ];
+  };
+
+  // What the Solve-for choice means, in an LO's words. Shown under the select, and on its own in Simple view.
+  const solveHelp = (r, s) => {
+    if (s.govSolve) return `There's no ${r.lock.prog.label} rate sheet on file, so the borrower's points come from the margin, comp, MBS price and servicing.`;
+    if (s.solve === 'msr' && r.lock.msrFromMult) return 'Servicing is set by the multiple, so this works out what the wholesaler keeps instead.';
+    return {
+      margin: 'You enter the rate sheet points; this works out what the wholesaler keeps.',
+      msr: 'You enter the rate sheet points and the margin; this works out what servicing must be worth.',
+      comp: 'You enter the rate sheet points and the margin; this works out the comp the price can pay.',
+      price: 'You enter the rate sheet points and the margin; this works out the MBS price the wholesaler needs.',
+      sheet: "No sheet entered; the borrower's points come from the margin, comp, MBS price and servicing.",
+      none: 'Nothing is solved; this shows the gap between your sheet points and the model.'
+    }[s.solve] || '';
+  };
+
+  // One-line, plain-English help for each input, written for a loan officer in training. Keyed by field id.
+  const fieldHelp = {
+    program: 'Who backs the loan. Conventional loans go to Fannie or Freddie and carry LLPAs; FHA, VA and USDA go into Ginnie Mae bonds and carry their own insurance fees instead.',
+    loan: 'The base loan amount, before any financed upfront fee like FHA\'s UFMIP or the VA funding fee.',
+    propertyValue: 'Purchase price or appraised value, whichever is lower. Together with the loan amount it sets the LTV, which drives LLPAs and mortgage insurance.',
+    creditScore: 'The score used for pricing. Lower scores add LLPAs, which the borrower pays on top of the rate sheet points.',
+    rate: 'The borrower\'s interest rate. A higher rate makes the loan worth more to investors, so the borrower pays fewer points or gets a credit.',
+    sheet: 'What the wholesaler\'s rate sheet shows at this rate with your comp built in, before LLPAs. Positive means the borrower pays points; negative means a lender credit.',
+    coupon: 'The rate on the mortgage bond this loan gets pooled into. It sits below the note rate; the difference pays the guarantee fee and the servicer.',
+    price: 'What investors pay for $100 of that bond. Above 100 is a premium the wholesaler collects when it sells the loan; below 100 is a discount it absorbs.',
+    tsy: 'The 10-year Treasury yield, the "risk-free" benchmark. Mortgage bonds pay more than this to cover rate and early-payoff risk.',
+    coupon2: 'Where the bond coupon moved after the borrower locked. The borrower\'s price stays put; the wholesaler gains or loses.',
+    price2: 'Where the bond price moved after the borrower locked. The borrower\'s price stays put; the wholesaler gains or loses.',
+    comp: 'What the wholesaler pays MSFG for the loan, in points of the loan amount. It\'s built into the rate, not charged to the borrower as a fee.',
+    lo: 'The loan officer\'s share of the broker comp. MSFG keeps the rest to run the business.',
+    margin: 'What the wholesaler keeps after paying comp and pricing the borrower. It\'s gross revenue: costs and hedging still come out of it.',
+    msr: 'What the right to service the loan (collect the payments for a yearly fee) is worth to the wholesaler today. Booked as an asset, not cash at closing.',
+    msrMult: 'How servicing is valued: a multiple of the yearly servicing fee. 4× means collecting 0.25% a year is worth 1 point today.',
+    excessMult: 'Rate above what the bond and fees need becomes extra servicing. It gets a lower multiple because those loans tend to refinance sooner.',
+    llpaMode: 'Price LLPAs from Fannie\'s grid using the borrower details, or type your own number.',
+    llpa: 'Loan-level price adjustments: Fannie\'s upfront risk fee for things like score, LTV, condo or investment property. The borrower pays them as extra points.',
+    svc: 'The servicer\'s yearly fee, set by the agency. It comes out of the borrower\'s interest every month.',
+    gfee: 'The agency\'s yearly fee for guaranteeing the bond. It comes out of the borrower\'s interest every month.',
+    pmi: 'Monthly mortgage insurance above 80% LTV. It goes to a private insurer, outside the rate, and none of it reaches the wholesaler.'
+  };
+
+  MSFG.WtmgCopy = { ptsU, priceWord, multWord, sheetWord, sheetSrc, result, pricingTiles, moveTiles, notes1, revenue, sub2, notes2, msrCards, llpaPanel, feeCards, feeNote, summary, solveHelp, fieldHelp };
 })();

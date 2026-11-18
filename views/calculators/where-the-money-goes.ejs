@@ -19,19 +19,25 @@
 
         <form class="inputs-wrap" id="inputs" aria-label="Loan inputs" autocomplete="off">
           <div class="topbar">
+            <div class="view" id="viewToggle" role="group" aria-label="How much detail to show">
+              <button type="button" class="seg" data-view="simple" aria-pressed="true">Simple</button>
+              <button type="button" class="seg" data-view="full" aria-pressed="false">Full</button>
+            </div>
             <div class="program" data-fields="program"></div>
             <div class="solve">
-              <label for="in-solve">Solve for</label>
-              <select id="in-solve" aria-describedby="src-solve"><option value="margin">Wholesaler margin</option><option value="msr">Servicing value</option><option value="comp">Broker comp</option><option value="price">MBS price</option><option value="sheet">Borrower points</option><option value="none">Nothing, show gap</option></select>
-              <span class="s" id="src-solve">So modeled price = sheet</span>
+              <label class="full-only" for="in-solve">Solve for</label>
+              <select class="full-only" id="in-solve" aria-describedby="src-solve"><option value="margin">What the wholesaler keeps</option><option value="msr">What servicing is worth</option><option value="comp">Comp the price can pay</option><option value="price">MBS price needed</option><option value="sheet">Borrower points (no sheet)</option><option value="none">Nothing, show the gap</option></select>
+              <span class="s" id="src-solve"></span>
             </div>
-            <div class="resultchip"><span class="k">Borrower price</span><span class="v" id="in-result"></span></div>
             <button type="button" class="btn" id="reset">Reset to example</button>
           </div>
+          <div class="summary cards" id="summary" role="region" aria-label="Results for this loan"></div>
+          <p class="warn" id="warnings" hidden></p>
 
           <%# Input cells are rendered from FIELD_DEFS in where-the-money-goes.js; each grid lists its field ids in order. %>
           <details class="sec" open>
-            <summary>Loan, borrower and market</summary>
+            <summary>Loan and borrower<span class="full-only"> · market</span></summary>
+            <p class="hint simple-only">Start with the loan, the borrower's score and the rate sheet points you'd quote. Tap <strong>?</strong> beside any field for a plain-English explanation, or switch to <strong>Full</strong> to see the market and the wholesaler's side.</p>
             <div class="grid" data-fields="loan propertyValue creditScore rate sheet coupon price tsy"></div>
             <div class="llpa-row" id="llpaRow">
               <div class="grid" data-fields="llpaMode llpa"></div>
@@ -39,14 +45,14 @@
             </div>
             <div class="llpa" id="llpaPanel" aria-live="polite"></div>
             <p class="hint llpa-na" id="llpaNa" hidden>FHA, VA and USDA loans carry no Fannie Mae loan-level price adjustments. Their risk pricing is the program's upfront and annual fee, shown under Assumptions and in both charts.</p>
-            <details class="after" id="after">
+            <details class="after full-only" id="after">
               <summary>After lock: market move (optional)</summary>
               <div class="grid" data-fields="coupon2 price2"></div>
               <p class="hint">Once the loan is locked, type where the coupon or price moved to. The borrower's price, the comp, and the servicing mark stay fixed, so the wholesaler's margin recalculates. Changing the note rate starts a new lock and clears the move.</p>
             </details>
           </details>
 
-          <details class="sec" open>
+          <details class="sec full-only" open>
             <summary>Wholesaler: margin and servicing</summary>
             <div class="grid" data-fields="margin msr msrMult excessMult"></div>
           </details>
@@ -78,8 +84,6 @@
               <p class="hint">Illustrative shares. No wholesaler publishes a per-loan cost structure; turn this on to show that the margin is gross, not profit, and edit the shares for the discussion.</p>
             </details>
           </details>
-
-          <p class="warn" id="warnings" hidden></p>
 
           <%# LLPA popout: the Fannie base grid plus the borrower and property inputs that feed it. Outside the sections so a collapsed section cannot hide it. %>
           <dialog class="llpa-dialog" id="llpaDialog" aria-labelledby="llpaDialogTitle">

@@ -59,17 +59,17 @@ describe('defaults match the UWM sheet at 7.25%', () => {
     assert.strictEqual(L.crD, 0);
   });
 
-  it('solves servicing value to 0.874 pts, 2.9× the 0.30% strip (0.25 base + 0.05 excess at the 0.45 g-fee)', () => {
+  it('solves servicing value to 0.784 pts, 2.6× the 0.30% strip (0.25 base + 0.05 excess at the 0.45 g-fee)', () => {
     assert.ok(L.solvedMsr);
-    assert.strictEqual(pts3(L.msrPts), 0.874);
-    near(L.msr, 4370, 0.5);
+    assert.strictEqual(pts3(L.msrPts), 0.784);
+    near(L.msr, 3920, 0.5);
     near(L.strip, 0.30, 1e-9);
-    near(L.mult, 2.913, 0.005);
+    near(L.mult, 2.613, 0.005);
   });
 
-  it('wholesaler takes in $517,900 and keeps its 1.33-pt margin', () => {
-    near(L.uwmIn, 517900, 0.5);
-    near(L.keep, 6650, 0.5);
+  it('wholesaler takes in $517,450 and keeps its 1.24-pt margin', () => {
+    near(L.uwmIn, 517450, 0.5);
+    near(L.keep, 6200, 0.5);
     assert.strictEqual(L.lossD, 0);
     assertBothBalanced(r);
     assertAfterEqualsLock(r);
@@ -116,7 +116,7 @@ describe('the SOURCES block drives the example defaults', () => {
     const S = M.SOURCES;
     const implied = -S.sheet.afterComp - (S.mbs.price - 100) + S.margin.pts + S.sheet.comp;
     assert.strictEqual(M.DEFAULTS.msr, Math.round(implied * 1000) / 1000);
-    assert.strictEqual(M.DEFAULTS.msr, 0.874);
+    assert.strictEqual(M.DEFAULTS.msr, 0.784);
   });
 });
 
@@ -160,11 +160,11 @@ describe('7.00% at 2.326 pts (the UWM 7% row) into a 6.0 coupon', () => {
   const r = run({ rate: 7.0, sheet: 2.326, coupon: 6.0, price: M.estPrice(6.0) });
   const L = r.lock;
 
-  it('solves servicing to 2.314 pts on a 0.55% strip (0.30 excess)', () => {
-    assert.strictEqual(pts3(L.msrPts), 2.314);
+  it('solves servicing to 2.224 pts on a 0.55% strip (0.30 excess)', () => {
+    assert.strictEqual(pts3(L.msrPts), 2.224);
     assert.strictEqual(pts3(L.excess), 0.3);
     assert.strictEqual(pts3(r.monthly.excess), 0.3);
-    near(L.mult, 4.21, 0.05);
+    near(L.mult, 4.04, 0.05);
   });
 
   it('draws the below-par coupon as a discount and still balances', () => {
@@ -176,8 +176,8 @@ describe('7.00% at 2.326 pts (the UWM 7% row) into a 6.0 coupon', () => {
 });
 
 describe('each solve mode inverts the identity', () => {
-  it('sheet mode: borrower price falls out of the other four (par at a 2.89 mark)', () => {
-    const r = run({ solve: 'sheet', msr: 2.89 });
+  it('sheet mode: borrower price falls out of the other four (par at a 2.8 mark)', () => {
+    const r = run({ solve: 'sheet', msr: 2.8 });
     assert.ok(r.lock.solvedSheet);
     assert.strictEqual(r.lock.borrowerPts, 0);
     assert.strictEqual(r.lock.bpD, 0);
@@ -195,21 +195,21 @@ describe('each solve mode inverts the identity', () => {
     assertBothBalanced(b);
   });
 
-  it('comp mode: a 1.0 servicing mark supports 2.376 pts of comp', () => {
+  it('comp mode: a 1.0 servicing mark supports 2.466 pts of comp', () => {
     const r = run({ solve: 'comp', msr: 1.0 });
     assert.ok(r.lock.solvedComp);
-    assert.strictEqual(pts3(r.lock.comp), 2.376);
-    near(r.lock.compD, 11880, 0.5);
+    assert.strictEqual(pts3(r.lock.comp), 2.466);
+    near(r.lock.compD, 12330, 0.5);
     assertBothBalanced(r);
   });
 
-  it('price mode: 1.25 servicing needs 100.314; 3.0 servicing needs a 98.564 discount', () => {
+  it('price mode: 1.25 servicing needs 100.224; 3.0 servicing needs a 98.474 discount', () => {
     const a = run({ solve: 'price', msr: 1.25 });
     assert.ok(a.lock.solvedPrice);
-    assert.strictEqual(pts3(a.lock.price), 100.314);
+    assert.strictEqual(pts3(a.lock.price), 100.224);
     assert.strictEqual(a.lock.disc, 0);
     const b = run({ solve: 'price', msr: 3.0 });
-    assert.strictEqual(pts3(b.lock.price), 98.564);
+    assert.strictEqual(pts3(b.lock.price), 98.474);
     assert.ok(b.lock.disc > 0);
     assertBothBalanced(a);
     assertBothBalanced(b);
@@ -219,9 +219,9 @@ describe('each solve mode inverts the identity', () => {
     const r = run({ solve: 'none', msr: 1.25 });
     const L = r.lock;
     assert.ok(!L.solvedMsr && !L.solvedMargin && !L.solvedComp && !L.solvedPrice && !L.solvedSheet);
-    assert.strictEqual(pts3(L.borrowerPts), -1.64);
-    assert.strictEqual(pts3(L.gap), -0.376);
-    assert.strictEqual(pts3(L.impliedMsr), 0.874);
+    assert.strictEqual(pts3(L.borrowerPts), -1.55);
+    assert.strictEqual(pts3(L.gap), -0.466);
+    assert.strictEqual(pts3(L.impliedMsr), 0.784);
     assertBothBalanced(r);
   });
 });
@@ -236,15 +236,15 @@ describe('LLPAs from the Fannie matrix', () => {
     near(r.lock.llpaCalc.grossLTV, 71.43, 0.01);
   });
 
-  it('a 680 score at 95% LTV picks up the grid cell and shifts the borrower price by it', () => {
+  it('a 680 score at 95% LTV picks up the grid cell and the borrower pays it on top of the sheet', () => {
     const r = run({ creditScore: 680, propertyValue: 526316 });
     const direct = U.LLPA.calcLLPAs({ loanAmount: 500000, propertyValue: 526316, creditScore: 680, termYears: 30, purpose: 'Purchase', productType: 'Fixed', occupancy: 'Primary', units: '1' });
     assert.ok(direct.totalPoints > 0);
     assert.strictEqual(r.lock.llpa, direct.totalPoints);
     near(r.lock.llpaD, 500000 * direct.totalPoints / 100, 0.01);
-    // In servicing-solve mode the sheet price is held, so the solved servicing value absorbs the LLPA.
-    assert.strictEqual(pts3(r.lock.borrowerPts), -2.016);
-    assert.strictEqual(pts3(r.lock.msrPts), pts3(0.874 + direct.totalPoints));
+    // The sheet is quoted before LLPAs: the borrower pays the LLPA on top, and the solved servicing value is unchanged.
+    assert.strictEqual(pts3(r.lock.borrowerPts), pts3(-2.016 - direct.totalPoints));
+    assert.strictEqual(pts3(r.lock.msrPts), 0.784);
     assertBothBalanced(r);
   });
 
@@ -266,18 +266,18 @@ describe('LLPAs from the Fannie matrix', () => {
 describe('credits, LLPAs and clamps', () => {
   it('a rich sheet at 7.75% produces a lender credit', () => {
     const r = run({ rate: 7.75, sheet: -1.5, coupon: 7.0, price: M.estPrice(7.0) });
-    assert.strictEqual(pts3(r.lock.msrPts), 2.64);
+    assert.strictEqual(pts3(r.lock.msrPts), 2.55);
     assert.strictEqual(pts3(r.lock.borrowerPts), 1.5);
     near(r.lock.crD, 7500, 0.5);
     assert.strictEqual(r.lock.bpD, 0);
     assertBothBalanced(r);
   });
 
-  it('LLPAs are a cost the solved servicing value has to cover', () => {
+  it('LLPAs are charged to the borrower on top of the sheet, not taken out of servicing or margin', () => {
     const r = run({ llpaMode: 'manual', llpa: 0.75 });
     near(r.lock.llpaD, 3750, 0.5);
-    assert.strictEqual(pts3(r.lock.msrPts), 1.624);
-    assert.strictEqual(pts3(r.lock.borrowerPts), -2.016);
+    assert.strictEqual(pts3(r.lock.msrPts), 0.784);
+    assert.strictEqual(pts3(r.lock.borrowerPts), -2.766);
     assertBothBalanced(r);
   });
 
@@ -430,10 +430,10 @@ describe('the page as it opens: margin solved at a 4× servicing mark', () => {
     assertBothBalanced(r);
   });
 
-  it('the 1.33 average stays as the comparison figure, not the default margin', () => {
-    assert.strictEqual(M.AVG_MARGIN, 1.33);
-    assert.strictEqual(M.DEFAULTS.margin, 1.33); // used only when the margin is typed in another solve mode
-    near(runDefault({ solve: 'msr', msrMult: null }).lock.margin, 1.33, 1e-9);
+  it('the 1.24 average stays as the comparison figure, not the default margin', () => {
+    assert.strictEqual(M.AVG_MARGIN, 1.24);
+    assert.strictEqual(M.DEFAULTS.margin, 1.24); // used only when the margin is typed in another solve mode
+    near(runDefault({ solve: 'msr', msrMult: null }).lock.margin, 1.24, 1e-9);
   });
 });
 
@@ -472,7 +472,7 @@ describe('servicing value from a multiple of the strip', () => {
   it('in another solve mode the multiples replace the typed mark', () => {
     const r = run({ solve: 'comp', msrMult: 5, msr: 0.1 });
     near(r.lock.msrPts, 1.375, 1e-9); assert.ok(r.lock.solvedComp); // 5 × 0.25 + 2.5 × 0.05
-    near(r.lock.comp, 0.69 + 1.375 - 1.33 + 2.016, 1e-9); // 2.751 pts
+    near(r.lock.comp, 0.69 + 1.375 - 1.24 + 2.016, 1e-9); // 2.841 pts
   });
 });
 
@@ -484,12 +484,12 @@ describe('optional wholesaler split', () => {
     sameList(r.after.wsplitShow, []);
   });
 
-  it('splits the $6,650 keep by the five shares into whole dollars that sum to the keep', () => {
+  it('splits the $6,200 keep by the five shares into whole dollars that sum to the keep', () => {
     const r = run({ wsplit: true });
-    near(r.after.keep, 6650, 0.01);
+    near(r.after.keep, 6200, 0.01);
     sameList(r.lock.wshares, [30, 30, 5, 15, 20]);
-    r.after.wsplitD.forEach((d, i) => near(d, 6650 * r.lock.wshares[i] / 100, 0.01, 'share ' + i));
-    assert.strictEqual(Array.from(r.after.wsplitShow).reduce((a, b) => a + b, 0), 6650);
+    r.after.wsplitD.forEach((d, i) => near(d, 6200 * r.lock.wshares[i] / 100, 0.01, 'share ' + i));
+    assert.strictEqual(Array.from(r.after.wsplitShow).reduce((a, b) => a + b, 0), 6200);
     r.after.wsplitShow.forEach(x => assert.strictEqual(x, Math.round(x)));
     assert.strictEqual(r.warnings.length, 0);
   });
@@ -513,34 +513,34 @@ describe('optional wholesaler split', () => {
 });
 
 describe('after-lock market move: the margin absorbs it', () => {
-  it('a 0.75-pt drop takes the margin from 1.33 to 0.58 and leaves the lock untouched', () => {
+  it('a 0.75-pt drop takes the margin from 1.24 to 0.49 and leaves the lock untouched', () => {
     const r = run({ price2: 99.94 });
     assert.ok(r.moved);
-    assert.strictEqual(pts3(r.lock.margin), 1.33);
+    assert.strictEqual(pts3(r.lock.margin), 1.24);
     assert.strictEqual(r.lock.price, 100.69);
-    assert.strictEqual(pts3(r.after.margin), 0.58);
+    assert.strictEqual(pts3(r.after.margin), 0.49);
     assert.strictEqual(r.after.price, 99.94);
-    near(r.after.keep, 2900, 0.5);
+    near(r.after.keep, 2450, 0.5);
     assert.strictEqual(pts3(r.after.borrowerPts), -2.016, 'borrower price is locked');
-    assert.strictEqual(pts3(r.after.msrPts), 0.874, 'servicing mark is held');
-    assert.strictEqual(pts3(r.after.impliedMargin), 1.33, 'implied margin is measured at lock');
+    assert.strictEqual(pts3(r.after.msrPts), 0.784, 'servicing mark is held');
+    assert.strictEqual(pts3(r.after.impliedMargin), 1.24, 'implied margin is measured at lock');
     assertBothBalanced(r);
   });
 
   it('a 1.79-pt drop turns into a loss the wholesaler funds', () => {
     const r = run({ price2: 98.9 });
-    assert.strictEqual(pts3(r.after.margin), -0.46);
+    assert.strictEqual(pts3(r.after.margin), -0.55);
     assert.strictEqual(r.after.keep, 0);
-    near(r.after.lossD, 2300, 0.5);
+    near(r.after.lossD, 2750, 0.5);
     near(r.after.uwmIn, 511250, 0.5);
     assert.strictEqual(r.lock.lossD, 0);
     assertBothBalanced(r);
   });
 
-  it('a 0.81-pt rise lifts the margin to 2.14', () => {
+  it('a 0.81-pt rise lifts the margin to 2.05', () => {
     const r = run({ price2: 101.5 });
-    assert.strictEqual(pts3(r.after.margin), 2.14);
-    near(r.after.keep, 10700, 0.5);
+    assert.strictEqual(pts3(r.after.margin), 2.05);
+    near(r.after.keep, 10250, 0.5);
     assertBothBalanced(r);
   });
 

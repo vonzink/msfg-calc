@@ -25,8 +25,10 @@
     asOfLong: 'November 17, 2026',
     wholesaler: 'UWM',
     sheet: { rate: 7.25, basePrice: -0.234, afterComp: 2.016, comp: 2.25 }, // UWM rate sheet, 7.25% row, lender-paid comp, no LLPAs
-    margin: { pts: 1.33, bps: 133, period: 'Q2 2026' },                     // UWM reported total gain margin
-    hedgeLoss: '$603 million',                                               // UWM Q2 2026 results
+    margin: { pts: 1.24, bps: 124, period: 'Q3 2026' },                     // UWM reported total gain margin, Q3 2026 results (Nov 4, 2026)
+    hedgeLoss: '$603 million', hedgeLossPeriod: 'Q2 2026',                   // UWM Q2 2026 results; keep its own period so a margin refresh doesn't relabel it
+    // FHFA conforming loan limits, one unit, contiguous US. 2027 values are announced in late November; update then.
+    loanLimits: { year: 2026, baseline: 832750, ceiling: 1249125 },
     servicingBook: { low: 1.7, high: 2.1, wac: 5.90 },                       // UWM MSR fair value, % of UPB, Q4 2025 / Q1 2026; portfolio WAC
     mbs: { coupon: 6.5, price: 100.69 },                                     // FNMA 30Yr 6.5% screen quote
     treasury: 5.11,                                                          // 10-yr Treasury yield
@@ -58,7 +60,7 @@
     comp:SOURCES.sheet.comp, lo:1.125, margin:SOURCES.margin.pts,
     // The servicing value the sheet implies at the average margin: sheet − premium + margin + comp (no LLPAs).
     msr:round3(-SOURCES.sheet.afterComp - (SOURCES.mbs.price - 100) + SOURCES.margin.pts + SOURCES.sheet.comp),
-    // Default view: servicing marked at 4× the strip and the wholesaler's margin solved from the sheet; the 1.33 average stays as the comparison.
+    // Default view: servicing marked at 4× the strip and the wholesaler's margin solved from the sheet; the reported average stays as the comparison.
     program:'conv', msrMult:4, excessMult:SOURCES.excessMult, svc:0.25, gfee:SOURCES.gfee, financeUpfront:true, vaSubsequentUse:false, vaExempt:false, pmi:SOURCES.programs.pmi.annual, llpa:0, fixed:30, variable:50, onetime:10, profit:10, coupon2:null, price2:null,
     // Borrower and property, for the Fannie LLPA matrix. The example file is clean (780+, 71% LTV purchase,
     // primary, no flags), which is why the UWM sheet showed no adjustments.
@@ -106,6 +108,9 @@
   const pts = x => { const s = (Math.round(x * 1000) / 1000).toString(); return s === '-0' ? '0' : s.replace('-', '−'); };
   // Percent with 2 decimals, or 3 when the value needs them (0.375% not 0.38%). Formatting itself is the house utility.
   const pc = (x, d = 2) => NS.formatPercent(x, Math.abs(x * 100 - Math.round(x * 100)) > 1e-6 && d === 2 ? 3 : d);
+  // Servicing multiple for display: one decimal when that's exact (4.0×), two when it isn't (3.75×).
+  const multX = x => { const r = Math.round(x * 100) / 100; return (Math.abs(r * 10 - Math.round(r * 10)) < 1e-9 ? r.toFixed(1) : r.toFixed(2)) + '×'; };
+  const m0w = x => NS.formatCurrency(x, 0); // whole dollars, house utility (for warning text)
   // Whole-dollar split that still sums to the total (largest remainder).
   const splitDollars = (total, shares) => { const raw = shares.map(s => total * s); const fl = raw.map(Math.floor); let rem = Math.round(total) - fl.reduce((a, b) => a + b, 0); raw.map((r, i) => [r - fl[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rem > 0) { fl[i]++; rem--; } }); return fl; };
   const autoCoupon = (rate, svc, gfee) => Math.max(0.5, Math.floor((rate - gfee - svc) / 0.5 + 1e-9) * 0.5);
@@ -150,6 +155,10 @@
         warnings.push('The LLPA matrix is not loaded; using the typed LLPA value.');
       }
     }
+    // Conforming limits: Fannie pricing only applies up to the county limit, and above the baseline only as high balance.
+    const LIM = SOURCES.loanLimits;
+    if (!prog.gov && P > LIM.ceiling) warnings.push(`${m0w(P)} is above the ${LIM.year} high-cost ceiling of ${m0w(LIM.ceiling)}: this would be a jumbo loan, and Fannie pricing doesn't apply.`);
+    else if (!prog.gov && P > LIM.baseline && !s.isHighBalance) warnings.push(`${m0w(P)} is above the ${LIM.year} baseline conforming limit of ${m0w(LIM.baseline)}. In a high-cost county, check "High balance" to add that LLPA; otherwise this is a jumbo loan.`);
     if (rate < coupon + floor) { coupon = autoCoupon(rate, svc, gfee); warnings.push(`The note rate must cover the coupon plus ${pc(floor)} (${prog.feeWord} + servicing strip). Coupon shown as ${pc(coupon)}; enter that coupon's price if you have it.`); }
     if (tsy >= coupon) { tsy = coupon - 0.25; warnings.push(`The Treasury yield has to sit below the MBS coupon. Shown as ${pc(tsy)}.`); }
     // Servicing value from multiples of the strip: the base strip at the servicing multiple, and the excess strip (note
@@ -173,19 +182,23 @@
 
     let premPts = price - 100;
     let sheetPts = -s.sheet; // internal convention: positive = credit to the borrower
+    // The sheet price is the wholesaler's base price before LLPAs. LLPAs go on top of it, point for point, so the
+    // borrower's all-in price at the sheet is sheet − LLPAs (in credit terms). Solving against the all-in price keeps
+    // LLPAs out of the margin, comp, servicing and MBS price: they pass straight through to the borrower.
+    const sheetAllIn = sheetPts - llpa;
     let solvedMsr = false, solvedMargin = false, solvedComp = false, solvedPrice = false, solvedSheet = false;
     const msrIn = msrPts;
     if (mode === 'msr') {
-      msrPts = sheetPts - premPts + margin + comp + llpa; solvedMsr = true;
-      if (msrPts < 0) { msrPts = 0; margin = premPts - comp - llpa - sheetPts; solvedMargin = true; warnings.push(`Even with zero servicing value, the sheet price is richer than this execution supports at a ${pts(s.margin)}-pt margin; the wholesaler's margin is solved instead.`); }
+      msrPts = sheetAllIn - premPts + margin + comp + llpa; solvedMsr = true;
+      if (msrPts < 0) { msrPts = 0; margin = premPts - comp - llpa - sheetAllIn; solvedMargin = true; warnings.push(`Even with zero servicing value, the sheet price is richer than this execution supports at a ${pts(s.margin)}-pt margin; the wholesaler's margin is solved instead.`); }
     } else if (mode === 'margin') {
-      margin = premPts + msrPts - comp - llpa - sheetPts; solvedMargin = true;
-      if (margin < 0) { margin = 0; msrPts = sheetPts - premPts + comp + llpa; solvedMsr = true; warnings.push(`At a ${pts(msrIn)}-pt servicing value the sheet price leaves the wholesaler a loss; margin is shown as 0 and the servicing value is solved instead.`); }
+      margin = premPts + msrPts - comp - llpa - sheetAllIn; solvedMargin = true;
+      if (margin < 0) { margin = 0; msrPts = sheetAllIn - premPts + comp + llpa; solvedMsr = true; warnings.push(`At a ${pts(msrIn)}-pt servicing value the sheet price leaves the wholesaler a loss; margin is shown as 0 and the servicing value is solved instead.`); }
     } else if (mode === 'comp') {
-      comp = premPts + msrPts - margin - llpa - sheetPts; solvedComp = true;
+      comp = premPts + msrPts - margin - llpa - sheetAllIn; solvedComp = true;
       if (comp < 0) { comp = 0; warnings.push('At these inputs there is nothing left for broker comp: the borrower price, margin, LLPAs and execution use up more than the loan is worth. Comp is shown as 0 and the gap is shown.'); }
     } else if (mode === 'price') {
-      premPts = sheetPts - msrPts + margin + comp + llpa; price = Math.round((100 + premPts) * 1000) / 1000; solvedPrice = true;
+      premPts = sheetAllIn - msrPts + margin + comp + llpa; price = Math.round((100 + premPts) * 1000) / 1000; solvedPrice = true;
     } else if (mode === 'sheet') {
       solvedSheet = true; // borrower price falls out of the other four; the sheet field mirrors it
     }
@@ -194,13 +207,14 @@
 
     let borrowerPts = premPts + msrPts - margin - comp - llpa;
     if (Math.abs(borrowerPts) < 0.0005) borrowerPts = 0;
-    if (solvedSheet) sheetPts = borrowerPts;
+    // Solving for the borrower's price: the sheet field mirrors the pre-LLPA price that would produce it.
+    if (solvedSheet) { sheetPts = borrowerPts + llpa; if (Math.abs(sheetPts) < 0.0005) sheetPts = 0; }
 
     return {warnings, P, base, ltv, upfrontPct: fees.upfrontPct, upfrontWhy: fees.upfrontWhy, upfrontD, financed, upCashD, annualPct: fees.annualPct,
             rate, tsy, lo, comp, svc, gfee, program, prog, strip, msrFromMult, msrMult, excessMult, msrBasePts, msrExcessPts, llpa, llpaCalc, llpaMode: s.llpaMode,
             creditScore: s.creditScore, propertyValue: s.propertyValue, purpose: s.purpose, occupancy: s.occupancy, units: s.units,
             floor, mode, shares, wsplit, wshares, coupon, price, premPts, msrPts, margin, sheetPts,
-            sheetCost: solvedSheet ? (borrowerPts === 0 ? 0 : -borrowerPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
+            sheetCost: solvedSheet ? (sheetPts === 0 ? 0 : -sheetPts) : s.sheet, solvedMsr, solvedMargin, solvedComp, solvedPrice, solvedSheet};
   }
 
   // ---------- layer 2: the market moves after the lock ----------
@@ -232,7 +246,8 @@
     const P = lock.P;
     const prem = P * exec.premPts / 100, disc = Math.max(0, -prem), proceeds = P + prem;
     const excess = excessOf(lock.rate, exec.coupon, lock.floor), strip = lock.svc + excess;
-    const msr = P * lock.msrPts / 100, mult = strip > 0 ? lock.msrPts / strip : 0;
+    // Rounded so float dust (1.125 / 0.30000000000000004 = 3.7499…) doesn't display as 3.7× instead of 3.75×.
+    const msr = P * lock.msrPts / 100, mult = strip > 0 ? Math.round(lock.msrPts / strip * 1e4) / 1e4 : 0;
     const compD = P * lock.comp / 100, loD = P * lock.lo / 100, mkD = compD - loD, llpaD = P * lock.llpa / 100;
     const lossPts = Math.max(0, -exec.margin), keep = P * Math.max(0, exec.margin) / 100, lossD = P * lossPts / 100;
     const splitD = lock.shares.map(x => mkD * x / 100), splitShow = splitDollars(mkD, lock.shares.map(x => x / 100));
@@ -247,7 +262,7 @@
     const uwmIn = proceeds + bpD + msr + lossD + lock.upCashD;
     const uwmOut = compD + llpaD + P + crD + keep + lock.upCashD;
     const rev = Math.max(0, prem) + bpD + msr;
-    const gap = lock.sheetPts - borrowerPts;           // positive: the sheet is better for the borrower than this execution
+    const gap = (lock.sheetPts - lock.llpa) - borrowerPts; // all-in sheet vs. model; positive: the sheet is better for the borrower
     const impliedMsr = lock.msrPts + gap;              // servicing value needed to hit the lock margin at the sheet price
     const impliedMargin = lock.margin - gap;           // margin earned at the sheet price with the entered servicing value
     const servicer = P * strip / 100 / 12;
@@ -280,5 +295,5 @@
     return {lock, after, moved: move.moved, monthly: monthly(after), warnings: lockSolve.warnings.concat(move.warnings), mode: lockSolve.mode};
   }
 
-  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT, WSPLIT, PROGRAMS, VA_FUNDING_FEE, programFees };
+  NS.WtmgMath = { compute, solveLock, applyMove, frontEnd, monthly, autoCoupon, estPrice, splitDollars, pts, pc, multX, SOURCES, DEFAULTS, ANCHOR, RATE_SHARE, AVG_MARGIN, SPLIT, WSPLIT, PROGRAMS, VA_FUNDING_FEE, programFees };
 })();

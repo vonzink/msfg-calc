@@ -56,22 +56,22 @@ describe('small words', () => {
 
   it('result chip', () => {
     assert.strictEqual(C.result(run()), 'Pays 2.016 pts');
-    assert.strictEqual(C.result(run({ solve: 'sheet', msr: 2.89 })), 'Par');
+    assert.strictEqual(C.result(run({ solve: 'sheet', msr: 2.8 })), 'Par');
     assert.strictEqual(C.result(run({ rate: 7.75, sheet: -1.5, coupon: 7.0, price: M.estPrice(7.0) })), 'Credit 1.5 pts');
   });
 });
 
 describe('the page as it opens', () => {
-  it('solved-margin note reads the 4× mark against the 1.33 average', () => {
+  it('solved-margin note reads the 4× mark against the 1.24 average', () => {
     const n = C.notes1(runDefault());
     assert.strictEqual(n.length, 4);
-    has(n[1], 'a 2.25-pt comp and a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.581 pts on this loan, 0.251 pts richer than UWM\'s reported Q2 2026 average of 1.33.');
+    has(n[1], 'a 2.25-pt comp and a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.581 pts on this loan, 0.341 pts richer than UWM\'s reported Q3 2026 average of 1.24.');
     has(n[1], 'Change the multiple');
-    has(C.notes1(runDefault({ msrMult: 3 }))[1], 'a 3× servicing mark (0.875 pts: 3× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.331 pts on this loan, right at UWM');
+    has(C.notes1(runDefault({ msrMult: 3 }))[1], 'a 3× servicing mark (0.875 pts: 3× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.331 pts on this loan, 0.091 pts richer than UWM');
     has(C.notes1(runDefault({ rate: 7.75, coupon: 7, price: M.estPrice(7) }))[1], 'a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess)'); // 7.0 coupon, same 0.05 excess
     const noExcess = C.notes1(runDefault({ rate: 7.2 }))[1]; // 7.20 − 6.5 − 0.70 = 0 excess
     has(noExcess, 'a 4× servicing mark (1 pts: 4× the 0.25% base strip)'); lacks(noExcess, 'excess');
-    has(C.notes1(runDefault({ msrMult: null, msr: 0.5 }))[1], 'servicing worth 0.5 pts, the wholesaler earns 0.956 pts on this loan, 0.374 pts thinner than');
+    has(C.notes1(runDefault({ msrMult: null, msr: 0.5 }))[1], 'servicing worth 0.5 pts, the wholesaler earns 0.956 pts on this loan, 0.284 pts thinner than');
     lacks(C.notes1(runDefault({ msrMult: null, msr: 0.5 }))[1], 'Change the multiple');
   });
 
@@ -89,12 +89,12 @@ describe('pricing tiles', () => {
     const [t1, t2, t3] = C.pricingTiles(run());
     assert.strictEqual(t1.big, 'pays 2.016 pts');
     assert.strictEqual(t1.cls, 'b');
-    has(t1.f, '0.874 servicing');
+    has(t1.f, '0.784 servicing');
     lacks(t1.f, 'LLPAs');
     assert.strictEqual(t2.big, 'pays 2.016 pts');
     has(t2.f, 'Source: UWM sheet');
     assert.strictEqual(t3.k, 'Implied servicing value');
-    has(t3.f, 'below the usual'); // 0.874 / 0.30 strip = 2.9×
+    has(t3.f, 'below the usual'); // 0.784 / 0.30 strip = 2.6×
   });
 
   it('LLPAs appear in the identity line only when present', () => {
@@ -102,28 +102,28 @@ describe('pricing tiles', () => {
   });
 
   it('gap tile says better or worse by the sign of the gap', () => {
-    // At a 1.25 mark the model would charge 1.64 pts; the sheet charges 2.016, so the sheet is worse for the borrower.
+    // At a 1.25 mark the model would charge 1.55 pts; the sheet charges 2.016, so the sheet is worse for the borrower.
     const worse = C.pricingTiles(run({ solve: 'none', msr: 1.25 }))[2];
-    assert.strictEqual(worse.big, '0.376 pts worse');
-    has(worse.f, 'above its 1.33-pt target');
-    // At a 0.5 mark the model would charge 2.39 pts; the sheet's 2.016 is better for the borrower.
+    assert.strictEqual(worse.big, '0.466 pts worse');
+    has(worse.f, 'above its 1.24-pt target');
+    // At a 0.5 mark the model would charge 2.3 pts; the sheet's 2.016 is better for the borrower.
     const better = C.pricingTiles(run({ solve: 'none', msr: 0.5 }))[2];
-    assert.strictEqual(better.big, '0.374 pts better');
+    assert.strictEqual(better.big, '0.284 pts better');
     has(better.f, 'needs servicing worth');
   });
 
   it('each solve mode gets its own third tile', () => {
     assert.strictEqual(C.pricingTiles(run({ solve: 'comp', msr: 1.0 }))[2].k, 'Implied broker comp');
     has(C.pricingTiles(run({ solve: 'price', msr: 1.25 }))[2].k, 'Implied MBS price');
-    const sheet = C.pricingTiles(run({ solve: 'sheet', msr: 2.89 }))[2];
+    const sheet = C.pricingTiles(run({ solve: 'sheet', msr: 2.8 }))[2];
     assert.strictEqual(sheet.k, 'Borrower points, solved');
     assert.strictEqual(sheet.big, 'par');
     has(sheet.v, 'no points, no credit');
   });
 
-  it('implied margin tile compares with the 1.33 average', () => {
+  it('implied margin tile compares with the 1.24 average', () => {
     has(C.pricingTiles(run({ solve: 'margin', msr: 0.5 }))[2].f, 'thinner than average');
-    assert.strictEqual(C.pricingTiles(run({ solve: 'margin', msr: 0.874 }))[2].f, 'Right at the average.');
+    assert.strictEqual(C.pricingTiles(run({ solve: 'margin', msr: 0.784 }))[2].f, 'Right at the average.');
     has(C.pricingTiles(run({ solve: 'margin', msr: 1.25 }))[2].f, 'richer than average');
   });
 
@@ -143,7 +143,7 @@ describe('market move tiles and note', () => {
   it('a drop is signed negative and read as a drop', () => {
     const r = run({ price2: 99.94 });
     const [, after, change] = C.moveTiles(r);
-    assert.strictEqual(after.big, '0.58 pts margin');
+    assert.strictEqual(after.big, '0.49 pts margin');
     assert.strictEqual(change.big, '−0.75 pts');
     has(change.f, 'hedged pipeline');
     const notes = C.notes1(r);
@@ -164,7 +164,7 @@ describe('market move tiles and note', () => {
     const [, after, change] = C.moveTiles(r);
     assert.strictEqual(after.cls, 'y');
     has(after.big, '· a loss');
-    has(change.f, 'funds $2,300 from its own capital');
+    has(change.f, 'funds $2,750 from its own capital');
     has(C.notes1(r)[2], 'loss the chart shows');
   });
 });
@@ -173,7 +173,7 @@ describe('notes', () => {
   it('first note ends on the borrower outcome', () => {
     has(C.notes1(run())[0], 'they pay $10,080 in points at closing.');
     has(C.notes1(run({ rate: 7.75, sheet: -1.5, coupon: 7.0, price: M.estPrice(7.0) }))[0], 'they get a $7,500 lender credit');
-    has(C.notes1(run({ solve: 'sheet', msr: 2.89 }))[0], 'par, no points and no credit.');
+    has(C.notes1(run({ solve: 'sheet', msr: 2.8 }))[0], 'par, no points and no credit.');
   });
 
   it('second note follows the solve mode', () => {
@@ -182,8 +182,8 @@ describe('notes', () => {
     has(C.notes1(run({ solve: 'margin', msr: 0.5 }))[1], 'earns 0.956 pts');
     has(C.notes1(run({ solve: 'none', msr: 1.25 }))[1], 'worse for the borrower');
     has(C.notes1(run({ solve: 'none', msr: 0.5 }))[1], 'better for the borrower');
-    has(C.notes1(run({ solve: 'sheet', msr: 2.89 }, true))[1], '(estimated from the 6.5% quote)');
-    lacks(C.notes1(run({ solve: 'sheet', msr: 2.89 }, false))[1], 'estimated from');
+    has(C.notes1(run({ solve: 'sheet', msr: 2.8 }, true))[1], '(estimated from the 6.5% quote)');
+    lacks(C.notes1(run({ solve: 'sheet', msr: 2.8 }, false))[1], 'estimated from');
   });
 
   it('levers note mentions credits only when there is one', () => {
@@ -200,8 +200,8 @@ describe('notes', () => {
     assert.strictEqual(C.notes1(run()).length, 4);
     const on = C.notes1(run({ wsplit: true }));
     assert.strictEqual(on.length, 5);
-    has(on[4], "The wholesaler's $6,650 is also gross, not profit");
-    has(on[4], 'leaving $1,330 of profit (0.266 pts of the loan)');
+    has(on[4], "The wholesaler's $6,200 is also gross, not profit");
+    has(on[4], 'leaving $1,240 of profit (0.248 pts of the loan)');
     has(C.notes1(run({ wsplit: true, price2: 98.9 }))[5], 'funds a loss, so there is nothing to split');
   });
 
@@ -299,6 +299,6 @@ describe('revenue, chart-2 copy and servicing cards', () => {
     assert.strictEqual(r7[0].v, '0.25%/yr + 0.30% excess');
     has(C.msrCards(run({ solve: 'none' }))[2].v, 'your mark');
     has(C.msrCards(run({ msrMult: 4 }))[2].v, 'set at 4× the base strip + 2.5× the excess');
-    has(C.notes1(run({ msrMult: 4 }))[1], 'a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.581 pts on this loan, 0.251 pts richer than');
+    has(C.notes1(run({ msrMult: 4 }))[1], 'a 4× servicing mark (1.125 pts: 4× the 0.25% base strip + 2.5× the 0.05% excess), the wholesaler earns 1.581 pts on this loan, 0.341 pts richer than');
   });
 });
